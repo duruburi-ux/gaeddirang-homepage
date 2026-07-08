@@ -99,19 +99,6 @@ header { position: fixed; top: 0; width: 100%; z-index: 100000; padding: 15px 5v
 .header-cta { padding: 7px 14px; font-size: 12px; }
 }
 
-/* [모바일 타이포그래피 보정] 큰 제목이 좁은 화면에서 한두 글자씩 줄바꿈되는 문제 방지 */
-@media (max-width: 600px) {
-.hero-h1 { font-size: 30px; }
-.sec-h2 { font-size: 24px; }
-.pub-h2 { font-size: 28px; }
-.pub-cta-title { font-size: 22px; }
-.f-title { font-size: 22px; }
-}
-@media (max-width: 400px) {
-.hero-h1 { font-size: 26px; }
-.sec-h2 { font-size: 21px; }
-}
-
 /* [CONTENT] */
 .content-area { padding-top: 80px; min-height: 100vh; }
 #page-publisher { display: none; }
@@ -147,6 +134,13 @@ header { position: fixed; top: 0; width: 100%; z-index: 100000; padding: 15px 5v
 
 /* [HERO] */
 .sec-hero { padding: 120px 5vw 100px; background: linear-gradient(180deg, var(--paper) 0%, #FFF8E1 100%); display: flex; align-items: center; justify-content: space-between; border-bottom-left-radius: 60px; border-bottom-right-radius: 60px; }
+
+@media (max-width: 800px) {
+.sec-hero { flex-direction: column; padding: 110px 6vw 60px; text-align: center; gap: 30px; }
+.hero-text { max-width: 100%; }
+.hero-visual { width: 100%; height: auto; }
+.book-3d { width: 180px; height: 250px; }
+}
 .hero-text { max-width: 50%; z-index: 2; }
 .hero-badge { display: inline-block; background: #fff; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; color: var(--brown); border: 1px solid var(--brown); margin-bottom: 24px; }
 .hero-h1 { font-size: 56px; line-height: 1.2; margin-bottom: 24px; color: var(--brown); font-family: 'Gowun Batang'; word-break: keep-all; }
@@ -994,6 +988,19 @@ background: rgba(0, 0, 0, 0.5);
 .pc-book{border-color:#4F8BC9 !important; background:#E3F1FB !important;}
 .pc-write{border-color:#5DB46A !important; background:#E7F5E8 !important;}
 .pc-essay{border-color:#373737 !important; background:#EFEFF0 !important;}
+
+/* [모바일 타이포그래피 보정] 큰 제목이 좁은 화면에서 한두 글자씩 줄바꿈되는 문제 방지 */
+@media (max-width: 600px) {
+.hero-h1 { font-size: 30px; }
+.sec-h2 { font-size: 24px; }
+.pub-h2 { font-size: 28px; }
+.pub-cta-title { font-size: 22px; }
+.f-title { font-size: 22px; }
+}
+@media (max-width: 400px) {
+.hero-h1 { font-size: 26px; }
+.sec-h2 { font-size: 21px; }
+}
 </style>
 
 <style>
