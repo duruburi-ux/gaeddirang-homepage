@@ -1380,11 +1380,23 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 <h2 class="em-title">프로그램 신청하기</h2>
 <p class="em-subtitle" id="apProgramName">프로그램명</p>
 <input type="text" class="em-nickname" id="apName" placeholder="이름">
-<input type="text" class="em-nickname" id="apContact" placeholder="연락처 (전화번호 또는 인스타 아이디)">
-<textarea class="em-textarea" id="apMessage" placeholder="하고 싶은 말이나 궁금한 점이 있다면 남겨주세요 (선택)"></textarea>
+<input type="text" class="em-nickname" id="apContact" placeholder="연락처 (전화번호)">
+<input type="email" class="em-nickname" id="apEmail" placeholder="이메일">
+<select class="em-nickname" id="apParticipants">
+<option value="1인">참여 인원: 1인</option>
+<option value="2인">참여 인원: 2인</option>
+<option value="기타">참여 인원: 기타(메시지에 적어주세요)</option>
+</select>
+<textarea class="em-textarea" id="apMessage" placeholder="신청 동기나 이 프로그램에서 기대하는 점을 자유롭게 적어주세요"></textarea>
 <div class="em-consent-row">
 <label><input type="checkbox" id="apConsent"> 개인정보 수집·이용에 동의합니다 (필수)</label>
 <span class="em-consent-link" onclick="openOverlaySafe('privacyModal')">자세히 보기</span>
+</div>
+<div class="em-consent-row">
+<label><input type="checkbox" id="apPhotoConsent"> 현장 기록·촬영에 동의합니다 (필수)</label>
+</div>
+<div class="em-consent-row">
+<label><input type="checkbox" id="apRefundConfirm"> 환불 규정을 확인했습니다 (필수)</label>
 </div>
 <button class="em-submit-btn" id="apSubmitBtn" onclick="submitApplication()">신청하기</button>
 </div>
@@ -1890,8 +1902,12 @@ document.getElementById('apForm').classList.remove('hidden');
 document.getElementById('apResult').classList.remove('active');
 document.getElementById('apName').value = '';
 document.getElementById('apContact').value = '';
+document.getElementById('apEmail').value = '';
+document.getElementById('apParticipants').selectedIndex = 0;
 document.getElementById('apMessage').value = '';
 document.getElementById('apConsent').checked = false;
+document.getElementById('apPhotoConsent').checked = false;
+document.getElementById('apRefundConfirm').checked = false;
 closeOverlay('programModal');
 document.getElementById('applyModal').classList.add('active');
 }
@@ -1899,15 +1915,21 @@ document.getElementById('applyModal').classList.add('active');
 async function submitApplication() {
 const applicant_name = document.getElementById('apName').value.trim();
 const contact = document.getElementById('apContact').value.trim();
+const email = document.getElementById('apEmail').value.trim();
+const participant_count = document.getElementById('apParticipants').value;
 const message = document.getElementById('apMessage').value.trim();
-if(!applicant_name || !contact) { alert('이름과 연락처를 입력해주세요!'); return; }
+if(!applicant_name || !contact || !email) { alert('이름, 연락처, 이메일을 입력해주세요!'); return; }
+if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('이메일 형식을 확인해주세요!'); return; }
 if(!document.getElementById('apConsent').checked) { alert('개인정보 수집·이용에 동의해주세요!'); return; }
+if(!document.getElementById('apPhotoConsent').checked) { alert('현장 기록·촬영 동의가 필요해요!'); return; }
+if(!document.getElementById('apRefundConfirm').checked) { alert('환불 규정 확인이 필요해요!'); return; }
 
 const btn = document.getElementById('apSubmitBtn');
 btn.disabled = true; btn.textContent = '접수 중...';
 
 const { error } = await supabaseClient.from('applications').insert({
-program_name: currentApplyProgram, applicant_name, contact, message
+program_name: currentApplyProgram, applicant_name, contact, email, participant_count, message,
+photo_consent: true, refund_confirmed: true
 });
 
 btn.disabled = false; btn.textContent = '신청하기';
