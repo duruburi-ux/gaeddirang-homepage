@@ -1320,7 +1320,28 @@ Copyright © 2022 Gaeddirang. All rights reserved.
 </div>
 </div>
 
-<button class="pm-apply-btn" onclick="location.href='https://www.instagram.com/gaeddirangverse'">신청하러 가기 🚀</button>
+<button class="pm-apply-btn" onclick="openApplyForm()">신청하러 가기 🚀</button>
+</div>
+</div>
+
+<div class="overlay-bg" id="applyModal">
+<div class="em-wrapper">
+<span class="em-close" onclick="closeOverlay('applyModal')">✕</span>
+
+<div class="em-form" id="apForm">
+<h2 class="em-title">프로그램 신청하기</h2>
+<p class="em-subtitle" id="apProgramName">프로그램명</p>
+<input type="text" class="em-nickname" id="apName" placeholder="이름">
+<input type="text" class="em-nickname" id="apContact" placeholder="연락처 (전화번호 또는 인스타 아이디)">
+<textarea class="em-textarea" id="apMessage" placeholder="하고 싶은 말이나 궁금한 점이 있다면 남겨주세요 (선택)"></textarea>
+<button class="em-submit-btn" id="apSubmitBtn" onclick="submitApplication()">신청하기</button>
+</div>
+
+<div class="em-result" id="apResult">
+<div class="em-thanks-icon">🙌</div>
+<p class="em-thanks-msg">신청이 접수됐어요!<br>빠른 시일 내에 연락드릴게요.</p>
+</div>
+
 </div>
 </div>
 
@@ -1787,6 +1808,42 @@ const escapeHtml = (str) => String(str).replace(/[&<>"']/g, (c) => ({'&':'&amp;'
 feed.innerHTML = data.map(r =>
 `<div class="em-feed-item"><span class="em-feed-nick">${escapeHtml(r.nickname || '익명')}</span>${escapeHtml(r.content)}</div>`
 ).join('');
+}
+
+/* [★ 프로그램 신청] */
+let currentApplyProgram = '';
+
+function openApplyForm() {
+currentApplyProgram = document.getElementById('pmTitle').innerText;
+document.getElementById('apProgramName').innerText = currentApplyProgram;
+document.getElementById('apForm').classList.remove('hidden');
+document.getElementById('apResult').classList.remove('active');
+document.getElementById('apName').value = '';
+document.getElementById('apContact').value = '';
+document.getElementById('apMessage').value = '';
+closeOverlay('programModal');
+document.getElementById('applyModal').classList.add('active');
+}
+
+async function submitApplication() {
+const applicant_name = document.getElementById('apName').value.trim();
+const contact = document.getElementById('apContact').value.trim();
+const message = document.getElementById('apMessage').value.trim();
+if(!applicant_name || !contact) { alert('이름과 연락처를 입력해주세요!'); return; }
+
+const btn = document.getElementById('apSubmitBtn');
+btn.disabled = true; btn.textContent = '접수 중...';
+
+const { error } = await supabaseClient.from('applications').insert({
+program_name: currentApplyProgram, applicant_name, contact, message
+});
+
+btn.disabled = false; btn.textContent = '신청하기';
+
+if(error) { alert('접수에 실패했어요. 잠시 후 다시 시도해주세요.'); console.error(error); return; }
+
+document.getElementById('apForm').classList.add('hidden');
+document.getElementById('apResult').classList.add('active');
 }
 
 function performSearch() {
