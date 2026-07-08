@@ -1123,7 +1123,7 @@ background: rgba(0, 0, 0, 0.5);
 </section>
 
 <section class="sec-notice-search">
-<div class="search-wrapper" id="searchWrapper"><div class="search-box"><input type="text" class="search-input" id="searchInput" placeholder="어떤 이야기를 찾으시나요? (예: 빵, 다솜, 감정)" autocomplete="off" oninput="liveSearch()" onkeydown="if(event.key==='Enter'){event.preventDefault();performSearch();} if(event.key==='Escape'){closeSearchResults();}"><button class="search-btn" onclick="performSearch()">검색</button></div><div class="search-results" id="searchResults"></div></div>
+<div class="search-wrapper" id="searchWrapper"><div class="search-box"><input type="text" class="search-input" id="searchInput" placeholder="어떤 이야기를 찾으시나요? (예: 빵, 다솜, 감정)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search" enterkeyhint="search" oninput="liveSearch()" onkeydown="if(event.key==='Enter'){event.preventDefault();performSearch();} if(event.key==='Escape'){closeSearchResults();}"><button class="search-btn" onclick="performSearch()">검색</button></div><div class="search-results" id="searchResults"></div></div>
 <div class="notice-board">
 <div class="nb-col" data-label="공지사항">
 <div class="nb-header"><span class="nb-title">📢 공지사항</span></div>
