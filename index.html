@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>개띠랑 유니버스 | 기록실</title>
+<meta name="description" content="개띠랑 유니버스 기록실 — 감정을 기록하고 나누는 책과 카드, 워크숍 프로그램을 만나보세요. 개띠랑, 이다솜, 두루가 함께하는 기록 메이트 프로젝트.">
+<link rel="icon" type="image/png" href="assets/images/brand/gd-universe-logomark.png">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="개띠랑 유니버스 | 기록실">
+<meta property="og:description" content="감정을 기록하고 나누는 책과 카드, 워크숍 프로그램을 만나보세요.">
+<meta property="og:image" content="https://gaeddirang.com/assets/images/brand/gd-universe-logo.png">
+<meta property="og:url" content="https://gaeddirang.com/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="개띠랑 유니버스 | 기록실">
+<meta name="twitter:description" content="감정을 기록하고 나누는 책과 카드, 워크숍 프로그램을 만나보세요.">
+<meta name="twitter:image" content="https://gaeddirang.com/assets/images/brand/gd-universe-logo.png">
 
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gaegu&family=Black+Han+Sans&family=Do+Hyeon&family=Jua&display=swap" rel="stylesheet">
@@ -831,6 +843,13 @@ cursor: pointer;
 .em-feed-nick { font-weight: 800; color: var(--brown); margin-right: 6px; }
 .em-feed-empty { font-size: 13px; color: #aaa; padding: 10px 0; }
 
+.em-consent-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #666; margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
+.em-consent-row label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.em-consent-link { text-decoration: underline; cursor: pointer; color: var(--accent); font-weight: 700; white-space: nowrap; }
+.em-privacy-text { text-align: left; font-size: 13.5px; color: #555; line-height: 1.7; max-height: 55vh; overflow-y: auto; }
+.em-privacy-text h4 { font-size: 15px; color: var(--brown); margin: 16px 0 6px; }
+.em-privacy-text h4:first-child { margin-top: 0; }
+
 @keyframes scrollReview { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 @keyframes scrollFair { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 @keyframes slideIn { from{transform:translateY(100%);} to{transform:translateY(0);} }
@@ -1211,7 +1230,7 @@ background: rgba(0, 0, 0, 0.5);
 <div class="footer-info">
 대표 : 이진이 | 사업자등록번호 : 663-05-02444<br>
 이메일 : gaeddirang085@naver.com<br>
-Copyright © 2022 Gaeddirang. All rights reserved.
+Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cursor:pointer; text-decoration:underline;" onclick="openOverlaySafe('privacyModal')">개인정보처리방침</span>
 </div>
 </div>
 <div class="footer-right">
@@ -1334,6 +1353,10 @@ Copyright © 2022 Gaeddirang. All rights reserved.
 <input type="text" class="em-nickname" id="apName" placeholder="이름">
 <input type="text" class="em-nickname" id="apContact" placeholder="연락처 (전화번호 또는 인스타 아이디)">
 <textarea class="em-textarea" id="apMessage" placeholder="하고 싶은 말이나 궁금한 점이 있다면 남겨주세요 (선택)"></textarea>
+<div class="em-consent-row">
+<label><input type="checkbox" id="apConsent"> 개인정보 수집·이용에 동의합니다 (필수)</label>
+<span class="em-consent-link" onclick="openOverlaySafe('privacyModal')">자세히 보기</span>
+</div>
 <button class="em-submit-btn" id="apSubmitBtn" onclick="submitApplication()">신청하기</button>
 </div>
 
@@ -1342,6 +1365,25 @@ Copyright © 2022 Gaeddirang. All rights reserved.
 <p class="em-thanks-msg">신청이 접수됐어요!<br>빠른 시일 내에 연락드릴게요.</p>
 </div>
 
+</div>
+</div>
+
+<div class="overlay-bg" id="privacyModal">
+<div class="em-wrapper">
+<span class="em-close" onclick="closeOverlay('privacyModal')">✕</span>
+<h2 class="em-title" style="font-size:22px;">개인정보 수집·이용 안내</h2>
+<div class="em-privacy-text">
+<h4>1. 수집 항목</h4>
+<p>이름, 연락처, 신청/문의 내용</p>
+<h4>2. 수집 목적</h4>
+<p>프로그램 신청 접수 및 안내, 문의 응대</p>
+<h4>3. 보유 및 이용 기간</h4>
+<p>신청 접수일로부터 1년간 보관 후 파기합니다. 단, 관계 법령에 따라 보존이 필요한 경우 해당 기간 동안 보관합니다.</p>
+<h4>4. 동의 거부 권리</h4>
+<p>이용자는 개인정보 수집·이용에 동의하지 않을 권리가 있습니다. 다만 동의하지 않으실 경우 프로그램 신청 접수가 제한될 수 있습니다.</p>
+<h4>문의</h4>
+<p>gaeddirang085@naver.com</p>
+</div>
 </div>
 </div>
 
@@ -1354,6 +1396,7 @@ Copyright © 2022 Gaeddirang. All rights reserved.
 <p class="em-subtitle">오늘 당신의 마음은 어땠나요? 짧게라도 괜찮아요 :)</p>
 <textarea class="em-textarea" id="emContent" placeholder="예) 괜히 마음이 붕 떠서 아무것도 손에 안 잡히는 하루였어요"></textarea>
 <input type="text" class="em-nickname" id="emNickname" placeholder="닉네임 (선택, 비워두면 '익명'으로 남아요)">
+<p style="font-size:12px; color:#aaa; margin:-10px 0 20px;">※ 남기신 기록은 닉네임과 함께 홈페이지에 공개적으로 노출돼요.</p>
 <button class="em-submit-btn" id="emSubmitBtn" onclick="submitEmotionRecord()">기록하기</button>
 </div>
 
@@ -1758,6 +1801,10 @@ document.body.classList.remove('author-modal-open');
 }
 }
 
+function openOverlaySafe(id) {
+document.getElementById(id).classList.add('active');
+}
+
 /* [★ 오늘의 감정 기록] */
 const SUPABASE_URL = 'https://zrmljsyxeozcnfqmyumw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybWxqc3l4ZW96Y25mcW15dW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzkwNTAsImV4cCI6MjA5OTA1NTA1MH0.G31yEksYsiR43t2pWPwTdCrpBHcxLkZ4mYSvk5urZxQ';
@@ -1821,6 +1868,7 @@ document.getElementById('apResult').classList.remove('active');
 document.getElementById('apName').value = '';
 document.getElementById('apContact').value = '';
 document.getElementById('apMessage').value = '';
+document.getElementById('apConsent').checked = false;
 closeOverlay('programModal');
 document.getElementById('applyModal').classList.add('active');
 }
@@ -1830,6 +1878,7 @@ const applicant_name = document.getElementById('apName').value.trim();
 const contact = document.getElementById('apContact').value.trim();
 const message = document.getElementById('apMessage').value.trim();
 if(!applicant_name || !contact) { alert('이름과 연락처를 입력해주세요!'); return; }
+if(!document.getElementById('apConsent').checked) { alert('개인정보 수집·이용에 동의해주세요!'); return; }
 
 const btn = document.getElementById('apSubmitBtn');
 btn.disabled = true; btn.textContent = '접수 중...';
