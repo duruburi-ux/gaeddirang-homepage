@@ -447,7 +447,6 @@ will-change: transform;
 }
 .sec-program .prog-card { width: var(--pcw); height: 450px; border-radius: 20px; border: 8px solid var(--brown); background: #fff; color: #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 10px 10px 0 rgba(0,0,0,0.1); transition: 0.3s; cursor: pointer; position: relative; }
 .prog-card:hover { transform: translateY(-15px) rotate(2deg); box-shadow: 15px 15px 0 rgba(0,0,0,0.15); }
-.pc-emotion { border-color: #F26D4F; background: #FFF3E0; } .pc-write { border-color: #5AB367; background: #E8F5E9; } .pc-book { border-color: #4B89C8; background: #E3F2FD; }
 .pc-header { padding: 15px; border-bottom: 4px solid rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 14px; letter-spacing: 1px; }
 .pc-img-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #fff; margin: 15px; border: 4px solid rgba(0,0,0,0.1); border-radius: 10px; overflow:hidden; font-size:60px; }
 .pc-img { width:100%; height:100%; object-fit:cover; }
@@ -994,11 +993,6 @@ background: rgba(0, 0, 0, 0.5);
 .author-nav-fixed.right { right: 10px; }
 }
 
-/* 프로그램 카드 컬러(스크린샷 기준) */
-.pc-emotion{border-color:#F16F53 !important; background:#FDF1DF !important;}
-.pc-book{border-color:#4F8BC9 !important; background:#E3F1FB !important;}
-.pc-write{border-color:#5DB46A !important; background:#E7F5E8 !important;}
-.pc-essay{border-color:#373737 !important; background:#EFEFF0 !important;}
 
 /* [모바일 타이포그래피 보정] 큰 제목이 좁은 화면에서 한두 글자씩 줄바꿈되는 문제 방지 */
 @media (max-width: 600px) {
@@ -1127,24 +1121,11 @@ background: rgba(0, 0, 0, 0.5);
 <div class="notice-board">
 <div class="nb-col" data-label="공지사항">
 <div class="nb-header"><span class="nb-title">📢 공지사항</span></div>
-<ul class="nb-list">
-<li class="nb-item" onclick="openNoticeFromEl(this)" data-title="[완료] 다원이음터 도서관 &lt;내 마음을 톡! 감정 표현 교실&gt; (이다솜 작가)" data-date="01.09" data-body="대상: 7~9세
-형태: 겨울독서교실(총 5회차)
-내용: 감정을 다양하게 표현하고, 내 마음을 안전하게 말로 꺼내는 연습을 했어요."><span>[완료] 다원이음터 도서관 &lt;내 마음을 톡! 감정 표현 교실&gt; (이다솜 작가)</span><span class="nb-date">01.09</span></li>
-<li class="nb-item" onclick="openNoticeFromEl(this)" data-title="[이전] 3월, 경기상상캠퍼스로 보금자리를 옮깁니다 🚚" data-date="02.01" data-body="개띠랑의 작업실/아지트가 경기상상캠퍼스로 이전합니다.
-오프라인 프로그램, 모임, 협업 제안도 더 편하게 연결될 예정이에요."><span>[이전] 3월, 경기상상캠퍼스로 보금자리를 옮깁니다 🚚</span><span class="nb-date">02.01</span></li>
-</ul>
+<ul class="nb-list" id="nbListNotice"></ul>
 </div>
 <div class="nb-col" data-label="새소식">
 <div class="nb-header"><span class="nb-title">🆕 새소식</span></div>
-<ul class="nb-list">
-<li class="nb-item" onclick="openNoticeFromEl(this)" data-title="[모임] 봄 맞이 &#x27;두루쓰기&#x27; 워크숍 오픈" data-date="02.10" data-body="봄 시즌 한정 ‘두루쓰기’ 워크숍을 엽니다.
-작은 질문 → 기록 → 공유(선택) 흐름으로, 부담 없이 시작할 수 있어요."><span>[모임] 봄 맞이 &#x27;두루쓰기&#x27; 워크숍 오픈</span><span class="nb-date">02.10</span></li>
-<li class="nb-item" onclick="openNoticeFromEl(this)" data-title="[Coming Soon] 개띠랑 첫 소설 출간 예고" data-date="02.15" data-body="올해 개띠랑의 첫 소설을 준비 중입니다.
-정식 일정/예약 안내는 추후 새소식으로 업데이트할게요."><span>[Coming Soon] 개띠랑 첫 소설 출간 예고</span><span class="nb-date">02.15</span></li>
-<li class="nb-item" onclick="openNoticeFromEl(this)" data-title="[소식] 2026 경기상상캠퍼스 입주 단체 선정 🎉" data-date="02.10" data-body="2026년 경기상상캠퍼스 입주 단체로 선정되었습니다.
-이 공간에서 더 많은 기록 프로젝트를 이어가겠습니다."><span>[소식] 2026 경기상상캠퍼스 입주 단체 선정 🎉</span><span class="nb-date">02.10</span></li>
-</ul>
+<ul class="nb-list" id="nbListNews"></ul>
 </div>
 </div>
 </section>
@@ -1165,11 +1146,7 @@ background: rgba(0, 0, 0, 0.5);
 
 <section class="sec-common" id="authors" style="background:var(--gray-bg);">
 <div class="sec-title-area"><h2 class="sec-h2 serif">개띠랑의 작가들</h2></div>
-<div class="author-scroll">
-<div class="author-card" onclick="openAuthor('gaeddirang')"><div class="author-img-wrap ac-mustard"><img src="assets/images/authors/gaeddirang.jpg" class="author-real-img" alt="개띠랑"></div><div class="author-info"><div class="a-name">개띠랑 <span style="font-size:12px; color:var(--accent);">WRITER</span></div><p class="a-desc">좋아하는 것을 기록하는 기록 메이트입니다</p></div></div>
-<div class="author-card" onclick="openAuthor('dasom')"><div class="author-img-wrap ac-orange"><img src="assets/images/authors/dasom.jpg" class="author-real-img" alt="이다솜"></div><div class="author-info"><div class="a-name">이다솜 <span style="font-size:12px; color:var(--accent);">WRITER</span></div><p class="a-desc">감정을 솔직하게 마주하도록 돕는 기록 메이트입니다</p></div></div>
-<div class="author-card" onclick="openAuthor('duru')"><div class="author-img-wrap ac-green"><img src="assets/images/authors/duru.jpg" class="author-real-img" alt="장두루"></div><div class="author-info"><div class="a-name">장두루 <span style="font-size:12px; color:var(--accent);">WRITER</span></div><p class="a-desc">불안한 마음 곁을 조용히 걷는 기록 메이트입니다</p></div></div>
-</div>
+<div class="author-scroll" id="authorScroll"></div>
 </section>
 
 <section class="sec-game" id="game">
@@ -1226,42 +1203,12 @@ background: rgba(0, 0, 0, 0.5);
 <h2 class="sec-h2 serif">함께 기록하는 프로그램</h2>
 <p style="color:#666;">혼자 쓰기 어렵다면, 메이트와 함께 시작해보세요.</p>
 </div>
-<div class="prog-grid-wrap"><div class="prog-grid">
-<div class="prog-card pc-emotion" onclick="openProgramModal('emotion')">
-<div class="pc-header"><span>NO.01</span><span>★★★★★</span></div>
-<div class="pc-img-area">🎨</div>
-<div class="pc-body"><div class="pc-title">내 마음을 톡!<br>감정 표현 교실</div><div class="pc-stat-bar"><span>FUN: 99</span><span>HEAL: 100</span></div><button class="prog-btn-card">자세히 보기 ></button></div>
-</div>
-<div class="prog-card pc-book" onclick="openProgramModal('human')">
-<div class="pc-header"><span>NO.02</span><span>★★★★</span></div>
-<div class="pc-img-area">📚</div>
-<div class="pc-body"><div class="pc-title">오감만족<br>감정 인문학</div><div class="pc-stat-bar"><span>DEEP: 90</span><span>GROW: 95</span></div><button class="prog-btn-card">자세히 보기 ></button></div>
-</div>
-<div class="prog-card pc-write" onclick="openProgramModal('workshop')">
-<div class="pc-header"><span>NO.03</span><span>★★★★★</span></div>
-<div class="pc-img-area">📝</div>
-<div class="pc-body"><div class="pc-title">나 찾기<br>감정 기록 워크숍</div><div class="pc-stat-bar"><span>EASY: 100</span><span>TALK: 90</span></div><button class="prog-btn-card">자세히 보기 ></button></div>
-</div>
-<div class="prog-card pc-essay" onclick="openProgramModal('essay')">
-<div class="pc-header"><span>NO.04</span><span>★★★★★</span></div>
-<div class="pc-img-area">📖</div>
-<div class="pc-body"><div class="pc-title">에세이<br>출판 프로젝트</div><div class="pc-stat-bar"><span>PRO: 100</span><span>BOOK: 100</span></div><button class="prog-btn-card">자세히 보기 ></button></div>
-</div>
-</div>
+<div class="prog-grid-wrap"><div class="prog-grid" id="progGrid"></div>
 </div>
 </section>
 
 <section class="sec-reviews" id="reviews">
-<div class="review-track">
-<div class="review-card-mini"><div class="rv-user"><div class="rv-avatar"></div><span class="rv-name">빵순이</span></div><p class="rv-text">글쓰기가 처음이라 두려웠는데, 4주 만에 제 책이 나오다니 믿기지 않아요! 멘토님 감사합니다.</p><div class="rv-tag">#에세이만들기</div></div>
-<div class="review-card-mini"><div class="rv-user"><div class="rv-avatar" style="background:#F26D4F;"></div><span class="rv-name">새벽감성</span></div><p class="rv-text">복잡했던 머릿속이 글로 쓰니까 정리가 되네요. 매일 밤이 기다려집니다.</p><div class="rv-tag">#감정기록</div></div>
-<div class="review-card-mini"><div class="rv-user"><div class="rv-avatar" style="background:#4B89C8;"></div><span class="rv-name">기록왕</span></div><p class="rv-text">질문 카드로 친구들과 밤새 대화했어요. 서로 몰랐던 모습을 알게 되었어요.</p><div class="rv-tag">#질문카드</div></div>
-<div class="review-card-mini"><div class="rv-user"><div class="rv-avatar" style="background:#5AB367;"></div><span class="rv-name">두루두루</span></div><p class="rv-text">마음 체크 키트로 제 상태를 객관적으로 볼 수 있었어요. 큰 도움이 되었습니다.</p><div class="rv-tag">#마음체크</div></div>
-<div class="review-card-mini"><div class="rv-user"><div class="rv-avatar"></div><span class="rv-name">빵순이</span></div><p class="rv-text">글쓰기가 처음이라 두려웠는데, 4주 만에 제 책이 나오다니 믿기지 않아요! 멘토님 감사합니다.</p><div class="rv-tag">#에세이만들기</div></div>
-<div class="review-card-mini"><div class="rv-user"><div class="rv-avatar" style="background:#F26D4F;"></div><span class="rv-name">새벽감성</span></div><p class="rv-text">복잡했던 머릿속이 글로 쓰니까 정리가 되네요. 매일 밤이 기다려집니다.</p><div class="rv-tag">#감정기록</div></div>
-<div class="review-card-mini"><div class="rv-user"><div class="rv-avatar" style="background:#4B89C8;"></div><span class="rv-name">기록왕</span></div><p class="rv-text">질문 카드로 친구들과 밤새 대화했어요. 서로 몰랐던 모습을 알게 되었어요.</p><div class="rv-tag">#질문카드</div></div>
-<div class="review-card-mini"><div class="rv-user"><div class="rv-avatar" style="background:#5AB367;"></div><span class="rv-name">두루두루</span></div><p class="rv-text">마음 체크 키트로 제 상태를 객관적으로 볼 수 있었어요. 큰 도움이 되었습니다.</p><div class="rv-tag">#마음체크</div></div>
-</div>
+<div class="review-track" id="reviewTrack"></div>
 </section>
 
 <section class="sec-video" id="gaedditv">
@@ -1273,69 +1220,7 @@ background: rgba(0, 0, 0, 0.5);
 <a href="https://www.youtube.com/@gaeddirangverse6184" target="_blank" class="sec-more">채널 바로가기 ></a>
 </div>
 
-<div class="vid-scroll">
-
-<div class="media-card" onclick="window.open('https://www.youtube.com/@gaeddirangverse6184')">
-<div class="mc-ost-cover">
-<div class="mc-lp-disk">
-<img src="assets/images/programs/program-thumb-01.jpg" class="mc-album-art" alt="앨범아트">
-</div>
-</div>
-<div class="mc-info">
-<div>
-<span class="mc-tag pod">PODCAST 📻</span>
-<h3 class="mc-title">개띠랑 유니버스 1화<br>: 우리는 왜 기록하는가?</h3>
-</div>
-<div class="mc-meta"><i class="fas fa-play"></i> 24분 · 듣는 에세이</div>
-</div>
-</div>
-
-<div class="media-card" onclick="window.open('https://www.youtube.com/@gaeddirangverse6184')">
-<div class="mc-ost-cover">
-<div class="mc-lp-disk">
-<img src="assets/images/programs/program-thumb-02.jpg" class="mc-album-art" alt="앨범아트">
-</div>
-</div>
-<div class="mc-info">
-<div>
-<span class="mc-tag pod">PODCAST 📻</span>
-<h3 class="mc-title">빵지순례 비하인드 썰<br>성수동 편</h3>
-</div>
-<div class="mc-meta"><i class="fas fa-play"></i> 18분 · 맛있는 수다</div>
-</div>
-</div>
-
-<div class="media-card" onclick="window.open('https://www.youtube.com/@gaeddirangverse6184')">
-<div class="mc-ost-cover">
-<div class="mc-lp-disk">
-<img src="assets/images/programs/program-thumb-03.jpg" class="mc-album-art" alt="앨범아트">
-</div>
-</div>
-<div class="mc-info">
-<div>
-<span class="mc-tag pod">PODCAST 📻</span>
-<h3 class="mc-title">에세이 쓰기 꿀팁<br>나만의 문장 찾기</h3>
-</div>
-<div class="mc-meta"><i class="fas fa-play"></i> 15분 · 글쓰기 노하우</div>
-</div>
-</div>
-
-<div class="media-card" onclick="window.open('https://www.youtube.com/@gaeddirangverse6184')">
-<div class="mc-ost-cover">
-<div class="mc-lp-disk">
-<img src="assets/books/dasom_caught_my_emotion.jpg" class="mc-album-art" alt="앨범아트">
-</div>
-</div>
-<div class="mc-info">
-<div>
-<span class="mc-tag ost">BOOK OST ♬</span>
-<h3 class="mc-title">우당탕탕 잡았다, 내 감정!<br>Original Sound Track</h3>
-</div>
-<div class="mc-meta"><i class="fas fa-music"></i> AI Suno 작곡 · 감정 테마</div>
-</div>
-</div>
-
-</div>
+<div class="vid-scroll" id="vidScroll"></div>
 </section>
 
 <section class="sec-last-proposal">
@@ -1581,83 +1466,7 @@ setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
 }
 
 /* [★ NEW: 도서 데이터 (요청하신 목록 15권만 유지)] */
-const books = [
-{
-id:1, title:"백빵기행 1", author:"글·그림 개띠랑", cat:"book", img:"assets/books/gaeddirang_baekbbang1.jpg",
-spec:"출판사 : 개띠랑<br>발행일 : 2022.10.15<br>가격 : 15,000원<br>사양 : 120*165mm · 192쪽",
-desc:"<b>“100군데 빵이 있는 곳이라면 어디든 간다!”</b><br>전국을 누비며 빵을 먹고, 보고, 기록한 개띠랑의 본격 빵 여행기입니다.<br>제주, 대전, 수원, 부산, 군산, 여수, 포항, 강릉까지! 이 책은 단순한 맛집 가이드가 아닙니다. 빵을 좋아하는 사람이 여행을 하면 어떤 기록이 남는지를 보여주는 여정의 기록입니다."
-},
-{
-id:2, title:"백빵기행 2", author:"글·그림 개띠랑", cat:"book", img:"assets/books/gaeddirang_baekbbang2.jpg",
-spec:"출판사 : 개띠랑<br>발행일 : 2023.10.15<br>가격 : 15,000원<br>사양 : 120*165mm · 232쪽",
-desc:"<b>“빵과 함께라면 어디든 갈 수 있어!”</b><br>백빵기행 2년 차, 이번엔 서울, 경기, 인천을 넘어 경상, 전라, 강원, 제주까지 지도를 가로지릅니다.<br>2권에서는 빵만큼 중요한 존재, ‘빵연(빵이 맺어준 인연)’들이 등장합니다. 빵을 매개로 만난 사람들과의 대화, 그 깊은 온도의 기록을 담았습니다."
-},
-{
-id:3, title:"모든 감정 도감", author:"글·그림 이다솜", cat:"book", img:"assets/books/dasom_all_emotions_atlas.jpg",
-spec:"출판사 : 개띠랑<br>발행일 : 2022.10.07<br>가격 : 15,000원<br>사양 : 128*190mm · 160쪽",
-desc:"<b>“오늘 어떤 감정이야?”</b><br>이 질문 앞에서 말이 막히는 당신을 위한 책입니다. 말로 설명되지 않던 마음의 상태를 32가지 감정의 여정으로 풀어냈습니다.<br>감정을 정의하는 것에 멈추지 않고, 독자가 자신의 감정을 발견하고 언어로 연결하도록 돕는 ‘감정 기록 에세이’입니다."
-},
-{
-id:4, title:"우당탕탕 잡았다, 내 감정!", author:"글·그림 이다솜", cat:"book", img:"assets/books/dasom_caught_my_emotion.jpg",
-spec:"출판사 : 개띠랑<br>발행일 : 2025.01.02<br>가격 : 16,000원<br>사양 : 230*230mm · 64쪽",
-desc:"<b>어느 날 감정이 몽땅 사라져버렸다?!</b><br>기쁨, 슬픔, 화, 두려움 같은 감정들을 찾아 떠나는 우당탕탕 대모험 동화입니다.<br>아이에게는 감정을 처음 만나는 장면이, 어른에게는 잊고 있던 마음을 떠올리는 시간이 됩니다. 아이와 어른이 함께 읽으며 서로의 마음을 묻고 답해보세요."
-},
-{
-id:5, title:"이러나저러나 불편한 거야 불편한 건", author:"글·그림 이다솜", cat:"book", img:"assets/books/dasom_uncomfortable_is_uncomfortable.jpg",
-spec:"출판사 : 개띠랑<br>발행일 : 2025.01.02<br>가격 : 15,000원<br>사양 : 128*190mm · 224쪽",
-desc:"<b>“우리, 어떻게 같이 살아갈래?”</b><br>불안, 후회, 무기력, 질투… 외면하고 싶었던 35가지 불편한 감정들에게 건네는 질문입니다.<br>불편한 감정을 억지로 좋아하려 애쓰지 마세요. 다만 그 감정들과 어떻게 함께 살아갈지 고민하며, 나와의 관계를 다시 써 내려가는 기록 에세이입니다."
-},
-{
-id:6, title:"어느 날 문득 잘 살고 싶어졌다", author:"글 두루 / 그림 변수빈", cat:"book", img:"assets/books/duru_someday_want_live_well.jpg",
-spec:"출판사 : 개띠랑<br>발행일 : 2022.10.07<br>가격 : 13,000원<br>사양 : 117*178mm · 204쪽",
-desc:"<b>“살아내기 위해 쓰기 시작한 기록이, 나를 다시 살아가게 했다.”</b><br>우울과 무기력의 한가운데서 문득 고개를 든 ‘잘 살고 싶다’는 마음을 붙잡은 기록입니다.<br>무너진 마음이 다시 삶을 향해 기울어가는 과정을 담담히 풀어내며, 기록이 어떻게 삶을 지탱하는 힘이 되는지 보여줍니다."
-},
-{
-id:7, title:"우울의 바깥을 향하며", author:"글 두루 / 그림 개띠랑", cat:"book", img:"assets/books/duru_toward_outside_of_depression.jpg",
-spec:"출판사 : 개띠랑<br>발행일 : 2023.11.11<br>가격 : 13,000원<br>사양 : 117*178mm",
-desc:"<b>우울을 밀어내기보다, 그 바깥을 향해 한 발 내딛는 기록.</b><br>우울 속에 머물렀던 시간과, 그 바깥으로 시선을 돌리기 시작한 순간들을 포착했습니다.<br>우울을 없애야 할 문제가 아닌 함께 살아가는 과정으로 바라보며, 마음이 닿을 수 있는 세계가 여전히 존재함을 증명하는 산문집입니다."
-},
-{
-id:8, title:"불안과 밤 산책", author:"글 두루", cat:"book", img:"assets/books/duru_anxiety_night_walk.jpg",
-spec:"출판사 : 개띠랑<br>발행일 : 2025.05.31<br>가격 : 15,000원<br>사양 : 117*178mm · 220쪽",
-desc:"<b>잠들기 전, 불안과 나란히 걷는 밤 산책.</b><br>불안, 불면, 우울 같은 밤의 마음들을 하루의 흐름에 따라 기록했습니다.<br>이 책은 해결책을 주는 처방전이 아닙니다. 오늘 하루를 버텨낸 당신에게 “같이 걷자”고 조용히 말을 거는, 밤을 건너는 기록의 동반자입니다."
-},
-{
-id:9, title:"나에게도 빵빵한 하루가 필요해!", author:"글 개띠랑, 다솜, 두루 / 그림 개띠랑", cat:"book", img:"assets/books/collective_breadful_day_needed.jpg",
-spec:"출판사 : 개띠랑<br>발행일 : 2024.06.26<br>가격 : 18,000원<br>사양 : 120*165mm · 164쪽",
-desc:"<b>잘 살고 싶은 마음으로 뭉친 세 사람의 하루 기록.</b><br>취향을 기록하는 개띠랑, 감정을 이해하는 다솜, 마음속 이야기를 꺼내 위로를 건네는 두루. 서로 다른 결의 세 사람이 각자의 자리에서 하루를 기록해 나갑니다.<br>서로 다른 결을 가진 세 사람이 ‘기록’으로 느슨하게 연결되며, 평범한 하루를 견디는 이들에게 다정한 응원을 건넵니다."
-},
-{
-id:10, title:"흰머리가 어때서!", author:"글 개띠랑, 다솜, 두루 / 그림 개띠랑", cat:"book", img:"assets/books/collective_gray_hair_so_what.jpg",
-spec:"출판사 : 개띠랑<br>발행일 : 2023.04.08<br>가격 : 10,000원<br>사양 : 120*165mm · 72쪽",
-desc:"<b>그래, 뭐 어때! 흰머리가 어때서!</b><br>어느 날 갑자기 찾아온 흰머리, 그리고 우리 곁의 ‘흰머리 요정’ 이야기.<br>흰머리가 나기 시작한 사람, 이미 빼곡한 사람, 혹은 흰머리가 있는 누군가를 생각하는 모두에게 전하는 유쾌하고 따뜻한 공생 에세이입니다."
-},
-{
-id:11, title:"32가지 모든 감정 카드", author:"이다솜", cat:"card", img:"assets/books/dasom_32_emotion_cards.jpg",
-spec:"제작 : 이다솜<br>구성 : 감정카드 32장 + 설명서",
-desc:"<b>내 안의 감정에 정확한 이름을 붙여주세요.</b><br>우리가 느끼는 대표적인 32가지 감정을 희로애락(喜怒哀樂)으로 분류해 담았습니다.<br>정확한 정의와 '마음 회복력' 지표를 통해 내 마음을 깊이 있게 이해하고 표현해보세요."
-},
-{
-id:12, title:"35가지 불편감정카드", author:"이다솜", cat:"card", img:"assets/books/dasom_35_uncomfortable_emotion_cards.jpg",
-spec:"제작 : 이다솜<br>구성 : 감정카드 35장 + 설명서",
-desc:"<b>불편한 마음의 이름을 찾아주는 도구.</b><br>35가지 불편한 감정을 기쁨, 노여움, 슬픔, 즐거움으로 분류하고 '불편도' 지수로 표현했습니다.<br>외면하고 싶었던 마음을 용기 있게 마주하고 건강하게 다루는 법을 연습해보세요."
-},
-{
-id:13, title:"두루 마음 체크", author:"두루", cat:"card", img:"assets/books/duru_check_card1.jpg",
-spec:"제작 : 두루<br>구성 : 체크리스트형 카드",
-desc:"<b>나를 알아가는 기록의 시작.</b><br>에세이 속 문장들이 나에게 직접 질문을 건넵니다. 감정, 일상, 과거, 현재, 미래를 탐색하며 내면을 기록해보세요.<br>질문을 따라가다 보면, 어느새 나만의 문장이 완성됩니다."
-},
-{
-id:14, title:"두루 마음체크카드 2", author:"두루", cat:"card", img:"assets/books/duru_check_card2.jpg",
-spec:"제작 : 두루<br>구성 : 체크리스트형 카드 (심화편)",
-desc:"<b>더 깊어진 마음 탐구 생활.</b><br>첫 번째 마음체크카드보다 더 섬세해진 질문들로 구성되었습니다.<br>나조차 몰랐던 내 마음의 깊은 곳을 두루두루 살피며, 진짜 나를 만나는 시간을 가져보세요."
-},
-{
-id:15, title:"빵 질문 카드", author:"개띠랑", cat:"card", img:"assets/books/gaeddirang_bread_q_card.jpg",
-spec:"제작 : 개띠랑<br>구성 : 질문카드 50장",
-desc:"<b>빵 한 조각에 곁들이는 맛있는 대화.</b><br>취향, 기억, 일상, 상상, 관계라는 5가지 맛있는 주제로 구성되어 있습니다.<br>혼자만의 '혼빵' 타임에도, 친구들과의 '빵팅'에서도 어색함 없이 즐거운 대화를 이끌어냅니다."
-}
-];
+let books = []; // Supabase에서 채워짐
 
 // Helper to get image by exact title match from the main 'books' array
 function getBookImage(title) {
@@ -1718,48 +1527,11 @@ document.getElementById('detailModal').classList.add('active');
 }
 
 // [★ NEW: 프로그램 상세 모달 (카드 뒷면 효과 + 동적 컬러)]
+let programsInfo = {}; // Supabase에서 채워짐
 function openProgramModal(type) {
-const info = {
-'emotion': {
-color: '#F26D4F', // ORANGE
-type: 'CLASS',
-t: '내 마음을 톡!<br>감정 표현 교실',
-desc: '내 마음속 감정들을 다채로운 단어로 표현해보는 시간입니다. 억눌린 감정을 해소하고 나를 이해해요.',
-target: '감정 표현이 서툰 어린이부터<br>내 마음을 알고 싶은 어른까지 누구나!',
-time: '매주 토요일 오후 2시 (90분)<br>온/오프라인 병행',
-benefit: '막연했던 답답함이 사라지고<br>나를 설명할 언어를 갖게 됩니다.'
-},
-'human': {
-color: '#4B89C8', // BLUE
-type: 'HUMANITIES',
-t: '오감만족<br>감정 인문학',
-desc: '시각, 청각, 미각 등 오감을 통해 감정을 깊이 있게 탐구합니다. 이론이 아닌 체험으로 만나는 인문학!',
-target: '반복되는 일상이 지루한 분<br>새로운 영감이 필요한 분',
-time: '4주 과정 / 매주 목요일 저녁 7시<br>개띠랑 아지트',
-benefit: '무뎌진 감각이 깨어나고<br>일상을 새롭게 보는 눈이 생겨요.'
-},
-'workshop': {
-color: '#5AB367', // GREEN
-type: 'WORKSHOP',
-t: '나 찾기<br>감정 기록 워크숍',
-desc: '기록을 통해 나 자신을 발견하고 단단한 내면을 만듭니다. 질문에 답하며 나만의 문장을 완성해보세요.',
-target: '자존감을 높이고 싶은 분<br>혼자 쓰는 게 막막한 기록 초보자',
-time: '원데이 클래스 (3시간)<br>주말 오후 일정',
-benefit: '나만의 기록 포트폴리오 완성!<br>나를 더 사랑하게 됩니다.'
-},
-'essay': {
-color: '#333333', // BLACK/GRAY
-type: 'PROJECT',
-t: '에세이<br>출판 프로젝트',
-desc: '나만의 이야기를 한 권의 책으로 만드는 실전 출판 클래스입니다. 기획부터 투고까지 함께해요.',
-target: '내 이름으로 된 책을 꿈꾸는 예비 작가<br>특별한 경험을 남기고 싶은 분',
-time: '8주 과정 + 1:1 피드백<br>온라인 줌(Zoom) 진행',
-benefit: '실제 독립출판물 제작 완료!<br>작가라는 새로운 타이틀 획득.'
-}
-};
-
-const data = info[type];
-if (!data) return;
+const p = programsInfo[type];
+if (!p) return;
+const data = { color: p.border_color, type: p.badge_type, t: p.title, desc: p.description, target: p.target, time: p.time_info, benefit: p.benefit };
 
 // [Dynamic Color Apply]
 const wrapper = document.querySelector('.pm-wrapper');
@@ -1781,25 +1553,9 @@ document.getElementById('programModal').classList.add('active');
 let currentAuthorId = 'gaeddirang';
 let currentTab = 'books';
 let contentPage = 1;
-const authorKeys = ['gaeddirang', 'dasom', 'duru'];
+let authorKeys = ['gaeddirang', 'dasom', 'duru']; // Supabase 로드 후 갱신됨
 
-const authorData = {
-'gaeddirang': {
-name: '개띠랑', role: 'WRITER', img: 'assets/images/authors/gaeddirang.jpg', desc: '좋아하는 것을 기록하는 기록 메이트입니다', email: 'gaeddirang085@naver.com', insta: '@gaeddirang',
-books: ['백빵기행 1', '백빵기행 2', '흰머리가 어때서!', '나에게도 빵빵한 하루가 필요해!', '빵 질문 카드'],
-history: [{d:'2025.10', t:'강릉문화재단 & 강다방 이야기공장 강연'}, {d:'2025.09', t:'경기도인재개발원 <백빵기행> 강연'}, {d:'2025.06~10', t:'길 위의 인문학 (문화체육관광부) 워크숍'}, {d:'2025.02', t:'대전 국립중앙과학관 워크숍'}, {d:'2024.05', t:'원주 책빵소 등 다수 책방 워크숍'}, {d:'2023.10', t:'화성시청소년진로박람회 특강'}]
-},
-'dasom': {
-name: '이다솜', role: 'WRITER', img: 'assets/images/authors/dasom.jpg', desc: '감정을 솔직하게 마주하도록 돕는 기록 메이트입니다', email: 'daasom135@naver.com', insta: '@dasom_unnie',
-books: ['모든 감정 도감', '우당탕탕 잡았다, 내 감정!', '이러나저러나 불편한 거야 불편한 건', '나에게도 빵빵한 하루가 필요해!', '흰머리가 어때서!', '32가지 모든 감정 카드', '35가지 불편감정카드'],
-history: [{d:'2026.01', t:'화성 다원이음터도서관 <감정 표현 교실>'}, {d:'2025.11', t:'한국문화예술위원회 인문문화축제'}, {d:'2025.09', t:'여의샛강도서관 강연'}, {d:'2025.08', t:'문막고등학교, 기아행복마루작은도서관'}, {d:'2024.10', t:'무인양품 스타필드 고양점'}, {d:'2024.06~10', t:'길 위의 인문학 (문화체육관광부)'}]
-},
-'duru': {
-name: '장두루', role: 'WRITER', img: 'assets/images/authors/duru.jpg', desc: '불안한 마음 곁을 조용히 걷는 기록 메이트입니다', email: 'duruburi@naver.com', insta: '@from.duru',
-books: ['어느 날 문득 잘 살고 싶어졌다', '우울의 바깥을 향하며', '불안과 밤 산책', '나에게도 빵빵한 하루가 필요해!', '흰머리가 어때서!', '두루 마음 체크', '두루 마음체크카드 2'],
-history: [{d:'2025.09~12', t:'영등포구립 대림도서관 에세이 프로젝트'}, {d:'2025.09', t:'수원 그런의미에서 "9월의 작가" 기획전'}, {d:'2025.06~10', t:'길 위의 인문학 강연'}, {d:'2024.11', t:'파주 가람도서관 감정 기록 워크숍'}, {d:'2023.01', t:'화성 바다숲책방 글쓰기 모임'}, {d:'2021~', t:'두루마음체크 키워드 카드 개발'}]
-}
-};
+let authorData = {}; // Supabase에서 채워짐
 
 function openAuthor(id) {
 currentAuthorId = id; currentTab = 'books'; contentPage = 1;
@@ -1939,6 +1695,111 @@ const SUPABASE_URL = 'https://zrmljsyxeozcnfqmyumw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybWxqc3l4ZW96Y25mcW15dW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzkwNTAsImV4cCI6MjA5OTA1NTA1MH0.G31yEksYsiR43t2pWPwTdCrpBHcxLkZ4mYSvk5urZxQ';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+/* [★ 콘텐츠 CMS 연동] notices/programs/podcasts/books/authors/reviews를 Supabase에서 불러와 렌더링 */
+function renderNoticesUI(data) {
+  const noticeList = document.getElementById('nbListNotice');
+  const newsList = document.getElementById('nbListNews');
+  if (!noticeList || !newsList) return;
+  noticeList.innerHTML = '';
+  newsList.innerHTML = '';
+  NOTICE_BODIES = {};
+  (data || []).forEach(n => {
+    NOTICE_BODIES[n.title] = n.body;
+    const li = document.createElement('li');
+    li.className = 'nb-item';
+    li.dataset.title = n.title;
+    li.dataset.date = n.date_label;
+    li.dataset.body = n.body;
+    li.onclick = () => openNoticeFromEl(li);
+    li.innerHTML = `<span>${n.title}</span><span class="nb-date">${n.date_label}</span>`;
+    (n.category === 'news' ? newsList : noticeList).appendChild(li);
+  });
+}
+
+function renderProgramsUI(data) {
+  const grid = document.getElementById('progGrid');
+  if (!grid) return;
+  programsInfo = {};
+  grid.innerHTML = (data || []).map(p => {
+    programsInfo[p.slug] = p;
+    const noStr = String(p.sort_no).padStart(2, '0');
+    const stars = '★'.repeat(p.star_rating) + '☆'.repeat(Math.max(0, 5 - p.star_rating));
+    return `<div class="prog-card" style="border-color:${p.border_color}; background:${p.bg_color};" onclick="openProgramModal('${p.slug}')">
+<div class="pc-header"><span>NO.${noStr}</span><span>${stars}</span></div>
+<div class="pc-img-area">${p.icon_emoji}</div>
+<div class="pc-body"><div class="pc-title">${p.title}</div><div class="pc-stat-bar"><span>${p.stat1_label}: ${p.stat1_value}</span><span>${p.stat2_label}: ${p.stat2_value}</span></div><button class="prog-btn-card">자세히 보기 ></button></div>
+</div>`;
+  }).join('');
+}
+
+function renderPodcastsUI(data) {
+  const scroll = document.getElementById('vidScroll');
+  if (!scroll) return;
+  scroll.innerHTML = (data || []).map(v => `<div class="media-card" onclick="window.open('${v.link_url || '#'}')">
+<div class="mc-ost-cover"><div class="mc-lp-disk"><img src="${v.cover_img}" class="mc-album-art" alt="앨범아트"></div></div>
+<div class="mc-info"><div><span class="mc-tag ${v.tag_type}">${v.tag_label}</span><h3 class="mc-title">${v.title}</h3></div><div class="mc-meta"><i class="fas fa-${v.meta_icon}"></i> ${v.meta_text}</div></div>
+</div>`).join('');
+}
+
+function renderReviewsUI(data) {
+  const track = document.getElementById('reviewTrack');
+  if (!track) return;
+  const list = data || [];
+  const cardHtml = (r) => `<div class="review-card-mini"><div class="rv-user"><div class="rv-avatar" style="${r.avatar_color ? `background:${r.avatar_color};` : ''}"></div><span class="rv-name">${r.name}</span></div><p class="rv-text">${r.review_text}</p><div class="rv-tag">${r.tag || ''}</div></div>`;
+  // 마퀴 애니메이션이 -50% 이동을 전제로 하므로 목록을 두 번 이어붙임
+  track.innerHTML = list.map(cardHtml).join('') + list.map(cardHtml).join('');
+}
+
+function renderAuthorsUI(data) {
+  authorData = {};
+  authorKeys = [];
+  const palette = ['ac-mustard', 'ac-orange', 'ac-green'];
+  const scroll = document.getElementById('authorScroll');
+  if (scroll) scroll.innerHTML = '';
+  (data || []).forEach((a, i) => {
+    authorKeys.push(a.slug);
+    authorData[a.slug] = { name: a.name, role: a.role, img: a.img_path, desc: a.description, email: a.email, insta: a.insta, books: a.books || [], history: a.history || [] };
+    if (scroll) {
+      const card = document.createElement('div');
+      card.className = 'author-card';
+      card.onclick = () => openAuthor(a.slug);
+      card.innerHTML = `<div class="author-img-wrap ${palette[i % palette.length]}"><img src="${a.img_path}" class="author-real-img" alt="${a.name}"></div><div class="author-info"><div class="a-name">${a.name} <span style="font-size:12px; color:var(--accent);">${a.role}</span></div><p class="a-desc">${a.description}</p></div>`;
+      scroll.appendChild(card);
+    }
+  });
+}
+
+async function loadAllContent() {
+  try {
+    const [notRes, progRes, castRes, bookRes, authRes, revRes] = await Promise.all([
+      supabaseClient.from('notices').select('*').order('sort_order'),
+      supabaseClient.from('programs').select('*').order('sort_order'),
+      supabaseClient.from('podcasts').select('*').order('sort_order'),
+      supabaseClient.from('books').select('*').order('sort_order'),
+      supabaseClient.from('authors').select('*').order('sort_order'),
+      supabaseClient.from('reviews').select('*').order('sort_order'),
+    ]);
+
+    books = (bookRes.data || []).map(b => ({ title: b.title, author: b.author, cat: b.category, img: b.img_path, spec: b.spec, desc: b.description }));
+    if (typeof renderBooks === 'function') renderBooks('all');
+
+    renderAuthorsUI(authRes.data);
+    if (currentAuthorId && authorData[currentAuthorId] && document.getElementById('authorModal') && document.getElementById('authorModal').classList.contains('active')) {
+      renderAuthorModal();
+    }
+
+    renderProgramsUI(progRes.data);
+    renderNoticesUI(notRes.data);
+    renderPodcastsUI(castRes.data);
+    renderReviewsUI(revRes.data);
+
+    SEARCH_INDEX = null; // 새 데이터로 검색 인덱스 재구성되도록 캐시 무효화
+  } catch (e) {
+    console.error('콘텐츠 로딩 실패:', e);
+  }
+}
+loadAllContent();
+
 function openEmotionModal() {
 document.getElementById('emForm').classList.remove('hidden');
 document.getElementById('emResult').classList.remove('active');
@@ -2025,12 +1886,6 @@ document.getElementById('apResult').classList.add('active');
 }
 
 /* [★ 통합 검색] 도서/카드/작가/프로그램/공지를 실제로 찾아서 바로 열어주는 검색 */
-const SEARCH_PROGRAMS = [
-{type:'emotion', title:'내 마음을 톡! 감정 표현 교실', desc:'감정 표현이 서툰 어린이부터 어른까지, 감정 단어로 마음을 표현하는 클래스'},
-{type:'human', title:'오감만족 감정 인문학', desc:'시각, 청각, 미각 등 오감으로 감정을 탐구하는 인문학 프로그램'},
-{type:'workshop', title:'나 찾기 감정 기록 워크숍', desc:'질문에 답하며 나만의 문장을 완성하는 감정 기록 워크숍'},
-{type:'essay', title:'에세이 출판 프로젝트', desc:'나만의 이야기를 한 권의 책으로 만드는 실전 출판 클래스'}
-];
 const srEscape = (str) => String(str).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 let SEARCH_INDEX = null;
@@ -2053,11 +1908,14 @@ text: (a.name + ' ' + a.desc + ' ' + id).toLowerCase(),
 action: () => { openAuthor(id); setTimeout(() => document.getElementById('authorModal').scrollIntoView(), 50); }
 });
 });
-SEARCH_PROGRAMS.forEach(p => {
+Object.keys(programsInfo).forEach(slug => {
+const p = programsInfo[slug];
+const plainTitle = (p.title || '').replace(/<[^>]+>/g, ' ');
+const plainDesc = (p.description || '').replace(/<[^>]+>/g, '');
 idx.push({
-type: '프로그램', title: p.title, sub: p.desc,
-text: (p.title + ' ' + p.desc).toLowerCase(),
-action: () => { document.getElementById('program').scrollIntoView({behavior:'smooth'}); setTimeout(() => openProgramModal(p.type), 300); }
+type: '프로그램', title: plainTitle, sub: plainDesc,
+text: (plainTitle + ' ' + plainDesc).toLowerCase(),
+action: () => { document.getElementById('program').scrollIntoView({behavior:'smooth'}); setTimeout(() => openProgramModal(slug), 300); }
 });
 });
 if (typeof NOTICE_BODIES !== 'undefined') {
@@ -2167,19 +2025,19 @@ function toggleChat() { const win = document.getElementById('chatWindow'); const
 function sendChat(type) { const body = document.getElementById('chatBody'); const userDiv = document.createElement('div'); userDiv.className = 'chat-msg user'; userDiv.innerText = event.target.innerText; body.appendChild(userDiv); body.scrollTop = body.scrollHeight; setTimeout(() => { const botDiv = document.createElement('div'); botDiv.className = 'chat-msg bot'; botDiv.innerHTML = chatResponses[type] || chatResponses['default']; body.appendChild(botDiv); body.scrollTop = body.scrollHeight; }, 500); }
 
 (function() {
-const AUTHOR_LIST = ['gaeddirang', 'dasom', 'duru'];
 let currentIdx = 0;
 document.getElementById('authorNavLeft').addEventListener('click', (e) => {
 e.stopPropagation();
-navigateAuthor(-1);
+navigateAuthorFixed(-1);
 });
 document.getElementById('authorNavRight').addEventListener('click', (e) => {
 e.stopPropagation();
-navigateAuthor(1);
+navigateAuthorFixed(1);
 });
-function navigateAuthor(direction) {
-currentIdx = (currentIdx + direction + AUTHOR_LIST.length) % AUTHOR_LIST.length;
-const nextAuthorKey = AUTHOR_LIST[currentIdx];
+function navigateAuthorFixed(direction) {
+if (!authorKeys.length) return;
+currentIdx = (currentIdx + direction + authorKeys.length) % authorKeys.length;
+const nextAuthorKey = authorKeys[currentIdx];
 if (typeof window.openAuthor === 'function') {
 window.openAuthor(nextAuthorKey);
 }
@@ -2188,33 +2046,15 @@ document.addEventListener('click', (e) => {
 const card = e.target.closest('.author-card');
 if (card) {
 const text = card.textContent;
-if (text.includes('개띠랑')) currentIdx = 0;
-else if (text.includes('이다솜')) currentIdx = 1;
-else if (text.includes('장두루')) currentIdx = 2;
+const idx = authorKeys.findIndex(slug => authorData[slug] && text.includes(authorData[slug].name));
+if (idx !== -1) currentIdx = idx;
 }
 });
 })();
 
 
 // [NOTICE MODAL] 공지사항/새소식 클릭 시 모달 열기
-const NOTICE_BODIES = {
-"[완료] 다원이음터 도서관 <내 마음을 톡! 감정 표현 교실> (이다솜 작가)":
-`대상: 7~9세
-형태: 겨울독서교실(총 5회차)
-내용: 감정을 다양하게 표현하고, 내 마음을 안전하게 말로 꺼내는 연습을 했어요.`,
-"[이전] 3월, 경기상상캠퍼스로 보금자리를 옮깁니다 🚚":
-`개띠랑의 작업실/아지트가 경기상상캠퍼스로 이전합니다.
-오프라인 프로그램, 모임, 협업 제안도 더 편하게 연결될 예정이에요.`,
-"[모임] 봄 맞이 '두루쓰기' 워크숍 오픈":
-`봄 시즌 한정 ‘두루쓰기’ 워크숍을 엽니다.
-작은 질문 → 기록 → 공유(선택) 흐름으로, 부담 없이 시작할 수 있어요.`,
-"[Coming Soon] 개띠랑 첫 소설 출간 예고":
-`올해 개띠랑의 첫 소설을 준비 중입니다.
-정식 일정/예약 안내는 추후 새소식으로 업데이트할게요.`,
-"[소식] 2026 경기상상캠퍼스 입주 단체 선정 🎉":
-`2026년 경기상상캠퍼스 입주 단체로 선정되었습니다.
-이 공간에서 더 많은 기록 프로젝트를 이어가겠습니다.`
-};
+let NOTICE_BODIES = {}; // Supabase에서 채워짐
 
 function openNoticeModal(typeLabel, title, date, bodyOverride){
 const modal = document.getElementById('noticeModal');
