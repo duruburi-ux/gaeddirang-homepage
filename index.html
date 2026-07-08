@@ -843,6 +843,20 @@ display: inline-block;
 margin-top: 6px;
 }
 
+.pm-quick-facts {
+display: flex;
+flex-wrap: wrap;
+justify-content: center;
+gap: 12px 24px;
+margin-bottom: 30px;
+font-size: 15px;
+font-weight: 700;
+color: var(--brown);
+}
+.pm-quick-facts span { display: flex; align-items: center; gap: 6px; }
+.pm-quick-facts i { color: var(--pm-color); }
+.pm-quick-facts .pm-fact-hidden { display: none; }
+
 .pm-grid-layout {
 display: grid;
 grid-template-columns: 1fr 1fr;
@@ -1329,6 +1343,12 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 <h2 class="pm-title" id="pmTitle">프로그램 이름</h2>
 </div>
 
+<div class="pm-quick-facts" id="pmQuickFacts">
+<span id="pmPriceRow"><i class="fas fa-won-sign"></i> <span id="pmPrice"></span></span>
+<span id="pmLocationRow"><i class="fas fa-map-marker-alt"></i> <span id="pmLocation"></span></span>
+<span id="pmInstructorRow"><i class="fas fa-user"></i> <span id="pmInstructor"></span></span>
+</div>
+
 <div class="pm-grid-layout">
 <div class="pm-info-box">
 <div class="pm-ib-header"><span class="pm-ib-num">1</span><span class="pm-ib-title">어떤 프로그램인가요?</span></div>
@@ -1544,6 +1564,16 @@ document.getElementById('pmDesc').innerHTML = data.desc;
 document.getElementById('pmTarget').innerHTML = data.target;
 document.getElementById('pmTime').innerHTML = data.time;
 document.getElementById('pmBenefit').innerHTML = data.benefit;
+
+// 참가비/장소/진행자 (값이 없으면 해당 항목 숨김)
+const setFact = (rowId, valId, value) => {
+const row = document.getElementById(rowId);
+if (value) { document.getElementById(valId).innerHTML = value; row.classList.remove('pm-fact-hidden'); }
+else { row.classList.add('pm-fact-hidden'); }
+};
+setFact('pmPriceRow', 'pmPrice', p.price);
+setFact('pmLocationRow', 'pmLocation', p.location);
+setFact('pmInstructorRow', 'pmInstructor', p.instructor);
 
 // 모달 열기
 document.getElementById('programModal').classList.add('active');
