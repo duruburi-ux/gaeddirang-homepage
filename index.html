@@ -1794,6 +1794,9 @@ async function loadAllContent() {
     renderReviewsUI(revRes.data);
 
     SEARCH_INDEX = null; // 새 데이터로 검색 인덱스 재구성되도록 캐시 무효화
+
+    // 프로그램 카드가 채워진 뒤 크기를 다시 측정해야 하므로 resize 이벤트로 fitProg 재실행 유도
+    window.dispatchEvent(new Event('resize'));
   } catch (e) {
     console.error('콘텐츠 로딩 실패:', e);
   }
