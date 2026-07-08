@@ -77,10 +77,27 @@ z-index: 9500;
 /* [HEADER] */
 header { position: fixed; top: 0; width: 100%; z-index: 100000; padding: 15px 5vw; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; background: rgba(255, 253, 247, 0.95); backdrop-filter: blur(5px); border-bottom: 1px solid rgba(0,0,0,0.05); }
 .logo-img { height: 40px; width: auto; display: block; cursor: pointer; }
-.gnb { display: flex; gap: 30px; font-weight: 700; font-size: 15px; color: var(--brown); }
+.gnb { display: flex; gap: 30px; font-weight: 700; font-size: 15px; color: var(--brown); white-space: nowrap; }
 .gnb a:hover { color: var(--accent); border-bottom: 2px solid var(--accent); }
-.header-cta { padding: 8px 20px; font-size: 14px; background: var(--accent); color: #fff; border-radius: 20px; font-weight: bold; }
+.header-cta { padding: 8px 20px; font-size: 14px; background: var(--accent); color: #fff; border-radius: 20px; font-weight: bold; white-space: nowrap; }
 .header-cta:hover { background: var(--brown); transform: scale(1.05); }
+
+.hamburger-btn { display: none; background: none; border: none; font-size: 26px; color: var(--brown); cursor: pointer; padding: 0 6px; }
+.mobile-nav-panel { display: none; position: fixed; top: 0; right: -280px; width: 260px; height: 100%; background: var(--paper); z-index: 200000; box-shadow: -5px 0 20px rgba(0,0,0,0.15); transition: right 0.3s ease; flex-direction: column; padding: 90px 25px 30px; gap: 22px; }
+.mobile-nav-panel.active { right: 0; }
+.mobile-nav-panel a { font-size: 17px; font-weight: 700; color: var(--brown); }
+.mobile-nav-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 199999; }
+.mobile-nav-overlay.active { display: block; }
+
+@media (max-width: 900px) {
+.gnb { display: none; }
+.hamburger-btn { display: block; }
+.mobile-nav-panel { display: flex; }
+}
+
+@media (max-width: 480px) {
+.header-cta { padding: 7px 14px; font-size: 12px; }
+}
 
 /* [CONTENT] */
 .content-area { padding-top: 80px; min-height: 100vh; }
@@ -138,6 +155,10 @@ header { position: fixed; top: 0; width: 100%; z-index: 100000; padding: 15px 5v
 .search-btn { background: var(--primary); color: #fff; font-weight: bold; padding: 12px 30px; border-radius: 30px; font-size: 16px; }
 .search-btn:hover { background: var(--accent); }
 .notice-board { max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 30px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; gap: 50px; border: 1px solid #eee; }
+
+@media (max-width: 700px) {
+.notice-board { flex-direction: column; gap: 25px; padding: 25px 20px; }
+}
 .nb-col { flex: 1; }
 .nb-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
 .nb-title { font-size: 20px; font-weight: 800; color: var(--brown); }
@@ -458,6 +479,12 @@ box-shadow: 0 5px 15px rgba(0,0,0,0.1); font-size: 13px; font-weight: bold; colo
 z-index: 8999; animation: floatBubble 2s infinite; pointer-events: none; border: 1px solid #eee;
 }
 .chat-tooltip::after { content: ''; position: absolute; bottom: -6px; right: 20px; width: 10px; height: 10px; background: #fff; transform: rotate(45deg); border-bottom: 1px solid #eee; border-right: 1px solid #eee; }
+
+@media (max-width: 600px) {
+.chat-tooltip { display: none; }
+.chat-launcher { width: 50px; height: 50px; font-size: 24px; bottom: 20px; right: 15px; }
+.chat-window { width: 92vw; right: 4vw; left: 4vw; }
+}
 
 /* [MODALS] */
 .overlay-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999999; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
@@ -946,7 +973,19 @@ background: rgba(0, 0, 0, 0.5);
 <a onclick="switchView('main', 'gaedditv')">개띠랑TV</a>
 </nav>
 <button class="header-cta btn-core" style="font-size:14px; padding:8px 20px;" onclick="openEmotionModal()">기록 시작하기</button>
+<button class="hamburger-btn" onclick="toggleMobileNav()"><i class="fas fa-bars"></i></button>
 </header>
+
+<div class="mobile-nav-overlay" id="mobileNavOverlay" onclick="toggleMobileNav()"></div>
+<div class="mobile-nav-panel" id="mobileNavPanel">
+<a onclick="toggleMobileNav(); switchView('publisher')">출판사 소개</a>
+<a onclick="toggleMobileNav(); switchView('main', 'library')">서재</a>
+<a onclick="toggleMobileNav(); switchView('main', 'authors')">작가들</a>
+<a onclick="toggleMobileNav(); switchView('main', 'game')">게임</a>
+<a onclick="toggleMobileNav(); switchView('main', 'finder')">도구 찾기</a>
+<a onclick="toggleMobileNav(); switchView('main', 'program')">프로그램</a>
+<a onclick="toggleMobileNav(); switchView('main', 'gaedditv')">개띠랑TV</a>
+</div>
 
 <div id="page-publisher" class="content-area" style="display:none;">
 <div class="pub-container">
@@ -1812,6 +1851,11 @@ document.body.classList.remove('author-modal-open');
 
 function openOverlaySafe(id) {
 document.getElementById(id).classList.add('active');
+}
+
+function toggleMobileNav() {
+document.getElementById('mobileNavPanel').classList.toggle('active');
+document.getElementById('mobileNavOverlay').classList.toggle('active');
 }
 
 /* [★ 오늘의 감정 기록] */
