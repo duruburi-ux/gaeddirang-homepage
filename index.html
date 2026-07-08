@@ -135,12 +135,6 @@ header { position: fixed; top: 0; width: 100%; z-index: 100000; padding: 15px 5v
 /* [HERO] */
 .sec-hero { padding: 120px 5vw 100px; background: linear-gradient(180deg, var(--paper) 0%, #FFF8E1 100%); display: flex; align-items: center; justify-content: space-between; border-bottom-left-radius: 60px; border-bottom-right-radius: 60px; }
 
-@media (max-width: 800px) {
-.sec-hero { flex-direction: column; padding: 110px 6vw 60px; text-align: center; gap: 30px; }
-.hero-text { max-width: 100%; }
-.hero-visual { width: 100%; height: auto; }
-.book-3d { width: 190px; height: 190px; }
-}
 .hero-text { max-width: 50%; z-index: 2; }
 .hero-badge { display: inline-block; background: #fff; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; color: var(--brown); border: 1px solid var(--brown); margin-bottom: 24px; }
 .hero-h1 { font-size: 56px; line-height: 1.2; margin-bottom: 24px; color: var(--brown); font-family: 'Gowun Batang'; word-break: keep-all; }
@@ -1000,6 +994,14 @@ background: rgba(0, 0, 0, 0.5);
 @media (max-width: 400px) {
 .hero-h1 { font-size: 26px; }
 .sec-h2 { font-size: 21px; }
+}
+
+/* [모바일 히어로 레이아웃 보정] - 이 블록은 항상 파일 맨 끝 쪽에 있어야 기존 스타일을 확실히 덮어씀 */
+@media (max-width: 800px) {
+.sec-hero { flex-direction: column; padding: 110px 6vw 60px; text-align: center; gap: 30px; }
+.hero-text { max-width: 100%; }
+.hero-visual { width: 100%; height: auto; }
+.book-3d { width: 190px; height: 190px; }
 }
 </style>
 
