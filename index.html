@@ -150,11 +150,28 @@ header { position: fixed; top: 0; width: 100%; z-index: 100000; padding: 15px 5v
 
 /* [NOTICE] */
 .sec-notice-search { padding: 60px 5vw; background: var(--white); }
-.search-wrapper { text-align: center; margin-bottom: 60px; }
+.search-wrapper { text-align: center; margin-bottom: 60px; position: relative; max-width: 600px; margin-left: auto; margin-right: auto; }
 .search-box { display: inline-flex; align-items: center; justify-content: space-between; width: 100%; max-width: 600px; padding: 10px 10px 10px 30px; border: 2px solid var(--primary); border-radius: 50px; background: #fff; box-shadow: 0 5px 20px rgba(253, 185, 95, 0.2); }
-.search-input { border: none; outline: none; font-size: 16px; flex-grow: 1; color: var(--brown); font-family: 'Pretendard'; }
-.search-btn { background: var(--primary); color: #fff; font-weight: bold; padding: 12px 30px; border-radius: 30px; font-size: 16px; }
+.search-input { border: none; outline: none; font-size: 16px; flex-grow: 1; min-width: 0; color: var(--brown); font-family: 'Pretendard'; }
+.search-btn { background: var(--primary); color: #fff; font-weight: bold; padding: 12px 30px; border-radius: 30px; font-size: 16px; flex-shrink: 0; white-space: nowrap; }
 .search-btn:hover { background: var(--accent); }
+
+.search-results { display: none; position: absolute; top: calc(100% + 10px); left: 0; right: 0; background: #fff; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); border: 1px solid #eee; max-height: 380px; overflow-y: auto; z-index: 500; text-align: left; }
+.search-results.active { display: block; }
+.sr-item { display: flex; align-items: center; gap: 12px; padding: 14px 20px; cursor: pointer; border-bottom: 1px solid #f5f5f5; transition: 0.15s; }
+.sr-item:last-child { border-bottom: none; }
+.sr-item:hover { background: var(--gray-bg); }
+.sr-badge { flex-shrink: 0; background: var(--primary); color: #fff; font-size: 11px; font-weight: 800; padding: 5px 10px; border-radius: 20px; }
+.sr-text { min-width: 0; }
+.sr-title { font-size: 14.5px; font-weight: 700; color: var(--brown); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-sub { font-size: 12.5px; color: #999; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.sr-empty { padding: 20px; text-align: center; color: #999; font-size: 14px; }
+
+@media (max-width: 600px) {
+.search-box { padding: 8px 8px 8px 20px; }
+.search-input { font-size: 15px; }
+.search-btn { padding: 10px 18px; font-size: 14px; }
+}
 .notice-board { max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 30px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; gap: 50px; border: 1px solid #eee; }
 
 @media (max-width: 700px) {
@@ -1106,7 +1123,7 @@ background: rgba(0, 0, 0, 0.5);
 </section>
 
 <section class="sec-notice-search">
-<div class="search-wrapper"><div class="search-box"><input type="text" class="search-input" id="searchInput" placeholder="어떤 이야기를 찾으시나요? (예: 빵, 다솜, 감정)" onkeypress="if(event.key==='Enter') performSearch()"><button class="search-btn" onclick="performSearch()">검색</button></div></div>
+<div class="search-wrapper" id="searchWrapper"><div class="search-box"><input type="text" class="search-input" id="searchInput" placeholder="어떤 이야기를 찾으시나요? (예: 빵, 다솜, 감정)" autocomplete="off" oninput="liveSearch()" onkeydown="if(event.key==='Enter'){event.preventDefault();performSearch();} if(event.key==='Escape'){closeSearchResults();}"><button class="search-btn" onclick="performSearch()">검색</button></div><div class="search-results" id="searchResults"></div></div>
 <div class="notice-board">
 <div class="nb-col" data-label="공지사항">
 <div class="nb-header"><span class="nb-title">📢 공지사항</span></div>
@@ -2007,24 +2024,107 @@ document.getElementById('apForm').classList.add('hidden');
 document.getElementById('apResult').classList.add('active');
 }
 
+/* [★ 통합 검색] 도서/카드/작가/프로그램/공지를 실제로 찾아서 바로 열어주는 검색 */
+const SEARCH_PROGRAMS = [
+{type:'emotion', title:'내 마음을 톡! 감정 표현 교실', desc:'감정 표현이 서툰 어린이부터 어른까지, 감정 단어로 마음을 표현하는 클래스'},
+{type:'human', title:'오감만족 감정 인문학', desc:'시각, 청각, 미각 등 오감으로 감정을 탐구하는 인문학 프로그램'},
+{type:'workshop', title:'나 찾기 감정 기록 워크숍', desc:'질문에 답하며 나만의 문장을 완성하는 감정 기록 워크숍'},
+{type:'essay', title:'에세이 출판 프로젝트', desc:'나만의 이야기를 한 권의 책으로 만드는 실전 출판 클래스'}
+];
+const srEscape = (str) => String(str).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+let SEARCH_INDEX = null;
+function getSearchIndex() {
+if (SEARCH_INDEX) return SEARCH_INDEX;
+const idx = [];
+books.forEach(b => {
+const plainDesc = (b.desc || '').replace(/<[^>]+>/g, '');
+idx.push({
+type: b.cat === 'card' ? '카드' : '도서', title: b.title, sub: b.author,
+text: (b.title + ' ' + b.author + ' ' + plainDesc).toLowerCase(),
+action: () => { openBookDetail(b.title); setTimeout(() => document.getElementById('detailModal').scrollIntoView(), 50); }
+});
+});
+Object.keys(authorData).forEach(id => {
+const a = authorData[id];
+idx.push({
+type: '작가', title: a.name, sub: a.desc,
+text: (a.name + ' ' + a.desc + ' ' + id).toLowerCase(),
+action: () => { openAuthor(id); setTimeout(() => document.getElementById('authorModal').scrollIntoView(), 50); }
+});
+});
+SEARCH_PROGRAMS.forEach(p => {
+idx.push({
+type: '프로그램', title: p.title, sub: p.desc,
+text: (p.title + ' ' + p.desc).toLowerCase(),
+action: () => { document.getElementById('program').scrollIntoView({behavior:'smooth'}); setTimeout(() => openProgramModal(p.type), 300); }
+});
+});
+if (typeof NOTICE_BODIES !== 'undefined') {
+Object.keys(NOTICE_BODIES).forEach(title => {
+idx.push({
+type: '공지', title: title, sub: NOTICE_BODIES[title].slice(0, 45).replace(/\n/g, ' ') + '...',
+text: (title + ' ' + NOTICE_BODIES[title]).toLowerCase(),
+action: () => {
+const el = Array.from(document.querySelectorAll('.nb-item')).find(li => li.dataset.title === title);
+if (el) { el.click(); el.scrollIntoView({behavior:'smooth', block:'center'}); }
+}
+});
+});
+}
+SEARCH_INDEX = idx;
+return SEARCH_INDEX;
+}
+
+function searchQuery(q) {
+q = q.trim().toLowerCase();
+if (!q) return [];
+return getSearchIndex().filter(item => item.text.includes(q)).slice(0, 8);
+}
+
+function closeSearchResults() {
+const box = document.getElementById('searchResults');
+box.classList.remove('active');
+box.innerHTML = '';
+}
+
+function liveSearch() {
+const q = document.getElementById('searchInput').value;
+const box = document.getElementById('searchResults');
+if (!q.trim()) { closeSearchResults(); return; }
+const results = searchQuery(q);
+if (results.length === 0) {
+box.innerHTML = '<div class="sr-empty">검색 결과가 없어요. 다른 키워드로 찾아보세요!</div>';
+} else {
+box.innerHTML = results.map((r, i) => `<div class="sr-item" data-idx="${i}"><span class="sr-badge">${srEscape(r.type)}</span><div class="sr-text"><div class="sr-title">${srEscape(r.title)}</div><div class="sr-sub">${srEscape(r.sub || '')}</div></div></div>`).join('');
+box.querySelectorAll('.sr-item').forEach(el => {
+el.addEventListener('click', () => { results[Number(el.dataset.idx)].action(); closeSearchResults(); document.getElementById('searchInput').value = ''; });
+});
+}
+box.classList.add('active');
+}
+
 function performSearch() {
-const query = document.getElementById('searchInput').value.trim().toLowerCase();
-if(!query) { alert('검색어를 입력해주세요!'); return; }
+const query = document.getElementById('searchInput').value.trim();
+if (!query) { alert('검색어를 입력해주세요!'); return; }
+const results = searchQuery(query);
+if (results.length === 0) {
+alert(`'${query}'에 대한 검색 결과가 없어요. 다른 키워드로 찾아보세요!`);
+return;
+}
+if (results.length === 1) {
+results[0].action();
+closeSearchResults();
+document.getElementById('searchInput').value = '';
+return;
+}
+liveSearch();
+}
 
-const cards = document.querySelectorAll('.author-card');
-
-if(query.includes('개띠') || query.includes('빵')) {
-if(cards[0]) { cards[0].click(); document.getElementById('authorModal').scrollIntoView(); return; }
-}
-if(query.includes('다솜') || query.includes('감정')) {
-if(cards[1]) { cards[1].click(); document.getElementById('authorModal').scrollIntoView(); return; }
-}
-if(query.includes('두루') || query.includes('불안')) {
-if(cards[2]) { cards[2].click(); document.getElementById('authorModal').scrollIntoView(); return; }
-}
-document.getElementById('library').scrollIntoView({behavior:'smooth'});
-alert("'" + query + "' 관련 도서를 서재에서 찾아보세요!");
-}
+document.addEventListener('click', (e) => {
+const wrapper = document.getElementById('searchWrapper');
+if (wrapper && !wrapper.contains(e.target)) closeSearchResults();
+});
 
 let quizScore={bread:0, emotion:0, mind:0};
 function nextQuiz(step){ document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active')); document.getElementById(`qStep${step}`).classList.add('active'); }
