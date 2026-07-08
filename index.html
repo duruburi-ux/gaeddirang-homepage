@@ -1123,7 +1123,7 @@ background: rgba(0, 0, 0, 0.5);
 </section>
 
 <section class="sec-notice-search">
-<div class="search-wrapper" id="searchWrapper"><div class="search-box"><input type="text" class="search-input" id="searchInput" placeholder="어떤 이야기를 찾으시나요? (예: 빵, 다솜, 감정)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search" enterkeyhint="search" oninput="liveSearch()" onkeydown="if(event.key==='Enter'){event.preventDefault();performSearch();} if(event.key==='Escape'){closeSearchResults();}"><button class="search-btn" onclick="performSearch()">검색</button></div><div class="search-results" id="searchResults"></div></div>
+<div class="search-wrapper" id="searchWrapper"><div class="search-box"><input type="text" class="search-input" id="searchInput" placeholder="어떤 이야기를 찾으시나요? (예: 빵, 다솜, 감정)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search" enterkeyhint="search" role="combobox" aria-expanded="false" aria-controls="searchResults" aria-autocomplete="list" aria-haspopup="listbox" oninput="liveSearch()" onkeydown="if(event.key==='Enter'){event.preventDefault();performSearch();} if(event.key==='Escape'){closeSearchResults();}"><button class="search-btn" onclick="performSearch()">검색</button></div><div class="search-results" id="searchResults" role="listbox"></div></div>
 <div class="notice-board">
 <div class="nb-col" data-label="공지사항">
 <div class="nb-header"><span class="nb-title">📢 공지사항</span></div>
@@ -2086,6 +2086,7 @@ function closeSearchResults() {
 const box = document.getElementById('searchResults');
 box.classList.remove('active');
 box.innerHTML = '';
+document.getElementById('searchInput').setAttribute('aria-expanded', 'false');
 }
 
 function liveSearch() {
@@ -2093,10 +2094,11 @@ const q = document.getElementById('searchInput').value;
 const box = document.getElementById('searchResults');
 if (!q.trim()) { closeSearchResults(); return; }
 const results = searchQuery(q);
+document.getElementById('searchInput').setAttribute('aria-expanded', 'true');
 if (results.length === 0) {
 box.innerHTML = '<div class="sr-empty">검색 결과가 없어요. 다른 키워드로 찾아보세요!</div>';
 } else {
-box.innerHTML = results.map((r, i) => `<div class="sr-item" data-idx="${i}"><span class="sr-badge">${srEscape(r.type)}</span><div class="sr-text"><div class="sr-title">${srEscape(r.title)}</div><div class="sr-sub">${srEscape(r.sub || '')}</div></div></div>`).join('');
+box.innerHTML = results.map((r, i) => `<div class="sr-item" role="option" id="sr-opt-${i}" data-idx="${i}"><span class="sr-badge">${srEscape(r.type)}</span><div class="sr-text"><div class="sr-title">${srEscape(r.title)}</div><div class="sr-sub">${srEscape(r.sub || '')}</div></div></div>`).join('');
 box.querySelectorAll('.sr-item').forEach(el => {
 el.addEventListener('click', () => { results[Number(el.dataset.idx)].action(); closeSearchResults(); document.getElementById('searchInput').value = ''; });
 });
