@@ -187,108 +187,6 @@ box-shadow: 0 8px 18px rgba(0,0,0,0.15);
 .b-title { font-size: 18px; font-weight: bold; margin: 0 auto 5px; color: var(--brown); line-height: 1.3; max-width: 260px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .b-author { font-size: 13px; color: #888; }
 
-/* [★ MAUM BREAD BANNER : 리뉴얼 (노란색 배경 강조 + 캐릭터 크게)] */
-.maum-section { padding: 30px 5vw; }
-
-.maum-banner {
-max-width: 1300px; margin: 0 auto;
-background-color: #FFD74B;
-background-image:
-linear-gradient(rgba(255,255,255, 0.2) 1px, transparent 1px),
-linear-gradient(90deg, rgba(255,255,255, 0.2) 1px, transparent 1px);
-background-size: 30px 30px;
-
-border-radius: 4px;
-border: 2px solid rgba(0,0,0,0.05);
-padding: 30px 40px;
-cursor: pointer; transition: 0.3s;
-display: flex; align-items: center; justify-content: center;
-box-shadow: 0 15px 30px rgba(78, 59, 49, 0.1);
-position: relative; overflow: hidden;
-}
-
-.maum-banner:hover {
-transform: translateY(-5px);
-box-shadow: 0 20px 40px rgba(78, 59, 49, 0.15);
-background-color: #FFCA28;
-}
-
-.mb-content-wrap {
-display: flex;
-align-items: center;
-gap: 40px;
-z-index: 2;
-}
-
-.mb-text-area { text-align: center; }
-
-.mb-season-badge {
-display: inline-block;
-font-family: 'Gowun Batang', serif;
-font-size: 20px;
-color: #4E3B31;
-border-bottom: 2px solid #4E3B31;
-margin-bottom: 15px;
-font-weight: 800;
-letter-spacing: 1px;
-}
-
-.mb-main-title {
-font-family: 'Gowun Batang', serif;
-font-weight: 700;
-font-size: 64px;
-color: #2c2c2c;
-line-height: 1.1;
-margin-bottom: 15px;
-text-shadow: 2px 2px 0px rgba(255,255,255,0.3);
-letter-spacing: -1px;
-}
-
-.mb-sub-desc {
-font-family: 'Pretendard', sans-serif;
-font-weight: 600;
-font-size: 18px;
-color: #333;
-line-height: 1.6;
-background: rgba(255,255,255,0.8);
-padding: 12px 25px;
-border-radius: 30px;
-word-break: keep-all;
-display: inline-block;
-box-shadow: 0 5px 10px rgba(0,0,0,0.05);
-}
-
-/* [캐릭터 이미지 사이즈 대폭 확대] */
-.mb-character-wrap {
-width: 320px; /* PC에서 크게 보이도록 수정 (180 -> 320) */
-height: 320px;
-display: flex;
-align-items: center;
-justify-content: center;
-animation: floatChar 3s ease-in-out infinite;
-flex-shrink: 0; /* 텍스트에 밀려 줄어들지 않도록 고정 */
-}
-
-.mb-character-img {
-width: 100%;
-height: 100%;
-object-fit: contain;
-filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));
-}
-
-@keyframes floatChar {
-0%, 100% { transform: translateY(0); }
-50% { transform: translateY(-15px); }
-}
-
-@media (max-width: 768px) {
-.maum-banner { padding: 30px 20px; }
-.mb-content-wrap { flex-direction: column; gap: 20px; }
-.mb-main-title { font-size: 42px; }
-.mb-sub-desc { font-size: 15px; padding: 10px 15px; }
-.mb-character-wrap { width: 220px; height: 220px; margin-top: 10px; } /* 모바일에서도 크게 */
-}
-
 /* [★ 개띠랑 온에어 (청음실) : LP 스타일 통일 ] */
 .sec-video {
 padding: 80px 5vw;
@@ -368,46 +266,6 @@ font-size: 11px; font-weight: 800; margin-bottom: 10px; width: fit-content;
 .mc-meta { font-size: 13px; color: #999; margin-top: 10px; display: flex; align-items: center; gap: 5px; }
 
 @keyframes spinLP { 100% { transform: rotate(360deg); } }
-
-/* [MAUM MODAL] */
-.maum-modal-content {
-background: #fdfbf7; padding: 40px; border-radius: 20px;
-text-align: center; position: relative; border: 4px solid #EAD696;
-box-shadow: 0 20px 60px rgba(0,0,0,0.2); width:100%;
-background-image: radial-gradient(#EAD696 1px, transparent 1px); background-size: 20px 20px;
-display:flex; flex-direction:column; justify-content:center; align-items:center;
-}
-.mm-close-btn {
-position: absolute; top: 25px; right: 25px; font-size: 28px;
-color: #4E3B31; cursor: pointer; z-index: 100; font-weight: bold;
-background: rgba(255,255,255,0.5); width: 40px; height: 40px;
-border-radius: 50%; display: flex; align-items: center; justify-content: center;
-transition: 0.2s;
-}
-.mm-close-btn:hover { background: #4E3B31; color: #fff; transform: rotate(90deg); }
-
-.mm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width:100%; max-width:800px; }
-
-.mm-envelope {
-background: #f0e6d2; aspect-ratio: 1.4/1; border-radius: 10px;
-box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 2px solid #dcc;
-display:flex; flex-direction:column; align-items:center; justify-content:center;
-cursor: pointer; transition: 0.3s; position: relative; padding:20px;
-}
-.mm-envelope:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); background:#fff; }
-
-.mm-text {
-font-family: 'Pretendard', sans-serif;
-font-size: 16px;
-color: #333;
-z-index: 2;
-line-height: 1.5;
-font-weight: 700;
-word-break: keep-all;
-}
-.mm-seal { position:absolute; bottom:15px; right:15px; font-size:24px; z-index:2; opacity:0.6; }
-.mm-letter-view { display:none; background:#fff; padding:40px; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,0.1); max-width:500px; text-align:center; border:1px solid #eee; }
-.mm-letter-view.active { display:block; animation:fadeIn 0.3s; }
 
 /* [AUTHOR SCROLL CENTERED] */
 .author-scroll {
@@ -1099,8 +957,6 @@ background: rgba(0, 0, 0, 0.5);
 <li class="nb-item" onclick="openNoticeFromEl(this)" data-title="[완료] 다원이음터 도서관 &lt;내 마음을 톡! 감정 표현 교실&gt; (이다솜 작가)" data-date="01.09" data-body="대상: 7~9세
 형태: 겨울독서교실(총 5회차)
 내용: 감정을 다양하게 표현하고, 내 마음을 안전하게 말로 꺼내는 연습을 했어요."><span>[완료] 다원이음터 도서관 &lt;내 마음을 톡! 감정 표현 교실&gt; (이다솜 작가)</span><span class="nb-date">01.09</span></li>
-<li class="nb-item" onclick="openNoticeFromEl(this)" data-title="[안내] 원주 책빵소 X 개띠랑 &#x27;마음빵&#x27; 큐레이션 진행 중" data-date="02.05" data-body="원주 책빵소에서 ‘마음빵’ 큐레이션이 진행 중입니다.
-현장에서 카드/책/굿즈를 함께 만나볼 수 있어요."><span>[안내] 원주 책빵소 X 개띠랑 &#x27;마음빵&#x27; 큐레이션 진행 중</span><span class="nb-date">02.05</span></li>
 <li class="nb-item" onclick="openNoticeFromEl(this)" data-title="[이전] 3월, 경기상상캠퍼스로 보금자리를 옮깁니다 🚚" data-date="02.01" data-body="개띠랑의 작업실/아지트가 경기상상캠퍼스로 이전합니다.
 오프라인 프로그램, 모임, 협업 제안도 더 편하게 연결될 예정이에요."><span>[이전] 3월, 경기상상캠퍼스로 보금자리를 옮깁니다 🚚</span><span class="nb-date">02.01</span></li>
 </ul>
@@ -1437,34 +1293,6 @@ Copyright © 2022 Gaeddirang. All rights reserved.
 </div>
 </div>
 
-<div class="overlay-bg" id="maumBreadModal">
-<div class="modal-card" style="width: 800px; background: transparent; box-shadow: none;">
-<div class="maum-modal-content">
-<span class="mm-close-btn" onclick="closeOverlay('maumBreadModal')">✕</span>
-<div id="mmGridArea" style="width:100%;">
-<div style="margin-bottom:30px;">
-<h2 style="font-family:'Gowun Batang'; font-size:32px; color:var(--brown); margin-bottom:10px;">🍞 마음 빵집 우편함</h2>
-<p style="color:#666;">당신의 현재 마음에 딱 맞는 봉투를 골라보세요.</p>
-</div>
-<div class="mm-grid">
-<div class="mm-envelope" onclick="openLetter(1)"><span class="mm-text">지친 하루 끝,<br>위로가 필요한 당신에게</span><div class="mm-seal">💌</div></div>
-<div class="mm-envelope" onclick="openLetter(2)"><span class="mm-text">무기력한 일상,<br>자극이 필요한 당신에게</span><div class="mm-seal">🔥</div></div>
-<div class="mm-envelope" onclick="openLetter(3)"><span class="mm-text">복잡한 머릿속,<br>휴식이 필요한 당신에게</span><div class="mm-seal">🍃</div></div>
-<div class="mm-envelope" onclick="openLetter(4)"><span class="mm-text">따뜻한 사랑이<br>그리운 당신에게</span><div class="mm-seal">💕</div></div>
-<div class="mm-envelope" onclick="openLetter(5)"><span class="mm-text">새로운 시작,<br>용기가 필요한 당신에게</span><div class="mm-seal">💪</div></div>
-<div class="mm-envelope" onclick="openLetter(6)"><span class="mm-text">아무 생각 없이<br>웃고 싶은 당신에게</span><div class="mm-seal">🤣</div></div>
-</div>
-</div>
-<div id="mmLetterArea" class="mm-letter-view">
-<div style="text-align:left; margin-bottom:20px; font-family:'Gowun Batang'; font-weight:bold; color:var(--brown); font-size:18px;">To. 소중한 당신</div>
-<p id="mmLetterText" style="line-height:1.8; color:#555; margin-bottom:30px; word-break:keep-all;"></p>
-<div style="font-weight:bold; color:var(--accent); margin-bottom:20px;">#키워드 #시크릿북</div>
-<button class="btn-core" style="font-size:14px;" onclick="alert('준비 중입니다!')">이 마음빵 굽기 (구매하기)</button>
-<div style="margin-top:20px; cursor:pointer; color:#999; font-size:13px; text-decoration:underline;" onclick="backToMailbox()">다른 편지 고르기</div>
-</div>
-</div>
-</div>
-</div>
 
 <script>
 const lenis=new Lenis();function raf(time){lenis.raf(time);requestAnimationFrame(raf);}requestAnimationFrame(raf);
@@ -1852,26 +1680,6 @@ document.body.classList.remove('author-modal-open');
 }
 }
 
-function openMaumBreadModal() {
-document.getElementById('maumBreadModal').classList.add('active');
-document.getElementById('mmGridArea').style.display = 'block';
-document.getElementById('mmLetterArea').classList.remove('active');
-}
-function openLetter(idx) {
-const letters = [
-"하루 종일 고생한 당신, 오늘만큼은 스스로를 안아주세요.", "무기력하고 지루한 일상에 톡 쏘는 자극이 필요하다면 이 책을 펼쳐보세요.",
-"복잡한 생각은 잠시 끄고, 푹신한 이야기 속으로 빠져들 시간입니다.", "사랑의 온기가 그리운 날, 마음을 데워줄 다정한 이야기를 전합니다.",
-"망설이고 있는 당신에게, 한 발짝 나아갈 수 있는 용기를 선물합니다.", "아무 생각 없이 깔깔 웃고 싶은 날, 유쾌한 에너지를 충전해 드립니다."
-];
-document.getElementById('mmGridArea').style.display = 'none';
-document.getElementById('mmLetterArea').classList.add('active');
-document.getElementById('mmLetterText').innerText = letters[idx-1];
-}
-function backToMailbox() {
-document.getElementById('mmLetterArea').classList.remove('active');
-document.getElementById('mmGridArea').style.display = 'block';
-}
-
 function performSearch() {
 const query = document.getElementById('searchInput').value.trim().toLowerCase();
 if(!query) { alert('검색어를 입력해주세요!'); return; }
@@ -1965,9 +1773,6 @@ const NOTICE_BODIES = {
 `대상: 7~9세
 형태: 겨울독서교실(총 5회차)
 내용: 감정을 다양하게 표현하고, 내 마음을 안전하게 말로 꺼내는 연습을 했어요.`,
-"[안내] 원주 책빵소 X 개띠랑 '마음빵' 큐레이션 진행 중":
-`원주 책빵소에서 ‘마음빵’ 큐레이션이 진행 중입니다.
-현장에서 카드/책/굿즈를 함께 만나볼 수 있어요.`,
 "[이전] 3월, 경기상상캠퍼스로 보금자리를 옮깁니다 🚚":
 `개띠랑의 작업실/아지트가 경기상상캠퍼스로 이전합니다.
 오프라인 프로그램, 모임, 협업 제안도 더 편하게 연결될 예정이에요.`,
