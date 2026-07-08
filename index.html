@@ -422,6 +422,11 @@ will-change: transform;
 .sec-program .prog-grid { gap: var(--pcgap); padding: 0; }
 .sec-program .prog-card { width: var(--pcw); height: 450px; }
 }
+@media (max-width: 700px){
+.prog-grid-wrap { overflow-x: auto; justify-content: flex-start; padding: 0 5vw; -webkit-overflow-scrolling: touch; }
+.prog-grid { --pcw: 230px; --pcgap: 16px; margin: 0 auto; }
+.sec-program .prog-card { height: 380px; }
+}
 .sec-program .prog-card { width: var(--pcw); height: 450px; border-radius: 20px; border: 8px solid var(--brown); background: #fff; color: #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 10px 10px 0 rgba(0,0,0,0.1); transition: 0.3s; cursor: pointer; position: relative; }
 .prog-card:hover { transform: translateY(-15px) rotate(2deg); box-shadow: 15px 15px 0 rgba(0,0,0,0.15); }
 .pc-emotion { border-color: #F26D4F; background: #FFF3E0; } .pc-write { border-color: #5AB367; background: #E8F5E9; } .pc-book { border-color: #4B89C8; background: #E3F2FD; }
@@ -2131,6 +2136,9 @@ if(!wrap || !grid) return;
 // 1) 자연 크기 측정 (transform 제거)
 grid.style.transform = 'none';
 wrap.style.height = 'auto';
+
+// 모바일에서는 스케일 축소 대신 가로 스크롤을 쓰므로 여기서 종료
+if (window.innerWidth <= 700) return;
 
 const wrapW = wrap.clientWidth;
 const naturalW = grid.scrollWidth;
