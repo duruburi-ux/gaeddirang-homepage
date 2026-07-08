@@ -463,6 +463,13 @@ will-change: transform;
 .card-yellow .last-btn { color: #4E3B31; } .card-green .last-btn { color: #5AB367; }
 .last-icon { font-size: 100px; position: absolute; right: 20px; bottom: -20px; opacity: 0.4; transform: rotate(-15deg); }
 
+@media (max-width: 700px) {
+.last-grid { grid-template-columns: 1fr; gap: 20px; }
+.last-card { padding: 30px 25px; min-height: auto; flex-direction: column; align-items: flex-start; gap: 20px; }
+.last-btn { white-space: nowrap; }
+.last-icon { font-size: 70px; opacity: 0.25; }
+}
+
 footer { background: #fff; border-top: 1px solid #eee; padding: 40px 5vw; }
 .footer-content { max-width: 1300px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
 .footer-left h3 { font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--brown); }
@@ -547,6 +554,26 @@ z-index: 8999; animation: floatBubble 2s infinite; pointer-events: none; border:
 .rb-t-item::before { content:''; position: absolute; left: -27px; top: 6px; width: 12px; height: 12px; background: #fff; border: 3px solid var(--accent); border-radius: 50%; }
 .rb-t-date { font-size: 13px; font-weight: 800; color: var(--accent); display: block; margin-bottom: 2px; letter-spacing: 0.5px; }
 .rb-t-text { font-size: 15px; color: #444; line-height: 1.5; }
+
+@media (max-width: 800px) {
+.modal-book-container { height: 85vh; max-height: 720px; }
+.real-book { flex-direction: column; overflow-y: auto; border-radius: 15px; }
+.real-book::before { display: none; }
+.rb-left { width: 100%; padding: 35px 20px 25px; border-right: none; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; }
+.rb-profile-img { width: 110px; height: 110px; margin-bottom: 15px; }
+.rb-name { font-size: 26px; margin-bottom: 10px; }
+.rb-desc { font-size: 14px; margin-bottom: 20px; padding: 0; }
+.rb-right { width: 100%; flex: 1; min-height: 0; }
+.rb-bookmarks { position: static; flex-direction: row; justify-content: center; padding: 15px 0 0; gap: 10px; }
+.rb-bookmark { width: auto; height: auto; padding: 8px 22px; writing-mode: horizontal-tb; border-radius: 20px; font-size: 13px; box-shadow: none; }
+.rb-bookmark.active { width: auto; transform: none; }
+.rb-content-wrapper { padding: 20px; overflow-y: auto; }
+.rb-books-grid { gap: 10px; }
+.close-book-btn { top: -38px; right: 5px; font-size: 24px; }
+.author-nav-fixed { width: 40px; height: 40px; font-size: 18px; }
+.author-nav-fixed.left { left: 6px; }
+.author-nav-fixed.right { right: 6px; }
+}
 
 .rb-pagination { margin-top: auto; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; }
 .rb-page-btn { background: transparent; border: 1px solid var(--brown); color: var(--brown); padding: 6px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; }
