@@ -946,6 +946,7 @@ cursor: pointer;
 .em-feed-item:last-child { border-bottom: none; }
 .em-feed-nick { font-weight: 800; color: var(--brown); margin-right: 6px; }
 .em-feed-empty { font-size: 13px; color: #aaa; padding: 10px 0; }
+.hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
 
 .em-consent-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #666; margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
 .em-consent-row label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
@@ -1379,6 +1380,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 <div class="em-form" id="apForm">
 <h2 class="em-title">프로그램 신청하기</h2>
 <p class="em-subtitle" id="apProgramName">프로그램명</p>
+<input type="text" class="hp-field" id="apHoneypot" name="website" tabindex="-1" autocomplete="off">
 <input type="text" class="em-nickname" id="apName" placeholder="이름">
 <input type="text" class="em-nickname" id="apContact" placeholder="연락처 (전화번호)">
 <input type="email" class="em-nickname" id="apEmail" placeholder="이메일">
@@ -1435,6 +1437,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 <div class="em-form" id="emForm">
 <h2 class="em-title">오늘의 감정을 남겨주세요</h2>
 <p class="em-subtitle">오늘 당신의 마음은 어땠나요? 짧게라도 괜찮아요 :)</p>
+<input type="text" class="hp-field" id="emHoneypot" name="website" tabindex="-1" autocomplete="off">
 <textarea class="em-textarea" id="emContent" placeholder="예) 괜히 마음이 붕 떠서 아무것도 손에 안 잡히는 하루였어요"></textarea>
 <input type="text" class="em-nickname" id="emNickname" placeholder="닉네임 (선택, 비워두면 '익명'으로 남아요)">
 <p style="font-size:12px; color:#aaa; margin:-10px 0 20px;">※ 남기신 기록은 닉네임과 함께 홈페이지에 공개적으로 노출돼요.</p>
@@ -1850,10 +1853,12 @@ document.getElementById('emForm').classList.remove('hidden');
 document.getElementById('emResult').classList.remove('active');
 document.getElementById('emContent').value = '';
 document.getElementById('emNickname').value = '';
+document.getElementById('emHoneypot').value = '';
 document.getElementById('emotionModal').classList.add('active');
 }
 
 async function submitEmotionRecord() {
+if(document.getElementById('emHoneypot').value) { return; } // 봇 함정 필드에 값이 있으면 조용히 무시
 const content = document.getElementById('emContent').value.trim();
 if(!content) { alert('오늘의 감정을 남겨주세요!'); return; }
 const nickname = document.getElementById('emNickname').value.trim() || '익명';
@@ -1908,11 +1913,13 @@ document.getElementById('apMessage').value = '';
 document.getElementById('apConsent').checked = false;
 document.getElementById('apPhotoConsent').checked = false;
 document.getElementById('apRefundConfirm').checked = false;
+document.getElementById('apHoneypot').value = '';
 closeOverlay('programModal');
 document.getElementById('applyModal').classList.add('active');
 }
 
 async function submitApplication() {
+if(document.getElementById('apHoneypot').value) { return; } // 봇 함정 필드에 값이 있으면 조용히 무시
 const applicant_name = document.getElementById('apName').value.trim();
 const contact = document.getElementById('apContact').value.trim();
 const email = document.getElementById('apEmail').value.trim();
