@@ -2344,7 +2344,7 @@ document.getElementById('authSignupView').classList.add('hidden');
 document.getElementById('authLoginView').classList.add('hidden');
 const resultMsg = data?.session
 ? '가입이 완료됐어요! 바로 이용하실 수 있어요.'
-: '확인 메일을 보냈어요!<br>메일함에서 링크를 눌러 가입을 완료해주세요.';
+: '확인 메일을 보냈어요!<br>메일함에서 링크를 누르면 이 홈페이지로 돌아오면서<br>자동으로 로그인이 완료돼요. (별도로 다시 로그인하실 필요 없어요!)';
 document.getElementById('authResultMsg').innerHTML = resultMsg;
 document.getElementById('authResultView').classList.add('active');
 }
@@ -2414,8 +2414,13 @@ ${itemsHtml}
 document.getElementById('myOrdersModal').classList.add('active');
 }
 
-supabaseClient.auth.onAuthStateChange((_event, session) => {
+const isEmailConfirmRedirect = window.location.hash.includes('access_token') || window.location.hash.includes('type=signup');
+supabaseClient.auth.onAuthStateChange((event, session) => {
 updateAuthNav(session);
+if (isEmailConfirmRedirect && event === 'SIGNED_IN') {
+alert('이메일 인증이 완료됐어요! 자동으로 로그인됐습니다 🎉');
+history.replaceState(null, '', window.location.pathname + window.location.search);
+}
 });
 supabaseClient.auth.getSession().then(({ data }) => updateAuthNav(data?.session));
 
