@@ -2191,6 +2191,40 @@ try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch(e) { retu
 function saveCart(cart) {
 localStorage.setItem(CART_KEY, JSON.stringify(cart));
 updateCartBadge();
+pushCartToServer(cart);
+}
+async function pushCartToServer(cart) {
+const { data: sessionData } = await supabaseClient.auth.getSession();
+const session = sessionData?.session;
+if (!session) return;
+await supabaseClient.from('carts').upsert({ user_id: session.user.id, items: cart, updated_at: new Date().toISOString() });
+}
+async function loadCartFromServer() {
+const { data: sessionData } = await supabaseClient.auth.getSession();
+const session = sessionData?.session;
+if (!session) return;
+const { data } = await supabaseClient.from('carts').select('items').eq('user_id', session.user.id).maybeSingle();
+if (data?.items) {
+localStorage.setItem(CART_KEY, JSON.stringify(data.items));
+updateCartBadge();
+}
+}
+async function mergeCartOnLogin() {
+const { data: sessionData } = await supabaseClient.auth.getSession();
+const session = sessionData?.session;
+if (!session) return;
+const { data } = await supabaseClient.from('carts').select('items').eq('user_id', session.user.id).maybeSingle();
+const serverCart = data?.items || [];
+const localCart = getCart();
+const merged = [...serverCart];
+localCart.forEach(item => {
+const existing = merged.find(i => i.title === item.title);
+if (existing) existing.qty += item.qty;
+else merged.push(item);
+});
+localStorage.setItem(CART_KEY, JSON.stringify(merged));
+updateCartBadge();
+await supabaseClient.from('carts').upsert({ user_id: session.user.id, items: merged, updated_at: new Date().toISOString() });
 }
 function updateCartBadge() {
 const badge = document.getElementById('cartBadge');
@@ -2379,6 +2413,7 @@ const { error } = await supabaseClient.auth.signInWithPassword({ email, password
 btn.disabled = false; btn.textContent = '로그인';
 
 if (error) { alert('로그인에 실패했어요: ' + error.message); return; }
+await mergeCartOnLogin();
 closeOverlay('authModal');
 }
 
@@ -2437,11 +2472,15 @@ const isEmailConfirmRedirect = window.location.hash.includes('access_token') || 
 supabaseClient.auth.onAuthStateChange((event, session) => {
 updateAuthNav(session);
 if (isEmailConfirmRedirect && event === 'SIGNED_IN') {
+mergeCartOnLogin();
 alert('이메일 인증이 완료됐어요! 자동으로 로그인됐습니다 🎉');
 history.replaceState(null, '', window.location.pathname + window.location.search);
 }
 });
-supabaseClient.auth.getSession().then(({ data }) => updateAuthNav(data?.session));
+supabaseClient.auth.getSession().then(({ data }) => {
+updateAuthNav(data?.session);
+if (data?.session && !isEmailConfirmRedirect) loadCartFromServer();
+});
 
 /* [★ 통합 검색] 도서/카드/작가/프로그램/공지를 실제로 찾아서 바로 열어주는 검색 */
 const srEscape = (str) => String(str).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
