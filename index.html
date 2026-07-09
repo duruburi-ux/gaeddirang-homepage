@@ -748,7 +748,8 @@ border-radius: 10px;
 /* 하단 버튼 */
 .nm-footer {
 padding: 0 35px 35px;
-text-align: center;
+display: flex;
+gap: 12px;
 }
 .nm-shop-btn {
 background: var(--modal-theme-bg); /* BROWN */
@@ -767,6 +768,8 @@ justify-content: center;
 gap: 10px;
 }
 .nm-shop-btn:hover { background: #3E2F28; transform: translateY(-2px); }
+.nm-order-btn { background: var(--accent); }
+.nm-order-btn:hover { background: #d94f31; }
 
 /* [★ PROGRAM CARD MODAL: THEMED & DYNAMIC COLOR] */
 :root { --pm-color: #000; /* Default (will be overridden by JS) */ }
@@ -1329,8 +1332,11 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 </div>
 
 <div class="nm-footer">
+<button class="nm-shop-btn nm-order-btn" onclick="openOrderForm()">
+<span>홈페이지에서 주문하기</span>
+</button>
 <a href="https://smartstore.naver.com/gaeddirang" target="_blank" class="nm-shop-btn">
-<span>구매하러 가기</span> <i class="fas fa-chevron-right" style="font-size:12px;"></i>
+<span>스마트스토어</span> <i class="fas fa-chevron-right" style="font-size:12px;"></i>
 </a>
 </div>
 </div>
@@ -1407,6 +1413,36 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 <div class="em-result" id="apResult">
 <div class="em-thanks-icon">🙌</div>
 <p class="em-thanks-msg">신청이 접수됐어요!<br>빠른 시일 내에 연락드릴게요.</p>
+</div>
+
+</div>
+</div>
+
+<div class="overlay-bg" id="orderModal">
+<div class="em-wrapper">
+<span class="em-close" onclick="closeOverlay('orderModal')">✕</span>
+
+<div class="em-form" id="orForm">
+<h2 class="em-title">주문하기</h2>
+<p class="em-subtitle" id="orBookTitle">상품명</p>
+<input type="text" class="hp-field" id="orHoneypot" name="website" tabindex="-1" autocomplete="off">
+<input type="number" class="em-nickname" id="orQuantity" min="1" value="1" placeholder="수량" oninput="updateOrderTotal()">
+<p id="orTotalPrice" style="text-align:center; font-weight:800; color:var(--accent); margin:-8px 0 18px;"></p>
+<input type="text" class="em-nickname" id="orName" placeholder="이름">
+<input type="text" class="em-nickname" id="orContact" placeholder="연락처 (전화번호)">
+<input type="email" class="em-nickname" id="orEmail" placeholder="이메일">
+<input type="text" class="em-nickname" id="orAddress" placeholder="배송 주소 (우편번호 포함)">
+<textarea class="em-textarea" id="orMessage" placeholder="배송 시 요청사항이 있다면 남겨주세요 (선택)"></textarea>
+<div class="em-consent-row">
+<label><input type="checkbox" id="orConsent"> 개인정보 수집·이용에 동의합니다 (필수)</label>
+<span class="em-consent-link" onclick="openOverlaySafe('privacyModal')">자세히 보기</span>
+</div>
+<button class="em-submit-btn" id="orSubmitBtn" onclick="submitOrder()">주문하기</button>
+</div>
+
+<div class="em-result" id="orResult">
+<div class="em-thanks-icon">📦</div>
+<p class="em-thanks-msg">주문이 접수됐어요!<br>입금 계좌 안내를 문자로 보내드릴게요.</p>
 </div>
 
 </div>
@@ -1535,9 +1571,11 @@ else container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 }
 
 // [★ NEW: 상세 모달 로직 업데이트 - SIDE LAYOUT]
+let currentOrderBook = null;
 function openBookDetail(title) {
 const bookData = books.find(b => b.title === title || b.title.includes(title));
 if (!bookData) return;
+currentOrderBook = bookData;
 
 // 이미지
 document.getElementById('nmImage').src = bookData.img;
@@ -1826,7 +1864,7 @@ async function loadAllContent() {
       supabaseClient.from('reviews').select('*').order('sort_order'),
     ]);
 
-    books = (bookRes.data || []).map(b => ({ title: b.title, author: b.author, cat: b.category, img: b.img_path, spec: b.spec, desc: b.description }));
+    books = (bookRes.data || []).map(b => ({ title: b.title, author: b.author, cat: b.category, img: b.img_path, spec: b.spec, desc: b.description, price: b.price }));
     if (typeof renderBooks === 'function') renderBooks('all');
 
     renderAuthorsUI(authRes.data);
@@ -1946,6 +1984,60 @@ if(error) { alert('접수에 실패했어요. 잠시 후 다시 시도해주세�
 
 document.getElementById('apForm').classList.add('hidden');
 document.getElementById('apResult').classList.add('active');
+}
+
+/* [★ 주문하기] */
+function updateOrderTotal() {
+if (!currentOrderBook || !currentOrderBook.price) { document.getElementById('orTotalPrice').textContent = ''; return; }
+const qty = Math.max(1, parseInt(document.getElementById('orQuantity').value) || 1);
+const total = currentOrderBook.price * qty;
+document.getElementById('orTotalPrice').textContent = `합계: ${total.toLocaleString()}원`;
+}
+
+function openOrderForm() {
+if (!currentOrderBook) return;
+document.getElementById('orBookTitle').innerText = currentOrderBook.title;
+document.getElementById('orForm').classList.remove('hidden');
+document.getElementById('orResult').classList.remove('active');
+document.getElementById('orQuantity').value = 1;
+document.getElementById('orName').value = '';
+document.getElementById('orContact').value = '';
+document.getElementById('orEmail').value = '';
+document.getElementById('orAddress').value = '';
+document.getElementById('orMessage').value = '';
+document.getElementById('orConsent').checked = false;
+document.getElementById('orHoneypot').value = '';
+updateOrderTotal();
+closeOverlay('detailModal');
+document.getElementById('orderModal').classList.add('active');
+}
+
+async function submitOrder() {
+if(document.getElementById('orHoneypot').value) { return; }
+const quantity = Math.max(1, parseInt(document.getElementById('orQuantity').value) || 1);
+const buyer_name = document.getElementById('orName').value.trim();
+const contact = document.getElementById('orContact').value.trim();
+const email = document.getElementById('orEmail').value.trim();
+const shipping_address = document.getElementById('orAddress').value.trim();
+const message = document.getElementById('orMessage').value.trim();
+if(!buyer_name || !contact || !email || !shipping_address) { alert('이름, 연락처, 이메일, 배송 주소를 입력해주세요!'); return; }
+if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('이메일 형식을 확인해주세요!'); return; }
+if(!document.getElementById('orConsent').checked) { alert('개인정보 수집·이용에 동의해주세요!'); return; }
+
+const btn = document.getElementById('orSubmitBtn');
+btn.disabled = true; btn.textContent = '접수 중...';
+
+const { error } = await supabaseClient.from('orders').insert({
+book_title: currentOrderBook.title, quantity, unit_price: currentOrderBook.price || null,
+buyer_name, contact, email, shipping_address, message
+});
+
+btn.disabled = false; btn.textContent = '주문하기';
+
+if(error) { alert('접수에 실패했어요. 잠시 후 다시 시도해주세요.'); console.error(error); return; }
+
+document.getElementById('orForm').classList.add('hidden');
+document.getElementById('orResult').classList.add('active');
 }
 
 /* [★ 통합 검색] 도서/카드/작가/프로그램/공지를 실제로 찾아서 바로 열어주는 검색 */
