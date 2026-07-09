@@ -2167,8 +2167,19 @@ btn.disabled = false; btn.textContent = '신청하기';
 
 if(error) { alert('접수에 실패했어요. 잠시 후 다시 시도해주세요.'); console.error(error); return; }
 
+notifyAdmin('applications', { program_name: currentApplyProgram, applicant_name, contact, email, participant_count, message });
+
 document.getElementById('apForm').classList.add('hidden');
 document.getElementById('apResult').classList.add('active');
+}
+
+/* [★ 관리자 즉시 알림] Database Webhook 대신 클라이언트에서 직접 알림 함수 호출 */
+function notifyAdmin(table, record) {
+fetch(`${SUPABASE_URL}/functions/v1/dynamic-responder`, {
+method: 'POST',
+headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+body: JSON.stringify({ table, record })
+}).catch(() => {});
 }
 
 /* [★ 장바구니 & 주문하기] */
@@ -2310,6 +2321,8 @@ const { error: itemsError } = await supabaseClient.from('order_items').insert(it
 btn.disabled = false; btn.textContent = '주문하기';
 if (itemsError) { alert('접수에 실패했어요. 잠시 후 다시 시도해주세요.'); console.error(itemsError); return; }
 
+notifyAdmin('orders', { id: orderId, buyer_name, contact, email, shipping_address, total_amount });
+
 saveCart([]);
 document.getElementById('coForm').classList.add('hidden');
 document.getElementById('coResult').classList.add('active');
@@ -2343,6 +2356,8 @@ const { data, error } = await supabaseClient.auth.signUp({ email, password, opti
 btn.disabled = false; btn.textContent = '회원가입';
 
 if (error) { alert('회원가입에 실패했어요: ' + error.message); return; }
+
+notifyAdmin('profiles', { email, marketing_consent });
 
 document.getElementById('authSignupView').classList.add('hidden');
 document.getElementById('authLoginView').classList.add('hidden');
