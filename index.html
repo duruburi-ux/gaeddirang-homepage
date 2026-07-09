@@ -1012,6 +1012,26 @@ cursor: pointer;
 .em-consent-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #666; margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
 .em-consent-row label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .em-consent-link { text-decoration: underline; cursor: pointer; color: var(--accent); font-weight: 700; white-space: nowrap; }
+
+/* [★ 장바구니] */
+.cart-icon-btn { position: relative; background: none; border: none; font-size: 20px; color: var(--brown); padding: 8px; margin-right: 6px; }
+.cart-badge { position: absolute; top: 0; right: 0; background: var(--accent); color: #fff; font-size: 10px; font-weight: 800; min-width: 16px; height: 16px; border-radius: 50%; display: none; align-items: center; justify-content: center; padding: 0 3px; }
+.cart-item { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #eee; }
+.cart-item-img { width: 52px; height: 68px; object-fit: cover; border-radius: 4px; background: var(--gray-bg); flex-shrink: 0; }
+.cart-item-info { flex: 1; min-width: 0; }
+.cart-item-title { font-size: 14px; font-weight: 700; color: var(--brown); margin-bottom: 4px; }
+.cart-item-price { font-size: 13px; color: #888; margin-bottom: 6px; }
+.cart-item-qty { display: flex; align-items: center; gap: 10px; }
+.cart-item-qty button { width: 24px; height: 24px; border-radius: 50%; background: var(--gray-bg); font-size: 14px; font-weight: 800; color: var(--brown); }
+.cart-item-qty span { font-size: 14px; font-weight: 700; min-width: 16px; text-align: center; }
+.cart-item-remove { font-size: 16px; color: #ccc; cursor: pointer; flex-shrink: 0; padding: 6px; }
+.cart-item-remove:hover { color: var(--accent); }
+.cart-empty { text-align: center; color: #999; font-size: 14px; padding: 40px 0; }
+.cart-footer { display: none; margin-top: 18px; }
+.cart-total { text-align: right; font-weight: 800; font-size: 17px; color: var(--brown); margin-bottom: 16px; }
+.co-summary-box { background: var(--gray-bg); border-radius: 14px; padding: 16px 18px; margin-bottom: 20px; }
+.co-summary-row { display: flex; justify-content: space-between; font-size: 13.5px; color: #555; padding: 4px 0; }
+.co-summary-total { text-align: right; font-weight: 800; font-size: 16px; color: var(--brown); margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd; }
 .em-privacy-text { text-align: left; font-size: 13.5px; color: #555; line-height: 1.7; max-height: 55vh; overflow-y: auto; }
 .em-privacy-text h4 { font-size: 15px; color: var(--brown); margin: 16px 0 6px; }
 .em-privacy-text h4:first-child { margin-top: 0; }
@@ -1118,6 +1138,7 @@ background: rgba(0, 0, 0, 0.5);
 <a onclick="switchView('main', 'program')">프로그램</a>
 <a onclick="switchView('main', 'gaedditv')">개띠랑TV</a>
 </nav>
+<button class="cart-icon-btn" onclick="openCartModal()"><i class="fas fa-shopping-bag"></i><span class="cart-badge" id="cartBadge">0</span></button>
 <button class="header-cta btn-core" style="font-size:14px; padding:8px 20px;" onclick="openEmotionModal()">기록 시작하기</button>
 <button class="hamburger-btn" onclick="toggleMobileNav()"><i class="fas fa-bars"></i></button>
 </header>
@@ -1423,8 +1444,8 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 </div>
 
 <div class="nm-footer">
-<button class="nm-shop-btn nm-order-btn" onclick="openOrderForm()">
-<span>홈페이지에서 주문하기</span>
+<button class="nm-shop-btn nm-order-btn" onclick="addToCart(currentOrderBook)">
+<span>장바구니에 담기</span>
 </button>
 <a href="https://smartstore.naver.com/gaeddirang" target="_blank" class="nm-shop-btn">
 <span>스마트스토어</span> <i class="fas fa-chevron-right" style="font-size:12px;"></i>
@@ -1509,29 +1530,45 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 </div>
 </div>
 
-<div class="overlay-bg" id="orderModal">
+<div class="overlay-bg" id="cartModal">
 <div class="em-wrapper">
-<span class="em-close" onclick="closeOverlay('orderModal')">✕</span>
+<span class="em-close" onclick="closeOverlay('cartModal')">✕</span>
+<h2 class="em-title">장바구니</h2>
+<p class="em-subtitle">담은 책을 확인하고 한번에 주문해보세요</p>
+<div id="cartList"></div>
+<p class="cart-empty" id="cartEmpty">아직 담은 책이 없어요.</p>
+<div class="cart-footer" id="cartFooter">
+<p class="cart-total" id="cartTotal"></p>
+<button class="em-submit-btn" onclick="openCheckoutForm()">주문하러 가기</button>
+</div>
+</div>
+</div>
 
-<div class="em-form" id="orForm">
+<div class="overlay-bg" id="checkoutModal">
+<div class="em-wrapper">
+<span class="em-close" onclick="closeOverlay('checkoutModal')">✕</span>
+
+<div class="em-form" id="coForm">
 <h2 class="em-title">주문하기</h2>
-<p class="em-subtitle" id="orBookTitle">상품명</p>
-<input type="text" class="hp-field" id="orHoneypot" name="website" tabindex="-1" autocomplete="off">
-<input type="number" class="em-nickname" id="orQuantity" min="1" value="1" placeholder="수량" oninput="updateOrderTotal()">
-<p id="orTotalPrice" style="text-align:center; font-weight:800; color:var(--accent); margin:-8px 0 18px;"></p>
-<input type="text" class="em-nickname" id="orName" placeholder="이름">
-<input type="text" class="em-nickname" id="orContact" placeholder="연락처 (전화번호)">
-<input type="email" class="em-nickname" id="orEmail" placeholder="이메일">
-<input type="text" class="em-nickname" id="orAddress" placeholder="배송 주소 (우편번호 포함)">
-<textarea class="em-textarea" id="orMessage" placeholder="배송 시 요청사항이 있다면 남겨주세요 (선택)"></textarea>
+<p class="em-subtitle">주문하실 정보를 입력해주세요</p>
+<div class="co-summary-box">
+<div id="coSummaryList"></div>
+<p class="co-summary-total" id="coSummaryTotal"></p>
+</div>
+<input type="text" class="hp-field" id="coHoneypot" name="website" tabindex="-1" autocomplete="off">
+<input type="text" class="em-nickname" id="coName" placeholder="이름">
+<input type="text" class="em-nickname" id="coContact" placeholder="연락처 (전화번호)">
+<input type="email" class="em-nickname" id="coEmail" placeholder="이메일">
+<input type="text" class="em-nickname" id="coAddress" placeholder="배송 주소 (우편번호 포함)">
+<textarea class="em-textarea" id="coMessage" placeholder="배송 시 요청사항이 있다면 남겨주세요 (선택)"></textarea>
 <div class="em-consent-row">
-<label><input type="checkbox" id="orConsent"> 개인정보 수집·이용에 동의합니다 (필수)</label>
+<label><input type="checkbox" id="coConsent"> 개인정보 수집·이용에 동의합니다 (필수)</label>
 <span class="em-consent-link" onclick="openOverlaySafe('privacyModal')">자세히 보기</span>
 </div>
-<button class="em-submit-btn" id="orSubmitBtn" onclick="submitOrder()">주문하기</button>
+<button class="em-submit-btn" id="coSubmitBtn" onclick="submitCheckout()">주문하기</button>
 </div>
 
-<div class="em-result" id="orResult">
+<div class="em-result" id="coResult">
 <div class="em-thanks-icon">📦</div>
 <p class="em-thanks-msg">주문이 접수됐어요!<br>입금 계좌 안내를 문자로 보내드릴게요.</p>
 </div>
@@ -1977,6 +2014,7 @@ async function loadAllContent() {
   }
 }
 loadAllContent();
+updateCartBadge();
 
 function openEmotionModal() {
 document.getElementById('emForm').classList.remove('hidden');
@@ -2077,58 +2115,146 @@ document.getElementById('apForm').classList.add('hidden');
 document.getElementById('apResult').classList.add('active');
 }
 
-/* [★ 주문하기] */
-function updateOrderTotal() {
-if (!currentOrderBook || !currentOrderBook.price) { document.getElementById('orTotalPrice').textContent = ''; return; }
-const qty = Math.max(1, parseInt(document.getElementById('orQuantity').value) || 1);
-const total = currentOrderBook.price * qty;
-document.getElementById('orTotalPrice').textContent = `합계: ${total.toLocaleString()}원`;
+/* [★ 장바구니 & 주문하기] */
+const CART_KEY = 'gd_cart_v1';
+
+function getCart() {
+try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch(e) { return []; }
+}
+function saveCart(cart) {
+localStorage.setItem(CART_KEY, JSON.stringify(cart));
+updateCartBadge();
+}
+function updateCartBadge() {
+const badge = document.getElementById('cartBadge');
+if (!badge) return;
+const count = getCart().reduce((sum, i) => sum + i.qty, 0);
+badge.textContent = count;
+badge.style.display = count > 0 ? 'flex' : 'none';
+}
+function addToCart(bookData) {
+if (!bookData) return;
+const cart = getCart();
+const existing = cart.find(i => i.title === bookData.title);
+if (existing) existing.qty += 1;
+else cart.push({ title: bookData.title, price: bookData.price || 0, img: bookData.img || '', qty: 1 });
+saveCart(cart);
+alert(`장바구니에 담았어요: ${bookData.title}`);
+}
+function changeCartQty(title, delta) {
+const cart = getCart();
+const item = cart.find(i => i.title === title);
+if (!item) return;
+item.qty += delta;
+if (item.qty <= 0) { removeFromCart(title); return; }
+saveCart(cart);
+renderCart();
+}
+function removeFromCart(title) {
+saveCart(getCart().filter(i => i.title !== title));
+renderCart();
+}
+function renderCart() {
+const cart = getCart();
+const listEl = document.getElementById('cartList');
+const emptyEl = document.getElementById('cartEmpty');
+const footerEl = document.getElementById('cartFooter');
+if (cart.length === 0) {
+listEl.innerHTML = '';
+emptyEl.style.display = 'block';
+footerEl.style.display = 'none';
+return;
+}
+emptyEl.style.display = 'none';
+footerEl.style.display = 'block';
+let total = 0;
+listEl.innerHTML = cart.map(item => {
+total += (item.price || 0) * item.qty;
+const safeTitle = item.title.replace(/'/g, "\\'");
+return `<div class="cart-item">
+<img src="${item.img}" class="cart-item-img">
+<div class="cart-item-info">
+<p class="cart-item-title">${srEscape(item.title)}</p>
+<p class="cart-item-price">${(item.price||0).toLocaleString()}원</p>
+<div class="cart-item-qty">
+<button onclick="changeCartQty('${safeTitle}', -1)">−</button>
+<span>${item.qty}</span>
+<button onclick="changeCartQty('${safeTitle}', 1)">+</button>
+</div>
+</div>
+<span class="cart-item-remove" onclick="removeFromCart('${safeTitle}')">✕</span>
+</div>`;
+}).join('');
+document.getElementById('cartTotal').textContent = `합계: ${total.toLocaleString()}원`;
+}
+function openCartModal() {
+renderCart();
+document.getElementById('cartModal').classList.add('active');
+}
+function renderCheckoutSummary() {
+const cart = getCart();
+let total = 0;
+document.getElementById('coSummaryList').innerHTML = cart.map(item => {
+const lineTotal = (item.price||0) * item.qty;
+total += lineTotal;
+return `<div class="co-summary-row"><span>${srEscape(item.title)} × ${item.qty}</span><span>${lineTotal.toLocaleString()}원</span></div>`;
+}).join('');
+document.getElementById('coSummaryTotal').textContent = `총 합계: ${total.toLocaleString()}원`;
+}
+function openCheckoutForm() {
+const cart = getCart();
+if (cart.length === 0) { alert('장바구니가 비어있어요!'); return; }
+document.getElementById('coForm').classList.remove('hidden');
+document.getElementById('coResult').classList.remove('active');
+document.getElementById('coName').value = '';
+document.getElementById('coContact').value = '';
+document.getElementById('coEmail').value = '';
+document.getElementById('coAddress').value = '';
+document.getElementById('coMessage').value = '';
+document.getElementById('coConsent').checked = false;
+document.getElementById('coHoneypot').value = '';
+renderCheckoutSummary();
+closeOverlay('cartModal');
+document.getElementById('checkoutModal').classList.add('active');
 }
 
-function openOrderForm() {
-if (!currentOrderBook) return;
-document.getElementById('orBookTitle').innerText = currentOrderBook.title;
-document.getElementById('orForm').classList.remove('hidden');
-document.getElementById('orResult').classList.remove('active');
-document.getElementById('orQuantity').value = 1;
-document.getElementById('orName').value = '';
-document.getElementById('orContact').value = '';
-document.getElementById('orEmail').value = '';
-document.getElementById('orAddress').value = '';
-document.getElementById('orMessage').value = '';
-document.getElementById('orConsent').checked = false;
-document.getElementById('orHoneypot').value = '';
-updateOrderTotal();
-closeOverlay('detailModal');
-document.getElementById('orderModal').classList.add('active');
-}
-
-async function submitOrder() {
-if(document.getElementById('orHoneypot').value) { return; }
-const quantity = Math.max(1, parseInt(document.getElementById('orQuantity').value) || 1);
-const buyer_name = document.getElementById('orName').value.trim();
-const contact = document.getElementById('orContact').value.trim();
-const email = document.getElementById('orEmail').value.trim();
-const shipping_address = document.getElementById('orAddress').value.trim();
-const message = document.getElementById('orMessage').value.trim();
+async function submitCheckout() {
+if(document.getElementById('coHoneypot').value) { return; }
+const cart = getCart();
+if (cart.length === 0) { alert('장바구니가 비어있어요!'); return; }
+const buyer_name = document.getElementById('coName').value.trim();
+const contact = document.getElementById('coContact').value.trim();
+const email = document.getElementById('coEmail').value.trim();
+const shipping_address = document.getElementById('coAddress').value.trim();
+const message = document.getElementById('coMessage').value.trim();
 if(!buyer_name || !contact || !email || !shipping_address) { alert('이름, 연락처, 이메일, 배송 주소를 입력해주세요!'); return; }
 if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('이메일 형식을 확인해주세요!'); return; }
-if(!document.getElementById('orConsent').checked) { alert('개인정보 수집·이용에 동의해주세요!'); return; }
+if(!document.getElementById('coConsent').checked) { alert('개인정보 수집·이용에 동의해주세요!'); return; }
 
-const btn = document.getElementById('orSubmitBtn');
+const btn = document.getElementById('coSubmitBtn');
 btn.disabled = true; btn.textContent = '접수 중...';
 
-const { error } = await supabaseClient.from('orders').insert({
-book_title: currentOrderBook.title, quantity, unit_price: currentOrderBook.price || null,
-buyer_name, contact, email, shipping_address, message
+const orderId = crypto.randomUUID();
+const total_amount = cart.reduce((sum, i) => sum + (i.price||0) * i.qty, 0);
+
+const { error: orderError } = await supabaseClient.from('orders').insert({
+id: orderId, buyer_name, contact, email, shipping_address, message, total_amount
 });
 
+if (orderError) {
 btn.disabled = false; btn.textContent = '주문하기';
+alert('접수에 실패했어요. 잠시 후 다시 시도해주세요.'); console.error(orderError); return;
+}
 
-if(error) { alert('접수에 실패했어요. 잠시 후 다시 시도해주세요.'); console.error(error); return; }
+const itemRows = cart.map(i => ({ order_id: orderId, book_title: i.title, unit_price: i.price || null, quantity: i.qty }));
+const { error: itemsError } = await supabaseClient.from('order_items').insert(itemRows);
 
-document.getElementById('orForm').classList.add('hidden');
-document.getElementById('orResult').classList.add('active');
+btn.disabled = false; btn.textContent = '주문하기';
+if (itemsError) { alert('접수에 실패했어요. 잠시 후 다시 시도해주세요.'); console.error(itemsError); return; }
+
+saveCart([]);
+document.getElementById('coForm').classList.add('hidden');
+document.getElementById('coResult').classList.add('active');
 }
 
 /* [★ 통합 검색] 도서/카드/작가/프로그램/공지를 실제로 찾아서 바로 열어주는 검색 */
