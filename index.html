@@ -196,6 +196,16 @@ flex-wrap: wrap;
 .mg-face-spine-l, .mg-face-spine-r { width: 22px; height: 320px; left: 97px; }
 }
 
+/* [MOONGORI OST] */
+.sec-mg-ost { padding: 80px 5vw; background: var(--brown); text-align: center; }
+.mg-ost-eyebrow { color: var(--beige); font-size: 14px; font-weight: 700; letter-spacing: 1px; margin-bottom: 10px; }
+.mg-ost-title { font-family: 'Gowun Batang', serif; color: var(--paper); font-size: 34px; font-weight: 700; margin-bottom: 14px; }
+.mg-ost-desc { color: rgba(255,253,247,0.75); font-size: 15px; line-height: 1.7; max-width: 520px; margin: 0 auto 36px; word-break: keep-all; }
+.mg-ost-frame-wrap { max-width: 720px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.35); background: #000; }
+.mg-ost-frame-wrap iframe { display: block; width: 100%; aspect-ratio: 16/9; border: 0; }
+.mg-ost-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 22px; color: var(--beige); font-size: 14px; font-weight: 700; }
+.mg-ost-link:hover { text-decoration: underline; }
+
 /* [NOTICE] */
 .sec-notice-search { padding: 60px 5vw; background: var(--white); }
 .search-wrapper { text-align: center; margin-bottom: 60px; position: relative; max-width: 600px; margin-left: auto; margin-right: auto; }
@@ -1204,6 +1214,16 @@ background: rgba(0, 0, 0, 0.5);
 <div class="mg-book-face mg-face-spine-r"><img src="assets/moongori/spine.png" alt=""></div>
 </div>
 </div>
+</section>
+
+<section class="sec-mg-ost">
+<div class="mg-ost-eyebrow">읽고 듣는 북OST</div>
+<h3 class="mg-ost-title">문고리, 여섯 편의 노래로 먼저 만나보세요</h3>
+<p class="mg-ost-desc">각 단편마다 어울리는 곡을 직접 만들었어요. 책을 펼치기 전, 혹은 다 읽은 뒤 다시 이야기 속으로 들어가고 싶을 때 들어보세요.</p>
+<div class="mg-ost-frame-wrap">
+<iframe src="https://www.youtube-nocookie.com/embed/videoseries?list=PLCyYpdh2SxGE" title="문고리 북OST 재생목록" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+<a class="mg-ost-link" href="https://www.youtube.com/playlist?list=PLCyYpdh2SxGE" target="_blank" rel="noopener">유튜브에서 전체 재생목록 보기 →</a>
 </section>
 
 <section class="sec-notice-search">
