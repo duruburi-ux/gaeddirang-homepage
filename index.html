@@ -176,8 +176,8 @@ flex-wrap: wrap;
 .mg-face-front img, .mg-face-back img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .mg-face-back { transform: rotateY(180deg) translateZ(15px); }
 .mg-face-spine-l, .mg-face-spine-r { width: 30px; height: 445px; left: 135px; }
-.mg-face-spine-l img, .mg-face-spine-r img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.mg-face-spine-l { transform: rotateY(90deg) translateZ(150px); }
+.mg-face-spine-r img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mg-face-spine-l { transform: rotateY(90deg) translateZ(150px); background: repeating-linear-gradient(to bottom, #FFFDF7 0px, #FFFDF7 3px, #E8E1D0 3px, #E8E1D0 4px); }
 .mg-face-spine-r { transform: rotateY(-90deg) translateZ(150px); }
 @keyframes mgSpin { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
 
@@ -1210,7 +1210,7 @@ background: rgba(0, 0, 0, 0.5);
 <div class="mg-book-spin">
 <div class="mg-book-face mg-face-front"><img src="assets/moongori/cover.png" alt="문고리 표지"></div>
 <div class="mg-book-face mg-face-back"><img src="assets/moongori/back_cover.png" alt="문고리 뒤표지"></div>
-<div class="mg-book-face mg-face-spine-l"><img src="assets/moongori/spine.png" alt=""></div>
+<div class="mg-book-face mg-face-spine-l"></div>
 <div class="mg-book-face mg-face-spine-r"><img src="assets/moongori/spine.png" alt=""></div>
 </div>
 </div>
