@@ -529,13 +529,14 @@ will-change: transform;
 
 .sec-last-proposal { padding: 100px 5vw; background: var(--paper); border-top: 1px solid #eee; }
 .last-header { text-align: center; margin-bottom: 50px; }
-.last-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 1200px; margin: 0 auto; }
+.last-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; max-width: 1200px; margin: 0 auto; }
 .last-card { border-radius: 30px; padding: 40px; position: relative; overflow: hidden; min-height: 240px; display: flex; align-items: center; justify-content: space-between; transition: 0.3s; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
 .last-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.1); }
 .card-yellow { background: linear-gradient(135deg, #FDB95F 0%, #FFD580 100%); color: #4E3B31; }
 .card-green { background: linear-gradient(135deg, #5AB367 0%, #88D498 100%); color: #fff; }
+.card-blue { background: linear-gradient(135deg, #4B89C8 0%, #7BAEDE 100%); color: #fff; }
 .last-btn { padding: 12px 25px; border-radius: 30px; font-weight: 800; border: none; font-size: 14px; background: #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-.card-yellow .last-btn { color: #4E3B31; } .card-green .last-btn { color: #5AB367; }
+.card-yellow .last-btn { color: #4E3B31; } .card-green .last-btn { color: #5AB367; } .card-blue .last-btn { color: #4B89C8; }
 .last-icon { font-size: 100px; position: absolute; right: 20px; bottom: -20px; opacity: 0.4; transform: rotate(-15deg); }
 
 @media (max-width: 700px) {
@@ -1372,6 +1373,7 @@ background: rgba(0, 0, 0, 0.5);
 <div class="last-grid">
 <div class="last-card card-yellow"><div class="last-txt"><h3>혼자 쓰기 막막하다면?<br>감정클럽으로 오세요!</h3><p>매주 도착하는 글감과<br>따뜻한 피드백이 기다려요.</p><button class="last-btn">감정클럽 신청하기</button></div><div class="last-icon">🥐📝</div></div>
 <div class="last-card card-green"><div class="last-txt"><h3>똑똑, 기록 배달 왔습니다! 🚚<br>(학교/기업/도서관)</h3><p>원하시는 주제와 인원에 맞춰<br>맞춤형 프로그램을 기획해 드려요.</p><button class="last-btn" onclick="location.href='mailto:gaeddirang085@naver.com'">강연 제안서 받기</button></div><div class="last-icon">🏫✨</div></div>
+<div class="last-card card-blue"><div class="last-txt"><h3>아직 책이 되지 못한 이야기가 있다면?<br>질문지부터 받아보세요</h3><p>내 책의 씨앗을 찾는 질문 8가지,<br>이메일로 무료 PDF를 보내드려요.</p><button class="last-btn" onclick="openLeadModal()">무료 질문지 받기</button></div><div class="last-icon">🌱📖</div></div>
 </div>
 </section>
 </div>
@@ -1674,6 +1676,34 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 </div>
 <div class="em-feed-title">다른 사람들의 오늘의 감정</div>
 <div class="em-feed" id="emFeed"><div class="em-feed-empty">불러오는 중...</div></div>
+</div>
+
+</div>
+</div>
+
+<div class="overlay-bg" id="leadModal">
+<div class="em-wrapper">
+<span class="em-close" onclick="closeOverlay('leadModal')">✕</span>
+
+<div class="em-form" id="leadForm">
+<h2 class="em-title">나의 책 씨앗 질문지</h2>
+<p class="em-subtitle">아직 책이 되지 못한 이야기를 위한, 질문 여덟 가지. 이메일로 무료 PDF를 보내드려요.</p>
+<input type="text" class="hp-field" id="leadHoneypot" name="website" tabindex="-1" autocomplete="off">
+<input type="email" class="em-nickname" id="leadEmail" placeholder="이메일">
+<div class="em-consent-row">
+<label><input type="checkbox" id="leadConsent"> 개인정보 수집·이용에 동의합니다 (필수)</label>
+<span class="em-consent-link" onclick="openOverlaySafe('privacyModal')">자세히 보기</span>
+</div>
+<button class="em-submit-btn" id="leadSubmitBtn" onclick="submitLead()">무료로 받기</button>
+</div>
+
+<div class="em-result" id="leadResult">
+<div class="em-thanks-icon">🌱</div>
+<p class="em-thanks-msg">신청해주셔서 고마워요.<br>아래 버튼으로 바로 받아보세요.</p>
+<div class="em-cta-box">
+<p class="em-cta-desc">질문에 답하다 보면, 자꾸 눈길이 가는 문장이 남을 거예요. 그게 당신 책의 씨앗이에요.</p>
+<a class="em-cta-btn" href="assets/downloads/gaeddirang-book-seed-questions.pdf" target="_blank" download>PDF 다운로드 →</a>
+</div>
 </div>
 
 </div>
@@ -2119,6 +2149,38 @@ const escapeHtml = (str) => String(str).replace(/[&<>"']/g, (c) => ({'&':'&amp;'
 feed.innerHTML = data.map(r =>
 `<div class="em-feed-item"><span class="em-feed-nick">${escapeHtml(r.nickname || '익명')}</span>${escapeHtml(r.content)}</div>`
 ).join('');
+}
+
+/* [★ 나의 책 씨앗 질문지 - PDF 리드마그넷] */
+function openLeadModal() {
+document.getElementById('leadForm').classList.remove('hidden');
+document.getElementById('leadResult').classList.remove('active');
+document.getElementById('leadEmail').value = '';
+document.getElementById('leadConsent').checked = false;
+document.getElementById('leadHoneypot').value = '';
+document.getElementById('leadModal').classList.add('active');
+}
+
+async function submitLead() {
+if(document.getElementById('leadHoneypot').value) { return; }
+const email = document.getElementById('leadEmail').value.trim();
+if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('이메일 형식을 확인해주세요!'); return; }
+if(!document.getElementById('leadConsent').checked) { alert('개인정보 수집·이용에 동의해주세요!'); return; }
+
+const btn = document.getElementById('leadSubmitBtn');
+btn.disabled = true; btn.textContent = '접수 중...';
+
+const { error } = await supabaseClient.from('applications').insert({
+program_name: '[PDF] 나의 책 씨앗 질문지', applicant_name: '(PDF 신청)', contact: '-', email,
+participant_count: '1인', message: '리드마그넷 PDF 다운로드 신청', photo_consent: true, refund_confirmed: true
+});
+
+btn.disabled = false; btn.textContent = '무료로 받기';
+
+if(error) { alert('접수에 실패했어요. 잠시 후 다시 시도해주세요.'); console.error(error); return; }
+
+document.getElementById('leadForm').classList.add('hidden');
+document.getElementById('leadResult').classList.add('active');
 }
 
 /* [★ 프로그램 신청] */
