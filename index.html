@@ -995,6 +995,7 @@ cursor: pointer;
 .em-result { display: none; text-align: center; }
 .em-result.active { display: block; }
 .em-form.hidden { display: none; }
+.hidden { display: none; }
 .em-thanks-icon { font-size: 48px; margin-bottom: 10px; }
 .em-thanks-msg { font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 25px; word-break: keep-all; }
 .em-cta-box { background: var(--gray-bg); border-radius: 16px; padding: 22px; margin-bottom: 25px; }
@@ -1014,6 +1015,8 @@ cursor: pointer;
 .em-consent-link { text-decoration: underline; cursor: pointer; color: var(--accent); font-weight: 700; white-space: nowrap; }
 
 /* [★ 장바구니] */
+.auth-nav-btn { background: none; border: none; font-size: 13px; font-weight: 700; color: var(--brown); padding: 8px 10px; white-space: nowrap; }
+.auth-nav-btn i { margin-right: 4px; }
 .cart-icon-btn { position: relative; background: none; border: none; font-size: 20px; color: var(--brown); padding: 8px; margin-right: 6px; }
 .cart-badge { position: absolute; top: 0; right: 0; background: var(--accent); color: #fff; font-size: 10px; font-weight: 800; min-width: 16px; height: 16px; border-radius: 50%; display: none; align-items: center; justify-content: center; padding: 0 3px; }
 .cart-item { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #eee; }
@@ -1032,6 +1035,15 @@ cursor: pointer;
 .co-summary-box { background: var(--gray-bg); border-radius: 14px; padding: 16px 18px; margin-bottom: 20px; }
 .co-summary-row { display: flex; justify-content: space-between; font-size: 13.5px; color: #555; padding: 4px 0; }
 .co-summary-total { text-align: right; font-weight: 800; font-size: 16px; color: var(--brown); margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd; }
+
+/* [★ 로그인/회원가입/주문내역] */
+.auth-switch-text { text-align: center; font-size: 13px; color: #888; margin-top: 16px; }
+.auth-switch-text span { color: var(--accent); font-weight: 700; cursor: pointer; text-decoration: underline; }
+.my-order-card { border: 1px solid #eee; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; }
+.my-order-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: #888; }
+.my-order-status { background: var(--gray-bg); color: var(--brown); font-weight: 700; padding: 3px 12px; border-radius: 20px; font-size: 12px; }
+.my-order-item-row { display: flex; justify-content: space-between; font-size: 14px; color: var(--brown); padding: 3px 0; }
+.my-order-total { text-align: right; font-weight: 800; font-size: 14px; color: var(--brown); margin-top: 8px; padding-top: 8px; border-top: 1px dashed #ddd; }
 .em-privacy-text { text-align: left; font-size: 13.5px; color: #555; line-height: 1.7; max-height: 55vh; overflow-y: auto; }
 .em-privacy-text h4 { font-size: 15px; color: var(--brown); margin: 16px 0 6px; }
 .em-privacy-text h4:first-child { margin-top: 0; }
@@ -1138,6 +1150,7 @@ background: rgba(0, 0, 0, 0.5);
 <a onclick="switchView('main', 'program')">프로그램</a>
 <a onclick="switchView('main', 'gaedditv')">개띠랑TV</a>
 </nav>
+<button class="auth-nav-btn" id="authNavBtn" onclick="openAuthModal()"><i class="fas fa-user"></i> 로그인</button>
 <button class="cart-icon-btn" onclick="openCartModal()"><i class="fas fa-shopping-bag"></i><span class="cart-badge" id="cartBadge">0</span></button>
 <button class="header-cta btn-core" style="font-size:14px; padding:8px 20px;" onclick="openEmotionModal()">기록 시작하기</button>
 <button class="hamburger-btn" onclick="toggleMobileNav()"><i class="fas fa-bars"></i></button>
@@ -1573,6 +1586,46 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 <p class="em-thanks-msg">주문이 접수됐어요!<br>입금 계좌 안내를 문자로 보내드릴게요.</p>
 </div>
 
+</div>
+</div>
+
+<div class="overlay-bg" id="authModal">
+<div class="em-wrapper">
+<span class="em-close" onclick="closeOverlay('authModal')">✕</span>
+
+<div id="authLoginView">
+<h2 class="em-title">로그인</h2>
+<p class="em-subtitle">주문 내역을 확인하려면 로그인해주세요</p>
+<input type="email" class="em-nickname" id="authLoginEmail" placeholder="이메일">
+<input type="password" class="em-nickname" id="authLoginPassword" placeholder="비밀번호">
+<button class="em-submit-btn" id="authLoginBtn" onclick="submitLogin()">로그인</button>
+<p class="auth-switch-text">계정이 없으신가요? <span onclick="showAuthView('signup')">회원가입</span></p>
+</div>
+
+<div id="authSignupView" class="hidden">
+<h2 class="em-title">회원가입</h2>
+<p class="em-subtitle">이메일과 비밀번호로 간단하게 가입해요</p>
+<input type="email" class="em-nickname" id="authSignupEmail" placeholder="이메일">
+<input type="password" class="em-nickname" id="authSignupPassword" placeholder="비밀번호 (6자 이상)">
+<button class="em-submit-btn" id="authSignupBtn" onclick="submitSignup()">회원가입</button>
+<p class="auth-switch-text">이미 계정이 있으신가요? <span onclick="showAuthView('login')">로그인</span></p>
+</div>
+
+<div id="authResultView" class="em-result">
+<div class="em-thanks-icon">✉️</div>
+<p class="em-thanks-msg" id="authResultMsg">확인 메일을 보냈어요!</p>
+</div>
+
+</div>
+</div>
+
+<div class="overlay-bg" id="myOrdersModal">
+<div class="em-wrapper">
+<span class="em-close" onclick="closeOverlay('myOrdersModal')">✕</span>
+<h2 class="em-title">내 주문 내역</h2>
+<div id="myOrdersList"></div>
+<p class="cart-empty" id="myOrdersEmpty">아직 주문 내역이 없어요.</p>
+<p class="auth-switch-text"><span onclick="logout(); closeOverlay('myOrdersModal');">로그아웃</span></p>
 </div>
 </div>
 
@@ -2236,9 +2289,11 @@ btn.disabled = true; btn.textContent = '접수 중...';
 
 const orderId = crypto.randomUUID();
 const total_amount = cart.reduce((sum, i) => sum + (i.price||0) * i.qty, 0);
+const { data: sessionData } = await supabaseClient.auth.getSession();
+const user_id = sessionData?.session?.user?.id || null;
 
 const { error: orderError } = await supabaseClient.from('orders').insert({
-id: orderId, buyer_name, contact, email, shipping_address, message, total_amount
+id: orderId, buyer_name, contact, email, shipping_address, message, total_amount, user_id
 });
 
 if (orderError) {
@@ -2256,6 +2311,113 @@ saveCart([]);
 document.getElementById('coForm').classList.add('hidden');
 document.getElementById('coResult').classList.add('active');
 }
+
+/* [★ 로그인 / 회원가입 / 주문내역] */
+function showAuthView(view) {
+document.getElementById('authLoginView').classList.toggle('hidden', view !== 'login');
+document.getElementById('authSignupView').classList.toggle('hidden', view !== 'signup');
+document.getElementById('authResultView').classList.remove('active');
+}
+function openAuthModal() {
+showAuthView('login');
+document.getElementById('authLoginEmail').value = '';
+document.getElementById('authLoginPassword').value = '';
+document.getElementById('authSignupEmail').value = '';
+document.getElementById('authSignupPassword').value = '';
+document.getElementById('authModal').classList.add('active');
+}
+
+async function submitSignup() {
+const email = document.getElementById('authSignupEmail').value.trim();
+const password = document.getElementById('authSignupPassword').value;
+if(!email || !password) { alert('이메일과 비밀번호를 입력해주세요!'); return; }
+if(password.length < 6) { alert('비밀번호는 6자 이상으로 입력해주세요!'); return; }
+
+const btn = document.getElementById('authSignupBtn');
+btn.disabled = true; btn.textContent = '가입 중...';
+const { data, error } = await supabaseClient.auth.signUp({ email, password });
+btn.disabled = false; btn.textContent = '회원가입';
+
+if (error) { alert('회원가입에 실패했어요: ' + error.message); return; }
+
+document.getElementById('authSignupView').classList.add('hidden');
+document.getElementById('authLoginView').classList.add('hidden');
+const resultMsg = data?.session
+? '가입이 완료됐어요! 바로 이용하실 수 있어요.'
+: '확인 메일을 보냈어요!<br>메일함에서 링크를 눌러 가입을 완료해주세요.';
+document.getElementById('authResultMsg').innerHTML = resultMsg;
+document.getElementById('authResultView').classList.add('active');
+}
+
+async function submitLogin() {
+const email = document.getElementById('authLoginEmail').value.trim();
+const password = document.getElementById('authLoginPassword').value;
+if(!email || !password) { alert('이메일과 비밀번호를 입력해주세요!'); return; }
+
+const btn = document.getElementById('authLoginBtn');
+btn.disabled = true; btn.textContent = '로그인 중...';
+const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+btn.disabled = false; btn.textContent = '로그인';
+
+if (error) { alert('로그인에 실패했어요: ' + error.message); return; }
+closeOverlay('authModal');
+}
+
+async function logout() {
+await supabaseClient.auth.signOut();
+}
+
+function updateAuthNav(session) {
+const btn = document.getElementById('authNavBtn');
+if (!btn) return;
+if (session) {
+btn.innerHTML = '<i class="fas fa-user"></i> 내 주문';
+btn.onclick = openMyOrders;
+} else {
+btn.innerHTML = '<i class="fas fa-user"></i> 로그인';
+btn.onclick = openAuthModal;
+}
+}
+
+async function openMyOrders() {
+const { data: sessionData } = await supabaseClient.auth.getSession();
+const session = sessionData?.session;
+if (!session) { openAuthModal(); return; }
+
+const { data: orders, error } = await supabaseClient
+.from('orders')
+.select('id, total_amount, status, created_at, order_items(book_title, unit_price, quantity)')
+.eq('user_id', session.user.id)
+.order('created_at', { ascending: false });
+
+const listEl = document.getElementById('myOrdersList');
+const emptyEl = document.getElementById('myOrdersEmpty');
+
+if (error || !orders || orders.length === 0) {
+listEl.innerHTML = '';
+emptyEl.style.display = 'block';
+} else {
+emptyEl.style.display = 'none';
+listEl.innerHTML = orders.map(o => {
+const dateStr = new Date(o.created_at).toLocaleDateString('ko-KR');
+const itemsHtml = (o.order_items || []).map(i =>
+`<div class="my-order-item-row"><span>${srEscape(i.book_title)} × ${i.quantity}</span><span>${((i.unit_price||0)*i.quantity).toLocaleString()}원</span></div>`
+).join('');
+return `<div class="my-order-card">
+<div class="my-order-head"><span>${dateStr}</span><span class="my-order-status">${srEscape(o.status || '접수')}</span></div>
+${itemsHtml}
+<p class="my-order-total">합계: ${(o.total_amount||0).toLocaleString()}원</p>
+</div>`;
+}).join('');
+}
+
+document.getElementById('myOrdersModal').classList.add('active');
+}
+
+supabaseClient.auth.onAuthStateChange((_event, session) => {
+updateAuthNav(session);
+});
+supabaseClient.auth.getSession().then(({ data }) => updateAuthNav(data?.session));
 
 /* [★ 통합 검색] 도서/카드/작가/프로그램/공지를 실제로 찾아서 바로 열어주는 검색 */
 const srEscape = (str) => String(str).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
