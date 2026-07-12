@@ -828,6 +828,8 @@ gap: 10px;
 .nm-shop-btn:hover { background: #3E2F28; transform: translateY(-2px); }
 .nm-order-btn { background: var(--accent); }
 .nm-order-btn:hover { background: #d94f31; }
+.nm-share-btn { background: #fff; color: var(--modal-theme-bg); border: 2px solid var(--modal-theme-bg); box-shadow: none; flex: 0 0 auto; width: auto; padding: 15px 20px; }
+.nm-share-btn:hover { background: #f5f0ec; transform: translateY(-2px); }
 
 /* [★ PROGRAM CARD MODAL: THEMED & DYNAMIC COLOR] */
 :root { --pm-color: #000; /* Default (will be overridden by JS) */ }
@@ -1494,6 +1496,9 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 <button class="nm-shop-btn nm-order-btn" onclick="addToCart(currentOrderBook)">
 <span>장바구니에 담기</span>
 </button>
+<button class="nm-shop-btn nm-share-btn" onclick="shareBook()" title="이 책 공유하기">
+<i class="fas fa-share-nodes"></i> <span>공유</span>
+</button>
 <a href="https://smartstore.naver.com/gaeddirang" target="_blank" class="nm-shop-btn">
 <span>스마트스토어</span> <i class="fas fa-chevron-right" style="font-size:12px;"></i>
 </a>
@@ -1881,6 +1886,28 @@ el.textContent = JSON.stringify(data);
 function clearBookJsonLd() {
 const el = document.getElementById('book-jsonld');
 if (el) el.remove();
+}
+
+/* [★ 공유] 미리보기 썸네일이 뜨는 전용 페이지(/b/슬러그/) 주소를 공유 */
+function bookShareUrl(b) {
+if (!b || !b.img) return location.href;
+const slug = b.img.split('/').pop().replace(/\.(png|jpe?g|webp)$/i, '');
+return `https://gaeddirang.com/b/${slug}/`;
+}
+async function shareBook() {
+if (!currentOrderBook) return;
+const url = bookShareUrl(currentOrderBook);
+const title = currentOrderBook.title;
+if (navigator.share) {
+try { await navigator.share({ title: `${title} | 개띠랑 유니버스`, url }); } catch(e) {}
+} else {
+try {
+await navigator.clipboard.writeText(url);
+alert('공유 링크를 복사했어요!\n' + url);
+} catch(e) {
+prompt('이 링크를 복사해 공유하세요:', url);
+}
+}
 }
 
 // [★ NEW: 프로그램 상세 모달 (카드 뒷면 효과 + 동적 컬러)]

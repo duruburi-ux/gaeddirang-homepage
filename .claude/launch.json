@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "static-site",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd \"/Users/jino/Downloads/클로드 코드/gaeddirang_homepage\" && python3 -m http.server 8642"],
+      "port": 8642
+    }
+  ]
+}
