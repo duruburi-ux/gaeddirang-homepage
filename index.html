@@ -1786,10 +1786,17 @@ else container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 
 // [★ NEW: 상세 모달 로직 업데이트 - SIDE LAYOUT]
 let currentOrderBook = null;
-function openBookDetail(title) {
+function openBookDetail(title, fromUrl = false) {
 const bookData = books.find(b => b.title === title || b.title.includes(title));
 if (!bookData) return;
 currentOrderBook = bookData;
+
+// [딥링크] 주소창에 ?book=제목 반영 → 공유 가능
+if (!fromUrl) {
+const url = `${location.pathname}?book=${encodeURIComponent(bookData.title)}`;
+history.pushState({ book: bookData.title }, '', url);
+}
+document.title = `${bookData.title} | 개띠랑 유니버스`;
 
 // 이미지
 document.getElementById('nmImage').src = bookData.img;
@@ -1816,9 +1823,16 @@ document.getElementById('detailModal').classList.add('active');
 
 // [★ NEW: 프로그램 상세 모달 (카드 뒷면 효과 + 동적 컬러)]
 let programsInfo = {}; // Supabase에서 채워짐
-function openProgramModal(type) {
+function openProgramModal(type, fromUrl = false) {
 const p = programsInfo[type];
 if (!p) return;
+
+// [딥링크] 주소창에 ?program=슬러그 반영 → 공유 가능
+if (!fromUrl) {
+const url = `${location.pathname}?program=${encodeURIComponent(type)}`;
+history.pushState({ program: type }, '', url);
+}
+document.title = `${(p.title || '').replace(/<[^>]+>/g,' ').trim()} | 개띠랑 유니버스`;
 const data = { color: p.border_color, type: p.badge_type, t: p.title, desc: p.description, target: p.target, time: p.time_info, benefit: p.benefit };
 
 // [Dynamic Color Apply]
@@ -1977,6 +1991,11 @@ document.getElementById(id).classList.remove('active');
 if(id === 'authorModal') {
 document.body.classList.remove('author-modal-open');
 }
+// [딥링크] 책/프로그램 모달을 닫으면 주소를 기본으로 되돌림
+if ((id === 'detailModal' || id === 'programModal') && location.search) {
+history.pushState({}, '', location.pathname);
+document.title = '개띠랑 유니버스 | 기록실';
+}
 }
 
 function openOverlaySafe(id) {
@@ -2095,10 +2114,38 @@ async function loadAllContent() {
 
     // 프로그램 카드가 채워진 뒤 크기를 다시 측정해야 하므로 resize 이벤트로 fitProg 재실행 유도
     window.dispatchEvent(new Event('resize'));
+
+    // [딥링크] 데이터 로드가 끝난 뒤 주소의 ?book / ?program 을 읽어 해당 모달 자동 오픈
+    applyDeepLink();
   } catch (e) {
     console.error('콘텐츠 로딩 실패:', e);
   }
 }
+
+/* [★ 딥링크] 주소 기반으로 책/프로그램 모달 열고 닫기 (공유 링크 지원) */
+function applyDeepLink() {
+const params = new URLSearchParams(location.search);
+const bookTitle = params.get('book');
+const progSlug = params.get('program');
+// 현재 열려있는 딥링크 모달 정리 (주소에 파라미터가 없으면 닫기)
+const detailOpen = document.getElementById('detailModal').classList.contains('active');
+const progOpen = document.getElementById('programModal').classList.contains('active');
+if (bookTitle) {
+if (progOpen) document.getElementById('programModal').classList.remove('active');
+openBookDetail(bookTitle, true);
+} else if (progSlug) {
+if (detailOpen) document.getElementById('detailModal').classList.remove('active');
+openProgramModal(progSlug, true);
+} else {
+// 파라미터 없음 → 딥링크 모달들 닫기
+document.getElementById('detailModal').classList.remove('active');
+document.getElementById('programModal').classList.remove('active');
+document.title = '개띠랑 유니버스 | 기록실';
+}
+}
+// 브라우저 뒤로/앞으로 가기 대응
+window.addEventListener('popstate', applyDeepLink);
+
 loadAllContent();
 updateCartBadge();
 
