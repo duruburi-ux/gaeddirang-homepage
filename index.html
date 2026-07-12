@@ -1769,7 +1769,7 @@ const card = document.createElement('div');
 card.className = 'book-card';
 card.onclick = () => openBookDetail(book.title);
 const typeLabel = book.cat === 'card' ? 'GOODS' : 'BOOK';
-card.innerHTML = `<div class="book-img-wrap ${book.title === '이러나저러나 불편한 거야 불편한 건' ? 'no-bg' : ''}"><img src="${book.img}" class="book-img"></div><div class="b-title">${book.title}</div><div class="b-author">${book.author} · ${typeLabel}</div>`;
+card.innerHTML = `<div class="book-img-wrap ${book.title === '이러나저러나 불편한 거야 불편한 건' ? 'no-bg' : ''}"><img src="${book.img}" class="book-img" loading="lazy"></div><div class="b-title">${book.title}</div><div class="b-author">${book.author} · ${typeLabel}</div>`;
 container.appendChild(card);
 }
 });
@@ -1898,7 +1898,7 @@ const safeTitle = title.replace(/"/g,'&quot;');
 const jsTitle = title.replace(/'/g, "\'");
 const isSquare = /우당탕탕/.test(title);
 return `<div class="rb-book-cover ${isSquare?'square-frame ':''}${src?'':'no-img'}" onclick="openBookDetail('${jsTitle}')">` +
-(src ? `<img src="${src}" alt="${safeTitle}" ${isSquare?'class=\"square\"':''} />` : title) +
+(src ? `<img src="${src}" alt="${safeTitle}" loading="lazy" ${isSquare?'class=\"square\"':''} />` : title) +
 `</div>`;
 };
 
@@ -1916,7 +1916,7 @@ rightContent =
 } else {
 items.forEach(b => {
 const src = getBookImage(b);
-bookHtml += `<div class="rb-book-cover ${src?'':'no-img'}" onclick="openBookDetail('${b.replace(/'/g, "\'")}')">${src?`<img src="${src}" alt="${b.replace(/"/g,'&quot;')}" />`:b}</div>`;
+bookHtml += `<div class="rb-book-cover ${src?'':'no-img'}" onclick="openBookDetail('${b.replace(/'/g, "\'")}')">${src?`<img src="${src}" alt="${b.replace(/"/g,'&quot;')}" loading="lazy" />`:b}</div>`;
 });
 rightContent = `<div class="rb-page-view active"><span class="rb-section-title">🃏 카드</span><div class="rb-books-grid">${bookHtml}</div></div>`;
 }
@@ -1928,7 +1928,7 @@ const bookSlice = author.books.slice(start, start + ITEMS_PER_PAGE_BOOK);
 let bookHtml = '';
 bookSlice.forEach(b => {
 const src = getBookImage(b);
-bookHtml += `<div class="rb-book-cover ${src?'':'no-img'}" onclick="openBookDetail('${b.replace(/'/g, "\'")}')">${src?`<img src="${src}" alt="${b.replace(/"/g,'&quot;')}" />`:b}</div>`;
+bookHtml += `<div class="rb-book-cover ${src?'':'no-img'}" onclick="openBookDetail('${b.replace(/'/g, "\'")}')">${src?`<img src="${src}" alt="${b.replace(/"/g,'&quot;')}" loading="lazy" />`:b}</div>`;
 });
 rightContent = `<div class="rb-page-view active"><span class="rb-section-title">📚 저서 & 카드</span><div class="rb-books-grid">${bookHtml}</div></div>`;
 }
@@ -2061,7 +2061,7 @@ function renderAuthorsUI(data) {
       const card = document.createElement('div');
       card.className = 'author-card';
       card.onclick = () => openAuthor(a.slug);
-      card.innerHTML = `<div class="author-img-wrap ${palette[i % palette.length]}"><img src="${a.img_path}" class="author-real-img" alt="${a.name}"></div><div class="author-info"><div class="a-name">${a.name} <span style="font-size:12px; color:var(--accent);">${a.role}</span></div><p class="a-desc">${a.description}</p></div>`;
+      card.innerHTML = `<div class="author-img-wrap ${palette[i % palette.length]}"><img src="${a.img_path}" class="author-real-img" alt="${a.name}" loading="lazy"></div><div class="author-info"><div class="a-name">${a.name} <span style="font-size:12px; color:var(--accent);">${a.role}</span></div><p class="a-desc">${a.description}</p></div>`;
       scroll.appendChild(card);
     }
   });
