@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>페이지를 찾을 수 없어요 | 개띠랑 유니버스</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Jua&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #FDB95F; --accent: #F26D4F; --brown: #4E3B31;
+  --beige: #EAD696; --paper: #FFFDF7; --white: #FFFFFF;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+  background-color: var(--paper);
+  color: var(--brown);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  line-height: 1.6;
+}
+.wrap { max-width: 480px; width: 100%; }
+.emoji { font-size: 72px; margin-bottom: 12px; }
+.code {
+  font-family: 'Jua', sans-serif;
+  font-size: 84px;
+  color: var(--accent);
+  line-height: 1;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+h1 {
+  font-family: 'Gowun Batang', serif;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  word-break: keep-all;
+}
+p {
+  font-size: 16px;
+  color: #6b5d52;
+  margin-bottom: 32px;
+  word-break: keep-all;
+}
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 36px;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--brown);
+  text-decoration: none;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+  transition: all 0.1s ease;
+}
+.home-btn:hover {
+  background: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+}
+.paw { margin-top: 28px; font-size: 20px; opacity: 0.5; }
+@media (max-width: 480px) {
+  .code { font-size: 64px; }
+  h1 { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="emoji">🐾</div>
+  <div class="code">404</div>
+  <h1>찾으시는 페이지가 없어요</h1>
+  <p>주소가 바뀌었거나 사라진 이야기일 수 있어요.<br>개띠랑 홈에서 다시 찾아볼까요?</p>
+  <a class="home-btn" href="https://gaeddirang.com/">개띠랑 홈으로 가기</a>
+  <div class="paw">개띠랑 유니버스 🐶</div>
+</main>
+</body>
+</html>

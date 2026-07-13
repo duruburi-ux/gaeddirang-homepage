@@ -1406,7 +1406,7 @@ background: rgba(0, 0, 0, 0.5);
 <section class="sec-last-proposal">
 <div class="last-header"><h2 class="sec-h2 serif">함께하면 더 맛있는 기록 생활</h2></div>
 <div class="last-grid">
-<div class="last-card card-yellow"><div class="last-txt"><h3>혼자 쓰기 막막하다면?<br>감정클럽으로 오세요!</h3><p>매주 도착하는 글감과<br>따뜻한 피드백이 기다려요.</p><button class="last-btn">감정클럽 신청하기</button></div><div class="last-icon">🥐📝</div></div>
+<div class="last-card card-yellow"><div class="last-txt"><h3>혼자 쓰기 막막하다면?<br>감정클럽으로 오세요!</h3><p>매주 도착하는 글감과<br>따뜻한 피드백이 기다려요.</p><button class="last-btn" onclick="openApplyForm('감정클럽')">감정클럽 신청하기</button></div><div class="last-icon">🥐📝</div></div>
 <div class="last-card card-green"><div class="last-txt"><h3>똑똑, 기록 배달 왔습니다! 🚚<br>(학교/기업/도서관)</h3><p>원하시는 주제와 인원에 맞춰<br>맞춤형 프로그램을 기획해 드려요.</p><button class="last-btn" onclick="location.href='mailto:gaeddirang085@naver.com'">강연 제안서 받기</button></div><div class="last-icon">🏫✨</div></div>
 <div class="last-card card-blue"><div class="last-txt"><h3>아직 책이 되지 못한 이야기가 있다면?<br>질문지부터 받아보세요</h3><p>내 책의 씨앗을 찾는 질문 8가지,<br>이메일로 무료 PDF를 보내드려요.</p><button class="last-btn" onclick="openLeadModal()">무료 질문지 받기</button></div><div class="last-icon">🌱📖</div></div>
 </div>
@@ -1835,7 +1835,7 @@ const card = document.createElement('div');
 card.className = 'book-card';
 card.onclick = () => openBookDetail(book.title);
 const typeLabel = book.cat === 'card' ? 'GOODS' : 'BOOK';
-card.innerHTML = `<div class="book-img-wrap ${book.title === '이러나저러나 불편한 거야 불편한 건' ? 'no-bg' : ''}"><img src="${book.img}" class="book-img" loading="lazy"></div><div class="b-title">${book.title}</div><div class="b-author">${book.author} · ${typeLabel}</div>`;
+card.innerHTML = `<div class="book-img-wrap ${book.title === '이러나저러나 불편한 거야 불편한 건' ? 'no-bg' : ''}"><img src="${book.img}" class="book-img" loading="lazy" alt="${srEscape(book.title)} 표지"></div><div class="b-title">${book.title}</div><div class="b-author">${book.author} · ${typeLabel}</div>`;
 container.appendChild(card);
 }
 });
@@ -1866,6 +1866,7 @@ document.title = `${bookData.title} | 개띠랑 유니버스`;
 
 // 이미지
 document.getElementById('nmImage').src = bookData.img;
+document.getElementById('nmImage').alt = `${bookData.title} 표지`;
 
 // [RIGHT COLUMN]
 // 1. Title
@@ -2080,7 +2081,7 @@ const nextDis = contentPage === totalPages ? 'disabled' : '';
 const html = `
 <div class="real-book">
 <div class="rb-left">
-<img src="${author.img}" class="rb-profile-img">
+<img src="${author.img}" class="rb-profile-img" alt="${srEscape(author.name)} 프로필 사진">
 <span class="rb-role">${author.role}</span>
 <h3 class="rb-name">${author.name}</h3>
 <p class="rb-desc">"${author.desc}"</p>
@@ -2353,8 +2354,8 @@ document.getElementById('leadResult').classList.add('active');
 /* [★ 프로그램 신청] */
 let currentApplyProgram = '';
 
-function openApplyForm() {
-currentApplyProgram = document.getElementById('pmTitle').innerText;
+function openApplyForm(programName) {
+currentApplyProgram = programName || document.getElementById('pmTitle').innerText;
 document.getElementById('apProgramName').innerText = currentApplyProgram;
 document.getElementById('apForm').classList.remove('hidden');
 document.getElementById('apResult').classList.remove('active');
@@ -2502,7 +2503,7 @@ listEl.innerHTML = cart.map(item => {
 total += (item.price || 0) * item.qty;
 const safeTitle = item.title.replace(/'/g, "\\'");
 return `<div class="cart-item">
-<img src="${item.img}" class="cart-item-img">
+<img src="${item.img}" class="cart-item-img" alt="${srEscape(item.title)} 표지">
 <div class="cart-item-info">
 <p class="cart-item-title">${srEscape(item.title)}</p>
 <p class="cart-item-price">${(item.price||0).toLocaleString()}원</p>
@@ -2582,7 +2583,12 @@ const itemRows = cart.map(i => ({ order_id: orderId, book_title: i.title, unit_p
 const { error: itemsError } = await supabaseClient.from('order_items').insert(itemRows);
 
 btn.disabled = false; btn.textContent = '주문하기';
-if (itemsError) { alert('접수에 실패했어요. 잠시 후 다시 시도해주세요.'); console.error(itemsError); return; }
+if (itemsError) {
+// 주문 항목 저장 실패 → 방금 만든 빈 주문(orders) 행을 되돌려 '반쪽 주문'을 방지한다.
+const { error: rollbackError } = await supabaseClient.from('orders').delete().eq('id', orderId);
+if (rollbackError) { console.warn('빈 주문 롤백에 실패했습니다(권한/RLS 가능성). order id:', orderId, rollbackError); }
+alert('접수에 실패했어요. 잠시 후 다시 시도해주세요.'); console.error(itemsError); return;
+}
 
 notifyAdmin('orders', { id: orderId, buyer_name, contact, email, shipping_address, total_amount });
 
