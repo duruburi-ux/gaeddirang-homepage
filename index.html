@@ -1135,6 +1135,23 @@ background: rgba(0, 0, 0, 0.5);
 #authorModal .dasom-books-fixed .rb-book-cover{height:180px; aspect-ratio:1/1.5; display:flex; align-items:center; justify-content:center;}
 #authorModal .dasom-books-fixed .rb-book-cover.square-frame{aspect-ratio:1/1;}
 #authorModal .dasom-books-fixed .rb-book-cover img{width:100%;height:100%;object-fit:contain;display:block;margin:0;background:#f9f9f9;border-radius:4px;}
+
+/* [★ 히어로 세 캐릭터] 3D 책 대체 (책 코드는 백업/git에 보존) */
+.hero-crew{display:flex;align-items:flex-end;justify-content:center;position:relative;padding-top:50px}
+.crew{position:relative;display:flex;flex-direction:column;align-items:center}
+.crew img{border-radius:50%;border:4px solid #fff;box-shadow:0 12px 28px rgba(78,59,49,.22);background:#fff;object-fit:cover;width:165px;height:165px}
+.crew.c2 img{width:195px;height:195px}
+.crew.c1{transform:translate(16px,6px) rotate(-4deg);animation:crewBob 3.2s .5s ease-in-out infinite}
+.crew.c2{z-index:2;animation:crewBob 3.2s ease-in-out infinite}
+.crew.c3{transform:translate(-16px,10px) rotate(4deg);animation:crewBob 3.2s 1s ease-in-out infinite}
+@keyframes crewBob{0%,100%{margin-bottom:0}50%{margin-bottom:12px}}
+.crew-name{margin-top:12px;font-size:14px;font-weight:800;color:var(--brown);background:#fff;border:1.5px solid var(--brown);padding:4px 14px;border-radius:20px}
+.crew-bubble{position:absolute;top:-44px;left:50%;transform:translateX(-58%);font-family:'Gaegu',cursive;font-weight:700;font-size:19px;color:var(--brown);background:#fff;border:2px solid var(--brown);padding:7px 16px;border-radius:18px;white-space:nowrap;box-shadow:0 4px 0 rgba(78,59,49,.15)}
+.crew-bubble:after{content:"";position:absolute;bottom:-9px;left:26px;width:14px;height:14px;background:#fff;border-right:2px solid var(--brown);border-bottom:2px solid var(--brown);transform:rotate(45deg)}
+@media (prefers-reduced-motion:reduce){.crew{animation:none !important}}
+@media (max-width:900px){
+.hero-crew{transform:scale(.72);padding-top:40px;margin:-30px 0 -20px}
+}
 </style>
 
 <!-- [★ 구조화 데이터] 회사·웹사이트 정보 (구글 지식 패널·검색 노출용) -->
@@ -1255,9 +1272,10 @@ background: rgba(0, 0, 0, 0.5);
 <button class="btn-core" onclick="document.getElementById('program').scrollIntoView({behavior:'smooth'})">수업·모임 둘러보기</button>
 </div>
 <div class="hero-visual">
-<div class="book-3d">
-<div class="b-cover"><img src="assets/images/brand/gd-universe-logomark.png" class="book-logo-img" alt="개띠랑 로고"></div>
-<div class="b-spine"></div><div class="b-page"></div><div class="b-back"></div>
+<div class="hero-crew">
+<div class="crew c1"><img src="assets/images/authors/duru.jpg" alt="두루" loading="lazy"><span class="crew-name">두루</span></div>
+<div class="crew c2"><span class="crew-bubble">요즘, 어때요?</span><img src="assets/images/authors/gaeddirang.jpg" alt="개띠랑"><span class="crew-name">개띠랑</span></div>
+<div class="crew c3"><img src="assets/images/authors/dasom.jpg" alt="다솜" loading="lazy"><span class="crew-name">다솜</span></div>
 </div>
 </div>
 </section>
