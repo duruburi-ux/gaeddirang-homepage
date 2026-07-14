@@ -554,7 +554,8 @@ footer { background: #fff; border-top: 1px solid #eee; padding: 40px 5vw; }
 .sns-icon { width: 40px; height: 40px; border: 1px solid #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #888; font-size: 18px; transition: 0.3s; }
 .sns-icon:hover { background: var(--brown); color: #fff; border-color: var(--brown); }
 
-.chat-launcher { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; z-index: 9000; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); cursor: pointer; transition: 0.3s; border: 3px solid #fff; }
+.chat-launcher { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; z-index: 9000; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); cursor: pointer; transition: 0.3s; border: 3px solid #fff; overflow: hidden; }
+.chat-launcher img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
 .chat-window { position: fixed; bottom: 100px; right: 30px; width: 320px; height: 450px; background: #fff; border-radius: 20px; z-index: 9000; box-shadow: 0 20px 50px rgba(0,0,0,0.2); display: none; flex-direction: column; overflow: hidden; border: 2px solid var(--primary); animation: slideUpChat 0.3s; }
 .chat-window.active { display: flex; }
 .chat-header { background: var(--primary); padding: 15px; font-weight: bold; color: var(--brown); display: flex; justify-content: space-between; align-items: center; }
@@ -1454,15 +1455,20 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 </div>
 </footer>
 
-<div class="chat-tooltip">무엇이든 도와준다개! 🐾</div>
-<div class="chat-launcher" onclick="toggleChat()">🐶</div>
+<div class="chat-tooltip">오늘 뭐 찾아요? 개띠랑이 안내할게요 🐾</div>
+<div class="chat-launcher" onclick="toggleChat()"><img src="assets/images/authors/gaeddirang.jpg" alt="개띠랑"></div>
 <div class="chat-window" id="chatWindow">
-<div class="chat-header">무엇이든 물어보개 🐾 <span class="chat-close" onclick="toggleChat()">✕</span></div>
-<div class="chat-body" id="chatBody"><div class="chat-msg bot">안녕하시개! 🐶<br>개띠랑 기록실에 온 걸 환영해!<br>궁금한 게 있으면 아래 버튼을 눌러보라멍!</div></div>
+<div class="chat-header">무엇이든 물어보세요 🐾 <span class="chat-close" onclick="toggleChat()">✕</span></div>
+<div class="chat-body" id="chatBody"><div class="chat-msg bot">안녕하세요, 개띠랑이에요 🐾<br>오늘은 뭐가 궁금해서 오셨어요? 아래에서 골라주시면 바로 안내해 드릴게요.</div></div>
 <div class="chat-options">
-<button class="chat-btn" onclick="sendChat('delivery')">배송 문의</button>
-<button class="chat-btn" onclick="sendChat('workshop')">워크숍 문의</button>
-<button class="chat-btn" onclick="sendChat('lecture')">강연 의뢰</button>
+<button class="chat-btn" onclick="sendChat('classes','수업·모임이 뭐가 있어요?')">수업·모임이 뭐가 있어요?</button>
+<button class="chat-btn" onclick="sendChat('apply','어떻게 신청해요?')">어떻게 신청해요?</button>
+<button class="chat-btn" onclick="sendChat('price','가격이 궁금해요')">가격이 궁금해요</button>
+<button class="chat-btn" onclick="sendChat('location','어디서 해요?')">어디서 해요?</button>
+<button class="chat-btn" onclick="sendChat('blindbook','블라인드북이 뭐예요?')">블라인드북이 뭐예요?</button>
+<button class="chat-btn" onclick="sendChat('delivery','배송 안내')">배송 안내</button>
+<button class="chat-btn" onclick="sendChat('refund','교환·환불')">교환·환불</button>
+<button class="chat-btn" onclick="sendChat('lecture','강연·기관 의뢰')">강연·기관 의뢰</button>
 </div>
 </div>
 
@@ -2870,9 +2876,19 @@ confetti({particleCount:150,spread:70,origin:{y:0.6}});
 }
 function resetGame(){document.getElementById('gStep3').classList.remove('active');document.getElementById('gStep1').classList.add('active');document.getElementById('ansInput').value='';}
 
-const chatResponses = { 'delivery': '배송은 평일 기준 2~3일 정도 소요된다멍! 🚚', 'workshop': '감정클럽/두루쓰기는 매월 인스타그램에서 모집한다멍! 🎨', 'lecture': '강연 의뢰는 이메일(gaeddirang085@naver.com)로 보내달라멍! 🎤', 'default': '더 궁금한 게 있다면 인스타그램 DM으로 물어봐달라멍! 🐶' };
+const chatResponses = {
+'classes': `혼자 쓰기 막막할 때 함께 쓰는 감정클럽, 두루와 나를 들여다보는 두루쓰기 같은 기록 모임을 열고 있어요. 종류와 대상은 프로그램 칸에서 카드로 한눈에 보여드릴게요.<br><button class="chat-btn" onclick="switchView('main','program')">수업·모임 보러 가기</button>`,
+'apply': `프로그램 칸에서 마음에 드는 카드를 열면 신청하기 버튼으로 바로 접수돼요. 책·카드 같은 상품은 스토어에서 구매하시면 됩니다.<br><button class="chat-btn" onclick="switchView('main','program')">신청하러 가기</button> <button class="chat-btn" onclick="openApplyForm('감정클럽')">감정클럽 바로 신청</button>`,
+'price': `프로그램마다 참가비가 달라서, 각 프로그램 카드를 열면 참가비와 일정이 함께 안내돼요. 책·카드 가격은 스토어에서 확인하실 수 있어요.<br><button class="chat-btn" onclick="switchView('main','program')">프로그램에서 확인</button> <button class="chat-btn" onclick="window.open('https://smartstore.naver.com/gaeddirang')">스토어에서 상품 보기</button>`,
+'location': `지금 개띠랑은 새 작업 공간(동탄)으로 이사 준비 중이에요. 정식 오픈과 자세한 위치는 곧 새소식으로 안내드릴게요. 급하시면 인스타 DM으로 편하게 물어봐 주세요!<br><button class="chat-btn" onclick="window.open('https://www.instagram.com/gaeddirangverse')">인스타로 문의</button>`,
+'blindbook': `표지 대신 키워드 카드로 만나는, 열어보기 전엔 모르는 책이에요. 지금 내 마음에 맞는 한 권을 개띠랑이 골라드리는 재미가 있죠. 어떤 게 나올지는 직접 열어보는 게 제맛이에요 🐾<br><button class="chat-btn" onclick="switchView('main','library')">서재 구경하기</button> <button class="chat-btn" onclick="switchView('main','finder')">나에게 맞는 도구 찾기</button>`,
+'delivery': `한진택배로 보내드리고 배송비는 3,400원, 3만원 이상이면 무료예요. 입금 확인 후 2~3영업일 안에 발송되고, 보낸 뒤 1~3일이면 도착해요.<br><button class="chat-btn" onclick="openOverlaySafe('shippingModal')">배송·환불 자세히</button>`,
+'refund': `단순 변심은 받으신 후 7일 이내 신청 가능하고(반품비는 구매자 부담), 파본·오배송은 저희가 배송비 부담으로 바꿔드려요. 먼저 연락 주시면 빠르게 도와드릴게요.<br><button class="chat-btn" onclick="openOverlaySafe('shippingModal')">교환·환불 규정 보기</button> <button class="chat-btn" onclick="location.href='mailto:gaeddirang085@naver.com'">문의 메일 보내기</button>`,
+'lecture': `도서관·학교·기업 대상 맞춤 기록 프로그램을 제안해 드려요. 대상과 인원을 메일로 알려주시면 딱 맞게 구성해서 회신드릴게요.<br><button class="chat-btn" onclick="location.href='mailto:gaeddirang085@naver.com'">강연·협업 문의 메일</button>`,
+'default': `더 궁금한 게 있다면 인스타 DM으로 편하게 물어봐 주세요 🐾`
+};
 function toggleChat() { const win = document.getElementById('chatWindow'); const tooltip = document.querySelector('.chat-tooltip'); win.classList.toggle('active'); if(win.classList.contains('active')) tooltip.style.display = 'none'; else tooltip.style.display = 'block'; }
-function sendChat(type) { const body = document.getElementById('chatBody'); const userDiv = document.createElement('div'); userDiv.className = 'chat-msg user'; userDiv.innerText = event.target.innerText; body.appendChild(userDiv); body.scrollTop = body.scrollHeight; setTimeout(() => { const botDiv = document.createElement('div'); botDiv.className = 'chat-msg bot'; botDiv.innerHTML = chatResponses[type] || chatResponses['default']; body.appendChild(botDiv); body.scrollTop = body.scrollHeight; }, 500); }
+function sendChat(type, label) { const body = document.getElementById('chatBody'); const userDiv = document.createElement('div'); userDiv.className = 'chat-msg user'; userDiv.innerText = label || (typeof event !== 'undefined' && event.target ? event.target.innerText : ''); body.appendChild(userDiv); body.scrollTop = body.scrollHeight; setTimeout(() => { const botDiv = document.createElement('div'); botDiv.className = 'chat-msg bot'; botDiv.innerHTML = chatResponses[type] || chatResponses['default']; body.appendChild(botDiv); body.scrollTop = body.scrollHeight; }, 500); }
 
 (function() {
 let currentIdx = 0;
