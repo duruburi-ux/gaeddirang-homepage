@@ -169,6 +169,18 @@ flex-wrap: wrap;
 .mg-cta-btn { background: #F26D4F; color: #fff; font-weight: 800; font-size: 17px; padding: 16px 38px; border-radius: 50px; box-shadow: 0 8px 0 rgba(0,0,0,0.2); transition: 0.1s; }
 .mg-cta-btn:active { transform: translateY(8px); box-shadow: none; }
 
+/* [★ 문고리 출간알림 이메일] */
+.mg-alert { margin-top: 26px; max-width: 420px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.18); border-radius: 16px; padding: 20px 22px; }
+.mg-alert-lead { font-size: 14px; line-height: 1.6; color: rgba(255,253,247,0.9); margin-bottom: 14px; word-break: keep-all; }
+.mg-alert-row { display: flex; gap: 8px; }
+.mg-alert-input { flex: 1; min-width: 0; background: rgba(255,255,255,0.95); border: none; border-radius: 10px; padding: 12px 14px; font-size: 14px; color: #3E2C33; }
+.mg-alert-input:focus { outline: 2px solid #F26D4F; }
+.mg-alert-btn { flex-shrink: 0; background: #F26D4F; color: #fff; font-weight: 800; font-size: 14px; padding: 0 20px; border-radius: 10px; transition: 0.15s; white-space: nowrap; }
+.mg-alert-btn:hover { background: #e05c3e; }
+.mg-alert-btn:disabled { opacity: 0.55; cursor: default; }
+.mg-alert-privacy { font-size: 11px; color: rgba(255,253,247,0.55); margin-top: 9px; }
+.mg-alert-done { font-size: 15px; font-weight: 700; color: #F6D9C8; line-height: 1.6; word-break: keep-all; }
+
 .mg-book-stage { position: relative; z-index: 2; flex-shrink: 0; width: 360px; height: 480px; display: flex; align-items: center; justify-content: center; perspective: 1400px; }
 .mg-book-spin { position: relative; width: 300px; height: 445px; transform-style: preserve-3d; animation: mgSpin 9s linear infinite; }
 .mg-book-face { position: absolute; top: 0; left: 0; width: 300px; height: 445px; border-radius: 4px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); backface-visibility: hidden; overflow: hidden; }
@@ -185,6 +197,7 @@ flex-wrap: wrap;
 .sec-moongori { flex-direction: column; text-align: center; padding: 70px 6vw; }
 .mg-content { max-width: 100%; }
 .mg-info-row { justify-content: center; }
+.mg-alert { margin-left: auto; margin-right: auto; text-align: left; }
 .mg-title { font-size: 56px; }
 .mg-book-stage { width: 256px; height: 355px; }
 .mg-book-spin { width: 216px; height: 320px; }
@@ -1294,6 +1307,15 @@ background: rgba(0, 0, 0, 0.5);
 <span><i class="fas fa-book"></i> 단편소설 6편</span>
 </div>
 <button class="mg-cta-btn" onclick="window.open('https://smartstore.naver.com/gaeddirang')">예약 신청하러 가기 →</button>
+<div class="mg-alert" id="mgAlert">
+<p class="mg-alert-lead">출간 소식을 제일 먼저 받아보세요. 북OST 음악 링크도 함께 보내드려요.</p>
+<div class="mg-alert-row">
+<input type="text" class="hp-field" id="mgAlertHoneypot" name="website" tabindex="-1" autocomplete="off">
+<input type="email" class="mg-alert-input" id="mgAlertEmail" placeholder="이메일 주소" autocomplete="email">
+<button class="mg-alert-btn" id="mgAlertBtn" onclick="submitBookAlert()">알림 받기</button>
+</div>
+<p class="mg-alert-privacy">이메일은 출간·소식 안내에만 사용해요</p>
+</div>
 </div>
 <div class="mg-book-stage">
 <div class="mg-book-spin">
@@ -2373,6 +2395,22 @@ if(error) { alert('접수에 실패했어요. 잠시 후 다시 시도해주세�
 
 document.getElementById('leadForm').classList.add('hidden');
 document.getElementById('leadResult').classList.add('active');
+}
+
+/* [★ 문고리 출간알림 이메일] */
+async function submitBookAlert() {
+if(document.getElementById('mgAlertHoneypot').value) { return; } // 봇 함정
+const email = document.getElementById('mgAlertEmail').value.trim();
+if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('이메일 형식을 확인해주세요!'); return; }
+
+const btn = document.getElementById('mgAlertBtn');
+btn.disabled = true; btn.textContent = '신청 중...';
+
+const { error } = await supabaseClient.from('book_alerts').insert({ email, book_title: '문고리' });
+
+if(error) { btn.disabled = false; btn.textContent = '알림 받기'; alert('신청에 실패했어요. 잠시 후 다시 시도해주세요.'); console.error(error); return; }
+
+document.getElementById('mgAlert').innerHTML = '<p class="mg-alert-done">신청 완료! 출간일에 만나요 🤎</p>';
 }
 
 /* [★ 프로그램 신청] */
