@@ -9,7 +9,7 @@
 <style>
   :root{
     --orange:#F26D4F; --orange-d:#d9583c; --ink:#2b2622; --muted:#8a817a;
-    --line:#eee3da; --bg:#faf6f1; --card:#fff; --ok:#2e9e6b; --warn:#e2a13a;
+    --line:#eee3da; --bg:#faf6f1; --card:#fff; --ok:#2e9e6b; --warn:#e2a13a; --blue:#3f68c4;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
@@ -28,6 +28,7 @@
   .btn-primary:hover{background:var(--orange-d)}
   .btn-primary:disabled{opacity:.5;cursor:default}
   .login-msg{color:var(--orange-d);font-size:13px;margin-top:12px;min-height:18px;text-align:center}
+  .login-link{display:block;text-align:center;margin-top:14px;font-size:12.5px;color:var(--muted);text-decoration:underline;background:none;border:none;width:100%}
 
   /* ---- 헤더 ---- */
   header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
@@ -35,9 +36,11 @@
   .logo{font-weight:800;font-size:17px;color:var(--orange)}
   .head-user{margin-left:auto;font-size:13px;color:var(--muted)}
   .btn-ghost{background:none;border:1px solid var(--line);border-radius:9px;padding:6px 12px;font-size:13px;color:var(--muted)}
-  .tabs{max-width:1000px;margin:0 auto;padding:0 18px;display:flex;gap:4px}
-  .tab{background:none;border:none;padding:12px 14px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:2.5px solid transparent}
+  .tabs{max-width:1000px;margin:0 auto;padding:0 18px;display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{background:none;border:none;padding:12px 13px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:2.5px solid transparent;white-space:nowrap;position:relative}
   .tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+  .tab .badge{display:inline-block;min-width:17px;height:17px;line-height:17px;text-align:center;font-size:10.5px;font-weight:800;color:#fff;background:var(--orange);border-radius:999px;padding:0 4px;margin-left:4px;vertical-align:1px}
 
   main{max-width:1000px;margin:0 auto;padding:18px}
 
@@ -45,10 +48,12 @@
   .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
   .filters select,.filters input{padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;background:#fff}
   .count-note{font-size:13px;color:var(--muted);margin-left:auto;align-self:center}
+  .btn-sm{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:13px;color:var(--ink);font-weight:600}
+  .btn-sm:hover{border-color:#e6cbb8}
 
   /* ---- 카드/표 ---- */
   .list{display:flex;flex-direction:column;gap:9px}
-  .row{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 15px;display:flex;align-items:center;gap:12px;transition:.12s}
+  .row{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 15px;display:flex;align-items:center;gap:12px;transition:.12s;cursor:pointer}
   .row:hover{border-color:#e6cbb8;box-shadow:0 3px 12px rgba(210,150,110,.08)}
   .row .main{flex:1;min-width:0}
   .row .name{font-weight:700;font-size:15px}
@@ -56,24 +61,54 @@
   .chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
   .chip{font-size:11px;padding:3px 8px;border-radius:999px;font-weight:600;white-space:nowrap}
   .chip.prog{background:#fff1e9;color:var(--orange-d)}
-  .chip.cohort{background:#eef4ff;color:#3f68c4}
+  .chip.cohort{background:#eef4ff;color:var(--blue)}
   .chip.st{background:#f1ede9;color:var(--muted)}
   .chip.on{background:#e6f5ee;color:var(--ok)}
   .chip.off{background:#f7f3ef;color:#c3b7ac}
+  .chip.warn{background:#fdf3e0;color:var(--warn)}
+  .chip.money{background:#eef4ff;color:var(--blue)}
+  .chip.ch{background:#eef7f1;color:#3b8f63}
+  .chip.ch.store{background:#e9f7ec;color:#2e9e4f}
+  .chip.ch.place{background:#eaf1fb;color:#356fd0}
+  .chip.ch.etc{background:#f2ede7;color:#8a7f74}
+  .btn-add{background:var(--orange);color:#fff;border:none;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:700}
+  .btn-add:hover{background:var(--orange-d)}
+  .panel input.f-in,.panel select.f-sel,.panel textarea.f-in{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px;background:#fff;margin-top:2px;font-family:inherit}
+  .panel input.f-in:focus,.panel select.f-sel:focus,.panel textarea.f-in:focus{outline:none;border-color:var(--orange)}
   .dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
-  .dot.g{background:var(--ok)} .dot.y{background:var(--warn)} .dot.r{background:var(--orange)}
+  .dot.g{background:var(--ok)} .dot.y{background:var(--warn)} .dot.r{background:var(--orange)} .dot.b{background:var(--blue)}
+  .amt{text-align:right;font-size:12px;color:var(--muted);flex-shrink:0}
+  .amt b{color:var(--ink);font-size:14px}
   .empty{text-align:center;padding:50px 20px;color:var(--muted);font-size:14px}
   .loading{text-align:center;padding:50px;color:var(--muted)}
 
+  /* ---- 홈(요약) ---- */
+  .home-hd{font-size:13px;color:var(--muted);margin:2px 0 12px}
+  .todo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:22px}
+  .todo{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;text-align:left;transition:.12s}
+  .todo:hover{border-color:#e6cbb8;box-shadow:0 3px 12px rgba(210,150,110,.08)}
+  .todo .n{font-size:26px;font-weight:800;line-height:1}
+  .todo .l{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .todo.hot{border-color:#f3c3b4;background:#fff6f2}
+  .todo.hot .n{color:var(--orange-d)}
+  .todo.zero .n{color:#cdc3b8}
+  .home-sec-t{font-size:13px;font-weight:700;color:var(--muted);margin:0 2px 10px}
+  .stat-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:22px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+  .stat .n{font-size:19px;font-weight:800}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:3px}
+
   /* ---- 상세 패널 ---- */
   .backdrop{position:fixed;inset:0;background:rgba(40,30,22,.4);z-index:40;display:flex;justify-content:flex-end}
-  .panel{background:var(--bg);width:100%;max-width:440px;height:100%;overflow-y:auto;padding:22px;animation:slide .2s ease}
+  .panel{background:var(--bg);width:100%;max-width:440px;height:100%;overflow-y:auto;padding:22px;animation:slide .2s ease;position:relative}
   @keyframes slide{from{transform:translateX(30px);opacity:.5}to{transform:none;opacity:1}}
-  .panel h2{font-size:19px;margin-bottom:2px}
+  .panel h2{font-size:19px;margin-bottom:2px;padding-right:30px}
   .panel .p-contact{color:var(--muted);font-size:13px;margin-bottom:16px}
   .field{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 14px;margin-bottom:8px}
   .field .k{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px}
   .field .v{font-size:14px;white-space:pre-wrap;word-break:break-word}
+  .field .v.copy{cursor:pointer}
+  .field .v.copy:hover{color:var(--orange-d)}
   .actions{margin-top:16px;display:flex;flex-direction:column;gap:8px}
   .toggle{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:14px;font-weight:600}
   .sw{width:44px;height:26px;border-radius:999px;background:#e3d8cd;position:relative;transition:.18s;border:none;flex-shrink:0}
@@ -81,14 +116,18 @@
   .sw.on{background:var(--ok)} .sw.on::after{left:21px}
   .st-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:10px 14px}
   .st-row select{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;background:#fff}
-  .p-close{position:absolute;top:16px;right:18px;font-size:22px;background:none;border:none;color:var(--muted)}
+  .p-close{position:absolute;top:16px;right:18px;font-size:22px;background:none;border:none;color:var(--muted);z-index:2}
   .mini-app{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:6px;font-size:13px}
   .mini-app .t{font-weight:600}
   .mini-app .d{color:var(--muted);font-size:12px;margin-top:2px}
+  .item-row{display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;border-bottom:1px dashed var(--line)}
+  .item-row:last-child{border-bottom:none}
+  .item-row .q{color:var(--muted)}
   .bar{height:7px;background:#efe6db;border-radius:999px;overflow:hidden;margin-top:6px}
   .bar > i{display:block;height:100%;background:var(--orange);border-radius:999px}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:13.5px;z-index:60;opacity:0;transition:.2s}
   .toast.show{opacity:1}
+  .alert-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:13.5px;line-height:1.9;white-space:pre-wrap;word-break:break-all;max-height:340px;overflow-y:auto}
 </style>
 </head>
 <body>
@@ -97,11 +136,12 @@
 <div id="loginView">
   <div class="login-card">
     <h1>🐾 개띠랑 관리실</h1>
-    <p>신청자 · 회원 명부 · 기수 관리</p>
+    <p>주문 · 신청자 · 명부 · 기수 · 문의</p>
     <input id="email" type="email" placeholder="이메일" autocomplete="username" />
     <input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password" />
     <button class="btn-primary" id="loginBtn">로그인</button>
     <div class="login-msg" id="loginMsg"></div>
+    <button class="login-link" id="resetLink">비밀번호가 기억나지 않아요</button>
   </div>
 </div>
 
@@ -111,26 +151,55 @@
     <div class="head-in">
       <span class="logo">🐾 개띠랑 관리실</span>
       <span class="head-user" id="headUser"></span>
+      <button class="btn-ghost" id="reloadBtn">새로고침</button>
       <button class="btn-ghost" id="logoutBtn">로그아웃</button>
     </div>
-    <div class="tabs">
-      <button class="tab active" data-tab="apps">신청자</button>
+    <div class="tabs" id="tabBar">
+      <button class="tab active" data-tab="home">홈</button>
+      <button class="tab" data-tab="orders">주문<span class="badge hidden" id="bOrders"></span></button>
+      <button class="tab" data-tab="apps">신청자<span class="badge hidden" id="bApps"></span></button>
       <button class="tab" data-tab="members">명부</button>
-      <button class="tab" data-tab="cohorts">기수 현황</button>
+      <button class="tab" data-tab="cohorts">기수</button>
+      <button class="tab" data-tab="inquiries">문의<span class="badge hidden" id="bInq"></span></button>
+      <button class="tab" data-tab="alerts">출간알림</button>
     </div>
   </header>
   <main>
-    <!-- 신청자 -->
-    <section id="tab-apps">
+    <!-- 홈 -->
+    <section id="tab-home">
+      <div class="home-hd" id="homeHd"></div>
+      <div class="home-sec-t">지금 챙길 것</div>
+      <div class="todo-grid" id="todoGrid"></div>
+      <div class="home-sec-t">한눈에</div>
+      <div class="stat-row" id="statRow"></div>
+    </section>
+
+    <!-- 주문 -->
+    <section id="tab-orders" class="hidden">
       <div class="filters">
+        <select id="oChannel"><option value="">전체 채널</option></select>
+        <select id="oStatus"><option value="">전체 상태</option></select>
+        <input id="oSearch" placeholder="이름·연락처·책 검색" />
+        <button class="btn-add" id="oAddBtn">+ 주문 직접 추가</button>
+        <span class="count-note" id="ordersCount"></span>
+      </div>
+      <div class="list" id="ordersList"><div class="loading">불러오는 중…</div></div>
+    </section>
+
+    <!-- 신청자 -->
+    <section id="tab-apps" class="hidden">
+      <div class="filters">
+        <select id="fChannel"><option value="">전체 채널</option></select>
         <select id="fProgram"><option value="">전체 프로그램</option></select>
         <select id="fCohort"><option value="">전체 기수</option></select>
         <select id="fStatus"><option value="">전체 상태</option></select>
         <input id="fSearch" placeholder="이름·연락처 검색" />
+        <button class="btn-add" id="aAddBtn">+ 예약·신청 직접 추가</button>
         <span class="count-note" id="appsCount"></span>
       </div>
       <div class="list" id="appsList"><div class="loading">불러오는 중…</div></div>
     </section>
+
     <!-- 명부 -->
     <section id="tab-members" class="hidden">
       <div class="filters">
@@ -139,9 +208,30 @@
       </div>
       <div class="list" id="memList"><div class="loading">불러오는 중…</div></div>
     </section>
+
     <!-- 기수 -->
     <section id="tab-cohorts" class="hidden">
       <div class="list" id="cohortList"><div class="loading">불러오는 중…</div></div>
+    </section>
+
+    <!-- 문의 -->
+    <section id="tab-inquiries" class="hidden">
+      <div class="filters">
+        <select id="iStatus"><option value="">전체 상태</option></select>
+        <input id="iSearch" placeholder="기관·담당자·연락처 검색" />
+        <span class="count-note" id="inqCount"></span>
+      </div>
+      <div class="list" id="inqList"><div class="loading">불러오는 중…</div></div>
+    </section>
+
+    <!-- 출간알림 -->
+    <section id="tab-alerts" class="hidden">
+      <div class="filters">
+        <input id="alSearch" placeholder="이메일·책 검색" />
+        <button class="btn-sm" id="alCopy">이메일 전체 복사</button>
+        <span class="count-note" id="alCount"></span>
+      </div>
+      <div class="list" id="alList"><div class="loading">불러오는 중…</div></div>
     </section>
   </main>
 </div>
@@ -154,15 +244,25 @@ const SUPABASE_URL = 'https://zrmljsyxeozcnfqmyumw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybWxqc3l4ZW96Y25mcW15dW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzkwNTAsImV4cCI6MjA5OTA1NTA1MH0.G31yEksYsiR43t2pWPwTdCrpBHcxLkZ4mYSvk5urZxQ';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const STATUSES = ['신규','입금대기','확정','참석완료','취소','환불'];
-let APPS = [];       // 전체 신청 데이터
-let COHORTS = [];    // 기수 데이터
+const APP_STATUSES = ['신규','입금대기','확정','참석완료','취소','환불'];
+const ORDER_STATUSES = ['신규','입금확인','발송준비','발송완료','취소'];
+const INQ_STATUSES = ['신규','상담중','완료','보류'];
+const ORDER_CHANNELS = ['홈페이지','스마트스토어','기타'];
+const APP_CHANNELS = ['홈페이지','네이버플레이스','기타'];
+function chChip(ch){ const c=ch||'홈페이지'; const k=c==='스마트스토어'?'store':c==='네이버플레이스'?'place':c==='홈페이지'?'':'etc'; return `<span class="chip ch ${k}">${esc(c)}</span>`; }
+
+let APPS=[], COHORTS=[], ORDERS=[], OITEMS={}, INQ=[], ALERTS=[];
 
 const $ = s => document.querySelector(s);
 const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 const fmtDate = s => { if(!s)return'-'; const d=new Date(s); return `${d.getMonth()+1}/${d.getDate()}`; };
+const fmtDT = s => s?new Date(s).toLocaleString('ko-KR'):'-';
+const won = n => (n||0).toLocaleString('ko-KR')+'원';
+const isToday = s => { if(!s)return false; const d=new Date(s),n=new Date(); return d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth()&&d.getDate()===n.getDate(); };
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800);}
+function copyText(txt,label){ navigator.clipboard.writeText(txt).then(()=>toast((label||'복사')+' 완료')).catch(()=>toast('복사 실패')); }
+function setBadge(id,n){ const b=$('#'+id); if(!b)return; if(n>0){ b.textContent=n; b.classList.remove('hidden'); } else b.classList.add('hidden'); }
 
 /* ---------- 인증 ---------- */
 async function checkAdmin(){
@@ -192,16 +292,170 @@ $('#loginBtn').onclick = async () => {
   enterApp(data.session); btn.disabled=false; btn.textContent='로그인';
 };
 $('#pw').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
+$('#resetLink').onclick = async () => {
+  const email=$('#email').value.trim();
+  if(!email){ $('#loginMsg').textContent='이메일을 먼저 입력한 뒤 눌러주세요.'; return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin+'/admin/' });
+  $('#loginMsg').style.color='var(--ok)';
+  $('#loginMsg').textContent = error ? ('메일 발송 실패: '+error.message) : '재설정 메일을 보냈어요. 메일함을 확인해 주세요.';
+};
 $('#logoutBtn').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+$('#reloadBtn').onclick = async () => { $('#reloadBtn').textContent='...'; await loadAll(); $('#reloadBtn').textContent='새로고침'; toast('새로고침 완료'); };
 
 /* ---------- 데이터 로드 ---------- */
 async function loadAll(){
-  const [ap, co] = await Promise.all([
+  const [ap, co, od, oi, iq, al] = await Promise.all([
     sb.from('applications').select('*').order('created_at',{ascending:false}),
-    sb.from('cohorts').select('*').order('sort')
+    sb.from('cohorts').select('*').order('sort'),
+    sb.from('orders').select('*').order('created_at',{ascending:false}),
+    sb.from('order_items').select('*'),
+    sb.from('inquiries').select('*').order('created_at',{ascending:false}),
+    sb.from('book_alerts').select('*').order('created_at',{ascending:false}),
   ]);
-  APPS = ap.data || []; COHORTS = co.data || [];
-  buildFilters(); renderApps(); renderMembers(); renderCohorts();
+  APPS=ap.data||[]; COHORTS=co.data||[]; ORDERS=od.data||[]; INQ=iq.data||[]; ALERTS=al.data||[];
+  OITEMS={}; (oi.data||[]).forEach(it=>{ (OITEMS[it.order_id]=OITEMS[it.order_id]||[]).push(it); });
+  buildFilters();
+  renderHome(); renderOrders(); renderApps(); renderMembers(); renderCohorts(); renderInquiries(); renderAlerts();
+  refreshBadges();
+}
+function refreshBadges(){
+  setBadge('bOrders', ORDERS.filter(o=>(o.status||'신규')==='신규').length);
+  setBadge('bApps', APPS.filter(a=>(a.status||'신규')==='신규').length);
+  setBadge('bInq', INQ.filter(i=>!i.status||i.status==='신규').length);
+}
+
+/* ---------- 홈(요약) ---------- */
+function renderHome(){
+  const newOrders = ORDERS.filter(o=>(o.status||'신규')==='신규');
+  const toShip = ORDERS.filter(o=>o.status==='발송준비'||o.status==='입금확인');
+  const newApps = APPS.filter(a=>(a.status||'신규')==='신규');
+  const unpaidApps = APPS.filter(a=>!a.refund_confirmed && ['신규','입금대기'].includes(a.status||'신규'));
+  const newInq = INQ.filter(i=>!i.status||i.status==='신규');
+  const paidRevenue = ORDERS.filter(o=>['입금확인','발송준비','발송완료'].includes(o.status)).reduce((s,o)=>s+(o.total_amount||0),0);
+
+  $('#homeHd').textContent = new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})+' 기준';
+
+  const todos = [
+    {n:newOrders.length, l:'입금 확인할 주문', tab:'orders', hot:newOrders.length>0},
+    {n:toShip.length, l:'발송할 주문', tab:'orders', hot:toShip.length>0},
+    {n:newInq.length, l:'답할 기관 문의', tab:'inquiries', hot:newInq.length>0},
+    {n:newApps.length, l:'확인할 새 신청', tab:'apps', hot:newApps.length>0},
+    {n:unpaidApps.length, l:'입금 대기 신청', tab:'apps', hot:false},
+  ];
+  const tg=$('#todoGrid'); tg.innerHTML='';
+  todos.forEach(t=>{
+    const b=el('button','todo todo'+(t.n>0?(t.hot?' hot':''):' zero'),
+      `<div class="n">${t.n}</div><div class="l">${t.l}</div>`);
+    b.onclick=()=>switchTab(t.tab);
+    tg.appendChild(b);
+  });
+
+  const stats = [
+    {n:won(paidRevenue), l:'누적 매출(입금확인+)'},
+    {n:ORDERS.length+'건', l:'전체 주문'},
+    {n:buildMembers().length+'명', l:'전체 명부'},
+    {n:APPS.length+'건', l:'전체 신청'},
+    {n:ALERTS.length+'명', l:'출간알림 신청'},
+    {n:COHORTS.filter(c=>c.status==='모집중').length+'개', l:'모집중 기수'},
+  ];
+  const sr=$('#statRow'); sr.innerHTML='';
+  stats.forEach(s=> sr.appendChild(el('div','stat',`<div class="n">${s.n}</div><div class="l">${s.l}</div>`)));
+}
+
+/* ---------- 주문 탭 ---------- */
+function orderItemsText(id){ return (OITEMS[id]||[]).map(i=>`${i.book_title}×${i.quantity}`).join(', '); }
+function orderDot(st){ if(st==='발송완료')return'g'; if(st==='취소')return'r'; if(st==='입금확인'||st==='발송준비')return'b'; return'y'; }
+$('#oStatus').innerHTML='<option value="">전체 상태</option>'+ORDER_STATUSES.map(s=>`<option>${s}</option>`).join('');
+['oStatus','oChannel'].forEach(id=>$('#'+id).addEventListener('change',renderOrders));
+$('#oSearch').addEventListener('input',renderOrders);
+$('#oAddBtn').onclick=openAddOrder;
+function renderOrders(){
+  const fs=$('#oStatus').value, fc=$('#oChannel').value, q=$('#oSearch').value.trim().toLowerCase();
+  let rows=ORDERS.filter(o=>{
+    const st=o.status||'신규';
+    const items=orderItemsText(o.id).toLowerCase();
+    return (!fs||st===fs) && (!fc||(o.channel||'홈페이지')===fc) && (!q || (o.buyer_name||'').toLowerCase().includes(q) || (o.contact||'').toLowerCase().includes(q) || items.includes(q));
+  });
+  $('#ordersCount').textContent=`${rows.length}건`;
+  const list=$('#ordersList'); list.innerHTML='';
+  if(!rows.length){ list.appendChild(el('div','empty','조건에 맞는 주문이 없어요.')); return; }
+  rows.forEach(o=>{
+    const st=o.status||'신규';
+    const items=orderItemsText(o.id)||'(항목 없음)';
+    const r=el('div','row');
+    r.innerHTML=`<div class="main">
+      <div class="name"><span class="dot ${orderDot(st)}"></span>${esc(o.buyer_name)||'(이름없음)'} <span style="color:var(--muted);font-weight:400;font-size:12px">${esc(o.contact)||''}</span></div>
+      <div class="sub" style="margin-top:3px">${esc(items)}</div>
+      <div class="chips" style="margin-top:5px">${chChip(o.channel)}<span class="chip st">${esc(st)}</span></div></div>
+      <div class="amt"><b>${won(o.total_amount)}</b><br>${fmtDate(o.created_at)}</div>`;
+    r.onclick=()=>openOrder(o.id);
+    list.appendChild(r);
+  });
+}
+function openOrder(id){
+  const o=ORDERS.find(x=>x.id===id); if(!o)return;
+  const st=o.status||'신규';
+  const items=OITEMS[id]||[];
+  const itemsHtml = items.length
+    ? items.map(i=>`<div class="item-row"><span>${esc(i.book_title)}</span><span class="q">${i.quantity}개 · ${won((i.unit_price||0)*i.quantity)}</span></div>`).join('')
+    : '<div class="v" style="color:var(--muted)">주문 항목 정보가 없어요.</div>';
+  const host=$('#panelHost');
+  host.innerHTML=`<div class="backdrop"><div class="panel">
+    <button class="p-close">&times;</button>
+    <h2>${esc(o.buyer_name)||'(이름없음)'} ${chChip(o.channel)}</h2>
+    <div class="p-contact">${esc(o.contact)||''} ${o.email?'· '+esc(o.email):''}</div>
+    <div class="field"><div class="k">주문 책 (합계 ${won(o.total_amount)})</div>${itemsHtml}</div>
+    <div class="field"><div class="k">배송지 (탭하면 복사)</div><div class="v copy" id="copyAddr">${esc(o.shipping_address)||'-'}</div></div>
+    ${o.message?`<div class="field"><div class="k">요청사항</div><div class="v">${esc(o.message)}</div></div>`:''}
+    <div class="field"><div class="k">주문일시</div><div class="v">${fmtDT(o.created_at)}</div></div>
+    <div class="actions">
+      <div class="st-row"><span>상태</span>
+        <select id="oStatusSel">${ORDER_STATUSES.map(s=>`<option ${s===st?'selected':''}>${s}</option>`).join('')}</select></div>
+    </div>
+  </div></div>`;
+  const close=()=>host.innerHTML='';
+  host.querySelector('.p-close').onclick=close;
+  host.querySelector('.backdrop').onclick=e=>{ if(e.target.classList.contains('backdrop')) close(); };
+  const addr=host.querySelector('#copyAddr'); if(addr&&o.shipping_address) addr.onclick=()=>copyText(o.shipping_address,'배송지');
+  host.querySelector('#oStatusSel').onchange=async e=>{
+    const nv=e.target.value;
+    const { error } = await sb.from('orders').update({status:nv}).eq('id',id);
+    if(error){ toast('저장 실패: '+error.message); return; }
+    o.status=nv; renderOrders(); renderHome(); refreshBadges(); toast('상태 저장됨');
+  };
+}
+function openAddOrder(){
+  const host=$('#panelHost');
+  host.innerHTML=`<div class="backdrop"><div class="panel">
+    <button class="p-close">&times;</button>
+    <h2>주문 직접 추가</h2>
+    <div class="p-contact">스토어 등 다른 채널 주문을 장부에 기록해요</div>
+    <div class="field"><div class="k">채널</div><select class="f-sel" id="naChannel">${ORDER_CHANNELS.map(c=>`<option ${c==='스마트스토어'?'selected':''}>${c}</option>`).join('')}</select></div>
+    <div class="field"><div class="k">주문자 이름</div><input class="f-in" id="naName" placeholder="예: 홍길동"></div>
+    <div class="field"><div class="k">연락처</div><input class="f-in" id="naContact" placeholder="010-0000-0000"></div>
+    <div class="field"><div class="k">품목 (책 이름)</div><input class="f-in" id="naItem" placeholder="예: 문고리"></div>
+    <div class="field"><div class="k">수량 / 금액(합계)</div>
+      <div style="display:flex;gap:8px"><input class="f-in" id="naQty" type="number" value="1" style="max-width:90px"><input class="f-in" id="naAmt" type="number" placeholder="합계 금액(원)"></div></div>
+    <div class="field"><div class="k">상태</div><select class="f-sel" id="naStatus">${ORDER_STATUSES.map(s=>`<option ${s==='입금확인'?'selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="field"><div class="k">메모(선택)</div><input class="f-in" id="naMemo" placeholder="배송지·특이사항 등"></div>
+    <div class="actions"><button class="btn-primary" id="naSave">장부에 추가</button></div>
+  </div></div>`;
+  const close=()=>host.innerHTML='';
+  host.querySelector('.p-close').onclick=close;
+  host.querySelector('.backdrop').onclick=e=>{ if(e.target.classList.contains('backdrop')) close(); };
+  host.querySelector('#naSave').onclick=async(ev)=>{
+    const btn=ev.target;
+    const name=$('#naName').value.trim(), contact=$('#naContact').value.trim();
+    const item=$('#naItem').value.trim(), qty=parseInt($('#naQty').value)||1, amt=parseInt($('#naAmt').value)||0;
+    const channel=$('#naChannel').value, status=$('#naStatus').value, memo=$('#naMemo').value.trim();
+    if(!name){ toast('주문자 이름을 입력해 주세요'); return; }
+    btn.disabled=true; btn.textContent='추가 중…';
+    const id=crypto.randomUUID();
+    const { error } = await sb.from('orders').insert({ id, buyer_name:name, contact, total_amount:amt, status, channel, message:memo||null });
+    if(error){ toast('추가 실패: '+error.message); btn.disabled=false; btn.textContent='장부에 추가'; return; }
+    if(item){ await sb.from('order_items').insert({ order_id:id, book_title:item, quantity:qty, unit_price: qty?Math.round(amt/qty):amt }); }
+    close(); await loadAll(); switchTab('orders'); toast('주문이 장부에 추가됨');
+  };
 }
 
 /* ---------- 신청자 탭 ---------- */
@@ -210,16 +464,19 @@ function buildFilters(){
   const cohs=[...new Set(APPS.map(a=>a.cohort_name).filter(Boolean))];
   $('#fProgram').innerHTML='<option value="">전체 프로그램</option>'+progs.map(p=>`<option>${esc(p)}</option>`).join('');
   $('#fCohort').innerHTML='<option value="">전체 기수</option>'+cohs.map(c=>`<option>${esc(c)}</option>`).join('');
-  $('#fStatus').innerHTML='<option value="">전체 상태</option>'+STATUSES.map(s=>`<option>${s}</option>`).join('');
+  $('#fStatus').innerHTML='<option value="">전체 상태</option>'+APP_STATUSES.map(s=>`<option>${s}</option>`).join('');
+  $('#iStatus').innerHTML='<option value="">전체 상태</option>'+INQ_STATUSES.map(s=>`<option>${s}</option>`).join('');
+  $('#fChannel').innerHTML='<option value="">전체 채널</option>'+APP_CHANNELS.map(c=>`<option>${c}</option>`).join('');
+  $('#oChannel').innerHTML='<option value="">전체 채널</option>'+ORDER_CHANNELS.map(c=>`<option>${c}</option>`).join('');
 }
-['fProgram','fCohort','fStatus'].forEach(id=>$('#'+id).addEventListener('change',renderApps));
+['fProgram','fCohort','fStatus','fChannel'].forEach(id=>$('#'+id).addEventListener('change',renderApps));
 $('#fSearch').addEventListener('input',renderApps);
-
+$('#aAddBtn').onclick=openAddApp;
 function statusDot(st){ if(st==='확정'||st==='참석완료')return'g'; if(st==='취소'||st==='환불')return'r'; return'y'; }
 function renderApps(){
-  const fp=$('#fProgram').value, fc=$('#fCohort').value, fs=$('#fStatus').value, q=$('#fSearch').value.trim().toLowerCase();
+  const fp=$('#fProgram').value, fc=$('#fCohort').value, fs=$('#fStatus').value, fch=$('#fChannel').value, q=$('#fSearch').value.trim().toLowerCase();
   let rows=APPS.filter(a=>
-    (!fp||a.program_name===fp)&&(!fc||a.cohort_name===fc)&&(!fs||(a.status||'신규')===fs)&&
+    (!fp||a.program_name===fp)&&(!fc||a.cohort_name===fc)&&(!fs||(a.status||'신규')===fs)&&(!fch||(a.channel||'홈페이지')===fch)&&
     (!q|| (a.applicant_name||'').toLowerCase().includes(q) || (a.contact||'').toLowerCase().includes(q))
   );
   $('#appsCount').textContent=`${rows.length}건`;
@@ -231,35 +488,34 @@ function renderApps(){
     r.innerHTML=`<div class="main">
       <div class="name"><span class="dot ${statusDot(st)}"></span>${esc(a.applicant_name)||'(이름없음)'} <span style="color:var(--muted);font-weight:400;font-size:12px">${esc(a.contact)||''}</span></div>
       <div class="chips" style="margin-top:5px">
+        ${chChip(a.channel)}
         <span class="chip prog">${esc(a.program_name)||'프로그램 미상'}</span>
         ${a.cohort_name?`<span class="chip cohort">${esc(a.cohort_name)}</span>`:''}
         <span class="chip st">${esc(st)}</span>
         ${a.refund_confirmed?'<span class="chip on">입금✓</span>':''}
         ${a.attended?'<span class="chip on">출석✓</span>':''}
       </div></div>
-      <div style="text-align:right;font-size:12px;color:var(--muted)">${fmtDate(a.created_at)}<br>${esc(a.participant_count||'')}${a.participant_count?'명':''}</div>`;
+      <div class="amt">${fmtDate(a.created_at)}<br>${esc(a.participant_count||'')}${a.participant_count?'명':''}</div>`;
     r.onclick=()=>openDetail(a.id);
     list.appendChild(r);
   });
 }
-
-/* ---------- 상세 패널 ---------- */
 function openDetail(id){
   const a=APPS.find(x=>x.id===id); if(!a)return;
   const host=$('#panelHost');
   const st=a.status||'신규';
   host.innerHTML=`<div class="backdrop"><div class="panel">
     <button class="p-close">&times;</button>
-    <h2>${esc(a.applicant_name)||'(이름없음)'}</h2>
+    <h2>${esc(a.applicant_name)||'(이름없음)'} ${chChip(a.channel)}</h2>
     <div class="p-contact">${esc(a.contact)||''} ${a.email?'· '+esc(a.email):''}</div>
     <div class="field"><div class="k">프로그램 / 기수</div><div class="v">${esc(a.program_name)||'-'}${a.cohort_name?' · '+esc(a.cohort_name):''}</div></div>
-    <div class="field"><div class="k">신청 인원 / 신청일</div><div class="v">${esc(a.participant_count||'-')}${a.participant_count?'명':''} · ${a.created_at?new Date(a.created_at).toLocaleString('ko-KR'):'-'}</div></div>
+    <div class="field"><div class="k">신청 인원 / 신청일</div><div class="v">${esc(a.participant_count||'-')}${a.participant_count?'명':''} · ${fmtDT(a.created_at)}</div></div>
     ${a.motivation?`<div class="field"><div class="k">신청 동기</div><div class="v">${esc(a.motivation)}</div></div>`:''}
     ${a.message?`<div class="field"><div class="k">메시지</div><div class="v">${esc(a.message)}</div></div>`:''}
     <div class="field"><div class="k">사진 동의</div><div class="v">${a.photo_consent?'동의함':'미동의'}</div></div>
     <div class="actions">
       <div class="st-row"><span>상태</span>
-        <select id="dStatus">${STATUSES.map(s=>`<option ${s===st?'selected':''}>${s}</option>`).join('')}</select></div>
+        <select id="dStatus">${APP_STATUSES.map(s=>`<option ${s===st?'selected':''}>${s}</option>`).join('')}</select></div>
       <div class="toggle">입금 확인 <button class="sw ${a.refund_confirmed?'on':''}" data-f="refund_confirmed"></button></div>
       <div class="toggle">출석 <button class="sw ${a.attended?'on':''}" data-f="attended"></button></div>
       <div class="toggle">후기 요청 <button class="sw ${a.review_requested?'on':''}" data-f="review_requested"></button></div>
@@ -281,9 +537,43 @@ async function updateApp(id, patch, label){
   const { error } = await sb.from('applications').update(patch).eq('id',id);
   if(error){ toast('저장 실패: '+error.message); return false; }
   Object.assign(APPS.find(x=>x.id===id), patch);
-  renderApps(); renderMembers();
+  renderApps(); renderMembers(); renderHome(); refreshBadges();
   toast(`${label} 저장됨`);
   return true;
+}
+function openAddApp(){
+  const host=$('#panelHost');
+  const progs=[...new Set(APPS.map(a=>a.program_name).filter(Boolean))];
+  host.innerHTML=`<div class="backdrop"><div class="panel">
+    <button class="p-close">&times;</button>
+    <h2>예약·신청 직접 추가</h2>
+    <div class="p-contact">플레이스 예약 등 다른 채널 건을 장부에 기록해요</div>
+    <div class="field"><div class="k">채널</div><select class="f-sel" id="paChannel">${APP_CHANNELS.map(c=>`<option ${c==='네이버플레이스'?'selected':''}>${c}</option>`).join('')}</select></div>
+    <div class="field"><div class="k">이름</div><input class="f-in" id="paName" placeholder="예: 홍길동"></div>
+    <div class="field"><div class="k">연락처</div><input class="f-in" id="paContact" placeholder="010-0000-0000"></div>
+    <div class="field"><div class="k">프로그램 / 워크숍</div><input class="f-in" id="paProgram" list="paProgList" placeholder="예: 그림책 워크숍"><datalist id="paProgList">${progs.map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div>
+    <div class="field"><div class="k">기수(선택)</div><input class="f-in" id="paCohort" placeholder="예: 1기"></div>
+    <div class="field"><div class="k">인원 / 상태</div>
+      <div style="display:flex;gap:8px"><input class="f-in" id="paCount" type="number" value="1" style="max-width:90px"><select class="f-sel" id="paStatus">${APP_STATUSES.map(s=>`<option ${s==='확정'?'selected':''}>${s}</option>`).join('')}</select></div></div>
+    <div class="field"><div class="k">메모(선택)</div><input class="f-in" id="paMemo" placeholder="특이사항 등"></div>
+    <div class="actions"><button class="btn-primary" id="paSave">장부에 추가</button></div>
+  </div></div>`;
+  const close=()=>host.innerHTML='';
+  host.querySelector('.p-close').onclick=close;
+  host.querySelector('.backdrop').onclick=e=>{ if(e.target.classList.contains('backdrop')) close(); };
+  host.querySelector('#paSave').onclick=async(ev)=>{
+    const btn=ev.target;
+    const name=$('#paName').value.trim();
+    if(!name){ toast('이름을 입력해 주세요'); return; }
+    btn.disabled=true; btn.textContent='추가 중…';
+    const row={ id:crypto.randomUUID(), applicant_name:name, contact:$('#paContact').value.trim(),
+      program_name:$('#paProgram').value.trim()||null, cohort_name:$('#paCohort').value.trim()||null,
+      participant_count:$('#paCount').value||null, status:$('#paStatus').value, channel:$('#paChannel').value,
+      message:$('#paMemo').value.trim()||null };
+    const { error } = await sb.from('applications').insert(row);
+    if(error){ toast('추가 실패: '+error.message); btn.disabled=false; btn.textContent='장부에 추가'; return; }
+    close(); await loadAll(); switchTab('apps'); toast('예약·신청이 장부에 추가됨');
+  };
 }
 
 /* ---------- 명부(회원) 탭 ---------- */
@@ -319,7 +609,7 @@ function renderMembers(){
         <span class="chip ${paid?'on':'off'}">입금 ${paid}</span>
         <span class="chip ${att?'on':'off'}">출석 ${att}</span>
       </div></div>
-      <div style="text-align:right;font-size:12px;color:var(--muted)">최근<br>${fmtDate(m.apps[0].created_at)}</div>`;
+      <div class="amt">최근<br>${fmtDate(m.apps[0].created_at)}</div>`;
     r.onclick=()=>openMember(m);
     list.appendChild(r);
   });
@@ -333,7 +623,7 @@ function openMember(m){
     <div class="field"><div class="k">신청 이력</div><div class="v">${m.apps.length}건 · 입금확인 ${m.apps.filter(a=>a.refund_confirmed).length} · 출석 ${m.apps.filter(a=>a.attended).length}</div></div>
     ${m.apps.map(a=>`<div class="mini-app" data-id="${a.id}" style="cursor:pointer">
       <div class="t">${esc(a.program_name)||'-'} ${a.cohort_name?'· '+esc(a.cohort_name):''}</div>
-      <div class="d">${a.created_at?new Date(a.created_at).toLocaleDateString('ko-KR'):''} · ${esc(a.status||'신규')} ${a.refund_confirmed?'· 입금✓':''} ${a.attended?'· 출석✓':''}</div>
+      <div class="d">${fmtDate(a.created_at)} · ${esc(a.status||'신규')} ${a.refund_confirmed?'· 입금✓':''} ${a.attended?'· 출석✓':''}</div>
     </div>`).join('')}
   </div></div>`;
   const close=()=>host.innerHTML='';
@@ -349,7 +639,7 @@ function renderCohorts(){
   COHORTS.forEach(c=>{
     const applied=APPS.filter(a=>a.cohort_id===c.id || a.cohort_name===c.cohort_name).length;
     const cap=c.capacity||0, left=c.seats_left||0, filled=cap?Math.min(100,Math.round((cap-left)/cap*100)):0;
-    const r=el('div','row');
+    const r=el('div','row'); r.style.cursor='default';
     r.style.display='block';
     r.innerHTML=`<div style="display:flex;align-items:center;gap:8px">
         <div class="name">${esc(c.cohort_name)} <span class="chip prog">${esc(c.program_slug)}</span></div>
@@ -362,12 +652,92 @@ function renderCohorts(){
   });
 }
 
+/* ---------- 문의(B2B) 탭 ---------- */
+['iStatus'].forEach(id=>$('#'+id).addEventListener('change',renderInquiries));
+$('#iSearch').addEventListener('input',renderInquiries);
+function inqDot(st){ if(st==='완료')return'g'; if(st==='보류')return'r'; if(st==='상담중')return'b'; return'y'; }
+function renderInquiries(){
+  const fs=$('#iStatus').value, q=$('#iSearch').value.trim().toLowerCase();
+  let rows=INQ.filter(i=>{
+    const st=i.status||'신규';
+    return (!fs||st===fs) && (!q || (i.org_name||'').toLowerCase().includes(q) || (i.manager_name||'').toLowerCase().includes(q) || (i.contact||'').toLowerCase().includes(q));
+  });
+  $('#inqCount').textContent=`${rows.length}건`;
+  const list=$('#inqList'); list.innerHTML='';
+  if(!rows.length){ list.appendChild(el('div','empty','기관 문의가 없어요.')); return; }
+  rows.forEach(i=>{
+    const st=i.status||'신규';
+    const r=el('div','row');
+    r.innerHTML=`<div class="main">
+      <div class="name"><span class="dot ${inqDot(st)}"></span>${esc(i.org_name)||'(기관명 없음)'} <span style="color:var(--muted);font-weight:400;font-size:12px">${esc(i.manager_name)||''}</span></div>
+      <div class="sub" style="margin-top:3px">${esc(i.inquiry_type||'')} ${i.program_wanted?'· '+esc(i.program_wanted):''} ${i.headcount?'· '+esc(i.headcount)+'명':''}</div>
+      <div class="chips" style="margin-top:5px"><span class="chip st">${esc(st)}</span>${i.desired_time?`<span class="chip cohort">${esc(i.desired_time)}</span>`:''}</div></div>
+      <div class="amt">${fmtDate(i.created_at)}</div>`;
+    r.onclick=()=>openInquiry(i.id);
+    list.appendChild(r);
+  });
+}
+function openInquiry(id){
+  const i=INQ.find(x=>x.id===id); if(!i)return;
+  const st=i.status||'신규';
+  const host=$('#panelHost');
+  host.innerHTML=`<div class="backdrop"><div class="panel">
+    <button class="p-close">&times;</button>
+    <h2>${esc(i.org_name)||'(기관명 없음)'}</h2>
+    <div class="p-contact">${esc(i.manager_name)||''} ${i.contact?'· '+esc(i.contact):''} ${i.email?'· '+esc(i.email):''}</div>
+    <div class="field"><div class="k">문의 유형 / 희망 프로그램</div><div class="v">${esc(i.inquiry_type||'-')}${i.program_wanted?' · '+esc(i.program_wanted):''}</div></div>
+    <div class="field"><div class="k">인원 / 희망 시기</div><div class="v">${esc(i.headcount||'-')}${i.headcount?'명':''} · ${esc(i.desired_time||'-')}</div></div>
+    ${i.message?`<div class="field"><div class="k">문의 내용</div><div class="v">${esc(i.message)}</div></div>`:''}
+    <div class="field"><div class="k">접수일시</div><div class="v">${fmtDT(i.created_at)}</div></div>
+    <div class="actions">
+      <div class="st-row"><span>상태</span>
+        <select id="iStatusSel">${INQ_STATUSES.map(s=>`<option ${s===st?'selected':''}>${s}</option>`).join('')}</select></div>
+    </div>
+  </div></div>`;
+  const close=()=>host.innerHTML='';
+  host.querySelector('.p-close').onclick=close;
+  host.querySelector('.backdrop').onclick=e=>{ if(e.target.classList.contains('backdrop')) close(); };
+  host.querySelector('#iStatusSel').onchange=async e=>{
+    const nv=e.target.value;
+    const { error } = await sb.from('inquiries').update({status:nv}).eq('id',id);
+    if(error){ toast('저장 실패: '+error.message); return; }
+    i.status=nv; renderInquiries(); refreshBadges(); toast('상태 저장됨');
+  };
+}
+
+/* ---------- 출간알림 탭 ---------- */
+$('#alSearch').addEventListener('input',renderAlerts);
+$('#alCopy').onclick=()=>{
+  const q=$('#alSearch').value.trim().toLowerCase();
+  const emails=[...new Set(ALERTS.filter(a=>!q||(a.email||'').toLowerCase().includes(q)||(a.book_title||'').toLowerCase().includes(q)).map(a=>a.email).filter(Boolean))];
+  if(!emails.length){ toast('복사할 이메일이 없어요'); return; }
+  copyText(emails.join(', '), `이메일 ${emails.length}개`);
+};
+function renderAlerts(){
+  const q=$('#alSearch').value.trim().toLowerCase();
+  let rows=ALERTS.filter(a=>!q||(a.email||'').toLowerCase().includes(q)||(a.book_title||'').toLowerCase().includes(q));
+  $('#alCount').textContent=`${rows.length}명`;
+  const list=$('#alList'); list.innerHTML='';
+  if(!rows.length){ list.appendChild(el('div','empty','출간알림 신청이 없어요.')); return; }
+  rows.forEach(a=>{
+    const r=el('div','row'); r.style.cursor='pointer';
+    r.innerHTML=`<div class="main">
+      <div class="name">${esc(a.email)||'(이메일 없음)'}</div>
+      <div class="sub" style="margin-top:3px">${esc(a.book_title||'')}</div></div>
+      <div class="amt">${fmtDate(a.created_at)}</div>`;
+    r.onclick=()=>copyText(a.email||'','이메일');
+    list.appendChild(r);
+  });
+}
+
 /* ---------- 탭 전환 ---------- */
-document.querySelectorAll('.tab').forEach(t=> t.onclick=()=>{
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-  t.classList.add('active');
-  ['apps','members','cohorts'].forEach(name=>$('#tab-'+name).classList.toggle('hidden', name!==t.dataset.tab));
-});
+const TABS=['home','orders','apps','members','cohorts','inquiries','alerts'];
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x.dataset.tab===name));
+  TABS.forEach(t=>$('#tab-'+t).classList.toggle('hidden', t!==name));
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.tab').forEach(t=> t.onclick=()=>switchTab(t.dataset.tab));
 
 boot();
 </script>
