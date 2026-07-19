@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>개띠랑 관리실</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root{
+    --orange:#F26D4F; --orange-d:#d9583c; --ink:#2b2622; --muted:#8a817a;
+    --line:#eee3da; --bg:#faf6f1; --card:#fff; --ok:#2e9e6b; --warn:#e2a13a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+  button{font-family:inherit;cursor:pointer}
+  .hidden{display:none!important}
+
+  /* ---- 로그인 ---- */
+  #loginView{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .login-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:34px 28px;width:100%;max-width:360px;box-shadow:0 10px 40px rgba(210,150,110,.12)}
+  .login-card h1{font-size:20px;margin-bottom:4px}
+  .login-card p{color:var(--muted);font-size:13px;margin-bottom:22px}
+  .login-card input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:11px;font-size:15px;margin-bottom:10px;background:#fff}
+  .login-card input:focus{outline:none;border-color:var(--orange)}
+  .btn-primary{width:100%;background:var(--orange);color:#fff;border:none;padding:12px;border-radius:11px;font-size:15px;font-weight:700;transition:.15s}
+  .btn-primary:hover{background:var(--orange-d)}
+  .btn-primary:disabled{opacity:.5;cursor:default}
+  .login-msg{color:var(--orange-d);font-size:13px;margin-top:12px;min-height:18px;text-align:center}
+
+  /* ---- 헤더 ---- */
+  header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+  .head-in{max-width:1000px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:12px}
+  .logo{font-weight:800;font-size:17px;color:var(--orange)}
+  .head-user{margin-left:auto;font-size:13px;color:var(--muted)}
+  .btn-ghost{background:none;border:1px solid var(--line);border-radius:9px;padding:6px 12px;font-size:13px;color:var(--muted)}
+  .tabs{max-width:1000px;margin:0 auto;padding:0 18px;display:flex;gap:4px}
+  .tab{background:none;border:none;padding:12px 14px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:2.5px solid transparent}
+  .tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+
+  main{max-width:1000px;margin:0 auto;padding:18px}
+
+  /* ---- 필터 ---- */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .filters select,.filters input{padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;background:#fff}
+  .count-note{font-size:13px;color:var(--muted);margin-left:auto;align-self:center}
+
+  /* ---- 카드/표 ---- */
+  .list{display:flex;flex-direction:column;gap:9px}
+  .row{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 15px;display:flex;align-items:center;gap:12px;transition:.12s}
+  .row:hover{border-color:#e6cbb8;box-shadow:0 3px 12px rgba(210,150,110,.08)}
+  .row .main{flex:1;min-width:0}
+  .row .name{font-weight:700;font-size:15px}
+  .row .sub{font-size:12.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+  .chip{font-size:11px;padding:3px 8px;border-radius:999px;font-weight:600;white-space:nowrap}
+  .chip.prog{background:#fff1e9;color:var(--orange-d)}
+  .chip.cohort{background:#eef4ff;color:#3f68c4}
+  .chip.st{background:#f1ede9;color:var(--muted)}
+  .chip.on{background:#e6f5ee;color:var(--ok)}
+  .chip.off{background:#f7f3ef;color:#c3b7ac}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
+  .dot.g{background:var(--ok)} .dot.y{background:var(--warn)} .dot.r{background:var(--orange)}
+  .empty{text-align:center;padding:50px 20px;color:var(--muted);font-size:14px}
+  .loading{text-align:center;padding:50px;color:var(--muted)}
+
+  /* ---- 상세 패널 ---- */
+  .backdrop{position:fixed;inset:0;background:rgba(40,30,22,.4);z-index:40;display:flex;justify-content:flex-end}
+  .panel{background:var(--bg);width:100%;max-width:440px;height:100%;overflow-y:auto;padding:22px;animation:slide .2s ease}
+  @keyframes slide{from{transform:translateX(30px);opacity:.5}to{transform:none;opacity:1}}
+  .panel h2{font-size:19px;margin-bottom:2px}
+  .panel .p-contact{color:var(--muted);font-size:13px;margin-bottom:16px}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 14px;margin-bottom:8px}
+  .field .k{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px}
+  .field .v{font-size:14px;white-space:pre-wrap;word-break:break-word}
+  .actions{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+  .toggle{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:14px;font-weight:600}
+  .sw{width:44px;height:26px;border-radius:999px;background:#e3d8cd;position:relative;transition:.18s;border:none;flex-shrink:0}
+  .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.18s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .sw.on{background:var(--ok)} .sw.on::after{left:21px}
+  .st-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:10px 14px}
+  .st-row select{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;background:#fff}
+  .p-close{position:absolute;top:16px;right:18px;font-size:22px;background:none;border:none;color:var(--muted)}
+  .mini-app{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:6px;font-size:13px}
+  .mini-app .t{font-weight:600}
+  .mini-app .d{color:var(--muted);font-size:12px;margin-top:2px}
+  .bar{height:7px;background:#efe6db;border-radius:999px;overflow:hidden;margin-top:6px}
+  .bar > i{display:block;height:100%;background:var(--orange);border-radius:999px}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:13.5px;z-index:60;opacity:0;transition:.2s}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ============ 로그인 ============ -->
+<div id="loginView">
+  <div class="login-card">
+    <h1>🐾 개띠랑 관리실</h1>
+    <p>신청자 · 회원 명부 · 기수 관리</p>
+    <input id="email" type="email" placeholder="이메일" autocomplete="username" />
+    <input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password" />
+    <button class="btn-primary" id="loginBtn">로그인</button>
+    <div class="login-msg" id="loginMsg"></div>
+  </div>
+</div>
+
+<!-- ============ 관리 화면 ============ -->
+<div id="appView" class="hidden">
+  <header>
+    <div class="head-in">
+      <span class="logo">🐾 개띠랑 관리실</span>
+      <span class="head-user" id="headUser"></span>
+      <button class="btn-ghost" id="logoutBtn">로그아웃</button>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="apps">신청자</button>
+      <button class="tab" data-tab="members">명부</button>
+      <button class="tab" data-tab="cohorts">기수 현황</button>
+    </div>
+  </header>
+  <main>
+    <!-- 신청자 -->
+    <section id="tab-apps">
+      <div class="filters">
+        <select id="fProgram"><option value="">전체 프로그램</option></select>
+        <select id="fCohort"><option value="">전체 기수</option></select>
+        <select id="fStatus"><option value="">전체 상태</option></select>
+        <input id="fSearch" placeholder="이름·연락처 검색" />
+        <span class="count-note" id="appsCount"></span>
+      </div>
+      <div class="list" id="appsList"><div class="loading">불러오는 중…</div></div>
+    </section>
+    <!-- 명부 -->
+    <section id="tab-members" class="hidden">
+      <div class="filters">
+        <input id="mSearch" placeholder="이름·연락처 검색" />
+        <span class="count-note" id="memCount"></span>
+      </div>
+      <div class="list" id="memList"><div class="loading">불러오는 중…</div></div>
+    </section>
+    <!-- 기수 -->
+    <section id="tab-cohorts" class="hidden">
+      <div class="list" id="cohortList"><div class="loading">불러오는 중…</div></div>
+    </section>
+  </main>
+</div>
+
+<div id="panelHost"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://zrmljsyxeozcnfqmyumw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybWxqc3l4ZW96Y25mcW15dW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzkwNTAsImV4cCI6MjA5OTA1NTA1MH0.G31yEksYsiR43t2pWPwTdCrpBHcxLkZ4mYSvk5urZxQ';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const STATUSES = ['신규','입금대기','확정','참석완료','취소','환불'];
+let APPS = [];       // 전체 신청 데이터
+let COHORTS = [];    // 기수 데이터
+
+const $ = s => document.querySelector(s);
+const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const fmtDate = s => { if(!s)return'-'; const d=new Date(s); return `${d.getMonth()+1}/${d.getDate()}`; };
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800);}
+
+/* ---------- 인증 ---------- */
+async function checkAdmin(){
+  const { data, error } = await sb.rpc('is_admin');
+  if(error){ return false; }
+  return data === true;
+}
+async function boot(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(session && await checkAdmin()){ enterApp(session); }
+  else { if(session) await sb.auth.signOut(); showLogin(); }
+}
+function showLogin(){ $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); }
+async function enterApp(session){
+  $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
+  $('#headUser').textContent = session.user.email;
+  await loadAll();
+}
+$('#loginBtn').onclick = async () => {
+  const btn=$('#loginBtn'), msg=$('#loginMsg');
+  const email=$('#email').value.trim(), pw=$('#pw').value;
+  if(!email||!pw){ msg.textContent='이메일과 비밀번호를 입력해 주세요.'; return; }
+  btn.disabled=true; btn.textContent='확인 중…'; msg.textContent='';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+  if(error){ msg.textContent='로그인 정보가 올바르지 않아요.'; btn.disabled=false; btn.textContent='로그인'; return; }
+  if(!(await checkAdmin())){ msg.textContent='이 계정은 관리 권한이 없어요.'; await sb.auth.signOut(); btn.disabled=false; btn.textContent='로그인'; return; }
+  enterApp(data.session); btn.disabled=false; btn.textContent='로그인';
+};
+$('#pw').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
+$('#logoutBtn').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+/* ---------- 데이터 로드 ---------- */
+async function loadAll(){
+  const [ap, co] = await Promise.all([
+    sb.from('applications').select('*').order('created_at',{ascending:false}),
+    sb.from('cohorts').select('*').order('sort')
+  ]);
+  APPS = ap.data || []; COHORTS = co.data || [];
+  buildFilters(); renderApps(); renderMembers(); renderCohorts();
+}
+
+/* ---------- 신청자 탭 ---------- */
+function buildFilters(){
+  const progs=[...new Set(APPS.map(a=>a.program_name).filter(Boolean))];
+  const cohs=[...new Set(APPS.map(a=>a.cohort_name).filter(Boolean))];
+  $('#fProgram').innerHTML='<option value="">전체 프로그램</option>'+progs.map(p=>`<option>${esc(p)}</option>`).join('');
+  $('#fCohort').innerHTML='<option value="">전체 기수</option>'+cohs.map(c=>`<option>${esc(c)}</option>`).join('');
+  $('#fStatus').innerHTML='<option value="">전체 상태</option>'+STATUSES.map(s=>`<option>${s}</option>`).join('');
+}
+['fProgram','fCohort','fStatus'].forEach(id=>$('#'+id).addEventListener('change',renderApps));
+$('#fSearch').addEventListener('input',renderApps);
+
+function statusDot(st){ if(st==='확정'||st==='참석완료')return'g'; if(st==='취소'||st==='환불')return'r'; return'y'; }
+function renderApps(){
+  const fp=$('#fProgram').value, fc=$('#fCohort').value, fs=$('#fStatus').value, q=$('#fSearch').value.trim().toLowerCase();
+  let rows=APPS.filter(a=>
+    (!fp||a.program_name===fp)&&(!fc||a.cohort_name===fc)&&(!fs||(a.status||'신규')===fs)&&
+    (!q|| (a.applicant_name||'').toLowerCase().includes(q) || (a.contact||'').toLowerCase().includes(q))
+  );
+  $('#appsCount').textContent=`${rows.length}건`;
+  const list=$('#appsList'); list.innerHTML='';
+  if(!rows.length){ list.appendChild(el('div','empty','조건에 맞는 신청이 없어요.')); return; }
+  rows.forEach(a=>{
+    const st=a.status||'신규';
+    const r=el('div','row');
+    r.innerHTML=`<div class="main">
+      <div class="name"><span class="dot ${statusDot(st)}"></span>${esc(a.applicant_name)||'(이름없음)'} <span style="color:var(--muted);font-weight:400;font-size:12px">${esc(a.contact)||''}</span></div>
+      <div class="chips" style="margin-top:5px">
+        <span class="chip prog">${esc(a.program_name)||'프로그램 미상'}</span>
+        ${a.cohort_name?`<span class="chip cohort">${esc(a.cohort_name)}</span>`:''}
+        <span class="chip st">${esc(st)}</span>
+        ${a.refund_confirmed?'<span class="chip on">입금✓</span>':''}
+        ${a.attended?'<span class="chip on">출석✓</span>':''}
+      </div></div>
+      <div style="text-align:right;font-size:12px;color:var(--muted)">${fmtDate(a.created_at)}<br>${esc(a.participant_count||'')}${a.participant_count?'명':''}</div>`;
+    r.onclick=()=>openDetail(a.id);
+    list.appendChild(r);
+  });
+}
+
+/* ---------- 상세 패널 ---------- */
+function openDetail(id){
+  const a=APPS.find(x=>x.id===id); if(!a)return;
+  const host=$('#panelHost');
+  const st=a.status||'신규';
+  host.innerHTML=`<div class="backdrop"><div class="panel">
+    <button class="p-close">&times;</button>
+    <h2>${esc(a.applicant_name)||'(이름없음)'}</h2>
+    <div class="p-contact">${esc(a.contact)||''} ${a.email?'· '+esc(a.email):''}</div>
+    <div class="field"><div class="k">프로그램 / 기수</div><div class="v">${esc(a.program_name)||'-'}${a.cohort_name?' · '+esc(a.cohort_name):''}</div></div>
+    <div class="field"><div class="k">신청 인원 / 신청일</div><div class="v">${esc(a.participant_count||'-')}${a.participant_count?'명':''} · ${a.created_at?new Date(a.created_at).toLocaleString('ko-KR'):'-'}</div></div>
+    ${a.motivation?`<div class="field"><div class="k">신청 동기</div><div class="v">${esc(a.motivation)}</div></div>`:''}
+    ${a.message?`<div class="field"><div class="k">메시지</div><div class="v">${esc(a.message)}</div></div>`:''}
+    <div class="field"><div class="k">사진 동의</div><div class="v">${a.photo_consent?'동의함':'미동의'}</div></div>
+    <div class="actions">
+      <div class="st-row"><span>상태</span>
+        <select id="dStatus">${STATUSES.map(s=>`<option ${s===st?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="toggle">입금 확인 <button class="sw ${a.refund_confirmed?'on':''}" data-f="refund_confirmed"></button></div>
+      <div class="toggle">출석 <button class="sw ${a.attended?'on':''}" data-f="attended"></button></div>
+      <div class="toggle">후기 요청 <button class="sw ${a.review_requested?'on':''}" data-f="review_requested"></button></div>
+    </div>
+  </div></div>`;
+  const close=()=>host.innerHTML='';
+  host.querySelector('.p-close').onclick=close;
+  host.querySelector('.backdrop').onclick=e=>{ if(e.target.classList.contains('backdrop')) close(); };
+  host.querySelector('#dStatus').onchange=e=>updateApp(id,{status:e.target.value},'상태');
+  host.querySelectorAll('.sw').forEach(btn=>{
+    btn.onclick=async()=>{
+      const f=btn.dataset.f, nv=!btn.classList.contains('on');
+      const ok=await updateApp(id,{[f]:nv}, btn.parentElement.textContent.trim());
+      if(ok) btn.classList.toggle('on',nv);
+    };
+  });
+}
+async function updateApp(id, patch, label){
+  const { error } = await sb.from('applications').update(patch).eq('id',id);
+  if(error){ toast('저장 실패: '+error.message); return false; }
+  Object.assign(APPS.find(x=>x.id===id), patch);
+  renderApps(); renderMembers();
+  toast(`${label} 저장됨`);
+  return true;
+}
+
+/* ---------- 명부(회원) 탭 ---------- */
+function memberKey(a){ return (a.contact||'').replace(/[^0-9]/g,'') || ('name:'+(a.applicant_name||'익명')); }
+function buildMembers(){
+  const map=new Map();
+  APPS.forEach(a=>{
+    const k=memberKey(a);
+    if(!map.has(k)) map.set(k,{name:a.applicant_name,contact:a.contact,email:a.email,apps:[]});
+    const m=map.get(k); m.apps.push(a);
+    if(a.applicant_name) m.name=a.applicant_name;
+    if(a.email) m.email=a.email;
+  });
+  return [...map.values()].sort((x,y)=> new Date(y.apps[0].created_at)-new Date(x.apps[0].created_at));
+}
+$('#mSearch').addEventListener('input',renderMembers);
+function renderMembers(){
+  const q=$('#mSearch').value.trim().toLowerCase();
+  let mem=buildMembers().filter(m=> !q || (m.name||'').toLowerCase().includes(q) || (m.contact||'').toLowerCase().includes(q));
+  $('#memCount').textContent=`${mem.length}명`;
+  const list=$('#memList'); list.innerHTML='';
+  if(!mem.length){ list.appendChild(el('div','empty','아직 신청자가 없어요.')); return; }
+  mem.forEach(m=>{
+    const progs=[...new Set(m.apps.map(a=>a.program_name).filter(Boolean))];
+    const paid=m.apps.filter(a=>a.refund_confirmed).length, att=m.apps.filter(a=>a.attended).length;
+    const r=el('div','row');
+    r.innerHTML=`<div class="main">
+      <div class="name">${esc(m.name)||'(이름없음)'} <span style="color:var(--muted);font-weight:400;font-size:12px">${esc(m.contact)||''}</span>
+        ${m.apps.length>1?`<span class="chip prog" style="margin-left:4px">재신청 ${m.apps.length}회</span>`:''}</div>
+      <div class="sub">${progs.map(esc).join(' · ')||'프로그램 미상'}</div>
+      <div class="chips" style="margin-top:5px">
+        <span class="chip st">신청 ${m.apps.length}건</span>
+        <span class="chip ${paid?'on':'off'}">입금 ${paid}</span>
+        <span class="chip ${att?'on':'off'}">출석 ${att}</span>
+      </div></div>
+      <div style="text-align:right;font-size:12px;color:var(--muted)">최근<br>${fmtDate(m.apps[0].created_at)}</div>`;
+    r.onclick=()=>openMember(m);
+    list.appendChild(r);
+  });
+}
+function openMember(m){
+  const host=$('#panelHost');
+  host.innerHTML=`<div class="backdrop"><div class="panel">
+    <button class="p-close">&times;</button>
+    <h2>${esc(m.name)||'(이름없음)'}</h2>
+    <div class="p-contact">${esc(m.contact)||''} ${m.email?'· '+esc(m.email):''}</div>
+    <div class="field"><div class="k">신청 이력</div><div class="v">${m.apps.length}건 · 입금확인 ${m.apps.filter(a=>a.refund_confirmed).length} · 출석 ${m.apps.filter(a=>a.attended).length}</div></div>
+    ${m.apps.map(a=>`<div class="mini-app" data-id="${a.id}" style="cursor:pointer">
+      <div class="t">${esc(a.program_name)||'-'} ${a.cohort_name?'· '+esc(a.cohort_name):''}</div>
+      <div class="d">${a.created_at?new Date(a.created_at).toLocaleDateString('ko-KR'):''} · ${esc(a.status||'신규')} ${a.refund_confirmed?'· 입금✓':''} ${a.attended?'· 출석✓':''}</div>
+    </div>`).join('')}
+  </div></div>`;
+  const close=()=>host.innerHTML='';
+  host.querySelector('.p-close').onclick=close;
+  host.querySelector('.backdrop').onclick=e=>{ if(e.target.classList.contains('backdrop')) close(); };
+  host.querySelectorAll('.mini-app').forEach(d=> d.onclick=()=>openDetail(d.dataset.id));
+}
+
+/* ---------- 기수 현황 탭 ---------- */
+function renderCohorts(){
+  const list=$('#cohortList'); list.innerHTML='';
+  if(!COHORTS.length){ list.appendChild(el('div','empty','등록된 기수가 없어요.')); return; }
+  COHORTS.forEach(c=>{
+    const applied=APPS.filter(a=>a.cohort_id===c.id || a.cohort_name===c.cohort_name).length;
+    const cap=c.capacity||0, left=c.seats_left||0, filled=cap?Math.min(100,Math.round((cap-left)/cap*100)):0;
+    const r=el('div','row');
+    r.style.display='block';
+    r.innerHTML=`<div style="display:flex;align-items:center;gap:8px">
+        <div class="name">${esc(c.cohort_name)} <span class="chip prog">${esc(c.program_slug)}</span></div>
+        <span class="chip ${c.status==='모집중'?'on':'off'}" style="margin-left:auto">${esc(c.status||'')}</span></div>
+      <div class="sub" style="margin-top:4px">${esc(c.schedule_text||'')} ${c.start_date?'· 시작 '+c.start_date:''}</div>
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-top:8px">
+        <span>정원 ${cap} · 잔여 ${left} · 접수 ${applied}건</span><span>${filled}%</span></div>
+      <div class="bar"><i style="width:${filled}%"></i></div>`;
+    list.appendChild(r);
+  });
+}
+
+/* ---------- 탭 전환 ---------- */
+document.querySelectorAll('.tab').forEach(t=> t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  ['apps','members','cohorts'].forEach(name=>$('#tab-'+name).classList.toggle('hidden', name!==t.dataset.tab));
+});
+
+boot();
+</script>
+</body>
+</html>
