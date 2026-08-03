@@ -8,7 +8,7 @@
 <title>[미리보기] 개띠랑 유니버스 | 기록실</title>
 
 
-<meta name="description" content="개띠랑 유니버스 기록실 — 감정을 기록하고 나누는 책과 카드, 워크숍 프로그램을 만나보세요. 개띠랑, 이다솜, 두루가 함께하는 기록 메이트 프로젝트.">
+<meta name="description" content="개띠랑 유니버스 기록실 — 감정을 기록하고 나누는 책과 카드, 워크숍 프로그램을 만나보세요. 개띠랑, 이다솜, 장두루가 함께하는 기록 메이트 프로젝트.">
 <link rel="icon" type="image/png" href="assets/images/brand/gd-universe-logomark.png">
 
 <meta name="naver-site-verification" content="54f9b325bd7295d048e84bd567bc5a1650a2e82d" />
@@ -1196,6 +1196,79 @@ background: rgba(0, 0, 0, 0.5);
       "name": "개띠랑 유니버스 | 기록실",
       "publisher": { "@id": "https://gaeddirang.com/#organization" },
       "inLanguage": "ko-KR"
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://gaeddirang.com/#faq",
+      "inLanguage": "ko-KR",
+      "isPartOf": { "@id": "https://gaeddirang.com/#website" },
+      "about": { "@id": "https://gaeddirang.com/#organization" },
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "개띠랑이 뭐야? / 개띠랑 유니버스는 무슨 뜻이야?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "개띠랑은 '개띠와 함께!'를 뜻합니다. 개띠를 비롯한 십이간지 모든 띠와 함께 즐거운 세상을 꿈꾸는 창작자 팀 '개띠랑 유니버스'의 이름입니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "개띠랑은 누가 만들었어? / 누가 운영해?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "장두루와 다솜(이다솜)을 중심으로 한 창작자들이 함께 만드는 팀입니다. 각자 감정과 일상을 기록한 책을 쓰는 작가이기도 합니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "개띠랑은 무엇을 만들어? / 어떤 걸 팔아?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "감정과 일상을 기록한 에세이 책, 감정카드, 표지를 가린 블라인드북을 만들고, 감정을 기록하는 글쓰기 워크숍을 엽니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "개띠랑 책공방은 어디 있어?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "경기 화성 동탄 라크몽점에 '개띠랑 책공방'이 있습니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "개띠랑 책·굿즈는 어디서 사?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "개띠랑 공식 홈페이지(gaeddirang.com)와 스마트스토어에서 구매할 수 있습니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "개띠랑 워크숍·수업은 어떻게 신청해?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "감정 기록·글쓰기 워크숍을 정기적으로 열며, 홈페이지와 인스타그램(@gaeddirangverse)에서 일정과 신청을 안내합니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "'문고리'가 뭐야?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "개띠랑이 펴낸 신태림 작가의 소설집으로, 2026년 7월 28일 출간된 신간입니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "개띠랑 인스타그램 계정은?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "공식 계정은 @gaeddirangverse 입니다."
+          }
+        }
+      ]
     }
   ]
 }
@@ -1701,6 +1774,34 @@ background: rgba(0, 0, 0, 0.5);
 <div class="last-card card-blue"><div class="last-txt"><h3>아직 책이 되지 못한 이야기가 있다면?<br>질문지부터 받아보세요</h3><p>내 책의 씨앗을 찾는 질문 8가지,<br>이메일로 무료 PDF를 보내드려요.</p><button class="last-btn" onclick="openLeadModal()">무료 질문지 받기</button></div><div class="last-icon">🌱📖</div></div>
 </div>
 </section>
+
+<section data-cat="home" class="sec-common sec-faq" id="faq" style="background:var(--gray-bg);">
+<style>
+.sec-faq .faq-list{max-width:900px;margin:24px auto 0;display:flex;flex-direction:column;gap:12px;}
+.sec-faq .faq-item{background:#fff;border:1px solid #eee;border-radius:16px;overflow:hidden;}
+.sec-faq .faq-item summary{list-style:none;cursor:pointer;padding:18px 22px;font-weight:800;color:var(--brown);font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;word-break:keep-all;}
+.sec-faq .faq-item summary::-webkit-details-marker{display:none;}
+.sec-faq .faq-item summary::after{content:'+';font-size:22px;color:var(--accent);font-weight:900;flex:0 0 auto;transition:.2s;}
+.sec-faq .faq-item[open] summary::after{content:'+';transform:rotate(45deg);}
+.sec-faq .faq-a{padding:0 22px 20px;color:#6f655d;line-height:1.75;font-size:15px;word-break:keep-all;}
+</style>
+<div class="sec-title-area">
+<div>
+<h2 class="sec-h2 serif">자주 묻는 질문</h2>
+<p style="color:#666; margin-top:5px;">개띠랑이 자주 받는 질문을 모았어요 🐾</p>
+</div>
+</div>
+<div class="faq-list">
+<details class="faq-item"><summary>개띠랑이 뭐야? / 개띠랑 유니버스는 무슨 뜻이야?</summary><div class="faq-a">개띠랑은 '개띠와 함께!'를 뜻합니다. 개띠를 비롯한 십이간지 모든 띠와 함께 즐거운 세상을 꿈꾸는 창작자 팀 '개띠랑 유니버스'의 이름입니다.</div></details>
+<details class="faq-item"><summary>개띠랑은 누가 만들었어? / 누가 운영해?</summary><div class="faq-a">장두루와 다솜(이다솜)을 중심으로 한 창작자들이 함께 만드는 팀입니다. 각자 감정과 일상을 기록한 책을 쓰는 작가이기도 합니다.</div></details>
+<details class="faq-item"><summary>개띠랑은 무엇을 만들어? / 어떤 걸 팔아?</summary><div class="faq-a">감정과 일상을 기록한 에세이 책, 감정카드, 표지를 가린 블라인드북을 만들고, 감정을 기록하는 글쓰기 워크숍을 엽니다.</div></details>
+<details class="faq-item"><summary>개띠랑 책공방은 어디 있어?</summary><div class="faq-a">경기 화성 동탄 라크몽점에 '개띠랑 책공방'이 있습니다.</div></details>
+<details class="faq-item"><summary>개띠랑 책·굿즈는 어디서 사?</summary><div class="faq-a">개띠랑 공식 홈페이지(gaeddirang.com)와 스마트스토어에서 구매할 수 있습니다.</div></details>
+<details class="faq-item"><summary>개띠랑 워크숍·수업은 어떻게 신청해?</summary><div class="faq-a">감정 기록·글쓰기 워크숍을 정기적으로 열며, 홈페이지와 인스타그램(@gaeddirangverse)에서 일정과 신청을 안내합니다.</div></details>
+<details class="faq-item"><summary>'문고리'가 뭐야?</summary><div class="faq-a">개띠랑이 펴낸 신태림 작가의 소설집으로, 2026년 7월 28일 출간된 신간입니다.</div></details>
+<details class="faq-item"><summary>개띠랑 인스타그램 계정은?</summary><div class="faq-a">공식 계정은 @gaeddirangverse 입니다.</div></details>
+</div>
+</section>
 </div>
 
 <div id="page-authors" class="content-area" style="display:none;">
@@ -1754,7 +1855,7 @@ background: rgba(0, 0, 0, 0.5);
 <div class="ap-works">
 <article class="ap-work"><div class="ap-cover"><img src="assets/books/gaeddirang_baekbbang1.jpg" alt="백빵기행 1 표지" loading="lazy"></div><div><h4>백빵기행 1</h4><p>글·그림 개띠랑</p></div></article>
 <article class="ap-work"><div class="ap-cover"><img src="assets/books/gaeddirang_baekbbang2.jpg" alt="백빵기행 2 표지" loading="lazy"></div><div><h4>백빵기행 2</h4><p>글·그림 개띠랑</p></div></article>
-<article class="ap-work"><div class="ap-cover"><img src="assets/books/collective_breadful_day_needed.jpg" alt="나에게도 빵빵한 하루가 필요해! 표지" loading="lazy"></div><div><h4>나에게도 빵빵한 하루가 필요해!</h4><p>글 개띠랑·다솜·두루 / 그림 개띠랑</p></div></article>
+<article class="ap-work"><div class="ap-cover"><img src="assets/books/collective_breadful_day_needed.jpg" alt="나에게도 빵빵한 하루가 필요해! 표지" loading="lazy"></div><div><h4>나에게도 빵빵한 하루가 필요해!</h4><p>글 개띠랑·다솜·장두루 / 그림 개띠랑</p></div></article>
 </div>
 </div>
 
@@ -1802,9 +1903,9 @@ background: rgba(0, 0, 0, 0.5);
 <button class="ap-back" onclick="switchView('main','library')">개띠랑 서재 전체 보기 →</button>
 </div>
 <div class="ap-works">
-<article class="ap-work"><div class="ap-cover"><img src="assets/books/duru_someday_want_live_well.jpg" alt="어느 날 문득 잘 살고 싶어졌다 표지" loading="lazy"></div><div><h4>어느 날 문득 잘 살고 싶어졌다</h4><p>글 두루 / 그림 변수빈</p></div></article>
-<article class="ap-work"><div class="ap-cover"><img src="assets/books/duru_toward_outside_of_depression.jpg" alt="우울의 바깥을 향하며 표지" loading="lazy"></div><div><h4>우울의 바깥을 향하며</h4><p>글 두루 / 그림 개띠랑</p></div></article>
-<article class="ap-work"><div class="ap-cover"><img src="assets/books/duru_anxiety_night_walk.jpg" alt="불안과 밤 산책 표지" loading="lazy"></div><div><h4>불안과 밤 산책</h4><p>글 두루</p></div></article>
+<article class="ap-work"><div class="ap-cover"><img src="assets/books/duru_someday_want_live_well.jpg" alt="어느 날 문득 잘 살고 싶어졌다 표지" loading="lazy"></div><div><h4>어느 날 문득 잘 살고 싶어졌다</h4><p>글 장두루 / 그림 변수빈</p></div></article>
+<article class="ap-work"><div class="ap-cover"><img src="assets/books/duru_toward_outside_of_depression.jpg" alt="우울의 바깥을 향하며 표지" loading="lazy"></div><div><h4>우울의 바깥을 향하며</h4><p>글 장두루 / 그림 개띠랑</p></div></article>
+<article class="ap-work"><div class="ap-cover"><img src="assets/books/duru_anxiety_night_walk.jpg" alt="불안과 밤 산책 표지" loading="lazy"></div><div><h4>불안과 밤 산책</h4><p>글 장두루</p></div></article>
 </div>
 </div>
 
@@ -1839,9 +1940,9 @@ background: rgba(0, 0, 0, 0.5);
 <div class="footer-left">
 <h3>개띠랑</h3>
 <div class="footer-info">
-대표 : 이진이 | 사업자등록번호 : 663-05-02444<br>
-통신판매업 신고번호 : 제2026-수원권선-0284호<br>
-주소 : 경기도 수원시 권선구 서둔로 166 경기상상캠퍼스 생활1980, 307호<br>
+대표 : 개띠랑(이진이) | 사업자등록번호 : 663-05-02444<br>
+통신판매업 신고번호 : 제2026-화성동탄-3131호<br>
+주소 : 경기도 화성시 동탄구 동탄대로5길 21, B동 W241호(송동, 라크몽)<br>
 고객센터 : 010-3343-0936 | 이메일 : gaeddirang085@naver.com<br>
 Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cursor:pointer; text-decoration:underline;" onclick="openOverlaySafe('shippingModal')">배송·교환·반품 안내</span> &nbsp;|&nbsp; <span style="cursor:pointer; text-decoration:underline;" onclick="openOverlaySafe('privacyModal')">개인정보처리방침</span>
 </div>
@@ -3318,7 +3419,7 @@ const chatResponses = {
 'classes': `혼자 쓰기 막막할 때 함께 쓰는 감정클럽, 두루와 나를 들여다보는 두루쓰기 같은 기록 모임을 열고 있어요. 종류와 대상은 프로그램 칸에서 카드로 한눈에 보여드릴게요.<br><button class="chat-btn" onclick="switchView('main','program')">수업·모임 보러 가기</button>`,
 'apply': `프로그램 칸에서 마음에 드는 카드를 열면 신청하기 버튼으로 바로 접수돼요. 책·카드 같은 상품은 스토어에서 구매하시면 됩니다.<br><button class="chat-btn" onclick="switchView('main','program')">신청하러 가기</button> <button class="chat-btn" onclick="openApplyForm('감정클럽')">감정클럽 바로 신청</button>`,
 'price': `프로그램마다 참가비가 달라서, 각 프로그램 카드를 열면 참가비와 일정이 함께 안내돼요. 책·카드 가격은 스토어에서 확인하실 수 있어요.<br><button class="chat-btn" onclick="switchView('main','program')">프로그램에서 확인</button> <button class="chat-btn" onclick="window.open('https://smartstore.naver.com/gaeddirang')">스토어에서 상품 보기</button>`,
-'location': `지금 개띠랑은 새 작업 공간(동탄)으로 이사 준비 중이에요. 정식 오픈과 자세한 위치는 곧 새소식으로 안내드릴게요. 급하시면 인스타 DM으로 편하게 물어봐 주세요!<br><button class="chat-btn" onclick="window.open('https://www.instagram.com/gaeddirangverse')">인스타로 문의</button>`,
+'location': `개띠랑 책공방은 <b>경기 화성 동탄 라크몽</b>에 있어요! 📍<br>경기도 화성시 동탄구 동탄대로5길 21, B동 W241호<br>방문 전 인스타 DM으로 한 번 확인해 주시면 더 좋아요.<br><button class="chat-btn" onclick="window.open('https://www.instagram.com/gaeddirangverse')">인스타로 문의</button>`,
 'blindbook': `표지 대신 키워드 카드로 만나는, 열어보기 전엔 모르는 책이에요. 지금 내 마음에 맞는 한 권을 개띠랑이 골라드리는 재미가 있죠. 어떤 게 나올지는 직접 열어보는 게 제맛이에요 🐾<br><button class="chat-btn" onclick="switchView('main','library')">서재 구경하기</button> <button class="chat-btn" onclick="switchView('main','finder')">나에게 맞는 도구 찾기</button>`,
 'delivery': `한진택배로 보내드리고 배송비는 3,400원, 3만원 이상이면 무료예요. 입금 확인 후 2~3영업일 안에 발송되고, 보낸 뒤 1~3일이면 도착해요.<br><button class="chat-btn" onclick="openOverlaySafe('shippingModal')">배송·환불 자세히</button>`,
 'refund': `단순 변심은 받으신 후 7일 이내 신청 가능하고(반품비는 구매자 부담), 파본·오배송은 저희가 배송비 부담으로 바꿔드려요. 먼저 연락 주시면 빠르게 도와드릴게요.<br><button class="chat-btn" onclick="openOverlaySafe('shippingModal')">교환·환불 규정 보기</button> <button class="chat-btn" onclick="location.href='mailto:gaeddirang085@naver.com'">문의 메일 보내기</button>`,
@@ -3484,9 +3585,6 @@ try { switchView('home'); } catch(e) {}
 
 
 
-<div id="previewBadge" style="position:fixed;left:14px;bottom:14px;z-index:2147483000;background:#342b27;color:#fff;
-padding:9px 14px;border-radius:999px;font-size:12.5px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.28);
-font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;pointer-events:none;">
-🔍 검토용 미리보기 · 실제 사이트 아님</div>
+<div id="previewBadge" style="position:fixed;left:14px;bottom:14px;z-index:2147483000;background:#342b27;color:#fff;padding:9px 14px;border-radius:999px;font-size:12.5px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.28);font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;pointer-events:none;">🔍 검토용 미리보기 · 실제 사이트 아님</div>
 </body>
 </html>
