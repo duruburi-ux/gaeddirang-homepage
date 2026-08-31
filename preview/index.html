@@ -1141,6 +1141,10 @@ background: rgba(0, 0, 0, 0.5);
 .hero-visual { width: 100%; height: auto; }
 .book-3d { width: 170px; height: 220px; }
 }
+
+.img-slot.filled{border:none!important;background:none!important;padding:0;overflow:hidden;gap:0}
+.img-slot.filled img{width:100%;height:100%;object-fit:contain;display:block}
+.mgd-author .img-slot.filled img{object-fit:cover}
 </style>
 
 <style>
@@ -1560,8 +1564,8 @@ background: rgba(0, 0, 0, 0.5);
 <input type="text" class="hp-field" id="mgAlertHoneypot" name="website" tabindex="-1" autocomplete="off">
 </div>
 <div class="stage-book"><img src="assets/moongori/cover.png" alt="문고리 표지"></div>
-<div class="img-slot stage-char"><b>책을 소개하는 개띠랑</b><code>gaeddirang-book-presenter.png</code><small>4:5 투명 이미지</small></div>
-<div class="img-slot stage-cassette"><b>OST 카세트</b><code>book-ost-cassette.png</code></div>
+<div class="img-slot stage-char filled"><img src="assets/images/gaeddirang-book-presenter.png" alt="책을 소개하는 개띠랑" loading="lazy"></div>
+<div class="img-slot stage-cassette filled"><img src="assets/images/book-ost-cassette.png" alt="OST 카세트" loading="lazy"></div>
 <div class="stage-notify" id="mgAlert">
 <div><strong>출간 소식을 제일 먼저 받아보세요.</strong><small>북OST 음악 링크도 함께 보내드려요 · 이메일은 출간·소식 안내에만 사용해요</small></div>
 <input type="email" class="st-notify-input" id="mgAlertEmail" placeholder="이메일 주소" autocomplete="email">
@@ -1571,10 +1575,10 @@ background: rgba(0, 0, 0, 0.5);
 </section>
 
 <div data-cat="home" class="portals-row">
-<button class="portal-card" onclick="switchView('main','library')"><h3>책과 이야기 →</h3><div class="img-slot"><b>펼쳐진 책</b><code>portal-book.png</code></div></button>
-<button class="portal-card" onclick="switchView('authors')"><h3>작가들 →</h3><div class="img-slot"><b>작가 초상과 연필</b><code>portal-authors.png</code></div></button>
-<button class="portal-card" onclick="switchView('main','finder')"><h3>기록 도구 →</h3><div class="img-slot"><b>질문 카드</b><code>portal-tools.png</code></div></button>
-<button class="portal-card" onclick="switchView('main','program')"><h3>함께하는 프로그램 →</h3><div class="img-slot"><b>함께 기록하는 사람들</b><code>portal-programs.png</code></div></button>
+<button class="portal-card" onclick="switchView('main','library')"><h3>책과 이야기 →</h3><div class="img-slot filled"><img src="assets/images/portal-book.png" alt="펼쳐진 책" loading="lazy"></div></button>
+<button class="portal-card" onclick="switchView('authors')"><h3>작가들 →</h3><div class="img-slot filled"><img src="assets/images/portal-authors.png" alt="작가 초상과 연필" loading="lazy"></div></button>
+<button class="portal-card" onclick="switchView('main','finder')"><h3>기록 도구 →</h3><div class="img-slot filled"><img src="assets/images/portal-tools.png" alt="질문 카드" loading="lazy"></div></button>
+<button class="portal-card" onclick="switchView('main','program')"><h3>함께하는 프로그램 →</h3><div class="img-slot filled"><img src="assets/images/portal-programs.png" alt="함께 기록하는 사람들" loading="lazy"></div></button>
 </div>
 
 <section data-cat="moongori" class="sec-mg-ost">
@@ -1618,7 +1622,7 @@ background: rgba(0, 0, 0, 0.5);
 </div>
 
 <div class="mgd-author">
-<div class="img-slot"><b>신태림 작가</b><code>author-shin-taerim.png</code></div>
+<div class="img-slot filled"><img src="assets/images/author-shin-taerim.png" alt="신태림 작가" loading="lazy"></div>
 <div>
 <h4>신태림</h4>
 <div class="who">지은이 · 소설가</div>
@@ -1654,7 +1658,7 @@ background: rgba(0, 0, 0, 0.5);
 
 <section data-cat="library" class="sec-common" id="library" style="background:#fff;">
 <div class="pg-head">
-<div class="img-slot"><b>펼쳐진 책과 새싹</b><code>library-open-book.png</code></div>
+<div class="img-slot filled"><img src="assets/images/library-open-book.png" alt="펼쳐진 책과 새싹" loading="lazy"></div>
 <div>
 <div class="pg-kicker">GAEDDIRANG LIBRARY</div>
 <h2 class="pg-title serif">책과 이야기를<br>만나는 서재</h2>
@@ -1733,7 +1737,7 @@ background: rgba(0, 0, 0, 0.5);
 </div>
 </div>
 </div>
-<div class="toolart"><div class="img-slot"><b>카드 서랍을 여는 개띠랑</b><code>gaeddirang-card-drawer.png</code><small>4:3 투명 이미지</small></div></div>
+<div class="toolart"><div class="img-slot filled"><img src="assets/images/gaeddirang-card-drawer.png" alt="카드 서랍을 여는 개띠랑" loading="lazy"></div></div>
 </div>
 </section>
 
@@ -1744,7 +1748,7 @@ background: rgba(0, 0, 0, 0.5);
 <h2 class="pg-title serif">혼자보다 함께,<br>기록은 더 즐거워져요</h2>
 <p class="pg-sub">수업과 모임, 기관 프로그램을 한곳에서 만나보세요.</p>
 </div>
-<div class="img-slot" style="aspect-ratio:16/7"><b>글을 쓰는 두루·개띠랑·다솜</b><code>program-group-writing.png</code></div>
+<div class="img-slot filled" style="aspect-ratio:16/7"><img src="assets/images/program-group-writing.png" alt="글을 쓰는 두루·개띠랑·다솜" loading="lazy"></div>
 </div>
 <div class="prog-grid-wrap"><div class="prog-grid" id="progGrid"></div>
 </div>
@@ -1827,7 +1831,7 @@ background: rgba(0, 0, 0, 0.5);
 <h3>두루 →</h3><span class="ap-role">작가 · 마음 기록 메이트</span>
 </button>
 <button class="ap-card" onclick="showAuthor('shin-taerim')">
-<div class="img-slot"><b>신태림 작가 상반신</b><code>author-shin-taerim.png</code></div>
+<div class="img-slot filled"><img src="assets/images/author-shin-taerim.png" alt="신태림 작가 상반신" loading="lazy"></div>
 <h3>신태림 →</h3><span class="ap-role">소설가 · 북OST 아티스트</span>
 </button>
 </div>
@@ -1913,7 +1917,7 @@ background: rgba(0, 0, 0, 0.5);
 <div class="ap-detail" data-author="shin-taerim">
 <button class="ap-back" onclick="showAuthorList()">← 작가들로 돌아가기</button>
 <div class="ap-hero tone-l">
-<div class="img-slot"><b>신태림 작가 초상</b><code>author-shin-taerim.png</code></div>
+<div class="img-slot filled"><img src="assets/images/author-shin-taerim.png" alt="신태림 작가 초상" loading="lazy"></div>
 <div class="ap-bio">
 <div class="ap-kicker">GAEDDIRANG AUTHOR</div>
 <h2 class="serif">신태림</h2>
