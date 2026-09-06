@@ -36,7 +36,14 @@ window.Work=(()=>{
       const result=await res.json();if(!res.ok&&!result.meta)throw Error('SERVICE_UNAVAILABLE');meta=result.meta;if(result.work)apply(result.work);else{$('#work-content').hidden=true;data=null}freshness();
       if(meta?.error==='SOURCE_NOT_CONFIGURED')status('노션 연결 설정 대기 · 읽기 전용 연결키와 원본 권한이 필요합니다.',true);
       if(meta?.error==='SOURCE_ACCESS_DENIED')status('노션 권한 확인 필요 · 연결된 원본 범위를 확인해 주세요.',true);
-    }catch(e){if(run!==generation)return;if(meta){meta.stale=true;freshness()}else status('진행 업무를 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.',true)}
+    }catch(e){
+      if(run!==generation)return;
+      if(meta){meta.stale=true;freshness()}
+      else{
+        const code=String(e?.message||e?.name||'UNKNOWN').replace(/[^A-Z0-9_ -]/gi,'').slice(0,40);
+        status(`진행 업무를 불러오지 못했습니다. 다시 확인해 주세요. · ${code}`,true);
+      }
+    }
     finally{clearTimeout(timeout);if(run===generation){busy=false;$('#work-refresh').disabled=false;controller=null}}
   }
   function open(target){$('#work-search').value='';$('#work-kind').value='';$('#work-filter').value=target==='active'?'active':target;render()}
