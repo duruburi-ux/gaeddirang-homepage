@@ -1,5 +1,15 @@
 # SCM release status — 2026-09-06
 
+## Payhere reviewed sales import
+
+- Added a signed-in administrator workflow under `연결 현황`: upload the Payhere sales `.xlsx`, review parsed products, run a server-side duplicate/current-stock check, explicitly confirm, and then apply.
+- A selected file never changes stock by itself. Unknown products, ambiguous transaction timing, price mismatches, missing stock, negative-stock results, and altered product/SKU requests fail closed.
+- Server validation rechecks the authoritative Payhere product mapping, SKU catalog, current Google SCM quantity, and both duplicate ledgers. Browser input cannot select a spreadsheet, location, event type, or credential.
+- `감정엽서키트` is treated as a program-material payment and excluded from inventory movement.
+- The already-reflected 2026-08-31 sales for `이러나저러나 불편한 거야 불편한 건` and `우울의 바깥을 향하며` were backfilled only into the duplicate-control ledger. No stock was deducted again.
+- If Google SCM succeeds but the control ledger fails, a retry repairs only the missing control record; it does not append a second stock movement.
+- `scm-sales-import` is deployed with JWT verification. Anonymous calls are rejected at the gateway. SmartStore and SmartPlace remain visibly unconnected pending account/API authorization.
+
 ## Integration operations hub
 
 - Added a signed-in `연결 현황` screen that separates automatic connections, manual operations, setup-required systems, and attention items. It never presents an unconfigured external account as connected.
@@ -38,4 +48,4 @@
 - A real signed-in homepage administrator session successfully loaded 64 products, 14 blind-book products, and 7 ledger warnings. The page displayed the server's current success timestamp.
 - Anonymous and invalid-token requests are denied, and synthetic tests cover non-admin and revoked-admin denial. No spare real non-admin account was created or impersonated, so a separate real non-admin browser check remains unperformed.
 - Preserve the existing GitHub Pages deployment and domain, existing login, admin allowlist, and unrelated changes. Never deploy private snapshots or credential files.
-- This integration remains read-only. It does not repair the legacy stock calculator or enable Payhere automatic deductions.
+- The SCM view remains read-only. Payhere deductions are available only through reviewed file import; no background or automatic email ingestion is enabled.

@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="./scm.css" />
 <link rel="stylesheet" href="./work.css?v=20260906-2" />
 <link rel="stylesheet" href="./operations.css" />
-<link rel="stylesheet" href="./integration.css?v=20260906-1" />
+<link rel="stylesheet" href="./integration.css?v=20260906-3" />
 <link rel="stylesheet" href="./dashboard.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
@@ -199,6 +199,34 @@
       <div id="integration-status" class="integration-notice" role="status" aria-live="polite">운영 시스템을 확인하고 있어요.</div>
       <div id="integration-content" hidden>
         <div id="integration-metrics" class="integration-metrics"></div>
+        <section class="payhere-import" aria-labelledby="payhere-import-title">
+          <div class="payhere-import-head">
+            <div><p class="integration-kicker">PAYHERE SALES</p><h2 id="payhere-import-title">페이히어 판매 반영</h2><p>메일로 받은 매출 엑셀을 올리면 상품 연결과 중복을 먼저 검사합니다.</p></div>
+            <span class="payhere-safe">승인 전 재고 변경 없음</span>
+          </div>
+          <div class="payhere-steps" aria-label="페이히어 반영 순서"><span><b>1</b> 엑셀 선택</span><i aria-hidden="true">→</i><span><b>2</b> 상품·중복 검사</span><i aria-hidden="true">→</i><span><b>3</b> 검토 후 반영</span></div>
+          <div class="payhere-upload">
+            <div><strong>매출내역 엑셀</strong><p>페이히어 매장 분석 → 매출 분석 → 이메일 전송에서 받은 .xlsx 파일</p></div>
+            <label class="payhere-file-button" for="payhere-file">파일 선택</label>
+            <input id="payhere-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+          </div>
+          <div id="payhere-import-status" class="payhere-import-status" role="status" aria-live="polite">파일을 선택하면 화면 안에서 먼저 검사합니다.</div>
+          <div id="payhere-review" hidden>
+            <div id="payhere-summary" class="payhere-summary"></div>
+            <div class="payhere-table-wrap">
+              <table class="payhere-table">
+                <thead><tr><th>상품</th><th>판매</th><th>SCM 연결</th><th>처리</th></tr></thead>
+                <tbody id="payhere-rows"></tbody>
+              </table>
+            </div>
+            <p id="payhere-review-note" class="payhere-review-note"></p>
+            <div class="payhere-actions">
+              <button id="payhere-dry-run" class="payhere-secondary" type="button">중복까지 최종 검사</button>
+              <label class="payhere-confirm"><input id="payhere-confirm" type="checkbox" /> 검사 결과를 확인했고 재고에 반영합니다</label>
+              <button id="payhere-apply" class="integration-button" type="button" disabled>재고 반영</button>
+            </div>
+          </div>
+        </section>
         <section class="integration-map" aria-labelledby="integration-map-title">
           <div class="integration-section-head"><div><p class="integration-kicker">DATA FLOW</p><h2 id="integration-map-title">데이터가 모이는 길</h2></div><span>중복 거래 방지 원장 적용</span></div>
           <div class="integration-flow"><div><b>들어오는 곳</b><span>페이히어 · 스마트스토어 · 홈페이지<br>위탁 책방 · 출판/제작처</span></div><i aria-hidden="true">→</i><div class="hub"><b>통합 운영 원장</b><span>SKU · 장소별 재고 · 판매 · 정산<br>불일치와 마지막 동기화</span></div><i aria-hidden="true">→</i><div><b>보는 곳</b><span>관리실 대시보드 · SCM<br>노션 업무와 후속 처리</span></div></div>
@@ -214,12 +242,12 @@
       <nav class="ops-shortcuts" aria-label="관리실 바로가기"><button data-ops-tab="orders">주문 처리 →</button><button data-ops-tab="apps">수업 신청 확인 →</button><button data-ops-tab="inquiries">기관 문의 확인 →</button><button data-ops-tab="scm">상품 재고 확인 →</button></nav>
       <p id="ops-count" class="ops-note" role="status" aria-live="polite"></p><div id="ops-areas" class="ops-grid"></div>
       <section class="ops-workflow" aria-labelledby="ops-flow-title"><h2 id="ops-flow-title">일을 이어갈 때는 이 순서로</h2><ol><li><a href="https://app.notion.com/p/4c2e4d57dd17435c9fd78f15688ed84b" target="_blank" rel="noopener noreferrer">결정할 일 확인 ↗</a><p>대표 결정이 필요한 내용은 결정함에서.</p></li><li><a href="https://app.notion.com/p/04370efc79da44b397d338a6b917f55a" target="_blank" rel="noopener noreferrer">실행할 일 정리 ↗</a><p>담당자·기한·다음 행동은 원본에서.</p></li><li><a href="https://app.notion.com/p/3ba251c556d081ad8e22e4ebd98e96cb" target="_blank" rel="noopener noreferrer">AI 협업·인수인계 ↗</a><p>끝낸 일과 남은 일을 함께 기록.</p></li></ol></section>
-      <aside class="ops-connections"><h2>연결 범위, 정확하게 보기</h2><dl><div><dt>홈페이지 주문·신청·문의</dt><dd>기존 관리 메뉴로 이동합니다. 해당 메뉴에서 조회·처리해요.</dd></div><div><dt>SCM 상품·재고</dt><dd>조회 전용 연결입니다. 불러오기 성공 여부와 조회 시각은 상품·재고 화면에서 확인해요.</dd></div><div><dt>노션 진행 업무</dt><dd>업무 영역·실행 업무·프로젝트·결정함의 상태를 관리자 화면으로 자동 조회합니다. 수정은 노션 원본에서 해요.</dd></div><div><dt>페이히어·스마트스토어·메일</dt><dd>판매·재고·메시지는 이 화면에 아직 자동 동기화되지 않습니다.</dd></div></dl><p>노션 기록이 오래됐거나 원본 상태가 틀리면 이 화면에도 그대로 보입니다. 자동 조회가 자동 완료 판정이나 업무 전수 확인을 뜻하지는 않습니다.</p></aside>
+      <aside class="ops-connections"><h2>연결 범위, 정확하게 보기</h2><dl><div><dt>홈페이지 주문·신청·문의</dt><dd>기존 관리 메뉴로 이동합니다. 해당 메뉴에서 조회·처리해요.</dd></div><div><dt>SCM 상품·재고</dt><dd>조회 전용 화면입니다. 불러오기 성공 여부와 조회 시각은 상품·재고 화면에서 확인해요.</dd></div><div><dt>노션 진행 업무</dt><dd>업무 영역·실행 업무·프로젝트·결정함의 상태를 관리자 화면으로 자동 조회합니다. 수정은 노션 원본에서 해요.</dd></div><div><dt>페이히어</dt><dd>메일로 받은 매출 엑셀을 연결 현황에서 검사한 뒤 승인하면 SCM에 반영합니다.</dd></div><div><dt>스마트스토어·스마트플레이스</dt><dd>계정 인증 전이라 아직 자동 동기화되지 않습니다.</dd></div></dl><p>노션 기록이 오래됐거나 원본 상태가 틀리면 이 화면에도 그대로 보입니다. 자동 조회가 자동 완료 판정이나 업무 전수 확인을 뜻하지는 않습니다.</p></aside>
     </section>
     <section id="tab-scm" class="scm hidden" aria-label="팀 SCM 관리실">
       <div class="scm-head"><div><p class="scm-eyebrow">TEAM / SCM</p><h1>책방의 재고, 함께 보기</h1><p>상품과 블라인드북을 한곳에서 확인해요.</p></div><button id="scm-refresh" class="scm-btn">지금 확인</button></div>
       <div id="scm-status" class="scm-notice" role="status" aria-live="polite">관리자 확인 후 최신 SCM을 불러옵니다.</div>
-      <p class="scm-note">조회 전용 · 페이히어 자동 차감 미연결 · 최신 장부가 실물 수량을 보증하지는 않습니다.</p>
+      <p class="scm-note">이 화면은 조회 전용 · 페이히어 판매는 ‘연결 현황’에서 엑셀 검사와 승인 후 반영 · 최신 장부가 실물 수량을 보증하지는 않습니다.</p>
       <div id="scm-content" hidden>
         <div class="scm-metrics" id="scm-metrics"></div>
         <nav class="scm-views" aria-label="SCM 보기"><button data-scm-view="inventory" class="active">상품과 재고</button><button data-scm-view="blind">블라인드북</button><button data-scm-view="checks">확인할 일</button></nav>
@@ -841,12 +869,14 @@ document.querySelectorAll('.tab').forEach(t=> t.onclick=()=>switchTab(t.dataset.
 <script src="./scm.js"></script>
 <script src="./work.js?v=20260906-2"></script>
 <script src="./operations.js"></script>
-<script src="./integration.js?v=20260906-2"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="./payhere-import.js?v=20260906-1"></script>
+<script src="./integration.js?v=20260906-3"></script>
 <script>
 window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Operations?.init({navigate:switchTab});
-window.Integration?.init({client:sb,onDenied:showLogin});
+window.Integration?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 boot();
 </script>
 </body>

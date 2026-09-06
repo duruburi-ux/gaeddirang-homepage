@@ -66,6 +66,6 @@ export function makeHandler({env,fetcher=fetch,now=()=>Date.now(),cryptoImpl=cry
     if(inFlight)await inFlight;
     // Keep stale data at most 10 minutes; clients always see the actual successful read time.
     const usable=cache&&now()-cacheAt<600000;
-    return send({datasets:usable?cache:null,meta:{fetchedAt:cacheAt?new Date(cacheAt).toISOString():null,stale:!!lastError||!usable,error:lastError,readOnly:true,pollSeconds:60,payhere:'not_connected',stockCalculation:'needs_review'}},usable?200:503);
+    return send({datasets:usable?cache:null,meta:{fetchedAt:cacheAt?new Date(cacheAt).toISOString():null,stale:!!lastError||!usable,error:lastError,readOnly:true,pollSeconds:60,payhere:'reviewed_import',stockCalculation:'ledger'}},usable?200:503);
   };
 }
