@@ -1,5 +1,15 @@
 # SCM release status — 2026-09-06
 
+## Integration operations hub
+
+- Added a signed-in `연결 현황` screen that separates automatic connections, manual operations, setup-required systems, and attention items. It never presents an unconfigured external account as connected.
+- Added admin-only Supabase control tables for connector state, product/SKU mappings, inventory locations, append-only inventory movements, idempotent sync runs, settlement entries, and reconciliation issues.
+- Seeded the current operating boundary: homepage, Google SCM and Notion are connected; Payhere and SmartStore require connector credentials or exports; SmartPlace is reference-only; consignment, publisher/production and settlement remain manual until their source feeds are provided.
+- Added locations for the workshop, home stock, publisher/production stock, external consignment and online virtual tracking. No existing stock quantity was migrated or changed.
+- Anonymous access is revoked from all new tables. Signed-in access is further restricted by the existing administrator allowlist and row-level security.
+- Added duplicate external-event guards, data checks and supporting indexes. Supabase security/performance advisors report no new missing-policy or missing-foreign-key-index warning for these integration tables.
+- Added two integration UI safety tests. The full 31-test suite passes.
+
 ## Team dashboard usability pass
 
 - Reworked the signed-in first screen around four user questions: what needs action now, where common work starts, what SCM needs attention, and the overall operating totals.

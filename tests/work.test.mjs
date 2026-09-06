@@ -72,7 +72,7 @@ test('source failure preserves a recent cache and marks it stale',async()=>{
 
 test('browser integration is gated and contains no task snapshot or Notion token',()=>{
   const html=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8'),js=readFileSync(new URL('../admin/work.js',import.meta.url),'utf8');new vm.Script(js);for(const m of html.matchAll(/<script>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
-  assert.ok(html.indexOf('id="appView"')<html.indexOf('id="tab-work"'));assert.ok(html.includes("const TABS=['home','work','operations','scm','orders','apps','members','cohorts','inquiries','alerts']"));assert.ok(html.includes('window.Work?.init'));
+  assert.ok(html.indexOf('id="appView"')<html.indexOf('id="tab-work"'));assert.ok(html.includes("const TABS=['home','work','integration','operations','scm','orders','apps','members','cohorts','inquiries','alerts']"));assert.ok(html.includes('window.Work?.init'));
   assert.ok(js.includes('signal:current.signal'));assert.ok(!js.includes('signal:current,cache'));
   assert.ok(!html.includes('WORK_NOTION_TOKEN'));assert.ok(!js.includes('WORK_NOTION_TOKEN'));assert.ok(!html.includes('테스트 업무'));assert.ok(!js.includes('테스트 업무'));
 });

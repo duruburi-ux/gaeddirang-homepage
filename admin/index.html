@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="./scm.css" />
 <link rel="stylesheet" href="./work.css?v=20260906-2" />
 <link rel="stylesheet" href="./operations.css" />
+<link rel="stylesheet" href="./integration.css?v=20260906-1" />
 <link rel="stylesheet" href="./dashboard.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
@@ -161,6 +162,7 @@
     <div class="tabs" id="tabBar">
       <button class="tab active" data-tab="home">대시보드</button>
       <button class="tab" data-tab="work">진행 업무<span class="badge hidden" id="bWork"></span></button>
+      <button class="tab" data-tab="integration">연결 현황<span class="badge hidden" id="bIntegration"></span></button>
       <button class="tab" data-tab="operations">업무 찾기</button>
       <button class="tab" data-tab="scm">상품 재고</button>
       <button class="tab" data-tab="orders">주문<span class="badge hidden" id="bOrders"></span></button>
@@ -187,6 +189,23 @@
         <p id="work-result" class="work-note" role="status"></p>
         <div id="work-list" class="work-list"></div>
         <p class="work-links"><a href="https://app.notion.com/p/39f251c556d081e3aad8f81d9a37a75c" target="_blank" rel="noopener noreferrer">노션 운영 허브에서 수정 ↗</a><span>세부 내용과 최종 판단은 원본을 확인해 주세요.</span></p>
+      </div>
+    </section>
+    <section id="tab-integration" class="integration hidden" aria-label="통합 운영 연결 현황">
+      <div class="integration-hero">
+        <div><p class="integration-kicker">ONE OPERATIONS HUB</p><h1>판매부터 정산까지, 연결 상태를 한눈에</h1><p>자동 연결된 곳과 사람이 입력해야 하는 곳을 분명히 나눠 보여줍니다.</p></div>
+        <button id="integration-refresh" class="integration-button">지금 확인</button>
+      </div>
+      <div id="integration-status" class="integration-notice" role="status" aria-live="polite">운영 시스템을 확인하고 있어요.</div>
+      <div id="integration-content" hidden>
+        <div id="integration-metrics" class="integration-metrics"></div>
+        <section class="integration-map" aria-labelledby="integration-map-title">
+          <div class="integration-section-head"><div><p class="integration-kicker">DATA FLOW</p><h2 id="integration-map-title">데이터가 모이는 길</h2></div><span>중복 거래 방지 원장 적용</span></div>
+          <div class="integration-flow"><div><b>들어오는 곳</b><span>페이히어 · 스마트스토어 · 홈페이지<br>위탁 책방 · 출판/제작처</span></div><i aria-hidden="true">→</i><div class="hub"><b>통합 운영 원장</b><span>SKU · 장소별 재고 · 판매 · 정산<br>불일치와 마지막 동기화</span></div><i aria-hidden="true">→</i><div><b>보는 곳</b><span>관리실 대시보드 · SCM<br>노션 업무와 후속 처리</span></div></div>
+        </section>
+        <div class="integration-toolbar"><div><h2>시스템별 실제 상태</h2><p>‘준비 필요’는 아직 자동으로 데이터가 오지 않는 곳입니다.</p></div><select id="integration-filter" aria-label="연결 상태 필터"><option value="">전체 상태</option><option value="connected">자동 연결</option><option value="manual">수동 관리</option><option value="setup_required">준비 필요</option><option value="attention">확인 필요</option></select></div>
+        <div id="integration-connectors" class="integration-grid"></div>
+        <section class="integration-ledger" aria-labelledby="integration-ledger-title"><div><p class="integration-kicker">CONTROL CENTER</p><h2 id="integration-ledger-title">통합 원장 준비 상태</h2></div><div id="integration-ledger-stats"></div><p>외부 채널이 연결되면 상품코드 매핑 → 거래 중복 검사 → 장소별 재고 반영 → 정산 확인 순서로 처리됩니다.</p></section>
       </div>
     </section>
     <section id="tab-operations" class="ops hidden" aria-label="전체 업무 연결실">
@@ -221,10 +240,11 @@
         <form id="dashSearchForm" class="dash-search" role="search"><label for="dashSearch">업무 찾기</label><div><input id="dashSearch" type="search" placeholder="블라인드북, 수업, 정산…" autocomplete="off"><button>찾기</button></div></form>
       </div>
       <section class="dash-block" aria-labelledby="priorityTitle"><div class="dash-section-head"><div><p class="dash-kicker">오늘</p><h2 id="priorityTitle">지금 처리할 일</h2></div><strong id="priorityTotal" class="dash-total"></strong></div><div class="todo-grid" id="todoGrid"></div></section>
+      <section class="dash-block dash-integration" aria-labelledby="integrationTitle"><div class="dash-section-head"><div><p class="dash-kicker">SYSTEM</p><h2 id="integrationTitle">업무 시스템 연결 상태</h2></div><button class="dash-text-btn" data-dash-tab="integration">전체 보기 →</button></div><div id="dashIntegrationStatus" class="dash-status">연결 상태를 확인하고 있어요.</div><div id="dashIntegrationMetrics" class="dash-mini-metrics"><div><strong>—</strong><span>자동 연결</span></div><div><strong>—</strong><span>사람 확인 필요</span></div></div><p class="dash-help">자동 연결과 수동 관리 항목을 구분해 보여줍니다.</p></section>
       <section class="dash-block dash-work" aria-labelledby="workTitle"><div class="dash-section-head"><div><p class="dash-kicker">NOTION</p><h2 id="workTitle">팀이 진행 중인 업무</h2></div><button class="dash-text-btn" data-dash-tab="work">전체 보기 →</button></div><div id="dashWorkStatus" class="dash-work-status">노션 업무를 확인하고 있어요.</div><div id="dashWorkMetrics" class="dash-work-metrics"><div><strong>—</strong><span>진행 업무</span></div><div><strong>—</strong><span>확인할 것</span></div><div><strong>—</strong><span>승인할 것</span></div><div><strong>—</strong><span>막힌 것</span></div></div><div id="dashWorkPreview" class="dash-work-preview"></div><p class="dash-help">오래된 기록은 현재 상황으로 단정하지 않고 별도로 표시합니다.</p></section>
       <div class="dash-columns">
         <section class="dash-block" aria-labelledby="quickTitle"><div class="dash-section-head"><div><p class="dash-kicker">바로가기</p><h2 id="quickTitle">자주 하는 일</h2></div></div><div class="dash-quick">
-          <button data-dash-tab="scm"><b>상품 찾기</b><span>가격·재고·SKU 확인</span></button><button data-dash-tab="orders"><b>주문 처리</b><span>입금 확인·발송 상태 변경</span></button><button data-dash-tab="apps"><b>수업 신청</b><span>신청자·입금 상태 확인</span></button><button data-dash-tab="inquiries"><b>기관 문의</b><span>새 문의 확인·상태 변경</span></button><button data-dash-tab="operations"><b>팀 업무 찾기</b><span>노션 원본과 업무방 이동</span></button><button data-dash-tab="members"><b>고객 명부</b><span>연락처와 참여 이력 검색</span></button>
+          <button data-dash-tab="scm"><b>상품 찾기</b><span>가격·재고·SKU 확인</span></button><button data-dash-tab="integration"><b>연결 상태</b><span>판매·재고·정산 흐름 확인</span></button><button data-dash-tab="orders"><b>주문 처리</b><span>입금 확인·발송 상태 변경</span></button><button data-dash-tab="apps"><b>수업 신청</b><span>신청자·입금 상태 확인</span></button><button data-dash-tab="inquiries"><b>기관 문의</b><span>새 문의 확인·상태 변경</span></button><button data-dash-tab="operations"><b>팀 업무 찾기</b><span>노션 원본과 업무방 이동</span></button><button data-dash-tab="members"><b>고객 명부</b><span>연락처와 참여 이력 검색</span></button>
         </div></section>
         <section class="dash-block dash-stock" aria-labelledby="stockTitle"><div class="dash-section-head"><div><p class="dash-kicker">SCM</p><h2 id="stockTitle">재고에서 볼 것</h2></div><button class="dash-text-btn" data-dash-tab="scm">전체 보기 →</button></div><div id="dashScmStatus" class="dash-status">재고 장부를 확인하고 있어요.</div><div id="dashScmMetrics" class="dash-mini-metrics"><div><strong>—</strong><span>확인 필요</span></div><div><strong>—</strong><span>장부 경고</span></div></div><p class="dash-help">조회 전용입니다. 페이히어 판매는 자동 차감되지 않아요.</p></section>
       </div>
@@ -333,7 +353,7 @@ async function boot(){
   if(session && await checkAdmin()){ enterApp(session); }
   else { if(session) await sb.auth.signOut(); showLogin(); }
 }
-function showLogin(){ window.SCM?.clear(); window.Work?.clear(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); }
+function showLogin(){ window.SCM?.clear(); window.Work?.clear(); window.Integration?.clear(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); }
 async function enterApp(session){
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#headUser').textContent = session.user.email;
@@ -378,7 +398,7 @@ async function loadAll(){
   OITEMS={}; (oi.data||[]).forEach(it=>{ (OITEMS[it.order_id]=OITEMS[it.order_id]||[]).push(it); });
   buildFilters();
   renderHome(); renderOrders(); renderApps(); renderMembers(); renderCohorts(); renderInquiries(); renderAlerts();
-  refreshBadges(); window.SCM?.refresh(); window.Work?.refresh();
+  refreshBadges(); window.SCM?.refresh(); window.Work?.refresh(); window.Integration?.refresh();
 }
 function refreshBadges(){
   setBadge('bOrders', ORDERS.filter(o=>(o.status||'신규')==='신규').length);
@@ -433,6 +453,7 @@ $('#dashSearchForm').onsubmit=e=>{e.preventDefault();const q=$('#dashSearch').va
 document.querySelectorAll('[data-dash-tab]').forEach(b=>b.onclick=()=>switchTab(b.dataset.dashTab));
 window.addEventListener('scm:summary',e=>{const d=e.detail||{},time=d.fetchedAt?new Date(d.fetchedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}):'시각 미확인';$('#dashScmStatus').textContent=d.stale?'최근 재고 확인이 늦어지고 있어요.':`재고 연결됨 · ${time}`;$('#dashScmStatus').classList.toggle('bad',!!d.stale);$('#dashScmMetrics').innerHTML=`<button data-dash-scm="attention"><strong>${d.attention??'—'}</strong><span>확인 필요</span></button><button data-dash-scm="checks"><strong>${d.warnings??'—'}</strong><span>장부 경고</span></button>`;document.querySelectorAll('[data-dash-scm]').forEach(b=>b.onclick=()=>{switchTab('scm');window.SCM?.open(b.dataset.dashScm)})});
 window.addEventListener('work:summary',e=>{const d=e.detail||{},time=d.fetchedAt?new Date(d.fetchedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}):'시각 미확인';$('#dashWorkStatus').textContent=d.stale?'최근 노션 확인이 늦어지고 있어요.':`노션 연결됨 · ${time}`;$('#dashWorkStatus').classList.toggle('bad',!!d.stale);$('#dashWorkMetrics').innerHTML=`<button data-dash-work="active"><strong>${d.active??'—'}</strong><span>진행 업무</span></button><button data-dash-work="attention"><strong>${d.attention??'—'}</strong><span>확인할 것</span></button><button data-dash-work="approval"><strong>${d.approvals??'—'}</strong><span>승인할 것</span></button><button data-dash-work="blocked"><strong>${d.blocked??'—'}</strong><span>막힌 것</span></button>`;setBadge('bWork',d.attention||0);$('#dashWorkPreview').innerHTML=(d.preview||[]).map(x=>`<button data-dash-work-item="${esc(x.id)}"><span>${esc(x.kindLabel)}</span><b>${esc(x.title)}</b><small>${esc(x.status)}${x.stale?' · 오래됨':''}</small></button>`).join('')||'<p>표시할 진행 업무가 없어요.</p>';document.querySelectorAll('[data-dash-work]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.open(b.dataset.dashWork)});document.querySelectorAll('[data-dash-work-item]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.focus(b.dataset.dashWorkItem)})});
+window.addEventListener('integration:summary',e=>{const d=e.detail||{},needs=(d.manual||0)+(d.setup||0)+(d.attention||0);$('#dashIntegrationStatus').textContent=d.ok?'통합 원장 정상 · 연결 범위를 구분해 표시 중':'연결 현황을 불러오지 못했어요.';$('#dashIntegrationStatus').classList.toggle('bad',!d.ok);$('#dashIntegrationMetrics').innerHTML=`<button data-dash-integration="connected"><strong>${d.connected??'—'}</strong><span>자동 연결</span></button><button data-dash-integration="needs"><strong>${needs}</strong><span>사람 확인 필요</span></button>`;setBadge('bIntegration',needs);document.querySelectorAll('[data-dash-integration]').forEach(b=>b.onclick=()=>{switchTab('integration');window.Integration?.open(b.dataset.dashIntegration)})});
 
 /* ---------- 주문 탭 ---------- */
 function orderItemsText(id){ return (OITEMS[id]||[]).map(i=>`${i.book_title}×${i.quantity}`).join(', '); }
@@ -803,13 +824,14 @@ function renderAlerts(){
 }
 
 /* ---------- 탭 전환 ---------- */
-const TABS=['home','work','operations','scm','orders','apps','members','cohorts','inquiries','alerts'];
+const TABS=['home','work','integration','operations','scm','orders','apps','members','cohorts','inquiries','alerts'];
 function switchTab(name){
   if(!TABS.includes(name))return;
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x.dataset.tab===name));
   TABS.forEach(t=>$('#tab-'+t).classList.toggle('hidden', t!==name));
   if(name==='scm')window.SCM?.refresh();
   if(name==='work')window.Work?.refresh();
+  if(name==='integration')window.Integration?.refresh();
   history.replaceState(null,'','#'+name);
   window.scrollTo(0,0);
 }
@@ -819,10 +841,12 @@ document.querySelectorAll('.tab').forEach(t=> t.onclick=()=>switchTab(t.dataset.
 <script src="./scm.js"></script>
 <script src="./work.js?v=20260906-2"></script>
 <script src="./operations.js"></script>
+<script src="./integration.js?v=20260906-1"></script>
 <script>
 window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Operations?.init({navigate:switchTab});
+window.Integration?.init({client:sb,onDenied:showLogin});
 boot();
 </script>
 </body>
