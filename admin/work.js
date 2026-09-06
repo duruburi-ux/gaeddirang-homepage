@@ -31,7 +31,7 @@ window.Work=(()=>{
     busy=true;const run=generation;controller=new AbortController();const current=controller;const timeout=setTimeout(()=>current.abort(),45000);$('#work-refresh').disabled=true;
     try{
       const {data:auth,error}=await config.client.auth.getSession();if(error||!auth.session){clear();config.onDenied();return}
-      const res=await fetch(config.url+'/functions/v1/work-read',{method:'GET',headers:{Authorization:'Bearer '+auth.session.access_token,apikey:config.key},signal:current,cache:'no-store'});
+      const res=await fetch(config.url+'/functions/v1/work-read',{method:'GET',headers:{Authorization:'Bearer '+auth.session.access_token,apikey:config.key},signal:current.signal,cache:'no-store'});
       if(run!==generation)return;if(res.status===401||res.status===403){clear();config.onDenied();return}
       const result=await res.json();if(!res.ok&&!result.meta)throw Error('SERVICE_UNAVAILABLE');meta=result.meta;if(result.work)apply(result.work);else{$('#work-content').hidden=true;data=null}freshness();
       if(meta?.error==='SOURCE_NOT_CONFIGURED')status('노션 연결 설정 대기 · 읽기 전용 연결키와 원본 권한이 필요합니다.',true);
