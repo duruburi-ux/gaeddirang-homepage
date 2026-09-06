@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
 <title>개띠랑 관리실</title>
+<link rel="stylesheet" href="./scm.css" />
+<link rel="stylesheet" href="./operations.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
@@ -156,6 +158,8 @@
     </div>
     <div class="tabs" id="tabBar">
       <button class="tab active" data-tab="home">홈</button>
+      <button class="tab" data-tab="operations">전체 업무</button>
+      <button class="tab" data-tab="scm">상품·재고</button>
       <button class="tab" data-tab="orders">주문<span class="badge hidden" id="bOrders"></span></button>
       <button class="tab" data-tab="apps">신청자<span class="badge hidden" id="bApps"></span></button>
       <button class="tab" data-tab="members">명부</button>
@@ -165,6 +169,31 @@
     </div>
   </header>
   <main>
+    <section id="tab-operations" class="ops hidden" aria-label="전체 업무 연결실">
+      <div class="ops-hero"><p class="ops-kicker">GAEDDIRANG / WORKSPACE</p><h1>여기서 시작하면 돼요.</h1><p>책방부터 수업, 출판까지. 업무의 원본으로 이어지는 한 곳.</p><a href="https://app.notion.com/p/39f251c556d081e3aad8f81d9a37a75c" target="_blank" rel="noopener noreferrer">노션 운영 허브 열기 ↗</a></div>
+      <nav class="ops-shortcuts" aria-label="관리실 바로가기"><button data-ops-tab="orders">주문 확인 →</button><button data-ops-tab="apps">신청자 확인 →</button><button data-ops-tab="inquiries">기관 문의 →</button><button data-ops-tab="scm">상품·재고 확인 →</button></nav>
+      <div class="ops-heading"><div><h2>무슨 일을 찾고 있나요?</h2><p>업무 분야와 연결된 원본을 검색해요. 문서 내용은 검색하지 않습니다.</p></div><label class="ops-search">업무 검색<input id="ops-search" type="search" placeholder="예: 블라인드북, 수업, 정산" autocomplete="off"></label></div>
+      <p id="ops-count" class="ops-note" role="status" aria-live="polite"></p><div id="ops-areas" class="ops-grid"></div>
+      <section class="ops-workflow" aria-labelledby="ops-flow-title"><h2 id="ops-flow-title">일을 이어갈 때는 이 순서로</h2><ol><li><a href="https://app.notion.com/p/4c2e4d57dd17435c9fd78f15688ed84b" target="_blank" rel="noopener noreferrer">결정할 일 확인 ↗</a><p>대표 결정이 필요한 내용은 결정함에서.</p></li><li><a href="https://app.notion.com/p/04370efc79da44b397d338a6b917f55a" target="_blank" rel="noopener noreferrer">실행할 일 정리 ↗</a><p>담당자·기한·다음 행동은 원본에서.</p></li><li><a href="https://app.notion.com/p/3ba251c556d081ad8e22e4ebd98e96cb" target="_blank" rel="noopener noreferrer">AI 협업·인수인계 ↗</a><p>끝낸 일과 남은 일을 함께 기록.</p></li></ol></section>
+      <aside class="ops-connections"><h2>연결 범위, 정확하게 보기</h2><dl><div><dt>홈페이지 주문·신청·문의</dt><dd>기존 관리 메뉴로 이동합니다. 해당 메뉴에서 조회·처리해요.</dd></div><div><dt>SCM 상품·재고</dt><dd>조회 전용 연결입니다. 불러오기 성공 여부와 조회 시각은 상품·재고 화면에서 확인해요.</dd></div><div><dt>노션 업무방</dt><dd>원본 링크입니다. 담당자·기한·진행 상태를 이 화면으로 자동 가져오지는 않습니다.</dd></div><div><dt>페이히어·스마트스토어·메일</dt><dd>이 화면에 판매·재고·메시지가 자동 동기화되지 않습니다.</dd></div></dl><p>연결 목록 정리: 2026-09-05 · 현재 확인된 업무 영역 기준이며 모든 업무를 수집한 목록은 아닙니다. 노션·시트는 각 서비스의 접근 권한이 필요합니다. 새 탭에서 열립니다.</p></aside>
+    </section>
+    <section id="tab-scm" class="scm hidden" aria-label="팀 SCM 관리실">
+      <div class="scm-head"><div><p class="scm-eyebrow">TEAM / SCM</p><h1>책방의 재고, 함께 보기</h1><p>상품과 블라인드북을 한곳에서 확인해요.</p></div><button id="scm-refresh" class="scm-btn">지금 확인</button></div>
+      <div id="scm-status" class="scm-notice" role="status" aria-live="polite">관리자 확인 후 최신 SCM을 불러옵니다.</div>
+      <p class="scm-note">조회 전용 · 페이히어 자동 차감 미연결 · 최신 장부가 실물 수량을 보증하지는 않습니다.</p>
+      <div id="scm-content" hidden>
+        <div class="scm-metrics" id="scm-metrics"></div>
+        <nav class="scm-views" aria-label="SCM 보기"><button data-scm-view="inventory" class="active">상품과 재고</button><button data-scm-view="blind">블라인드북</button><button data-scm-view="checks">확인할 일</button></nav>
+        <div id="scm-inventory">
+          <div class="scm-filters"><input id="scm-search" type="search" aria-label="상품 검색" placeholder="상품명 · SKU · 바코드 검색"><select id="scm-category" aria-label="분류"><option value="">전체 분류</option></select><select id="scm-filter" aria-label="상태"><option value="">전체 상태</option><option value="attention">확인 필요</option><option value="zero">품절</option><option value="available">재고 있음</option></select><select id="scm-sort" aria-label="정렬"><option value="name">상품명순</option><option value="stock">재고 적은 순</option><option value="price">가격 낮은 순</option></select></div>
+          <div class="scm-table"><table><thead><tr><th>상품</th><th>분류</th><th>판매가</th><th>장부 수량</th><th>상태</th></tr></thead><tbody id="scm-rows"></tbody></table></div><p id="scm-result" class="scm-note"></p>
+        </div>
+        <div id="scm-blind" hidden><div class="scm-filters"><select id="scm-blind-type" aria-label="블라인드북 유형"><option value="">전체 유형</option><option>키워드</option><option>감정</option></select><select id="scm-book" aria-label="블라인드북 가격 계산 도서"></select><span id="scm-price" class="scm-price"></span></div><div id="scm-blind-cards" class="scm-cards"></div><p class="scm-note">판매가 = 도서 정가 + 3,000원. 포장상품과 낱권은 별도 재고이며 합산하지 않습니다. 가격 계산은 상품 등록이 아닙니다.</p></div>
+        <div id="scm-checks" hidden><h2>장부에서 확인할 일</h2><div id="scm-issues"></div><h2>실사·등록 기준과 현재 장부</h2><div id="scm-counts"></div><div class="scm-notice">기존 자동 계산의 실사 이후 거래·반품 방향은 검증이 남아 있습니다. 수량을 임의로 0으로 덮지 말고 실제 장소·날짜·수량을 함께 확인하세요.</div></div>
+        <p class="scm-links"><a href="https://docs.google.com/spreadsheets/d/1ZeH4pa5s1QS8BlC_gbHWLLp0dhezISXfYTXXxiE0NKw/edit" target="_blank" rel="noopener">SCM 원본에서 확인·수정 ↗</a><span>시트 편집에는 별도 Google 권한이 필요합니다.</span></p>
+      </div>
+      <dialog id="scm-detail"><div id="scm-detail-body"></div><button class="scm-btn" id="scm-detail-close">닫기</button></dialog>
+    </section>
     <!-- 홈 -->
     <section id="tab-home">
       <div class="home-hd" id="homeHd"></div>
@@ -275,11 +304,13 @@ async function boot(){
   if(session && await checkAdmin()){ enterApp(session); }
   else { if(session) await sb.auth.signOut(); showLogin(); }
 }
-function showLogin(){ $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); }
+function showLogin(){ window.SCM?.clear(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); }
 async function enterApp(session){
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#headUser').textContent = session.user.email;
   await loadAll();
+  const requestedTab=location.hash.slice(1);
+  if(TABS.includes(requestedTab))switchTab(requestedTab);
 }
 $('#loginBtn').onclick = async () => {
   const btn=$('#loginBtn'), msg=$('#loginMsg');
@@ -731,14 +762,22 @@ function renderAlerts(){
 }
 
 /* ---------- 탭 전환 ---------- */
-const TABS=['home','orders','apps','members','cohorts','inquiries','alerts'];
+const TABS=['home','operations','scm','orders','apps','members','cohorts','inquiries','alerts'];
 function switchTab(name){
+  if(!TABS.includes(name))return;
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x.dataset.tab===name));
   TABS.forEach(t=>$('#tab-'+t).classList.toggle('hidden', t!==name));
+  if(name==='scm')window.SCM?.refresh();
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.tab').forEach(t=> t.onclick=()=>switchTab(t.dataset.tab));
 
+</script>
+<script src="./scm.js"></script>
+<script src="./operations.js"></script>
+<script>
+window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
+window.Operations?.init({navigate:switchTab});
 boot();
 </script>
 </body>
