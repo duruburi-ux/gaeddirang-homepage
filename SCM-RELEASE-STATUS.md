@@ -1,4 +1,4 @@
-# SCM release status — 2026-09-05
+# SCM release status — 2026-09-06
 
 ## Operations directory addition
 
@@ -7,7 +7,7 @@
 - Notion access remains governed by Notion permissions. No Notion server token or automated Payhere/Smartstore/mail integration was added.
 - Existing login and default Home view are preserved. `#operations` opens the directory after successful admin login.
 - Added five directory tests covering source targets, search, rendering, safe text handling, routing and explicit connection caveats. These are synthetic tests, not browser or signed-in live verification.
-- Operations and SCM frontend changes are still local; no production push or deployment was performed in this turn. The real-session release gate below remains open.
+- Operations and SCM frontend changes were published through the existing GitHub Pages workflow. The production administrator session shows all nine work areas.
 
 ## SCM rollout
 
@@ -16,8 +16,8 @@
 - `scm-read` v1 had already been deployed. Saving the secret is not evidence of a successful signed-in end-to-end request.
 - Latest homepage changes through `4be8b0b` were fast-forwarded locally, preserving the independently published homepage improvements.
 - The 16 synthetic tests and `git diff --check` pass. Earlier direct Google source verification was local with mocked Supabase authorization, not a live administrator session.
-- Frontend changes remain local and uncommitted; they have NOT been pushed or released. The live homepage does not yet include the new SCM menu.
-- Release gate: verify the endpoint using a real signed-in homepage administrator session, and verify denial for a normal user. Do not extract browser session tokens, impersonate an administrator, or loosen authorization to perform this check.
-- Browser access to the live admin page was not available in this task; request a user-assisted administrator sign-in/check before release.
+- Frontend changes were committed and published. The production homepage now includes `전체 업무` and `상품·재고` in the existing gated administrator view.
+- A real signed-in homepage administrator session successfully loaded 64 products, 14 blind-book products, and 7 ledger warnings. The page displayed the server's current success timestamp.
+- Anonymous and invalid-token requests are denied, and synthetic tests cover non-admin and revoked-admin denial. No spare real non-admin account was created or impersonated, so a separate real non-admin browser check remains unperformed.
 - Preserve the existing GitHub Pages deployment and domain, existing login, admin allowlist, and unrelated changes. Never deploy private snapshots or credential files.
 - This integration remains read-only. It does not repair the legacy stock calculator or enable Payhere automatic deductions.
