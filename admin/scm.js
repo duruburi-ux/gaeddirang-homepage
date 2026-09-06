@@ -32,6 +32,7 @@ window.SCM=(()=>{
     $('#scm-metrics').innerHTML=cards.map(([label,n,key])=>`<button class="scm-metric ${['attention','checks'].includes(key)&&n?'bad':''}" data-scm-metric="${key}"><span>${label}</span><strong>${n}</strong></button>`).join('');
     all('[data-scm-metric]').forEach(b=>b.onclick=()=>{const k=b.dataset.scmMetric;if(k==='attention'){$('#scm-filter').value='attention';$('#scm-search').value='';$('#scm-category').value='';setView('inventory')}else setView(k)});
     $('#scm-content').hidden=false;if($('#scm-detail').open)$('#scm-detail').close();render();
+    window.dispatchEvent(new CustomEvent('scm:summary',{detail:{products:data.inventory.length,blind:data.blind.length,attention:data.inventory.filter(attention).length,warnings:data.actions.length,fetchedAt:meta?.fetchedAt,stale:!!meta?.stale}}));
   }
   async function refresh(){
     if(!config||busy||$('#appView').classList.contains('hidden'))return;
@@ -50,5 +51,6 @@ window.SCM=(()=>{
     finally{clearTimeout(timeout);if(run===generation){busy=false;$('#scm-refresh').disabled=false;controller=null}}
   }
   function init(c){config=c;$('#scm-refresh').onclick=refresh;all('[data-scm-view]').forEach(b=>b.onclick=()=>setView(b.dataset.scmView));for(const id of ['scm-search','scm-category','scm-filter','scm-sort','scm-blind-type'])$('#'+id).addEventListener(id==='scm-search'?'input':'change',render);$('#scm-book').onchange=calc;$('#scm-detail-close').onclick=()=>$('#scm-detail').close();config.client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'||event==='USER_UPDATED')clear()});timer=setInterval(()=>{if(!document.hidden&&!$('#tab-scm').classList.contains('hidden'))refresh()},60000);setInterval(freshness,15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('#tab-scm').classList.contains('hidden'))refresh()});window.addEventListener('pagehide',clear);}
-  return {init,refresh,clear};
+  function open(target){if(target==='attention'){$('#scm-filter').value='attention';$('#scm-search').value='';$('#scm-category').value='';setView('inventory')}else if(['inventory','blind','checks'].includes(target))setView(target)}
+  return {init,refresh,clear,open};
 })();

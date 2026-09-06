@@ -1,5 +1,13 @@
 # SCM release status — 2026-09-06
 
+## Team dashboard usability pass
+
+- Reworked the signed-in first screen around four user questions: what needs action now, where common work starts, what SCM needs attention, and the overall operating totals.
+- Replaced system-oriented tab labels with plain team language, while preserving every existing destination and action.
+- Added one-step work search from the dashboard into the nine-area source directory. Search still targets navigation metadata only; no private Notion task content is copied.
+- Added live SCM attention/warning summary cards that deep-link into the existing read-only SCM filters. This does not add stock editing or Payhere deductions.
+- Added explicit partial-source failure status for the existing homepage data queries instead of silently presenting empty counts as healthy.
+
 ## Operations directory addition
 
 - Added the `전체 업무` admin tab, with nine work areas, alias-aware search, original Notion links, and navigation to existing orders, applications, inquiries and SCM tabs.

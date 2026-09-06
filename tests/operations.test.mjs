@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 const code=readFileSync(new URL('../admin/operations.js',import.meta.url),'utf8');
 function setup(){
-  class Element{constructor(tag='div'){this.tag=tag;this.children=[];this.events={};this.value='';this.dataset={};}append(...nodes){this.children.push(...nodes);}replaceChildren(...nodes){this.children=nodes;}addEventListener(name,fn){this.events[name]=fn;}}
+  class Element{constructor(tag='div'){this.tag=tag;this.children=[];this.events={};this.value='';this.dataset={};this.focused=false;}append(...nodes){this.children.push(...nodes);}replaceChildren(...nodes){this.children=nodes;}addEventListener(name,fn){this.events[name]=fn;}focus(){this.focused=true;}}
   const nodes=Object.fromEntries(['ops-areas','ops-search','ops-count'].map(id=>[id,new Element()]));
   const buttons=['orders','apps','inquiries','scm'].map(tab=>{const e=new Element('button');e.dataset.opsTab=tab;return e;});
   const context={window:{},document:{createElement:tag=>new Element(tag),getElementById:id=>nodes[id],querySelectorAll:()=>buttons}};
@@ -27,7 +27,12 @@ test('shortcuts and card actions use existing tab navigation',()=>{
   const {api,nodes,buttons}=setup();const called=[];api.init({navigate:name=>called.push(name)});buttons.forEach(b=>b.events.click());assert.deepEqual(called,['orders','apps','inquiries','scm']);
   nodes['ops-areas'].children[0].children[3].children.at(-1).events.click();assert.equal(called.at(-1),'scm');
 });
+test('dashboard search can narrow the shared work directory',()=>{
+  const {api,nodes}=setup();api.init({navigate:()=>{}});api.setQuery('정산');assert.equal(nodes['ops-search'].value,'정산');assert.equal(nodes['ops-search'].focused,true);assert.equal(nodes['ops-areas'].children.length,1);assert.match(nodes['ops-areas'].children[0].children[1].textContent,/재무/);
+});
 test('directory is inside existing gated app and includes explicit sync caveats',()=>{
   const html=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');assert.ok(html.indexOf('id="appView"')<html.indexOf('id="tab-operations"'));assert.ok(html.includes('await checkAdmin()'));assert.ok(html.includes("if(!TABS.includes(name))return;"));assert.match(html,/진행 상태를 이 화면으로 자동 가져오지는 않습니다/);assert.match(html,/판매·재고·메시지가 자동 동기화되지 않습니다/);
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(ids.filter(id=>id==='tab-operations').length,1);
+  for(const id of ['priorityTotal','dashSearchForm','dashScmStatus','dashScmMetrics','dashDataStatus'])assert.ok(html.includes(`id="${id}"`));
+  for(const label of ['대시보드','업무 찾기','상품 재고','수업 신청','고객 명부','프로그램'])assert.ok(html.includes(`>${label}<`)||html.includes(`>${label}<span`));
 });

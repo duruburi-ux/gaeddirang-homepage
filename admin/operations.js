@@ -16,6 +16,7 @@
   const normalize = value => String(value).normalize('NFC').toLocaleLowerCase('ko').replace(/\s+/g,'');
   function search(query){const q=normalize(query);return areas.filter(a=>normalize([a.name,a.description,a.tags,...a.links.map(l=>l[0])].join(' ')).includes(q));}
   function element(tag,className,text){const el=document.createElement(tag);el.className=className;if(text)el.textContent=text;return el;}
+  let renderCurrent,inputCurrent;
   function init({navigate}){
     const host=document.getElementById('ops-areas');
     const input=document.getElementById('ops-search');
@@ -35,7 +36,8 @@
     }
     input.addEventListener('input',render);
     document.querySelectorAll('[data-ops-tab]').forEach(button=>button.addEventListener('click',()=>navigate(button.dataset.opsTab)));
-    render();
+    renderCurrent=render;inputCurrent=input;render();
   }
-  window.Operations={init,search};
+  function setQuery(query){if(!inputCurrent)return;inputCurrent.value=query||'';renderCurrent();inputCurrent.focus()}
+  window.Operations={init,search,setQuery};
 })();
