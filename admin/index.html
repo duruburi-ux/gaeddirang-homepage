@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex, nofollow" />
 <title>개띠랑 관리실</title>
 <link rel="stylesheet" href="./scm.css" />
+<link rel="stylesheet" href="./work.css" />
 <link rel="stylesheet" href="./operations.css" />
 <link rel="stylesheet" href="./dashboard.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -159,6 +160,7 @@
     </div>
     <div class="tabs" id="tabBar">
       <button class="tab active" data-tab="home">대시보드</button>
+      <button class="tab" data-tab="work">진행 업무<span class="badge hidden" id="bWork"></span></button>
       <button class="tab" data-tab="operations">업무 찾기</button>
       <button class="tab" data-tab="scm">상품 재고</button>
       <button class="tab" data-tab="orders">주문<span class="badge hidden" id="bOrders"></span></button>
@@ -170,13 +172,30 @@
     </div>
   </header>
   <main>
+    <section id="tab-work" class="work hidden" aria-label="노션 진행 업무">
+      <div class="work-head"><div><p class="work-eyebrow">NOTION / READ ONLY</p><h1>지금 하는 일, 한곳에서</h1><p>업무 영역·실행 업무·프로젝트·결정할 일을 최신 순서로 모아 봅니다.</p></div><button id="work-refresh" class="work-btn">지금 확인</button></div>
+      <div id="work-status" class="work-notice" role="status" aria-live="polite">관리자 확인 후 최신 업무를 불러옵니다.</div>
+      <p class="work-note">조회 전용 · 수정은 노션 원본에서 · 21일 넘게 갱신되지 않은 기록은 ‘오래됨’으로 표시</p>
+      <div id="work-content" hidden>
+        <div class="work-metrics" id="work-metrics"></div>
+        <div class="work-filters">
+          <input id="work-search" type="search" aria-label="업무 검색" placeholder="업무명 · 담당 · 다음 행동 검색">
+          <select id="work-kind" aria-label="업무 종류"><option value="">전체 종류</option><option value="rooms">업무 영역</option><option value="tasks">실행 업무</option><option value="projects">프로젝트</option><option value="decisions">결정할 일</option></select>
+          <select id="work-filter" aria-label="업무 상태"><option value="active">진행 중인 것</option><option value="attention">확인할 것</option><option value="approval">승인할 것</option><option value="blocked">막힌 것</option><option value="stale">오래된 것</option><option value="all">완료 포함 전체</option></select>
+          <select id="work-sort" aria-label="업무 정렬"><option value="attention">확인 우선</option><option value="updated">최근 수정순</option><option value="due">마감 가까운 순</option></select>
+        </div>
+        <p id="work-result" class="work-note" role="status"></p>
+        <div id="work-list" class="work-list"></div>
+        <p class="work-links"><a href="https://app.notion.com/p/39f251c556d081e3aad8f81d9a37a75c" target="_blank" rel="noopener noreferrer">노션 운영 허브에서 수정 ↗</a><span>세부 내용과 최종 판단은 원본을 확인해 주세요.</span></p>
+      </div>
+    </section>
     <section id="tab-operations" class="ops hidden" aria-label="전체 업무 연결실">
       <div class="ops-hero"><div><p class="ops-kicker">업무 찾기</p><h1>어디에서 일해야 할지 찾아요.</h1><p>검색하면 관련 관리 화면과 노션 원본만 남겨 보여줍니다.</p></div><a href="https://app.notion.com/p/39f251c556d081e3aad8f81d9a37a75c" target="_blank" rel="noopener noreferrer">노션 전체 허브 ↗</a></div>
       <div class="ops-heading"><div><h2>무슨 일을 하려고 하나요?</h2><p>예: 블라인드북, 수업, 정산, 홍보</p></div><label class="ops-search"><span class="sr-only">업무 검색</span><input id="ops-search" type="search" placeholder="업무를 검색하세요" autocomplete="off"></label></div>
       <nav class="ops-shortcuts" aria-label="관리실 바로가기"><button data-ops-tab="orders">주문 처리 →</button><button data-ops-tab="apps">수업 신청 확인 →</button><button data-ops-tab="inquiries">기관 문의 확인 →</button><button data-ops-tab="scm">상품 재고 확인 →</button></nav>
       <p id="ops-count" class="ops-note" role="status" aria-live="polite"></p><div id="ops-areas" class="ops-grid"></div>
       <section class="ops-workflow" aria-labelledby="ops-flow-title"><h2 id="ops-flow-title">일을 이어갈 때는 이 순서로</h2><ol><li><a href="https://app.notion.com/p/4c2e4d57dd17435c9fd78f15688ed84b" target="_blank" rel="noopener noreferrer">결정할 일 확인 ↗</a><p>대표 결정이 필요한 내용은 결정함에서.</p></li><li><a href="https://app.notion.com/p/04370efc79da44b397d338a6b917f55a" target="_blank" rel="noopener noreferrer">실행할 일 정리 ↗</a><p>담당자·기한·다음 행동은 원본에서.</p></li><li><a href="https://app.notion.com/p/3ba251c556d081ad8e22e4ebd98e96cb" target="_blank" rel="noopener noreferrer">AI 협업·인수인계 ↗</a><p>끝낸 일과 남은 일을 함께 기록.</p></li></ol></section>
-      <aside class="ops-connections"><h2>연결 범위, 정확하게 보기</h2><dl><div><dt>홈페이지 주문·신청·문의</dt><dd>기존 관리 메뉴로 이동합니다. 해당 메뉴에서 조회·처리해요.</dd></div><div><dt>SCM 상품·재고</dt><dd>조회 전용 연결입니다. 불러오기 성공 여부와 조회 시각은 상품·재고 화면에서 확인해요.</dd></div><div><dt>노션 업무방</dt><dd>원본 링크입니다. 담당자·기한·진행 상태를 이 화면으로 자동 가져오지는 않습니다.</dd></div><div><dt>페이히어·스마트스토어·메일</dt><dd>이 화면에 판매·재고·메시지가 자동 동기화되지 않습니다.</dd></div></dl><p>연결 목록 정리: 2026-09-05 · 현재 확인된 업무 영역 기준이며 모든 업무를 수집한 목록은 아닙니다. 노션·시트는 각 서비스의 접근 권한이 필요합니다. 새 탭에서 열립니다.</p></aside>
+      <aside class="ops-connections"><h2>연결 범위, 정확하게 보기</h2><dl><div><dt>홈페이지 주문·신청·문의</dt><dd>기존 관리 메뉴로 이동합니다. 해당 메뉴에서 조회·처리해요.</dd></div><div><dt>SCM 상품·재고</dt><dd>조회 전용 연결입니다. 불러오기 성공 여부와 조회 시각은 상품·재고 화면에서 확인해요.</dd></div><div><dt>노션 진행 업무</dt><dd>업무 영역·실행 업무·프로젝트·결정함의 상태를 관리자 화면으로 자동 조회합니다. 수정은 노션 원본에서 해요.</dd></div><div><dt>페이히어·스마트스토어·메일</dt><dd>판매·재고·메시지는 이 화면에 아직 자동 동기화되지 않습니다.</dd></div></dl><p>노션 기록이 오래됐거나 원본 상태가 틀리면 이 화면에도 그대로 보입니다. 자동 조회가 자동 완료 판정이나 업무 전수 확인을 뜻하지는 않습니다.</p></aside>
     </section>
     <section id="tab-scm" class="scm hidden" aria-label="팀 SCM 관리실">
       <div class="scm-head"><div><p class="scm-eyebrow">TEAM / SCM</p><h1>책방의 재고, 함께 보기</h1><p>상품과 블라인드북을 한곳에서 확인해요.</p></div><button id="scm-refresh" class="scm-btn">지금 확인</button></div>
@@ -202,6 +221,7 @@
         <form id="dashSearchForm" class="dash-search" role="search"><label for="dashSearch">업무 찾기</label><div><input id="dashSearch" type="search" placeholder="블라인드북, 수업, 정산…" autocomplete="off"><button>찾기</button></div></form>
       </div>
       <section class="dash-block" aria-labelledby="priorityTitle"><div class="dash-section-head"><div><p class="dash-kicker">오늘</p><h2 id="priorityTitle">지금 처리할 일</h2></div><strong id="priorityTotal" class="dash-total"></strong></div><div class="todo-grid" id="todoGrid"></div></section>
+      <section class="dash-block dash-work" aria-labelledby="workTitle"><div class="dash-section-head"><div><p class="dash-kicker">NOTION</p><h2 id="workTitle">팀이 진행 중인 업무</h2></div><button class="dash-text-btn" data-dash-tab="work">전체 보기 →</button></div><div id="dashWorkStatus" class="dash-work-status">노션 업무를 확인하고 있어요.</div><div id="dashWorkMetrics" class="dash-work-metrics"><div><strong>—</strong><span>진행 업무</span></div><div><strong>—</strong><span>확인할 것</span></div><div><strong>—</strong><span>승인할 것</span></div><div><strong>—</strong><span>막힌 것</span></div></div><div id="dashWorkPreview" class="dash-work-preview"></div><p class="dash-help">오래된 기록은 현재 상황으로 단정하지 않고 별도로 표시합니다.</p></section>
       <div class="dash-columns">
         <section class="dash-block" aria-labelledby="quickTitle"><div class="dash-section-head"><div><p class="dash-kicker">바로가기</p><h2 id="quickTitle">자주 하는 일</h2></div></div><div class="dash-quick">
           <button data-dash-tab="scm"><b>상품 찾기</b><span>가격·재고·SKU 확인</span></button><button data-dash-tab="orders"><b>주문 처리</b><span>입금 확인·발송 상태 변경</span></button><button data-dash-tab="apps"><b>수업 신청</b><span>신청자·입금 상태 확인</span></button><button data-dash-tab="inquiries"><b>기관 문의</b><span>새 문의 확인·상태 변경</span></button><button data-dash-tab="operations"><b>팀 업무 찾기</b><span>노션 원본과 업무방 이동</span></button><button data-dash-tab="members"><b>고객 명부</b><span>연락처와 참여 이력 검색</span></button>
@@ -313,7 +333,7 @@ async function boot(){
   if(session && await checkAdmin()){ enterApp(session); }
   else { if(session) await sb.auth.signOut(); showLogin(); }
 }
-function showLogin(){ window.SCM?.clear(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); }
+function showLogin(){ window.SCM?.clear(); window.Work?.clear(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); }
 async function enterApp(session){
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#headUser').textContent = session.user.email;
@@ -358,7 +378,7 @@ async function loadAll(){
   OITEMS={}; (oi.data||[]).forEach(it=>{ (OITEMS[it.order_id]=OITEMS[it.order_id]||[]).push(it); });
   buildFilters();
   renderHome(); renderOrders(); renderApps(); renderMembers(); renderCohorts(); renderInquiries(); renderAlerts();
-  refreshBadges(); window.SCM?.refresh();
+  refreshBadges(); window.SCM?.refresh(); window.Work?.refresh();
 }
 function refreshBadges(){
   setBadge('bOrders', ORDERS.filter(o=>(o.status||'신규')==='신규').length);
@@ -412,6 +432,7 @@ function renderHome(){
 $('#dashSearchForm').onsubmit=e=>{e.preventDefault();const q=$('#dashSearch').value.trim();switchTab('operations');window.Operations?.setQuery(q);};
 document.querySelectorAll('[data-dash-tab]').forEach(b=>b.onclick=()=>switchTab(b.dataset.dashTab));
 window.addEventListener('scm:summary',e=>{const d=e.detail||{},time=d.fetchedAt?new Date(d.fetchedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}):'시각 미확인';$('#dashScmStatus').textContent=d.stale?'최근 재고 확인이 늦어지고 있어요.':`재고 연결됨 · ${time}`;$('#dashScmStatus').classList.toggle('bad',!!d.stale);$('#dashScmMetrics').innerHTML=`<button data-dash-scm="attention"><strong>${d.attention??'—'}</strong><span>확인 필요</span></button><button data-dash-scm="checks"><strong>${d.warnings??'—'}</strong><span>장부 경고</span></button>`;document.querySelectorAll('[data-dash-scm]').forEach(b=>b.onclick=()=>{switchTab('scm');window.SCM?.open(b.dataset.dashScm)})});
+window.addEventListener('work:summary',e=>{const d=e.detail||{},time=d.fetchedAt?new Date(d.fetchedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}):'시각 미확인';$('#dashWorkStatus').textContent=d.stale?'최근 노션 확인이 늦어지고 있어요.':`노션 연결됨 · ${time}`;$('#dashWorkStatus').classList.toggle('bad',!!d.stale);$('#dashWorkMetrics').innerHTML=`<button data-dash-work="active"><strong>${d.active??'—'}</strong><span>진행 업무</span></button><button data-dash-work="attention"><strong>${d.attention??'—'}</strong><span>확인할 것</span></button><button data-dash-work="approval"><strong>${d.approvals??'—'}</strong><span>승인할 것</span></button><button data-dash-work="blocked"><strong>${d.blocked??'—'}</strong><span>막힌 것</span></button>`;setBadge('bWork',d.attention||0);$('#dashWorkPreview').innerHTML=(d.preview||[]).map(x=>`<button data-dash-work-item="${esc(x.id)}"><span>${esc(x.kindLabel)}</span><b>${esc(x.title)}</b><small>${esc(x.status)}${x.stale?' · 오래됨':''}</small></button>`).join('')||'<p>표시할 진행 업무가 없어요.</p>';document.querySelectorAll('[data-dash-work]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.open(b.dataset.dashWork)});document.querySelectorAll('[data-dash-work-item]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.focus(b.dataset.dashWorkItem)})});
 
 /* ---------- 주문 탭 ---------- */
 function orderItemsText(id){ return (OITEMS[id]||[]).map(i=>`${i.book_title}×${i.quantity}`).join(', '); }
@@ -782,12 +803,13 @@ function renderAlerts(){
 }
 
 /* ---------- 탭 전환 ---------- */
-const TABS=['home','operations','scm','orders','apps','members','cohorts','inquiries','alerts'];
+const TABS=['home','work','operations','scm','orders','apps','members','cohorts','inquiries','alerts'];
 function switchTab(name){
   if(!TABS.includes(name))return;
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x.dataset.tab===name));
   TABS.forEach(t=>$('#tab-'+t).classList.toggle('hidden', t!==name));
   if(name==='scm')window.SCM?.refresh();
+  if(name==='work')window.Work?.refresh();
   history.replaceState(null,'','#'+name);
   window.scrollTo(0,0);
 }
@@ -795,9 +817,11 @@ document.querySelectorAll('.tab').forEach(t=> t.onclick=()=>switchTab(t.dataset.
 
 </script>
 <script src="./scm.js"></script>
+<script src="./work.js"></script>
 <script src="./operations.js"></script>
 <script>
 window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
+window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Operations?.init({navigate:switchTab});
 boot();
 </script>
