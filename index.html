@@ -527,6 +527,7 @@ will-change: transform;
 .prog-card:hover { transform: translateY(-15px) rotate(2deg); box-shadow: 15px 15px 0 rgba(0,0,0,0.15); }
 .pc-header { padding: 15px; border-bottom: 4px solid rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 14px; letter-spacing: 1px; }
 .pc-img-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #fff; margin: 15px; border: 4px solid rgba(0,0,0,0.1); border-radius: 10px; overflow:hidden; font-size:60px; }
+.pc-img-area img { width:100%; height:100%; max-height:260px; object-fit:contain; padding:12px; }
 .pc-img { width:100%; height:100%; object-fit:cover; }
 .pc-body { padding: 0 20px 20px; text-align: center; }
 .pc-title { font-size: 20px; font-weight: 800; line-height: 1.3; margin-bottom: 10px; word-break: keep-all; }
@@ -997,7 +998,8 @@ cursor: pointer;
 .nm-header-main { font-size: 20px; }
 .nm-title-text { font-size: 22px; }
 
-.pm-wrapper { width: 95vw; padding: 30px 20px; }
+#programModal { align-items:flex-start; overflow-y:auto; padding:16px 0; }
+.pm-wrapper { width: 95vw; padding: 30px 20px; flex:0 0 auto; }
 .pm-title { font-size: 32px; padding: 15px 20px; }
 .pm-grid-layout { grid-template-columns: 1fr; gap: 20px; }
 }
@@ -1765,7 +1767,7 @@ background: rgba(0, 0, 0, 0.5);
 <section data-cat="home" class="sec-last-proposal">
 <div class="last-header"><h2 class="sec-h2 serif">함께하면 더 맛있는 기록 생활</h2></div>
 <div class="last-grid">
-<div class="last-card card-yellow"><div class="last-txt"><h3>혼자 쓰기 막막하다면?<br>감정클럽으로 오세요!</h3><p>매주 도착하는 글감과<br>따뜻한 피드백이 기다려요.</p><button class="last-btn" onclick="openApplyForm('감정클럽')">감정클럽 신청하기</button></div><div class="last-icon">🥐📝</div></div>
+<div class="last-card card-yellow"><div class="last-txt"><h3>내 마음을 작은 책으로<br>남겨보세요</h3><p>9월 12·19·26일 중 하루,<br>이다솜과 만드는 아코디언 감정책</p><button class="last-btn" onclick="window.open('https://booking.naver.com/booking/6/bizes/1609502/items/8004995','_blank','noopener')">네이버 예약에서 신청하기</button></div><div class="last-icon">📖🧡</div></div>
 <div class="last-card card-green"><div class="last-txt"><h3>똑똑, 기록 배달 왔습니다! 🚚<br>(학교/기업/도서관)</h3><p>원하시는 주제와 인원에 맞춰<br>맞춤형 프로그램을 기획해 드려요.</p><button class="last-btn" onclick="location.href='mailto:gaeddirang085@naver.com'">강연 제안서 받기</button></div><div class="last-icon">🏫✨</div></div>
 <div class="last-card card-blue"><div class="last-txt"><h3>아직 책이 되지 못한 이야기가 있다면?<br>질문지부터 받아보세요</h3><p>내 책의 씨앗을 찾는 질문 8가지,<br>이메일로 무료 PDF를 보내드려요.</p><button class="last-btn" onclick="openLeadModal()">무료 질문지 받기</button></div><div class="last-icon">🌱📖</div></div>
 </div>
@@ -2066,7 +2068,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 </div>
 </div>
 
-<button class="pm-apply-btn" onclick="openApplyForm()">신청하러 가기 🚀</button>
+<button class="pm-apply-btn" id="pmApplyBtn" onclick="openCurrentProgramApply()">네이버 예약에서 신청하기</button>
 </div>
 </div>
 
@@ -2504,9 +2506,11 @@ prompt('이 링크를 복사해 공유하세요:', url);
 
 // [★ NEW: 프로그램 상세 모달 (카드 뒷면 효과 + 동적 컬러)]
 let programsInfo = {}; // Supabase에서 채워짐
+let currentProgramApplyUrl = '';
 function openProgramModal(type, fromUrl = false) {
 const p = programsInfo[type];
 if (!p) return;
+currentProgramApplyUrl = p.apply_url || '';
 
 // [딥링크] 주소창에 ?program=슬러그 반영 → 공유 가능
 if (!fromUrl) {
@@ -2540,6 +2544,11 @@ setFact('pmInstructorRow', 'pmInstructor', p.instructor);
 
 // 모달 열기
 document.getElementById('programModal').classList.add('active');
+}
+
+function openCurrentProgramApply() {
+if (!currentProgramApplyUrl) return;
+window.open(currentProgramApplyUrl, '_blank', 'noopener');
 }
 
 // [AUTHOR NAV LOGIC]
@@ -2694,6 +2703,26 @@ const SUPABASE_URL = 'https://zrmljsyxeozcnfqmyumw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybWxqc3l4ZW96Y25mcW15dW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzkwNTAsImV4cCI6MjA5OTA1NTA1MH0.G31yEksYsiR43t2pWPwTdCrpBHcxLkZ4mYSvk5urZxQ';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// 2026-09-07 운영 자료와 네이버 예약 공개 화면을 대조한 현재 모집 프로그램.
+// 일정·가격이 미확정인 과정과 지난 프로그램은 이 목록에 넣지 않는다.
+const CURRENT_PROGRAMS = [{
+  slug: 'all-emotions-accordion-sep-2026',
+  title: '모든 감정 도감<br>아코디언 감정책 만들기',
+  description: '32종의 감정카드 중 마음에 닿는 한 장을 고르고, 그 감정이 머물렀던 장면을 기록해 손바닥 크기의 아코디언 감정책 한 권으로 완성합니다.',
+  target: '감정을 말로 설명하기 어렵거나 내 마음을 기록해보고 싶은 성인<br>개인 경험은 나누고 싶은 만큼만 나눕니다.',
+  time_info: '2026년 9월 12·19·26일 토요일 10:00–12:00<br>세 날짜 중 원하는 하루를 선택하는 원데이 클래스',
+  benefit: '6–8쪽 아코디언 감정책 1권<br>집에서도 다시 쓸 수 있는 감정 기록 질문',
+  price: '공식 오픈 특가 25,000원 (정상가 35,000원·재료 포함)',
+  location: '개띠랑책공방 · 동탄 라크몽 B동 2층 W241호',
+  instructor: '이다솜',
+  badge_type: '현재 모집 중 · 원데이',
+  stat1_label: '대상', stat1_value: '성인 3–6명',
+  stat2_label: '시간', stat2_value: '120분',
+  sort_order: 0, sort_no: 1,
+  image_path: 'assets/books/dasom_all_emotions_atlas.jpg',
+  apply_url: 'https://booking.naver.com/booking/6/bizes/1609502/items/8004995'
+}];
+
 /* [★ 콘텐츠 CMS 연동] notices/programs/podcasts/books/authors/reviews를 Supabase에서 불러와 렌더링 */
 function renderNoticesUI(data) {
   const noticeList = document.getElementById('nbListNotice');
@@ -2725,7 +2754,7 @@ function renderProgramsUI(data) {
     const stars = '★'.repeat(p.star_rating) + '☆'.repeat(Math.max(0, 5 - p.star_rating));
     return `<div class="prog-card" style="border-color:${p.border_color}; background:${p.bg_color};" onclick="openProgramModal('${p.slug}')">
 <div class="pc-header"><span>NO.${noStr}</span><span>${stars}</span></div>
-<div class="pc-img-area">${p.icon_emoji}</div>
+<div class="pc-img-area">${p.image_path ? `<img src="${p.image_path}" alt="${p.title.replace(/<[^>]+>/g, ' ')} 표지" loading="lazy">` : p.icon_emoji}</div>
 <div class="pc-body"><div class="pc-title">${p.title}</div><div class="pc-stat-bar"><span>${p.stat1_label}: ${p.stat1_value}</span><span>${p.stat2_label}: ${p.stat2_value}</span></div><button class="prog-btn-card">자세히 보기 ></button></div>
 </div>`;
   }).join('');
@@ -2744,6 +2773,10 @@ function renderReviewsUI(data) {
   const track = document.getElementById('reviewTrack');
   if (!track) return;
   const list = data || [];
+  const section = track.closest('.sec-reviews');
+  // Forms 응답 시트에는 홈페이지 공개 동의 항목이 없다. 동의가 확인되기 전에는 후기 원문을 노출하지 않는다.
+  if (!list.length) { if (section) section.hidden = true; track.innerHTML = ''; return; }
+  if (section) section.hidden = false;
   const cardHtml = (r) => `<div class="review-card-mini"><div class="rv-user"><div class="rv-avatar" style="${r.avatar_color ? `background:${r.avatar_color};` : ''}"></div><span class="rv-name">${r.name}</span></div><p class="rv-text">${r.review_text}</p><div class="rv-tag">${r.tag || ''}</div></div>`;
   // 마퀴 애니메이션이 -50% 이동을 전제로 하므로 목록을 두 번 이어붙임
   track.innerHTML = list.map(cardHtml).join('') + list.map(cardHtml).join('');
@@ -2770,13 +2803,11 @@ function renderAuthorsUI(data) {
 
 async function loadAllContent() {
   try {
-    const [notRes, progRes, castRes, bookRes, authRes, revRes] = await Promise.all([
+    const [notRes, castRes, bookRes, authRes] = await Promise.all([
       supabaseClient.from('notices').select('*').order('sort_order'),
-      supabaseClient.from('programs').select('*').order('sort_order'),
       supabaseClient.from('podcasts').select('*').order('sort_order'),
       supabaseClient.from('books').select('*').order('sort_order'),
       supabaseClient.from('authors').select('*').order('sort_order'),
-      supabaseClient.from('reviews').select('*').order('sort_order'),
     ]);
 
     books = (bookRes.data || []).map(b => ({ title: b.title, author: b.author, cat: b.category, img: b.img_path, spec: b.spec, desc: b.description, price: b.price }));
@@ -2787,10 +2818,10 @@ async function loadAllContent() {
       renderAuthorModal();
     }
 
-    renderProgramsUI(progRes.data);
+    renderProgramsUI(CURRENT_PROGRAMS);
     renderNoticesUI(notRes.data);
     renderPodcastsUI(castRes.data);
-    renderReviewsUI(revRes.data);
+    renderReviewsUI([]);
 
     SEARCH_INDEX = null; // 새 데이터로 검색 인덱스 재구성되도록 캐시 무효화
 
@@ -3431,8 +3462,8 @@ confetti({particleCount:150,spread:70,origin:{y:0.6}});
 function resetGame(){document.getElementById('gStep3').classList.remove('active');document.getElementById('gStep1').classList.add('active');document.getElementById('ansInput').value='';}
 
 const chatResponses = {
-'classes': `혼자 쓰기 막막할 때 함께 쓰는 감정클럽, 두루와 나를 들여다보는 두루쓰기 같은 기록 모임을 열고 있어요. 종류와 대상은 프로그램 칸에서 카드로 한눈에 보여드릴게요.<br><button class="chat-btn" onclick="switchView('main','program')">수업·모임 보러 가기</button>`,
-'apply': `프로그램 칸에서 마음에 드는 카드를 열면 신청하기 버튼으로 바로 접수돼요. 책·카드 같은 상품은 스토어에서 구매하시면 됩니다.<br><button class="chat-btn" onclick="switchView('main','program')">신청하러 가기</button> <button class="chat-btn" onclick="openApplyForm('감정클럽')">감정클럽 바로 신청</button>`,
+'classes': `현재 모집 중인 수업은 이다솜의 ‘모든 감정 도감 아코디언 감정책 만들기’예요. 9월 12·19·26일 중 원하는 하루를 고르는 성인 원데이 클래스입니다.<br><button class="chat-btn" onclick="switchView('main','program')">수업 자세히 보기</button>`,
+'apply': `현재 모집 중인 프로그램 카드를 열고 ‘네이버 예약에서 신청하기’를 누르면 날짜별 예약 화면으로 연결돼요. 책·카드 같은 상품은 스토어에서 구매하시면 됩니다.<br><button class="chat-btn" onclick="switchView('main','program')">신청하러 가기</button>`,
 'price': `프로그램마다 참가비가 달라서, 각 프로그램 카드를 열면 참가비와 일정이 함께 안내돼요. 책·카드 가격은 스토어에서 확인하실 수 있어요.<br><button class="chat-btn" onclick="switchView('main','program')">프로그램에서 확인</button> <button class="chat-btn" onclick="window.open('https://smartstore.naver.com/gaeddirang')">스토어에서 상품 보기</button>`,
 'location': `개띠랑 책공방은 <b>경기 화성 동탄 라크몽</b>에 있어요! 📍<br>경기도 화성시 동탄구 동탄대로5길 21, B동 W241호<br>방문 전 인스타 DM으로 한 번 확인해 주시면 더 좋아요.<br><button class="chat-btn" onclick="window.open('https://map.naver.com/p/entry/place/2052456243')">네이버 지도·길찾기</button> <button class="chat-btn" onclick="window.open('https://www.instagram.com/gaeddirangverse')">인스타로 문의</button>`,
 'blindbook': `표지 대신 키워드 카드로 만나는, 열어보기 전엔 모르는 책이에요. 지금 내 마음에 맞는 한 권을 개띠랑이 골라드리는 재미가 있죠. 어떤 게 나올지는 직접 열어보는 게 제맛이에요 🐾<br><button class="chat-btn" onclick="switchView('main','library')">서재 구경하기</button> <button class="chat-btn" onclick="switchView('main','finder')">나에게 맞는 도구 찾기</button>`,
