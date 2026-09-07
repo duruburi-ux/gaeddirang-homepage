@@ -260,6 +260,7 @@ flex-wrap: wrap;
 .nb-title { font-size: 20px; font-weight: 800; color: var(--brown); }
 .nb-item { display: flex; justify-content: space-between; padding: 12px 0; font-size: 15px; color: #555; border-bottom: 1px solid #f9f9f9; cursor: pointer; transition: 0.2s; }
 .nb-item:hover { color: var(--accent); transform: translateX(5px); }
+.nb-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
 .nb-date { font-size: 13px; color: #999; font-weight: bold; }
 
 
@@ -525,6 +526,7 @@ will-change: transform;
 }
 .sec-program .prog-card { width: var(--pcw); height: 450px; border-radius: 20px; border: 8px solid var(--brown); background: #fff; color: #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 10px 10px 0 rgba(0,0,0,0.1); transition: 0.3s; cursor: pointer; position: relative; }
 .prog-card:hover { transform: translateY(-15px) rotate(2deg); box-shadow: 15px 15px 0 rgba(0,0,0,0.15); }
+.prog-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 5px; }
 .pc-header { padding: 15px; border-bottom: 4px solid rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 14px; letter-spacing: 1px; }
 .pc-img-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #fff; margin: 15px; border: 4px solid rgba(0,0,0,0.1); border-radius: 10px; overflow:hidden; font-size:60px; }
 .pc-img-area img { width:100%; height:100%; max-height:260px; object-fit:contain; padding:12px; }
@@ -571,6 +573,8 @@ footer { background: #fff; border-top: 1px solid #eee; padding: 40px 5vw; }
 .footer-content { max-width: 1300px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
 .footer-left h3 { font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--brown); }
 .footer-info { font-size: 13px; color: #888; line-height: 1.6; }
+.footer-text-btn, .em-consent-link { appearance: none; border: 0; padding: 0; background: none; font: inherit; }
+.footer-text-btn { color: inherit; text-decoration: underline; cursor: pointer; }
 .footer-sns { display: flex; gap: 15px; }
 .sns-icon { width: 40px; height: 40px; border: 1px solid #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #888; font-size: 18px; transition: 0.3s; }
 .sns-icon:hover { background: var(--brown); color: #fff; border-color: var(--brown); }
@@ -580,7 +584,7 @@ footer { background: #fff; border-top: 1px solid #eee; padding: 40px 5vw; }
 .chat-window { position: fixed; bottom: 100px; right: 30px; width: 320px; height: 450px; background: #fff; border-radius: 20px; z-index: 9000; box-shadow: 0 20px 50px rgba(0,0,0,0.2); display: none; flex-direction: column; overflow: hidden; border: 2px solid var(--primary); animation: slideUpChat 0.3s; }
 .chat-window.active { display: flex; }
 .chat-header { background: var(--primary); padding: 15px; font-weight: bold; color: var(--brown); display: flex; justify-content: space-between; align-items: center; }
-.chat-close { cursor: pointer; font-size: 18px; }
+.chat-close { cursor: pointer; font-size: 18px; border: 0; background: none; color: inherit; padding: 2px 5px; }
 .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: #FFFDF7; display: flex; flex-direction: column; gap: 10px; }
 .chat-msg { max-width: 80%; padding: 10px 15px; border-radius: 15px; font-size: 14px; line-height: 1.4; animation: fadeIn 0.3s; }
 .chat-msg.bot { background: #fff; border: 1px solid #eee; align-self: flex-start; border-bottom-left-radius: 0; }
@@ -1021,7 +1025,7 @@ cursor: pointer;
 
 /* [★ 오늘의 감정 기록 모달] */
 .em-wrapper { width: 560px; max-width: 92vw; max-height: 88vh; overflow-y: auto; background: #FFFDF7; border-radius: 24px; padding: 45px 40px; position: relative; box-shadow: 0 25px 60px rgba(0,0,0,0.25); }
-.em-close { position: absolute; top: 20px; right: 25px; font-size: 26px; color: var(--brown); cursor: pointer; opacity: 0.6; transition: 0.2s; }
+.em-close { position: absolute; top: 20px; right: 25px; font-size: 26px; color: var(--brown); cursor: pointer; opacity: 0.6; transition: 0.2s; border: 0; background: none; padding: 2px 6px; }
 .em-close:hover { opacity: 1; transform: rotate(90deg); }
 .em-title { font-family: 'Gowun Batang', serif; font-size: 30px; font-weight: 700; color: var(--brown); text-align: center; margin-bottom: 8px; }
 .em-subtitle { text-align: center; color: #888; font-size: 14px; margin-bottom: 30px; }
@@ -1486,9 +1490,9 @@ background: rgba(0, 0, 0, 0.5);
 <a onclick="switchView('main', 'gaedditv')">개띠랑TV</a>
 </nav>
 <button class="auth-nav-btn" id="authNavBtn" onclick="openAuthModal()"><i class="fas fa-user"></i> 로그인</button>
-<button class="cart-icon-btn" onclick="openCartModal()"><i class="fas fa-shopping-bag"></i><span class="cart-badge" id="cartBadge">0</span></button>
+<button class="cart-icon-btn" onclick="openCartModal()" aria-label="장바구니 열기"><i class="fas fa-shopping-bag" aria-hidden="true"></i><span class="cart-badge" id="cartBadge">0</span></button>
 <button class="header-cta btn-core" style="font-size:14px; padding:8px 20px;" onclick="openEmotionModal()">기록 시작하기</button>
-<button class="hamburger-btn" onclick="toggleMobileNav()"><i class="fas fa-bars"></i></button>
+<button class="hamburger-btn" onclick="toggleMobileNav()" aria-label="메뉴 열기"><i class="fas fa-bars" aria-hidden="true"></i></button>
 </header>
 
 <div class="mobile-nav-overlay" id="mobileNavOverlay" onclick="toggleMobileNav()"></div>
@@ -1577,7 +1581,7 @@ background: rgba(0, 0, 0, 0.5);
 <div class="img-slot stage-cassette filled"><img src="assets/images/book-ost-cassette.webp" alt="OST 카세트" loading="lazy"></div>
 <div class="stage-notify" id="mgAlert">
 <div><strong>북OST와 개띠랑의 새 이야기, 메일로 받아보세요.</strong><small>《문고리》 북OST 링크와 다음 소식을 보내드려요 · 이메일은 소식 안내에만 써요</small></div>
-<input type="email" class="st-notify-input" id="mgAlertEmail" placeholder="이메일 주소" autocomplete="email">
+<input type="email" class="st-notify-input" id="mgAlertEmail" placeholder="이메일 주소" autocomplete="email" aria-label="소식 받을 이메일 주소">
 <button class="st-notify-btn" id="mgAlertBtn" onclick="submitBookAlert()">소식 받기</button>
 </div>
 </article>
@@ -1957,24 +1961,24 @@ background: rgba(0, 0, 0, 0.5);
 통신판매업 신고번호 : 제2026-화성동탄-3131호<br>
 주소 : 경기도 화성시 동탄구 동탄대로5길 21, B동 W241호(송동, 라크몽) · <a href="https://map.naver.com/p/entry/place/2052456243" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">네이버 지도</a><br>
 고객센터 : 010-3343-0936 | 이메일 : gaeddirang085@naver.com<br>
-Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cursor:pointer; text-decoration:underline;" onclick="openOverlaySafe('shippingModal')">배송·교환·반품 안내</span> &nbsp;|&nbsp; <span style="cursor:pointer; text-decoration:underline;" onclick="openOverlaySafe('privacyModal')">개인정보처리방침</span>
+Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <button type="button" class="footer-text-btn" onclick="openOverlaySafe('shippingModal')">배송·교환·반품 안내</button> &nbsp;|&nbsp; <button type="button" class="footer-text-btn" onclick="openOverlaySafe('privacyModal')">개인정보처리방침</button>
 </div>
 </div>
 <div class="footer-right">
 <div class="footer-sns">
-<a href="https://www.instagram.com/gaeddirangverse" target="_blank" class="sns-icon"><i class="fab fa-instagram"></i></a>
-<a href="https://www.youtube.com/@gaeddirangverse6184" target="_blank" class="sns-icon"><i class="fab fa-youtube"></i></a>
-<a href="https://smartstore.naver.com/gaeddirang" target="_blank" class="sns-icon"><i class="fas fa-store"></i></a>
-<a href="http://pf.kakao.com/_xgLxeKb" target="_blank" class="sns-icon"><i class="fas fa-comment"></i></a>
+<a href="https://www.instagram.com/gaeddirangverse" target="_blank" rel="noopener" class="sns-icon" aria-label="개띠랑 인스타그램 열기"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+<a href="https://www.youtube.com/@gaeddirangverse6184" target="_blank" rel="noopener" class="sns-icon" aria-label="개띠랑 유튜브 열기"><i class="fab fa-youtube" aria-hidden="true"></i></a>
+<a href="https://smartstore.naver.com/gaeddirang" target="_blank" rel="noopener" class="sns-icon" aria-label="개띠랑 스마트스토어 열기"><i class="fas fa-store" aria-hidden="true"></i></a>
+<a href="https://pf.kakao.com/_xgLxeKb" target="_blank" rel="noopener" class="sns-icon" aria-label="개띠랑 카카오톡 채널 열기"><i class="fas fa-comment" aria-hidden="true"></i></a>
 </div>
 </div>
 </div>
 </footer>
 
 <div class="chat-tooltip">오늘 뭐 찾아요? 개띠랑이 안내할게요 🐾</div>
-<div class="chat-launcher" onclick="toggleChat()"><img src="assets/images/authors/gaeddirang.jpg" alt="개띠랑"></div>
-<div class="chat-window" id="chatWindow">
-<div class="chat-header">무엇이든 물어보세요 🐾 <span class="chat-close" onclick="toggleChat()">✕</span></div>
+<button type="button" class="chat-launcher" onclick="toggleChat()" aria-label="개띠랑 안내 챗봇 열기" aria-expanded="false" aria-controls="chatWindow"><img src="assets/images/authors/gaeddirang.jpg" alt=""></button>
+<div class="chat-window" id="chatWindow" aria-label="개띠랑 안내 챗봇">
+<div class="chat-header">무엇이든 물어보세요 🐾 <button type="button" class="chat-close" onclick="toggleChat()" aria-label="챗봇 닫기">✕</button></div>
 <div class="chat-body" id="chatBody"><div class="chat-msg bot">안녕하세요, 개띠랑이에요 🐾<br>오늘은 뭐가 궁금해서 오셨어요? 아래에서 골라주시면 바로 안내해 드릴게요.</div></div>
 <div class="chat-options">
 <button class="chat-btn" onclick="sendChat('classes','수업·모임이 뭐가 있어요?')">수업·모임이 뭐가 있어요?</button>
@@ -2092,7 +2096,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 
 <div class="overlay-bg" id="applyModal">
 <div class="em-wrapper">
-<span class="em-close" onclick="closeOverlay('applyModal')">✕</span>
+<button type="button" class="em-close" onclick="closeOverlay('applyModal')" aria-label="신청 창 닫기">✕</button>
 
 <div class="em-form" id="apForm">
 <h2 class="em-title">프로그램 신청하기</h2>
@@ -2109,7 +2113,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 <textarea class="em-textarea" id="apMessage" placeholder="신청 동기나 이 프로그램에서 기대하는 점을 자유롭게 적어주세요"></textarea>
 <div class="em-consent-row">
 <label><input type="checkbox" id="apConsent"> 개인정보 수집·이용에 동의합니다 (필수)</label>
-<span class="em-consent-link" onclick="openOverlaySafe('privacyModal')">자세히 보기</span>
+<button type="button" class="em-consent-link" onclick="openOverlaySafe('privacyModal')">자세히 보기</button>
 </div>
 <div class="em-consent-row">
 <label><input type="checkbox" id="apPhotoConsent"> 현장 기록·촬영에 동의합니다 (필수)</label>
@@ -2130,7 +2134,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 
 <div class="overlay-bg" id="cartModal">
 <div class="em-wrapper">
-<span class="em-close" onclick="closeOverlay('cartModal')">✕</span>
+<button type="button" class="em-close" onclick="closeOverlay('cartModal')" aria-label="장바구니 닫기">✕</button>
 <h2 class="em-title">장바구니</h2>
 <p class="em-subtitle">담은 책을 확인하고 한번에 주문해보세요</p>
 <div id="cartList"></div>
@@ -2144,7 +2148,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 
 <div class="overlay-bg" id="checkoutModal">
 <div class="em-wrapper">
-<span class="em-close" onclick="closeOverlay('checkoutModal')">✕</span>
+<button type="button" class="em-close" onclick="closeOverlay('checkoutModal')" aria-label="주문 창 닫기">✕</button>
 
 <div class="em-form" id="coForm">
 <h2 class="em-title">주문하기</h2>
@@ -2153,7 +2157,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 <div id="coSummaryList"></div>
 <p class="co-summary-total" id="coSummaryTotal"></p>
 </div>
-<p class="co-order-guide">🛒 주문 접수 → <b>입금 계좌 문자 안내</b> → 입금 확인 후 발송 순으로 진행돼요.<br>주문하시면 안내 문자를 보내드립니다. · <span class="em-consent-link" onclick="openOverlaySafe('shippingModal')">배송·교환·반품 안내</span></p>
+<p class="co-order-guide">🛒 주문 접수 → <b>입금 계좌 문자 안내</b> → 입금 확인 후 발송 순으로 진행돼요.<br>주문하시면 안내 문자를 보내드립니다. · <button type="button" class="em-consent-link" onclick="openOverlaySafe('shippingModal')">배송·교환·반품 안내</button></p>
 <input type="text" class="hp-field" id="coHoneypot" name="website" tabindex="-1" autocomplete="off">
 <input type="text" class="em-nickname" id="coName" placeholder="이름">
 <input type="text" class="em-nickname" id="coContact" placeholder="연락처 (전화번호)">
@@ -2162,7 +2166,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 <textarea class="em-textarea" id="coMessage" placeholder="배송 시 요청사항이 있다면 남겨주세요 (선택)"></textarea>
 <div class="em-consent-row">
 <label><input type="checkbox" id="coConsent"> 개인정보 수집·이용에 동의합니다 (필수)</label>
-<span class="em-consent-link" onclick="openOverlaySafe('privacyModal')">자세히 보기</span>
+<button type="button" class="em-consent-link" onclick="openOverlaySafe('privacyModal')">자세히 보기</button>
 </div>
 <button class="em-submit-btn" id="coSubmitBtn" onclick="submitCheckout()">주문하기</button>
 </div>
@@ -2177,7 +2181,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 
 <div class="overlay-bg" id="authModal">
 <div class="em-wrapper">
-<span class="em-close" onclick="closeOverlay('authModal')">✕</span>
+<button type="button" class="em-close" onclick="closeOverlay('authModal')" aria-label="로그인 창 닫기">✕</button>
 
 <div id="authLoginView">
 <h2 class="em-title">로그인</h2>
@@ -2210,7 +2214,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 
 <div class="overlay-bg" id="myOrdersModal">
 <div class="em-wrapper">
-<span class="em-close" onclick="closeOverlay('myOrdersModal')">✕</span>
+<button type="button" class="em-close" onclick="closeOverlay('myOrdersModal')" aria-label="주문 내역 닫기">✕</button>
 <h2 class="em-title">내 주문 내역</h2>
 <div id="myOrdersList"></div>
 <p class="cart-empty" id="myOrdersEmpty">아직 주문 내역이 없어요.</p>
@@ -2220,7 +2224,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 
 <div class="overlay-bg" id="shippingModal">
 <div class="em-wrapper">
-<span class="em-close" onclick="closeOverlay('shippingModal')">✕</span>
+<button type="button" class="em-close" onclick="closeOverlay('shippingModal')" aria-label="배송 안내 닫기">✕</button>
 <h2 class="em-title" style="font-size:22px;">배송·교환·반품 안내</h2>
 <div class="em-privacy-text">
 <h4>📦 배송 안내</h4>
@@ -2245,7 +2249,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 
 <div class="overlay-bg" id="privacyModal">
 <div class="em-wrapper">
-<span class="em-close" onclick="closeOverlay('privacyModal')">✕</span>
+<button type="button" class="em-close" onclick="closeOverlay('privacyModal')" aria-label="개인정보처리방침 닫기">✕</button>
 <h2 class="em-title" style="font-size:22px;">개인정보 수집·이용 안내</h2>
 <div class="em-privacy-text">
 <h4>1. 수집 항목</h4>
@@ -2264,7 +2268,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 
 <div class="overlay-bg" id="emotionModal">
 <div class="em-wrapper">
-<span class="em-close" onclick="closeOverlay('emotionModal')">✕</span>
+<button type="button" class="em-close" onclick="closeOverlay('emotionModal')" aria-label="감정 기록 창 닫기">✕</button>
 
 <div class="em-form" id="emForm">
 <h2 class="em-title">오늘의 감정을 남겨주세요</h2>
@@ -2292,7 +2296,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 
 <div class="overlay-bg" id="leadModal">
 <div class="em-wrapper">
-<span class="em-close" onclick="closeOverlay('leadModal')">✕</span>
+<button type="button" class="em-close" onclick="closeOverlay('leadModal')" aria-label="소식 신청 창 닫기">✕</button>
 
 <div class="em-form" id="leadForm">
 <h2 class="em-title">나의 책 씨앗 질문지</h2>
@@ -2301,7 +2305,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 <input type="email" class="em-nickname" id="leadEmail" placeholder="이메일">
 <div class="em-consent-row">
 <label><input type="checkbox" id="leadConsent"> 개인정보 수집·이용에 동의합니다 (필수)</label>
-<span class="em-consent-link" onclick="openOverlaySafe('privacyModal')">자세히 보기</span>
+<button type="button" class="em-consent-link" onclick="openOverlaySafe('privacyModal')">자세히 보기</button>
 </div>
 <button class="em-submit-btn" id="leadSubmitBtn" onclick="submitLead()">무료로 받기</button>
 </div>
@@ -2839,6 +2843,7 @@ function renderNoticesUI(data) {
   noticeList.innerHTML = '';
   newsList.innerHTML = '';
   NOTICE_BODIES = {};
+  const today = new Date();
   (data || []).forEach(n => {
     NOTICE_BODIES[n.title] = n.body;
     const li = document.createElement('li');
@@ -2846,8 +2851,21 @@ function renderNoticesUI(data) {
     li.dataset.title = n.title;
     li.dataset.date = n.date_label;
     li.dataset.body = n.body;
+    li.tabIndex = 0;
+    li.setAttribute('role', 'button');
     li.onclick = () => openNoticeFromEl(li);
-    li.innerHTML = `<span>${n.title}</span><span class="nb-date">${n.date_label}</span>`;
+    li.onkeydown = event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openNoticeFromEl(li);
+      }
+    };
+    const match = String(n.date_label || '').match(/^(\d{1,2})\.(\d{1,2})$/);
+    const dated = match ? new Date(today.getFullYear(), Number(match[1]) - 1, Number(match[2])) : null;
+    const isPastNews = n.category === 'news' && dated && today - dated > 120 * 86400000;
+    const displayTitle = isPastNews ? `${n.title} · 지난 소식` : n.title;
+    li.setAttribute('aria-label', `${displayTitle} ${n.date_label || ''}`.trim());
+    li.innerHTML = `<span>${displayTitle}</span><span class="nb-date">${n.date_label}</span>`;
     (n.category === 'news' ? newsList : noticeList).appendChild(li);
   });
 }
@@ -2860,7 +2878,7 @@ function renderProgramsUI(data) {
     programsInfo[p.slug] = p;
     const noStr = String(p.sort_no).padStart(2, '0');
     const stars = p.star_rating ? '★'.repeat(p.star_rating) + '☆'.repeat(Math.max(0, 5 - p.star_rating)) : '';
-    return `<div class="prog-card" style="border-color:${p.border_color}; background:${p.bg_color};" onclick="openProgramModal('${p.slug}', false, this)">
+    return `<div class="prog-card" role="button" tabindex="0" aria-label="${programPlainTitle(p)} 자세히 보기" style="border-color:${p.border_color}; background:${p.bg_color};" onclick="openProgramModal('${p.slug}', false, this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProgramModal('${p.slug}', false, this)}">
 <div class="pc-header"><span>NO.${noStr}</span><span>${stars}</span></div>
 <div class="pc-img-area">${p.image_path ? `<img src="${p.image_path}" alt="${p.title.replace(/<[^>]+>/g, ' ')} 표지" loading="lazy">` : p.icon_emoji}</div>
 <div class="pc-body"><div class="pc-title">${p.title}</div><div class="pc-stat-bar"><span>${p.stat1_label}: ${p.stat1_value}</span><span>${p.stat2_label}: ${p.stat2_value}</span></div><button class="prog-btn-card">자세히 보기 ></button></div>
@@ -3574,7 +3592,7 @@ const chatResponses = {
 'lecture': `도서관·학교·기업 대상 맞춤 기록 프로그램을 제안해 드려요. 대상과 인원을 메일로 알려주시면 딱 맞게 구성해서 회신드릴게요.<br><button class="chat-btn" onclick="location.href='mailto:gaeddirang085@naver.com'">강연·협업 문의 메일</button>`,
 'default': `더 궁금한 게 있다면 인스타 DM으로 편하게 물어봐 주세요 🐾`
 };
-function toggleChat() { const win = document.getElementById('chatWindow'); const tooltip = document.querySelector('.chat-tooltip'); win.classList.toggle('active'); if(win.classList.contains('active')) tooltip.style.display = 'none'; else tooltip.style.display = 'block'; }
+function toggleChat() { const win = document.getElementById('chatWindow'); const tooltip = document.querySelector('.chat-tooltip'); const launcher = document.querySelector('.chat-launcher'); win.classList.toggle('active'); const isOpen = win.classList.contains('active'); launcher.setAttribute('aria-expanded', String(isOpen)); launcher.setAttribute('aria-label', isOpen ? '개띠랑 안내 챗봇 닫기' : '개띠랑 안내 챗봇 열기'); if(isOpen) tooltip.style.display = 'none'; else tooltip.style.display = 'block'; }
 function sendChat(type, label) { const body = document.getElementById('chatBody'); const userDiv = document.createElement('div'); userDiv.className = 'chat-msg user'; userDiv.innerText = label || (typeof event !== 'undefined' && event.target ? event.target.innerText : ''); body.appendChild(userDiv); body.scrollTop = body.scrollHeight; setTimeout(() => { const botDiv = document.createElement('div'); botDiv.className = 'chat-msg bot'; const response = chatResponses[type] || chatResponses['default']; botDiv.innerHTML = typeof response === 'function' ? response() : response; body.appendChild(botDiv); body.scrollTop = body.scrollHeight; }, 500); }
 
 (function() {
