@@ -2941,6 +2941,9 @@ openProgramModal(progSlug, true);
 document.getElementById('detailModal').classList.remove('active');
 document.getElementById('programModal').classList.remove('active');
 document.body.style.overflow = '';
+if (lastProgramTrigger && typeof lastProgramTrigger.focus === 'function') {
+setTimeout(() => lastProgramTrigger.focus(), 0);
+}
 document.title = '개띠랑 | 책공방';
 clearBookJsonLd();
 }
