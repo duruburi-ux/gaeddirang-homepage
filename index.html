@@ -1782,7 +1782,7 @@ background: rgba(0, 0, 0, 0.5);
 <section data-cat="home" class="sec-last-proposal">
 <div class="last-header"><h2 class="sec-h2 serif">함께하면 더 맛있는 기록 생활</h2></div>
 <div class="last-grid">
-<div class="last-card card-yellow"><div class="last-txt"><h3>내 마음을 작은 책으로<br>남겨보세요</h3><p>9월 12·19·26일 중 하루,<br>이다솜과 만드는 아코디언 감정책</p><button class="last-btn" onclick="window.open('https://booking.naver.com/booking/6/bizes/1609502/items/8004995','_blank','noopener')">네이버 예약에서 신청하기</button></div><div class="last-icon">📖🧡</div></div>
+<div class="last-card card-yellow"><div class="last-txt"><h3 id="homeProgramTitle">지금 함께할 수 있는<br>프로그램을 만나보세요</h3><p id="homeProgramSummary">현재 신청 가능한 프로그램을 불러오고 있어요.</p><button class="last-btn" onclick="switchView('main','program')">프로그램 전체 보기</button></div><div class="last-icon">📖🧡</div></div>
 <div class="last-card card-green"><div class="last-txt"><h3>똑똑, 기록 배달 왔습니다! 🚚<br>(학교/기업/도서관)</h3><p>원하시는 주제와 인원에 맞춰<br>맞춤형 프로그램을 기획해 드려요.</p><button class="last-btn" onclick="location.href='mailto:gaeddirang085@naver.com'">강연 제안서 받기</button></div><div class="last-icon">🏫✨</div></div>
 <div class="last-card card-blue"><div class="last-txt"><h3>아직 책이 되지 못한 이야기가 있다면?<br>질문지부터 받아보세요</h3><p>내 책의 씨앗을 찾는 질문 8가지,<br>이메일로 무료 PDF를 보내드려요.</p><button class="last-btn" onclick="openLeadModal()">무료 질문지 받기</button></div><div class="last-icon">🌱📖</div></div>
 </div>
@@ -2746,6 +2746,7 @@ const CURRENT_PROGRAMS = [{
   price: '공식 오픈 특가 59,000원 (정상가 75,000원)',
   location: '개띠랑책공방 · 동탄 라크몽 B동 2층 W241호',
   instructor: '',
+  is_open: true,
   badge_type: '현재 모집 중 · 3회 과정',
   stat1_label: '대상', stat1_value: '성인 3–6명',
   stat2_label: '시간', stat2_value: '화 10:00',
@@ -2764,6 +2765,7 @@ const CURRENT_PROGRAMS = [{
   price: '1회 10,000원',
   location: '개띠랑책공방 · 동탄 라크몽 B동 2층 W241호',
   instructor: '두루(장진호)',
+  is_open: false,
   badge_type: '9월 회차 마감 · 다음 일정 확인',
   stat1_label: '대상', stat1_value: '직장인 · 4명',
   stat2_label: '상태', stat2_value: '9.16 마감',
@@ -2782,6 +2784,7 @@ const CURRENT_PROGRAMS = [{
   price: '공식 오픈 특가 25,000원 (정상가 35,000원·재료 포함)',
   location: '개띠랑책공방 · 동탄 라크몽 B동 2층 W241호',
   instructor: '이다솜',
+  is_open: true,
   badge_type: '현재 모집 중 · 원데이',
   stat1_label: '대상', stat1_value: '성인 3–6명',
   stat2_label: '시간', stat2_value: '120분',
@@ -2800,6 +2803,7 @@ const CURRENT_PROGRAMS = [{
   price: '10회 50,000원',
   location: '경기상상캠퍼스 · 야외 숲 및 교육실',
   instructor: '',
+  is_open: true,
   badge_type: '현재 모집 중 · 숲숲학교 가을학기',
   stat1_label: '대상', stat1_value: '성인 · 15명',
   stat2_label: '기간', stat2_value: '9.20–11.22',
@@ -2809,6 +2813,23 @@ const CURRENT_PROGRAMS = [{
   apply_url: 'https://members.ggcf.kr/events/3451',
   apply_label: '공식 모집 페이지에서 신청하기'
 }];
+
+function programPlainTitle(program) {
+  return String(program.title || '').replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function getOpenPrograms() {
+  return CURRENT_PROGRAMS.filter(program => program.is_open === true);
+}
+
+function renderProgramHighlights() {
+  const open = getOpenPrograms();
+  const title = document.getElementById('homeProgramTitle');
+  const summary = document.getElementById('homeProgramSummary');
+  if (!title || !summary) return;
+  title.innerHTML = `지금 신청 가능한<br>프로그램 ${open.length}개`;
+  summary.innerHTML = open.map(programPlainTitle).join('<br>');
+}
 
 /* [★ 콘텐츠 CMS 연동] notices/programs/podcasts/books/authors/reviews를 Supabase에서 불러와 렌더링 */
 function renderNoticesUI(data) {
@@ -2906,6 +2927,7 @@ async function loadAllContent() {
     }
 
     renderProgramsUI(CURRENT_PROGRAMS);
+    renderProgramHighlights();
     renderNoticesUI(notRes.data);
     renderPodcastsUI(castRes.data);
     renderReviewsUI([]);
@@ -3553,7 +3575,11 @@ confetti({particleCount:150,spread:70,origin:{y:0.6}});
 function resetGame(){document.getElementById('gStep3').classList.remove('active');document.getElementById('gStep1').classList.add('active');document.getElementById('ansInput').value='';}
 
 const chatResponses = {
-'classes': `현재 모집 중인 수업은 이다솜의 ‘모든 감정 도감 아코디언 감정책 만들기’예요. 9월 12·19·26일 중 원하는 하루를 고르는 성인 원데이 클래스입니다.<br><button class="chat-btn" onclick="switchView('main','program')">수업 자세히 보기</button>`,
+'classes': () => {
+  const open = getOpenPrograms();
+  const names = open.map(p => `‘${programPlainTitle(p)}’`).join(', ');
+  return `현재 신청 가능한 프로그램은 ${open.length}개예요.<br>${names}<br><button class="chat-btn" onclick="switchView('main','program')">일정과 신청 링크 보기</button>`;
+},
 'apply': `현재 모집 중인 프로그램 카드를 열고 ‘네이버 예약에서 신청하기’를 누르면 날짜별 예약 화면으로 연결돼요. 책·카드 같은 상품은 스토어에서 구매하시면 됩니다.<br><button class="chat-btn" onclick="switchView('main','program')">신청하러 가기</button>`,
 'price': `프로그램마다 참가비가 달라서, 각 프로그램 카드를 열면 참가비와 일정이 함께 안내돼요. 책·카드 가격은 스토어에서 확인하실 수 있어요.<br><button class="chat-btn" onclick="switchView('main','program')">프로그램에서 확인</button> <button class="chat-btn" onclick="window.open('https://smartstore.naver.com/gaeddirang')">스토어에서 상품 보기</button>`,
 'location': `개띠랑 책공방은 <b>경기 화성 동탄 라크몽</b>에 있어요! 📍<br>경기도 화성시 동탄구 동탄대로5길 21, B동 W241호<br>방문 전 인스타 DM으로 한 번 확인해 주시면 더 좋아요.<br><button class="chat-btn" onclick="window.open('https://map.naver.com/p/entry/place/2052456243')">네이버 지도·길찾기</button> <button class="chat-btn" onclick="window.open('https://www.instagram.com/gaeddirangverse')">인스타로 문의</button>`,
@@ -3564,7 +3590,7 @@ const chatResponses = {
 'default': `더 궁금한 게 있다면 인스타 DM으로 편하게 물어봐 주세요 🐾`
 };
 function toggleChat() { const win = document.getElementById('chatWindow'); const tooltip = document.querySelector('.chat-tooltip'); win.classList.toggle('active'); if(win.classList.contains('active')) tooltip.style.display = 'none'; else tooltip.style.display = 'block'; }
-function sendChat(type, label) { const body = document.getElementById('chatBody'); const userDiv = document.createElement('div'); userDiv.className = 'chat-msg user'; userDiv.innerText = label || (typeof event !== 'undefined' && event.target ? event.target.innerText : ''); body.appendChild(userDiv); body.scrollTop = body.scrollHeight; setTimeout(() => { const botDiv = document.createElement('div'); botDiv.className = 'chat-msg bot'; botDiv.innerHTML = chatResponses[type] || chatResponses['default']; body.appendChild(botDiv); body.scrollTop = body.scrollHeight; }, 500); }
+function sendChat(type, label) { const body = document.getElementById('chatBody'); const userDiv = document.createElement('div'); userDiv.className = 'chat-msg user'; userDiv.innerText = label || (typeof event !== 'undefined' && event.target ? event.target.innerText : ''); body.appendChild(userDiv); body.scrollTop = body.scrollHeight; setTimeout(() => { const botDiv = document.createElement('div'); botDiv.className = 'chat-msg bot'; const response = chatResponses[type] || chatResponses['default']; botDiv.innerHTML = typeof response === 'function' ? response() : response; body.appendChild(botDiv); body.scrollTop = body.scrollHeight; }, 500); }
 
 (function() {
 let currentIdx = 0;
