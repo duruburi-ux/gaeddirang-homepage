@@ -1,0 +1,12 @@
+{
+  "name": "gaeddirang-homepage",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "qa:setup": "playwright install chromium",
+    "qa:visual": "playwright test -c playwright.config.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}
