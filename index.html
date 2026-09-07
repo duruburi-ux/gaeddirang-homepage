@@ -895,6 +895,21 @@ transition: 0.2s;
 z-index: 10;
 }
 .pm-close:hover { transform: rotate(90deg) scale(1.1); }
+.pm-nav {
+width: 100%; display: flex; align-items: center; justify-content: space-between;
+position: sticky; top: 0; z-index: 20; margin-bottom: 10px;
+}
+.pm-back, .pm-close { font-family: inherit; border: 0; cursor: pointer; }
+.pm-back {
+background: #fff; color: var(--pm-color); border: 2px solid var(--pm-color);
+border-radius: 999px; padding: 10px 16px; font-weight: 800;
+box-shadow: 3px 3px 0 var(--pm-color);
+}
+.pm-close {
+position: static; border-radius: 999px; width: auto; height: 45px; padding: 0 15px;
+font-size: 16px; gap: 7px;
+}
+.pm-close:hover { transform: translateY(-1px); }
 
 .pm-center-box {
 margin: 30px 0 50px;
@@ -2034,9 +2049,12 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 </div>
 </div>
 
-<div class="overlay-bg" id="programModal">
-<div class="pm-wrapper">
-<span class="pm-close" onclick="closeOverlay('programModal')">✕</span>
+<div class="overlay-bg" id="programModal" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+<div class="pm-wrapper" tabindex="-1">
+<div class="pm-nav">
+<button class="pm-back" type="button" onclick="closeOverlay('programModal')" aria-label="프로그램 목록으로 돌아가기">← 프로그램 목록</button>
+<button class="pm-close" type="button" onclick="closeOverlay('programModal')" aria-label="프로그램 상세 닫기"><span aria-hidden="true">✕</span> 닫기</button>
+</div>
 
 <div class="pm-center-box">
 <span class="pm-badge" id="pmType">WORKSHOP</span>
@@ -2068,7 +2086,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <span style="cu
 </div>
 </div>
 
-<button class="pm-apply-btn" id="pmApplyBtn" onclick="openCurrentProgramApply()">네이버 예약에서 신청하기</button>
+<button class="pm-apply-btn" id="pmApplyBtn" onclick="openCurrentProgramApply()">신청 페이지 확인하기</button>
 </div>
 </div>
 
@@ -2507,15 +2525,18 @@ prompt('이 링크를 복사해 공유하세요:', url);
 // [★ NEW: 프로그램 상세 모달 (카드 뒷면 효과 + 동적 컬러)]
 let programsInfo = {}; // Supabase에서 채워짐
 let currentProgramApplyUrl = '';
-function openProgramModal(type, fromUrl = false) {
+let lastProgramTrigger = null;
+function openProgramModal(type, fromUrl = false, trigger = null) {
 const p = programsInfo[type];
 if (!p) return;
+lastProgramTrigger = trigger?.querySelector('button') || document.activeElement;
 currentProgramApplyUrl = p.apply_url || '';
+document.getElementById('pmApplyBtn').textContent = p.apply_label || '신청 페이지 확인하기';
 
 // [딥링크] 주소창에 ?program=슬러그 반영 → 공유 가능
 if (!fromUrl) {
 const url = `${location.pathname}?program=${encodeURIComponent(type)}`;
-history.pushState({ program: type }, '', url);
+history.pushState({ program: type, programModalEntry: true }, '', url);
 }
 document.title = `${(p.title || '').replace(/<[^>]+>/g,' ').trim()} | 개띠랑`;
 const data = { color: p.border_color, type: p.badge_type, t: p.title, desc: p.description, target: p.target, time: p.time_info, benefit: p.benefit };
@@ -2544,6 +2565,8 @@ setFact('pmInstructorRow', 'pmInstructor', p.instructor);
 
 // 모달 열기
 document.getElementById('programModal').classList.add('active');
+document.body.style.overflow = 'hidden';
+document.querySelector('#programModal .pm-back')?.focus();
 }
 
 function openCurrentProgramApply() {
@@ -2681,12 +2704,20 @@ document.getElementById(id).classList.remove('active');
 if(id === 'authorModal') {
 document.body.classList.remove('author-modal-open');
 }
-// [딥링크] 책/프로그램 모달을 닫으면 주소를 기본으로 되돌림
-if ((id === 'detailModal' || id === 'programModal') && location.search) {
-history.pushState({}, '', location.pathname);
+// 카드에서 연 프로그램은 실제 뒤로가기로 닫고, 직접 들어온 딥링크만 현재 주소를 정리한다.
+if (id === 'programModal' && location.search) {
+if (history.state?.programModalEntry) history.back();
+else history.replaceState({}, '', location.pathname);
+document.title = '개띠랑 | 책공방';
+} else if (id === 'detailModal' && location.search) {
+history.replaceState({}, '', location.pathname);
 document.title = '개띠랑 | 책공방';
 }
 if (id === 'detailModal') clearBookJsonLd(); // [구조화 데이터] 책 닫으면 제거
+if (id === 'programModal' && lastProgramTrigger && typeof lastProgramTrigger.focus === 'function') {
+document.body.style.overflow = '';
+lastProgramTrigger.focus();
+}
 }
 
 function openOverlaySafe(id) {
@@ -2703,9 +2734,45 @@ const SUPABASE_URL = 'https://zrmljsyxeozcnfqmyumw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybWxqc3l4ZW96Y25mcW15dW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzkwNTAsImV4cCI6MjA5OTA1NTA1MH0.G31yEksYsiR43t2pWPwTdCrpBHcxLkZ4mYSvk5urZxQ';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 2026-09-07 운영 자료와 네이버 예약 공개 화면을 대조한 현재 모집 프로그램.
-// 일정·가격이 미확정인 과정과 지난 프로그램은 이 목록에 넣지 않는다.
+// 2026-09-07 최신 운영 자료와 공개 모집 화면을 대조한 프로그램 목록.
+// 공개 모집이 재확인되지 않은 과정은 상태와 신청 버튼에 그 사실을 명시한다.
 const CURRENT_PROGRAMS = [{
+  slug: 'ai-emotion-writing-sep-2026',
+  title: 'AI와 함께 나를 쓰는 시간:<br>희로애락 마음쓰기',
+  description: 'AI에게 글을 대신 맡기지 않고, 내가 먼저 쓴 희로애락의 장면을 챗GPT의 질문으로 구체화해 온전히 내 문장으로 다듬는 3회 글쓰기 과정입니다.',
+  target: 'AI를 글쓰기 도구로 안전하게 활용해보고 싶은 성인<br>챗GPT를 처음 사용하는 분도 참여할 수 있습니다.',
+  time_info: '2026년 9월 8·22·29일 화요일 10:00–12:00<br>첫 회차를 예약하면 세 회차 모두 등록되는 연속 과정',
+  benefit: '희로애락을 담은 네 편의 초고<br>그중 한 편을 온전히 내 문장으로 다듬은 글',
+  price: '공식 오픈 특가 59,000원 (정상가 75,000원)',
+  location: '개띠랑책공방 · 동탄 라크몽 B동 2층 W241호',
+  instructor: '',
+  badge_type: '현재 모집 중 · 3회 과정',
+  stat1_label: '대상', stat1_value: '성인 3–6명',
+  stat2_label: '시간', stat2_value: '화 10:00',
+  sort_order: 0, sort_no: 1, star_rating: 0,
+  border_color: '#4c5894', bg_color: '#eef0fb',
+  image_path: 'assets/images/programs/program-card-02.jpg',
+  apply_url: 'https://m.booking.naver.com/booking/6/bizes/1609502/items/8005014',
+  apply_label: '네이버 예약에서 신청하기'
+}, {
+  slug: 'after-work-writing-90-sep-2026',
+  title: '퇴근 후,<br>내 이야기를 쓰는 90분',
+  description: '하루를 흘려보내지 않고 질문과 대화를 따라 지금의 나를 짧은 글로 남기는 평일 저녁 글쓰기 모임입니다.',
+  target: '퇴근 뒤 내 이야기를 천천히 써보고 싶은 직장인 · 최대 4명<br>글을 잘 써야 한다는 부담 없이 참여할 수 있습니다.',
+  time_info: '2026년 9월 16일 수요일 · 90분<br>현재 공개된 회차는 예약 마감 상태입니다.',
+  benefit: '그날의 질문으로 완성한 짧은 글 한 편<br>혼자서는 지나치기 쉬운 마음을 돌아보는 시간',
+  price: '1회 10,000원',
+  location: '개띠랑책공방 · 동탄 라크몽 B동 2층 W241호',
+  instructor: '두루(장진호)',
+  badge_type: '9월 회차 마감 · 다음 일정 확인',
+  stat1_label: '대상', stat1_value: '직장인 · 4명',
+  stat2_label: '상태', stat2_value: '9.16 마감',
+  sort_order: 1, sort_no: 2, star_rating: 0,
+  border_color: '#285943', bg_color: '#e9f3ec',
+  image_path: 'assets/images/program-group-writing.webp',
+  apply_url: 'https://m.booking.naver.com/booking/6/bizes/1609502/items/8031041',
+  apply_label: '다음 예약 일정 확인하기'
+}, {
   slug: 'all-emotions-accordion-sep-2026',
   title: '모든 감정 도감<br>아코디언 감정책 만들기',
   description: '32종의 감정카드 중 마음에 닿는 한 장을 고르고, 그 감정이 머물렀던 장면을 기록해 손바닥 크기의 아코디언 감정책 한 권으로 완성합니다.',
@@ -2718,9 +2785,29 @@ const CURRENT_PROGRAMS = [{
   badge_type: '현재 모집 중 · 원데이',
   stat1_label: '대상', stat1_value: '성인 3–6명',
   stat2_label: '시간', stat2_value: '120분',
-  sort_order: 0, sort_no: 1,
+  sort_order: 2, sort_no: 3, star_rating: 0,
+  border_color: '#e15a35', bg_color: '#fff1e8',
   image_path: 'assets/books/dasom_all_emotions_atlas.jpg',
-  apply_url: 'https://booking.naver.com/booking/6/bizes/1609502/items/8004995'
+  apply_url: 'https://booking.naver.com/booking/6/bizes/1609502/items/8004995',
+  apply_label: '네이버 예약에서 신청하기'
+}, {
+  slug: 'forest-sentences-autumn-2026',
+  title: '숲의 문장들 2:<br>가을, 문장을 거두는 숲',
+  description: '가을 숲을 걷고 관찰하며 마음에 남은 장면과 문장을 기록하는 숲숲학교 가을학기 프로그램입니다.',
+  target: '숲과 글쓰기를 함께 경험하고 싶은 만 18세 이상 성인 · 정원 15명<br>전체 10회 참여를 권장합니다.',
+  time_info: '2026년 9월 20일–11월 22일<br>매주 일요일 10:00–12:00 · 총 10회',
+  benefit: '계절의 변화를 따라 쌓이는 관찰 기록과 문장<br>숲에서 함께 읽고 쓰는 10주의 경험',
+  price: '10회 50,000원',
+  location: '경기상상캠퍼스 · 야외 숲 및 교육실',
+  instructor: '',
+  badge_type: '현재 모집 중 · 숲숲학교 가을학기',
+  stat1_label: '대상', stat1_value: '성인 · 15명',
+  stat2_label: '기간', stat2_value: '9.20–11.22',
+  sort_order: 3, sort_no: 4, star_rating: 0,
+  border_color: '#806c25', bg_color: '#f5f1d8',
+  image_path: '', icon_emoji: '🌳✍️',
+  apply_url: 'https://members.ggcf.kr/events/3451',
+  apply_label: '공식 모집 페이지에서 신청하기'
 }];
 
 /* [★ 콘텐츠 CMS 연동] notices/programs/podcasts/books/authors/reviews를 Supabase에서 불러와 렌더링 */
@@ -2751,8 +2838,8 @@ function renderProgramsUI(data) {
   grid.innerHTML = (data || []).map(p => {
     programsInfo[p.slug] = p;
     const noStr = String(p.sort_no).padStart(2, '0');
-    const stars = '★'.repeat(p.star_rating) + '☆'.repeat(Math.max(0, 5 - p.star_rating));
-    return `<div class="prog-card" style="border-color:${p.border_color}; background:${p.bg_color};" onclick="openProgramModal('${p.slug}')">
+    const stars = p.star_rating ? '★'.repeat(p.star_rating) + '☆'.repeat(Math.max(0, 5 - p.star_rating)) : '';
+    return `<div class="prog-card" style="border-color:${p.border_color}; background:${p.bg_color};" onclick="openProgramModal('${p.slug}', false, this)">
 <div class="pc-header"><span>NO.${noStr}</span><span>${stars}</span></div>
 <div class="pc-img-area">${p.image_path ? `<img src="${p.image_path}" alt="${p.title.replace(/<[^>]+>/g, ' ')} 표지" loading="lazy">` : p.icon_emoji}</div>
 <div class="pc-body"><div class="pc-title">${p.title}</div><div class="pc-stat-bar"><span>${p.stat1_label}: ${p.stat1_value}</span><span>${p.stat2_label}: ${p.stat2_value}</span></div><button class="prog-btn-card">자세히 보기 ></button></div>
@@ -2853,6 +2940,7 @@ openProgramModal(progSlug, true);
 // 파라미터 없음 → 딥링크 모달들 닫기
 document.getElementById('detailModal').classList.remove('active');
 document.getElementById('programModal').classList.remove('active');
+document.body.style.overflow = '';
 document.title = '개띠랑 | 책공방';
 clearBookJsonLd();
 }
@@ -3551,7 +3639,21 @@ if(modal && modal.style.display === 'flex' && e.target === modal) closeNoticeMod
 });
 // ESC로 닫기
 document.addEventListener('keydown', (e)=>{
-if(e.key === 'Escape') closeNoticeModal();
+if(e.key === 'Escape') {
+  if (document.getElementById('programModal')?.classList.contains('active')) closeOverlay('programModal');
+  else closeNoticeModal();
+}
+if(e.key === 'Tab' && document.getElementById('programModal')?.classList.contains('active')) {
+  const focusable = [...document.querySelectorAll('#programModal button:not([disabled]), #programModal a[href]')];
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
+});
+document.getElementById('programModal')?.addEventListener('click', (e) => {
+  if (e.target.id === 'programModal') closeOverlay('programModal');
 });
 
 // 리스트 아이템에 클릭 바인딩 (data-속성 우선)
