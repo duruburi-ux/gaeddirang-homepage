@@ -1,0 +1,12 @@
+exclude:
+  - admin
+  - preview
+  - supabase
+  - tests
+  - SCM-RELEASE-STATUS.md
+  - README.md
+  - package.json
+  - package-lock.json
+  - node_modules
+  - .claude
+
