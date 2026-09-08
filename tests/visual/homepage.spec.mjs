@@ -26,6 +26,11 @@ for (const viewport of [
     await expect(page.locator('.prog-card')).toHaveCount(4);
     await expect(page.locator('#homeProgramTitle')).toContainText('프로그램 3개');
     await expect(page.locator('#nbListNews')).toContainText('늦은 합류 가능');
+    await expect(page.locator('#nbListNotice')).toContainText('책공방 방문 전 확인해 주세요');
+    await expect(page.locator('#nbListNotice')).toContainText('현재 모집 프로그램');
+    await expect(page.locator('#nbListNotice')).toContainText('주문·배송·교환 및 환불 안내');
+    await expect(page.locator('#nbListNotice')).not.toContainText('새로운 공간으로 이전');
+    await expect(page.locator('#nbListNotice')).not.toContainText('경기상상캠퍼스로 보금자리');
     await expect(page.locator('#nbListNews')).toContainText('빵!탐정 1화');
     await expect(page.locator('#nbListNews')).toContainText('입고 제안 진행 중');
     await expect(page.locator('#nbListNews')).toContainText('3차 입고 준비 중');
