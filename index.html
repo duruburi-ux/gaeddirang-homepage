@@ -2824,6 +2824,32 @@ const CURRENT_PROGRAMS = [{
   apply_label: '공식 모집 페이지에서 로그인 후 신청하기'
 }];
 
+const CURRENT_NOTICES = [{
+  category: 'notice',
+  title: '[이용 안내] 개띠랑 책공방 방문 전 확인해 주세요',
+  date_label: '09.08',
+  published_on: '2026-09-08',
+  body: '개띠랑 책공방은 경기도 화성시 동탄구 동탄대로5길 21, 라크몽 B동 W241호에 있습니다. 방문 전 운영 여부를 개띠랑 인스타그램 DM으로 확인해 주세요. 홈페이지 하단의 네이버 지도 링크에서 위치와 길찾기를 확인할 수 있습니다.'
+}, {
+  category: 'notice',
+  title: '[신청 안내] 현재 모집 프로그램은 프로그램 카드에서 확인해 주세요',
+  date_label: '09.08',
+  published_on: '2026-09-08',
+  body: '현재 신청 가능한 프로그램의 일정, 대상, 참가비와 모집 상태는 홈페이지 프로그램 카드에서 확인할 수 있습니다. 프로그램마다 연결된 네이버 예약 또는 공식 모집 페이지에서 신청해 주세요. 종료일이 지난 과정은 모집 개수에서 자동으로 제외됩니다.'
+}, {
+  category: 'notice',
+  title: '[배송 안내] 주문·배송·교환 및 환불 안내',
+  date_label: '09.08',
+  published_on: '2026-09-08',
+  body: '상품은 한진택배로 발송하며 배송비는 3,400원, 3만원 이상 구매 시 무료입니다. 입금 확인 후 2~3영업일 안에 발송하고, 발송 후 보통 1~3일 이내 도착합니다. 단순 변심은 수령 후 7일 이내 신청할 수 있으며 반품 배송비는 구매자 부담입니다. 파본이나 오배송은 개띠랑이 배송비를 부담해 교환해 드립니다.'
+}];
+
+const ARCHIVED_NOTICE_TITLES = new Set([
+  '[안내] 개띠랑 유니버스, 새로운 공간으로 이전을 준비합니다',
+  '[완료] 다원이음터 도서관 <내 마음을 톡! 감정 표현 교실> (이다솜 작가)',
+  '[이전] 3월, 경기상상캠퍼스로 보금자리를 옮깁니다 🚚',
+]);
+
 const CURRENT_NEWS = [{
   category: 'news',
   title: '[프로그램] 희로애락 마음쓰기 2기 시작 · 늦은 합류 가능',
@@ -2903,8 +2929,12 @@ function renderNoticesUI(data) {
   newsList.innerHTML = '';
   NOTICE_BODIES = {};
   const today = new Date();
-  const currentTitles = new Set(CURRENT_NEWS.map(n => n.title));
-  const merged = [...CURRENT_NEWS, ...(data || []).filter(n => !currentTitles.has(n.title))];
+  const currentTitles = new Set([...CURRENT_NOTICES, ...CURRENT_NEWS].map(n => n.title));
+  const merged = [
+    ...CURRENT_NOTICES,
+    ...CURRENT_NEWS,
+    ...(data || []).filter(n => !currentTitles.has(n.title) && !ARCHIVED_NOTICE_TITLES.has(n.title)),
+  ];
   const visible = [
     ...merged.filter(n => n.category !== 'news').slice(0, 3),
     ...merged.filter(n => n.category === 'news').slice(0, 4),
