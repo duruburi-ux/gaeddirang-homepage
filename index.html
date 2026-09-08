@@ -2745,15 +2745,16 @@ const CURRENT_PROGRAMS = [{
   title: 'AI와 함께 나를 쓰는 시간:<br>희로애락 마음쓰기',
   description: 'AI에게 글을 대신 맡기지 않고, 내가 먼저 쓴 희로애락의 장면을 챗GPT의 질문으로 구체화해 온전히 내 문장으로 다듬는 3회 글쓰기 과정입니다.',
   target: 'AI를 글쓰기 도구로 안전하게 활용해보고 싶은 성인<br>챗GPT를 처음 사용하는 분도 참여할 수 있습니다.',
-  time_info: '2026년 9월 8·22·29일 화요일 10:00–12:00<br>첫 회차를 예약하면 세 회차 모두 등록되는 연속 과정',
+  time_info: '2026년 9월 8·22·29일 화요일 10:00–12:00<br>9월 8일 시작 · 늦은 합류 가능 (남은 회차 참여 범위는 신청 전 확인)',
   benefit: '희로애락을 담은 네 편의 초고<br>그중 한 편을 온전히 내 문장으로 다듬은 글',
   price: '공식 오픈 특가 59,000원 (정상가 75,000원)',
   location: '개띠랑책공방 · 동탄 라크몽 B동 2층 W241호',
   instructor: '',
   is_open: true,
-  badge_type: '현재 모집 중 · 3회 과정',
+  start_date: '2026-09-08', end_date: '2026-09-29', late_join: true,
+  badge_type: '현재 모집 중 · 늦은 합류 가능',
   stat1_label: '대상', stat1_value: '성인 3–6명',
-  stat2_label: '시간', stat2_value: '화 10:00',
+  stat2_label: '상태', stat2_value: '늦은 합류 가능',
   sort_order: 0, sort_no: 1, star_rating: 0,
   border_color: '#4c5894', bg_color: '#eef0fb',
   image_path: 'assets/images/programs/program-card-02.jpg',
@@ -2770,6 +2771,7 @@ const CURRENT_PROGRAMS = [{
   location: '개띠랑책공방 · 동탄 라크몽 B동 2층 W241호',
   instructor: '두루(장진호)',
   is_open: false,
+  start_date: '2026-09-16', end_date: '2026-09-16', late_join: false,
   badge_type: '9월 회차 마감 · 다음 일정 확인',
   stat1_label: '대상', stat1_value: '직장인 · 4명',
   stat2_label: '상태', stat2_value: '9.16 마감',
@@ -2789,6 +2791,7 @@ const CURRENT_PROGRAMS = [{
   location: '개띠랑책공방 · 동탄 라크몽 B동 2층 W241호',
   instructor: '이다솜',
   is_open: true,
+  start_date: '2026-09-12', end_date: '2026-09-26', late_join: false,
   badge_type: '현재 모집 중 · 원데이',
   stat1_label: '대상', stat1_value: '성인 3–6명',
   stat2_label: '시간', stat2_value: '120분',
@@ -2808,6 +2811,7 @@ const CURRENT_PROGRAMS = [{
   location: '경기상상캠퍼스 · 야외 숲 및 교육실',
   instructor: '',
   is_open: true,
+  start_date: '2026-09-20', end_date: '2026-11-22', late_join: false,
   badge_type: '현재 모집 중 · 숲숲학교 가을학기',
   stat1_label: '대상', stat1_value: '성인 · 15명',
   stat2_label: '기간', stat2_value: '9.20–11.22',
@@ -2815,15 +2819,68 @@ const CURRENT_PROGRAMS = [{
   border_color: '#806c25', bg_color: '#f5f1d8',
   image_path: '', icon_emoji: '🌳✍️',
   apply_url: 'https://members.ggcf.kr/events/3451',
-  apply_label: '공식 모집 페이지에서 신청하기'
+  apply_label: '공식 모집 페이지에서 로그인 후 신청하기'
 }];
+
+const CURRENT_NEWS = [{
+  category: 'news',
+  title: '[프로그램] 희로애락 마음쓰기 2기 시작 · 늦은 합류 가능',
+  date_label: '09.08',
+  published_on: '2026-09-08',
+  body: '희로애락 마음쓰기 2기가 9월 8일 시작했습니다. 9월 22일과 29일 남은 회차에 늦게 합류할 수 있습니다. 참여 범위와 준비 사항은 네이버 예약에서 신청하기 전에 확인해 주세요.'
+}, {
+  category: 'news',
+  title: '[새 연재] 개띠랑 빵!탐정 1화, 9월 9일 공개 예정',
+  date_label: '09.09',
+  published_on: '2026-09-09',
+  body: '빵과 재료가 살아 움직이는 빵 미스터리 코미디 《개띠랑 빵!탐정》이 시작됩니다. 첫 이야기는 9월 9일 공개할 예정이며, 공개 채널은 개띠랑 SNS에서 안내합니다.'
+}, {
+  category: 'news',
+  title: '[유통] 《문고리》 교보문고·영풍문고 입고 제안 진행 중',
+  date_label: '09.08',
+  published_on: '2026-09-08',
+  body: '신태림 작가의 첫 단편소설집 《문고리》를 더 가까운 서점에서 만날 수 있도록 교보문고와 영풍문고에 오프라인 입고를 제안하고 있습니다. 현재는 제안 진행 단계이며 입점이나 진열이 확정된 상태는 아닙니다.'
+}, {
+  category: 'news',
+  title: '[책공방] 엄인용 《나는 언제 웃고 있었지?》 3차 입고 준비 중',
+  date_label: '09.08',
+  published_on: '2026-09-08',
+  body: '2026 숲숲학교의 기록에서 태어난 엄인용 작가의 첫 에세이 《나는 언제 웃고 있었지?》 3차 입고를 준비하고 있습니다. 현재 스마트스토어는 품절 상태이며, 입고가 완료되면 다시 안내하겠습니다.'
+}];
+
+const MOONGORI_BOOK = {
+  title: '문고리',
+  author: '글 신태림 · 북OST 신태림',
+  cat: 'book',
+  img: 'assets/moongori/cover.png',
+  spec: '출판사 : 개띠랑<br>발행일 : 2026.07.28<br>가격 : 17,000원<br>ISBN : 979-11-992715-2-4<br>사양 : 117×180mm · 188쪽',
+  desc: '<b>“불안은 엉뚱한 곳으로 튄다.”</b><br>평범한 일상 속 사물과 관계에 숨어 있던 불안을 따라가는 신태림 작가의 첫 단편소설집입니다. 여섯 편의 단편과 작가가 직접 만든 여섯 곡의 북OST를 함께 만날 수 있습니다.',
+  price: 17000
+};
 
 function programPlainTitle(program) {
   return String(program.title || '').replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 }
 
+function isProgramOpen(program) {
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  return program.is_open === true && (!program.end_date || program.end_date >= today);
+}
+
+function programForDisplay(program) {
+  if (isProgramOpen(program) || program.is_open === false) return program;
+  return {
+    ...program,
+    is_open: false,
+    badge_type: '일정 종료 · 다음 일정 확인',
+    stat2_label: '상태',
+    stat2_value: '일정 종료',
+    apply_label: '다음 일정 확인하기',
+  };
+}
+
 function getOpenPrograms() {
-  return CURRENT_PROGRAMS.filter(program => program.is_open === true);
+  return CURRENT_PROGRAMS.filter(isProgramOpen);
 }
 
 function renderProgramHighlights() {
@@ -2844,7 +2901,13 @@ function renderNoticesUI(data) {
   newsList.innerHTML = '';
   NOTICE_BODIES = {};
   const today = new Date();
-  (data || []).forEach(n => {
+  const currentTitles = new Set(CURRENT_NEWS.map(n => n.title));
+  const merged = [...CURRENT_NEWS, ...(data || []).filter(n => !currentTitles.has(n.title))];
+  const visible = [
+    ...merged.filter(n => n.category !== 'news').slice(0, 3),
+    ...merged.filter(n => n.category === 'news').slice(0, 4),
+  ];
+  visible.forEach(n => {
     NOTICE_BODIES[n.title] = n.body;
     const li = document.createElement('li');
     li.className = 'nb-item';
@@ -2874,7 +2937,8 @@ function renderProgramsUI(data) {
   const grid = document.getElementById('progGrid');
   if (!grid) return;
   programsInfo = {};
-  grid.innerHTML = (data || []).map(p => {
+  grid.innerHTML = (data || []).map(program => {
+    const p = programForDisplay(program);
     programsInfo[p.slug] = p;
     const noStr = String(p.sort_no).padStart(2, '0');
     const stars = p.star_rating ? '★'.repeat(p.star_rating) + '☆'.repeat(Math.max(0, 5 - p.star_rating)) : '';
@@ -2936,7 +3000,10 @@ async function loadAllContent() {
       supabaseClient.from('authors').select('*').order('sort_order'),
     ]);
 
-    books = (bookRes.data || []).map(b => ({ title: b.title, author: b.author, cat: b.category, img: b.img_path, spec: b.spec, desc: b.description, price: b.price }));
+    books = [
+      MOONGORI_BOOK,
+      ...(bookRes.data || []).filter(b => b.title !== MOONGORI_BOOK.title).map(b => ({ title: b.title, author: b.author, cat: b.category, img: b.img_path, spec: b.spec, desc: b.description, price: b.price })),
+    ];
     if (typeof renderBooks === 'function') renderBooks('all');
 
     renderAuthorsUI(authRes.data);
