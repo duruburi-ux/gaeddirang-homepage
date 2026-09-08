@@ -1374,6 +1374,10 @@ background: rgba(0, 0, 0, 0.5);
 .project-kicker{font-size:12px;letter-spacing:2px;color:var(--accent);font-weight:900}
 .project-title{font-family:'Gowun Batang',serif;font-size:clamp(34px,5vw,54px);line-height:1.16;color:var(--brown);margin:9px 0 12px}
 .project-lead{color:#746b64;font-size:16px;line-height:1.75}
+.team-activity{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:0 0 38px}
+.team-person{border-radius:22px;padding:22px;background:#FDE8BF;color:var(--brown)}.team-person:nth-child(2){background:#DDEBB0}.team-person:nth-child(3){background:#CBE4F5}
+.team-person-name{display:flex;align-items:center;gap:9px;font-family:'Gowun Batang',serif;font-size:24px;font-weight:800;margin-bottom:5px}.team-person-role{font-size:12px;font-weight:900;opacity:.72;margin-bottom:13px}
+.team-person p{font-size:13px;line-height:1.65;margin:0 0 14px}.team-person ul{list-style:none;margin:0;padding:12px 0 0;border-top:1px solid rgba(78,59,49,.16)}.team-person li{font-size:12px;line-height:1.55;font-weight:750;margin:4px 0}
 .project-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
 .project-card{position:relative;overflow:hidden;background:#fff;border:1px solid #e7ddd2;border-radius:30px;padding:28px;display:flex;flex-direction:column;gap:13px;min-height:390px;box-shadow:0 12px 34px rgba(82,62,48,.06);transition:transform .22s ease,box-shadow .22s ease}
 .project-card:hover{transform:translateY(-5px);box-shadow:0 20px 44px rgba(82,62,48,.12)}
@@ -1409,6 +1413,7 @@ background: rgba(0, 0, 0, 0.5);
 .project-detail-title{font-family:'Gowun Batang',serif;color:var(--brown);font-size:clamp(30px,5vw,46px);line-height:1.25;margin:9px 0 8px}.project-detail-period{font-weight:800;color:#77685e}
 .project-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.project-detail-box{border:1px solid #eadfd6;border-radius:18px;padding:20px}.project-detail-box h4{color:var(--brown);font-size:15px;margin:0 0 9px}.project-detail-box p{color:#6f655d;line-height:1.75;font-size:14px;margin:0;white-space:pre-line}
 .project-detail-photo{margin-top:16px;border:2px dashed #ddcfc4;border-radius:18px;padding:24px;text-align:center;color:#8b7c72;background:#FAF7F3;font-size:13px;line-height:1.6}
+@media(max-width:800px){.team-activity{grid-template-columns:1fr}.team-person{padding:19px}}
 @media(max-width:620px){.project-detail-wrap{padding:18px;border-radius:24px}.project-detail-hero{padding:24px}.project-detail-grid{grid-template-columns:1fr}}
 @media(max-width:720px){.sec-projects{padding-top:38px}.project-grid{grid-template-columns:1fr;gap:16px}.project-card,.project-card.featured{grid-column:auto;display:flex;min-height:0;padding:22px;border-radius:24px}.project-card.featured .project-visual{order:-1;width:auto;height:190px;min-height:0;margin:-22px -22px 7px}.project-visual{height:125px;margin:-22px -22px 7px}.project-card.featured h3{font-size:30px}.project-no{font-size:58px}}
 
@@ -1823,6 +1828,23 @@ background: rgba(0, 0, 0, 0.5);
 <h2 class="project-title">기록이 책과 수업,<br>새로운 이야기로 이어진 과정</h2>
 <p class="project-lead">개띠랑은 출판부터 공공문화 프로그램, 도서관 기록 수업, 오리지널 콘텐츠까지 함께 기획하고 운영합니다. 완료된 결과와 현재 이어가는 일을 확인된 범위에서 소개합니다.</p>
 </div>
+<div class="team-activity" aria-label="팀 개띠랑의 활동 영역">
+<article class="team-person">
+<div class="team-person-name">🌿 이다솜</div><div class="team-person-role">작가 · 감정 기록가 · 숲 해설가</div>
+<p>감정카드와 질문, AI 글쓰기를 연결해 어린이부터 성인까지 자기 경험을 자기 문장으로 남기도록 돕습니다.</p>
+<ul><li>도서관·학교·복지기관 감정 기록</li><li>생성형 AI 글쓰기 장기 과정</li><li>숲 관찰·감정 ZINE과 책 만들기</li></ul>
+</article>
+<article class="team-person">
+<div class="team-person-name">🎨 개띠랑</div><div class="team-person-role">이진이 · 작가 · 일러스트레이터 · 편집자</div>
+<p>사람들의 기록이 눈에 보이는 책과 이미지가 되도록 편집하고, 캐릭터와 만들기를 결합한 창작 경험을 설계합니다.</p>
+<ul><li>출판 편집·디자인과 책 제작</li><li>아동 ZINE·캐릭터 창작 수업</li><li>개띠랑 오리지널 IP 개발</li></ul>
+</article>
+<article class="team-person">
+<div class="team-person-name">✍️ 두루</div><div class="team-person-role">장진호 · 기획자 · 작가 · 인문학 강사</div>
+<p>일상의 경험을 발견하는 질문과 글쓰기 과정을 기획하고, 시민의 기록이 한 편의 글과 책으로 이어지도록 함께합니다.</p>
+<ul><li>도서관 시민 기록 장기 과정</li><li>인문학·생애 기록 워크숍</li><li>프로젝트 기획과 기록 아카이빙</li></ul>
+</article>
+</div>
 <div class="project-grid">
 <article class="project-card featured" role="button" tabindex="0" aria-label="숲숲학교 프로젝트 자세히 보기" onclick="openProjectDetail('forest',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('forest',this)}" data-project="숲숲학교 숲의 문장들 경기상상캠퍼스 책 만들기">
 <span class="project-no" aria-hidden="true">01</span>
@@ -1833,8 +1855,16 @@ background: rgba(0, 0, 0, 0.5);
 <div class="project-result">봄학기 10회 운영 · 참여자의 아홉 권 개인 책 완성<br>가을학기 2026.09.20–11.22 운영</div>
 <a class="project-link" href="https://members.ggcf.kr/events/3451" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">가을학기 공식 안내 보기 →</a>
 </article>
-<article class="project-card" role="button" tabindex="0" aria-label="대림도서관 기록공작소 자세히 보기" onclick="openProjectDetail('daerim',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('daerim',this)}" data-project="대림도서관 기록공작소 마음기록공작소 나의 계절 도감">
+<article class="project-card" role="button" tabindex="0" aria-label="이다솜 감정 AI 기록 프로그램 자세히 보기" onclick="openProjectDetail('dasom-programs',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('dasom-programs',this)}" data-project="이다솜 감정 기록 AI 글쓰기 도서관 학교 복지기관 병점 향남 둥지나래 노을빛 삼괴 동탄중앙 다원이음터">
 <span class="project-no" aria-hidden="true">02</span>
+<div class="project-visual" aria-hidden="true"><span class="project-symbol">💛📝</span></div>
+<div class="project-meta"><span class="project-tag">감정 기록 · AI 글쓰기</span><span class="project-status">2024–2026 · 확장 중</span></div>
+<h3>이다솜의 감정·AI 기록 프로그램</h3>
+<p>감정을 정답처럼 설명하지 않고, 참여자가 자기 경험에서 장면과 문장을 발견하도록 돕는 프로그램입니다. 도서관·학교·평생학습·복지 현장에서 연령과 목적에 맞게 이어가고 있습니다.</p>
+<div class="project-result">2026 병점·향남·둥지나래·노을빛·삼괴 등 운영<br>감정카드 · 글쓰기 · 관찰 ZINE · 생성형 AI 활용</div>
+</article>
+<article class="project-card" role="button" tabindex="0" aria-label="대림도서관 기록공작소 자세히 보기" onclick="openProjectDetail('daerim',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('daerim',this)}" data-project="대림도서관 기록공작소 마음기록공작소 나의 계절 도감">
+<span class="project-no" aria-hidden="true">03</span>
 <div class="project-visual" aria-hidden="true"><span class="project-symbol">🍂✍️</span></div>
 <div class="project-meta"><span class="project-tag">도서관 · 시민기록</span><span class="project-status">2025–2026 · 진행 중</span></div>
 <h3>대림도서관 기록공작소</h3>
@@ -1842,7 +1872,7 @@ background: rgba(0, 0, 0, 0.5);
 <div class="project-result">6기 2026.08.20–10.15 · 8회 과정<br>완성 기록을 함께 나누는 출간기념회 예정</div>
 </article>
 <article class="project-card" role="button" tabindex="0" aria-label="개띠랑 빵탐정 프로젝트 자세히 보기" onclick="openProjectDetail('detective',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('detective',this)}" data-project="개띠랑 빵탐정 오리지널 IP 미스터리 코미디 연재">
-<span class="project-no" aria-hidden="true">03</span>
+<span class="project-no" aria-hidden="true">04</span>
 <div class="project-visual" aria-hidden="true"><span class="project-symbol">🥐🔎</span></div>
 <div class="project-meta"><span class="project-tag">오리지널 IP · 연재</span><span class="project-status">2026.09– · 공개 시작</span></div>
 <h3>개띠랑 빵!탐정</h3>
@@ -1851,7 +1881,7 @@ background: rgba(0, 0, 0, 0.5);
 <a class="project-link" href="https://www.instagram.com/gaeddirangverse/" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">개띠랑 인스타그램에서 보기 →</a>
 </article>
 <article class="project-card" role="button" tabindex="0" aria-label="문고리 출간 프로젝트 자세히 보기" onclick="openProjectDetail('moongori-project',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('moongori-project',this)}" data-project="문고리 신태림 단편소설집 북OST 출판 북토크">
-<span class="project-no" aria-hidden="true">04</span>
+<span class="project-no" aria-hidden="true">05</span>
 <div class="project-visual" aria-hidden="true"><span class="project-symbol">📕🎧</span></div>
 <div class="project-meta"><span class="project-tag">출판 · 음악</span><span class="project-status">2026.07 · 출간</span></div>
 <h3>《문고리》 출간과 북OST</h3>
@@ -1860,7 +1890,7 @@ background: rgba(0, 0, 0, 0.5);
 <button class="project-link" type="button" onclick="event.stopPropagation();switchView('main','moongori')">책 자세히 보기 →</button>
 </article>
 <article class="project-card" role="button" tabindex="0" aria-label="흥업초 호저초 책 만들기 자세히 보기" onclick="openProjectDetail('schools',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('schools',this)}" data-project="문막교육도서관 한 학기 한 권 읽기 출판 과정 원주 흥업초 호저초 감정탐험대 공동문집">
-<span class="project-no" aria-hidden="true">05</span>
+<span class="project-no" aria-hidden="true">06</span>
 <div class="project-visual" aria-hidden="true"><span class="project-symbol">🏫📚</span></div>
 <div class="project-meta"><span class="project-tag">학교 · 출판교육</span><span class="project-status">2026.04–07 · 완료</span></div>
 <h3>흥업초·호저초 책 만들기</h3>
@@ -2654,6 +2684,7 @@ prompt('이 링크를 복사해 공유하세요:', url);
 
 const PROJECT_DETAILS = {
 forest:{type:'공공문화 · 출판교육',title:'숲숲학교 〈숲의 문장들〉',period:'2026.05–11 · 경기상상캠퍼스',intro:'숲을 읽고 걷고 쓰며 각자의 기록을 한 권의 책으로 완성하는 봄·가을 10회 과정입니다.',process:'숲 관찰과 인문 활동\n개인 글쓰기와 원고 발전\n편집과 책 만들기\n완성한 책 함께 나누기',role:'프로그램 전체 기획·운영\n기록 수업 진행\n개인 원고의 책 제작 과정 지원',result:'봄학기 10회 운영\n아홉 권의 개인 책 완성\n가을학기 2026.09.20–11.22 운영'},
+'dasom-programs':{type:'감정 기록 · AI 글쓰기',title:'이다솜의 감정·AI 기록 프로그램',period:'2024–2026 · 도서관·학교·평생학습·복지기관',intro:'감정을 가르치거나 AI가 글을 대신 쓰게 하지 않고, 참여자가 자기 경험을 발견해 자기 말로 기록하도록 돕는 이다솜의 프로그램군입니다.',process:'감정카드로 현재 마음 발견\n경험 속 구체적인 장면 찾기\n글·그림·관찰 ZINE으로 표현\n필요한 과정에서 생성형 AI를 보조 도구로 활용',role:'이다솜 프로그램 기획·진행\n대상과 기관에 맞춘 커리큘럼 구성\n참여자의 언어를 지키는 질문과 피드백\n감정 기록 도구와 책 만들기 연결',result:'2026 병점도서관 감정기록 3회\n향남·둥지나래 장기 과정 각 10회\n노을빛 AI 창작활동 8회\n삼괴도서관×장안여중 숲 관찰 수업\n동탄중앙·다원이음터·오산장애인복지관 등 운영'},
 daerim:{type:'도서관 · 시민기록',title:'대림도서관 기록공작소',period:'2025–2026 · 영등포구립 대림도서관',intro:'시민이 자신의 마음과 계절을 관찰하고 글과 이미지로 엮어보는 연속 기록 과정입니다.',process:'5기 〈마음기록공작소〉\n6기 〈나의 계절 도감〉\n관찰·글쓰기·이미지 기록\n완성 기록 함께 나누기',role:'두루 진행\n회차별 기록 활동 구성\n개인의 기록이 한 권의 도감으로 이어지도록 지원',result:'6기 2026.08.20–10.15\n8회 과정 운영\n완성 기록 출간기념회 예정'},
 detective:{type:'오리지널 IP · 연재',title:'개띠랑 빵!탐정',period:'2026.09– · 개띠랑 오리지널 콘텐츠',intro:'빵과 재료가 살아 움직이는 세계에서 벌어지는 가볍고 조금 이상한 미스터리 코미디입니다.',process:'세계관과 캐릭터 기획\n파일럿 에피소드 제작\n티저 순차 공개\n연재 이야기 확장',role:'오리지널 IP 기획\n스토리·캐릭터 개발\n연재 콘텐츠 제작과 채널 운영',result:'파일럿 이야기 제작\n티저 공개\n1화 2026.09.09 공개 예정'},
 'moongori-project':{type:'출판 · 음악',title:'《문고리》 출간과 북OST',period:'2026.07 · 개띠랑 출판',intro:'신태림 작가의 첫 단편소설집을 여섯 곡의 음악과 함께 경험하는 ‘읽고 듣는 소설’로 선보인 출판 프로젝트입니다.',process:'단편 원고 편집·제작\n도서 디자인과 출간\n이야기별 북OST 연결\n출간 북토크 진행',role:'출판 기획·편집·제작\n도서 유통과 소개\n북OST 경험 설계',result:'단편소설 6편 수록\n북OST 6곡 제작\n2026.07.28 출간\n출간 북토크 진행'},

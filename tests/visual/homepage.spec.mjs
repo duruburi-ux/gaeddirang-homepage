@@ -52,8 +52,12 @@ for (const viewport of [
     await expect(page.locator('#programModal')).not.toHaveClass(/active/);
 
     await page.evaluate(() => switchView('main', 'projects'));
-    await expect(page.locator('.project-card')).toHaveCount(5);
-    await expect(page.locator('.project-card')).toContainText(['숲숲학교', '대림도서관', '빵!탐정', '문고리', '흥업초·호저초']);
+    await expect(page.locator('.team-person')).toHaveCount(3);
+    await expect(page.locator('.team-activity')).toContainText('이다솜');
+    await expect(page.locator('.team-activity')).toContainText('개띠랑');
+    await expect(page.locator('.team-activity')).toContainText('두루');
+    await expect(page.locator('.project-card')).toHaveCount(6);
+    await expect(page.locator('.project-card')).toContainText(['숲숲학교', '이다솜의 감정·AI 기록', '대림도서관', '빵!탐정', '문고리', '흥업초·호저초']);
     await expect(page).toHaveURL(/#projects$/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.locator('.project-card').first().click({ position: { x: 40, y: 40 } });
