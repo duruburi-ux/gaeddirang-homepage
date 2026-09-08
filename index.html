@@ -1378,7 +1378,13 @@ background: rgba(0, 0, 0, 0.5);
 .team-person{border-radius:22px;padding:22px;background:#FDE8BF;color:var(--brown)}.team-person:nth-child(2){background:#DDEBB0}.team-person:nth-child(3){background:#CBE4F5}
 .team-person-name{display:flex;align-items:center;gap:9px;font-family:'Gowun Batang',serif;font-size:24px;font-weight:800;margin-bottom:5px}.team-person-role{font-size:12px;font-weight:900;opacity:.72;margin-bottom:13px}
 .team-person p{font-size:13px;line-height:1.65;margin:0 0 14px}.team-person ul{list-style:none;margin:0;padding:12px 0 0;border-top:1px solid rgba(78,59,49,.16)}.team-person li{font-size:12px;line-height:1.55;font-weight:750;margin:4px 0}
+.project-browser{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0 0 18px}
+.project-browser-copy{font-size:14px;line-height:1.6;color:#746b64}.project-filter-count{display:block;margin-top:3px;color:var(--brown);font-size:12px;font-weight:900}
+.project-filters{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+.project-filter{border:1px solid #ddcfc4;background:#fff;color:var(--brown);border-radius:999px;padding:9px 14px;font-family:inherit;font-size:13px;font-weight:850;cursor:pointer;white-space:nowrap;transition:background .18s ease,color .18s ease,border-color .18s ease}
+.project-filter:hover{border-color:var(--accent)}.project-filter.active{background:var(--brown);border-color:var(--brown);color:#fff}.project-filter:focus-visible{outline:3px solid rgba(234,106,56,.32);outline-offset:2px}
 .project-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.project-card[hidden]{display:none!important}
 .project-card{position:relative;overflow:hidden;background:#fff;border:1px solid #e7ddd2;border-radius:30px;padding:28px;display:flex;flex-direction:column;gap:13px;min-height:390px;box-shadow:0 12px 34px rgba(82,62,48,.06);transition:transform .22s ease,box-shadow .22s ease}
 .project-card:hover{transform:translateY(-5px);box-shadow:0 20px 44px rgba(82,62,48,.12)}
 .project-card:nth-child(2){background:#F7F9ED}.project-card:nth-child(3){background:#F2F8FC}.project-card:nth-child(4){background:#FBF6EE}.project-card:nth-child(5){background:#F7F3FC}
@@ -1413,7 +1419,7 @@ background: rgba(0, 0, 0, 0.5);
 .project-detail-title{font-family:'Gowun Batang',serif;color:var(--brown);font-size:clamp(30px,5vw,46px);line-height:1.25;margin:9px 0 8px}.project-detail-period{font-weight:800;color:#77685e}
 .project-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.project-detail-box{border:1px solid #eadfd6;border-radius:18px;padding:20px}.project-detail-box h4{color:var(--brown);font-size:15px;margin:0 0 9px}.project-detail-box p{color:#6f655d;line-height:1.75;font-size:14px;margin:0;white-space:pre-line}
 .project-detail-photo{margin-top:16px;border:2px dashed #ddcfc4;border-radius:18px;padding:24px;text-align:center;color:#8b7c72;background:#FAF7F3;font-size:13px;line-height:1.6}
-@media(max-width:800px){.team-activity{grid-template-columns:1fr}.team-person{padding:19px}}
+@media(max-width:800px){.team-activity{grid-template-columns:1fr}.team-person{padding:19px}.project-browser{display:block}.project-filters{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;margin:14px -5vw 0;padding:0 5vw 7px;scrollbar-width:none}.project-filters::-webkit-scrollbar{display:none}}
 @media(max-width:620px){.project-detail-wrap{padding:18px;border-radius:24px}.project-detail-hero{padding:24px}.project-detail-grid{grid-template-columns:1fr}}
 @media(max-width:720px){.sec-projects{padding-top:38px}.project-grid{grid-template-columns:1fr;gap:16px}.project-card,.project-card.featured{grid-column:auto;display:flex;min-height:0;padding:22px;border-radius:24px}.project-card.featured .project-visual{order:-1;width:auto;height:190px;min-height:0;margin:-22px -22px 7px}.project-visual{height:125px;margin:-22px -22px 7px}.project-card.featured h3{font-size:30px}.project-no{font-size:58px}}
 
@@ -1845,8 +1851,18 @@ background: rgba(0, 0, 0, 0.5);
 <ul><li>도서관 시민 기록 장기 과정</li><li>인문학·생애 기록 워크숍</li><li>프로젝트 기획과 기록 아카이빙</li></ul>
 </article>
 </div>
+<div class="project-browser">
+<div class="project-browser-copy">관심 있는 사람의 활동만 골라보세요. 카드를 누르면 진행 과정과 맡은 역할을 자세히 볼 수 있습니다.<span class="project-filter-count" id="projectFilterCount" aria-live="polite">프로젝트 6개</span></div>
+<div class="project-filters" role="group" aria-label="프로젝트 참여자 필터">
+<button class="project-filter active" type="button" data-filter="all" aria-pressed="true" onclick="filterProjects('all',this)">전체</button>
+<button class="project-filter" type="button" data-filter="dasom" aria-pressed="false" onclick="filterProjects('dasom',this)">이다솜</button>
+<button class="project-filter" type="button" data-filter="gaeddit" aria-pressed="false" onclick="filterProjects('gaeddit',this)">개띠랑</button>
+<button class="project-filter" type="button" data-filter="duru" aria-pressed="false" onclick="filterProjects('duru',this)">두루</button>
+<button class="project-filter" type="button" data-filter="team" aria-pressed="false" onclick="filterProjects('team',this)">팀 프로젝트</button>
+</div>
+</div>
 <div class="project-grid">
-<article class="project-card featured" role="button" tabindex="0" aria-label="숲숲학교 프로젝트 자세히 보기" onclick="openProjectDetail('forest',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('forest',this)}" data-project="숲숲학교 숲의 문장들 경기상상캠퍼스 책 만들기">
+<article class="project-card featured" role="button" tabindex="0" aria-label="숲숲학교 프로젝트 자세히 보기" onclick="openProjectDetail('forest',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('forest',this)}" data-team="team dasom gaeddit duru" data-project="숲숲학교 숲의 문장들 경기상상캠퍼스 책 만들기">
 <span class="project-no" aria-hidden="true">01</span>
 <div class="project-visual" aria-hidden="true"><span class="project-symbol">🌳📖</span></div>
 <div class="project-meta"><span class="project-tag">공공문화 · 출판교육</span><span class="project-status">2026.05–11 · 진행 중</span></div>
@@ -1855,7 +1871,7 @@ background: rgba(0, 0, 0, 0.5);
 <div class="project-result">봄학기 10회 운영 · 참여자의 아홉 권 개인 책 완성<br>가을학기 2026.09.20–11.22 운영</div>
 <a class="project-link" href="https://members.ggcf.kr/events/3451" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">가을학기 공식 안내 보기 →</a>
 </article>
-<article class="project-card" role="button" tabindex="0" aria-label="이다솜 감정 AI 기록 프로그램 자세히 보기" onclick="openProjectDetail('dasom-programs',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('dasom-programs',this)}" data-project="이다솜 감정 기록 AI 글쓰기 도서관 학교 복지기관 병점 향남 둥지나래 노을빛 삼괴 동탄중앙 다원이음터">
+<article class="project-card" role="button" tabindex="0" aria-label="이다솜 감정 AI 기록 프로그램 자세히 보기" onclick="openProjectDetail('dasom-programs',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('dasom-programs',this)}" data-team="dasom" data-project="이다솜 감정 기록 AI 글쓰기 도서관 학교 복지기관 병점 향남 둥지나래 노을빛 삼괴 동탄중앙 다원이음터">
 <span class="project-no" aria-hidden="true">02</span>
 <div class="project-visual" aria-hidden="true"><span class="project-symbol">💛📝</span></div>
 <div class="project-meta"><span class="project-tag">감정 기록 · AI 글쓰기</span><span class="project-status">2024–2026 · 확장 중</span></div>
@@ -1863,7 +1879,7 @@ background: rgba(0, 0, 0, 0.5);
 <p>감정을 정답처럼 설명하지 않고, 참여자가 자기 경험에서 장면과 문장을 발견하도록 돕는 프로그램입니다. 도서관·학교·평생학습·복지 현장에서 연령과 목적에 맞게 이어가고 있습니다.</p>
 <div class="project-result">2026 병점·향남·둥지나래·노을빛·삼괴 등 운영<br>감정카드 · 글쓰기 · 관찰 ZINE · 생성형 AI 활용</div>
 </article>
-<article class="project-card" role="button" tabindex="0" aria-label="대림도서관 기록공작소 자세히 보기" onclick="openProjectDetail('daerim',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('daerim',this)}" data-project="대림도서관 기록공작소 마음기록공작소 나의 계절 도감">
+<article class="project-card" role="button" tabindex="0" aria-label="대림도서관 기록공작소 자세히 보기" onclick="openProjectDetail('daerim',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('daerim',this)}" data-team="duru" data-project="대림도서관 기록공작소 마음기록공작소 나의 계절 도감">
 <span class="project-no" aria-hidden="true">03</span>
 <div class="project-visual" aria-hidden="true"><span class="project-symbol">🍂✍️</span></div>
 <div class="project-meta"><span class="project-tag">도서관 · 시민기록</span><span class="project-status">2025–2026 · 진행 중</span></div>
@@ -1871,7 +1887,7 @@ background: rgba(0, 0, 0, 0.5);
 <p>마음과 계절을 관찰하고 글과 이미지로 엮어보는 시민 기록 과정입니다. 5기 〈마음기록공작소〉에 이어 6기 〈나의 계절 도감〉을 두루가 진행합니다.</p>
 <div class="project-result">6기 2026.08.20–10.15 · 8회 과정<br>완성 기록을 함께 나누는 출간기념회 예정</div>
 </article>
-<article class="project-card" role="button" tabindex="0" aria-label="개띠랑 빵탐정 프로젝트 자세히 보기" onclick="openProjectDetail('detective',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('detective',this)}" data-project="개띠랑 빵탐정 오리지널 IP 미스터리 코미디 연재">
+<article class="project-card" role="button" tabindex="0" aria-label="개띠랑 빵탐정 프로젝트 자세히 보기" onclick="openProjectDetail('detective',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('detective',this)}" data-team="gaeddit" data-project="개띠랑 빵탐정 오리지널 IP 미스터리 코미디 연재">
 <span class="project-no" aria-hidden="true">04</span>
 <div class="project-visual" aria-hidden="true"><span class="project-symbol">🥐🔎</span></div>
 <div class="project-meta"><span class="project-tag">오리지널 IP · 연재</span><span class="project-status">2026.09– · 공개 시작</span></div>
@@ -1880,7 +1896,7 @@ background: rgba(0, 0, 0, 0.5);
 <div class="project-result">티저 공개 · 1화 2026.09.09 공개 예정</div>
 <a class="project-link" href="https://www.instagram.com/gaeddirangverse/" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">개띠랑 인스타그램에서 보기 →</a>
 </article>
-<article class="project-card" role="button" tabindex="0" aria-label="문고리 출간 프로젝트 자세히 보기" onclick="openProjectDetail('moongori-project',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('moongori-project',this)}" data-project="문고리 신태림 단편소설집 북OST 출판 북토크">
+<article class="project-card" role="button" tabindex="0" aria-label="문고리 출간 프로젝트 자세히 보기" onclick="openProjectDetail('moongori-project',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('moongori-project',this)}" data-team="gaeddit" data-project="문고리 신태림 단편소설집 북OST 출판 북토크">
 <span class="project-no" aria-hidden="true">05</span>
 <div class="project-visual" aria-hidden="true"><span class="project-symbol">📕🎧</span></div>
 <div class="project-meta"><span class="project-tag">출판 · 음악</span><span class="project-status">2026.07 · 출간</span></div>
@@ -1889,7 +1905,7 @@ background: rgba(0, 0, 0, 0.5);
 <div class="project-result">단편 6편 · 북OST 6곡 · 출간 북토크 진행</div>
 <button class="project-link" type="button" onclick="event.stopPropagation();switchView('main','moongori')">책 자세히 보기 →</button>
 </article>
-<article class="project-card" role="button" tabindex="0" aria-label="흥업초 호저초 책 만들기 자세히 보기" onclick="openProjectDetail('schools',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('schools',this)}" data-project="문막교육도서관 한 학기 한 권 읽기 출판 과정 원주 흥업초 호저초 감정탐험대 공동문집">
+<article class="project-card" role="button" tabindex="0" aria-label="흥업초 호저초 책 만들기 자세히 보기" onclick="openProjectDetail('schools',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('schools',this)}" data-team="team dasom gaeddit duru" data-project="문막교육도서관 한 학기 한 권 읽기 출판 과정 원주 흥업초 호저초 감정탐험대 공동문집">
 <span class="project-no" aria-hidden="true">06</span>
 <div class="project-visual" aria-hidden="true"><span class="project-symbol">🏫📚</span></div>
 <div class="project-meta"><span class="project-tag">학교 · 출판교육</span><span class="project-status">2026.04–07 · 완료</span></div>
@@ -2713,6 +2729,20 @@ lastProjectTrigger?.focus?.();
 if(!fromHistory&&history.state?.projectModal)history.back();
 }
 window.addEventListener('popstate',()=>closeProjectDetail(true));
+
+function filterProjects(filter, trigger){
+const cards=[...document.querySelectorAll('.project-card')];
+cards.forEach(card=>{card.hidden=filter!=='all'&&!card.dataset.team?.split(' ').includes(filter)});
+document.querySelectorAll('.project-filter').forEach(button=>{
+const active=button.dataset.filter===filter;
+button.classList.toggle('active',active);
+button.setAttribute('aria-pressed',String(active));
+});
+const visibleCount=cards.filter(card=>!card.hidden).length;
+const count=document.getElementById('projectFilterCount');
+if(count)count.textContent=`프로젝트 ${visibleCount}개`;
+trigger?.scrollIntoView?.({block:'nearest',inline:'nearest'});
+}
 
 // [★ NEW: 프로그램 상세 모달 (카드 뒷면 효과 + 동적 컬러)]
 let programsInfo = {}; // Supabase에서 채워짐

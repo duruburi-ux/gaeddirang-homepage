@@ -58,6 +58,13 @@ for (const viewport of [
     await expect(page.locator('.team-activity')).toContainText('두루');
     await expect(page.locator('.project-card')).toHaveCount(6);
     await expect(page.locator('.project-card')).toContainText(['숲숲학교', '이다솜의 감정·AI 기록', '대림도서관', '빵!탐정', '문고리', '흥업초·호저초']);
+    await expect(page.locator('.project-filter')).toHaveCount(5);
+    await page.getByRole('button', { name: '이다솜', exact: true }).click();
+    await expect(page.locator('.project-card:visible')).toHaveCount(3);
+    await expect(page.locator('#projectFilterCount')).toHaveText('프로젝트 3개');
+    await expect(page.locator('.project-card:visible')).toContainText(['숲숲학교', '이다솜의 감정·AI 기록', '흥업초·호저초']);
+    await page.getByRole('button', { name: '전체', exact: true }).click();
+    await expect(page.locator('.project-card:visible')).toHaveCount(6);
     await expect(page).toHaveURL(/#projects$/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.locator('.project-card').first().click({ position: { x: 40, y: 40 } });
