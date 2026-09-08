@@ -56,6 +56,13 @@ for (const viewport of [
     await expect(page.locator('.project-card')).toContainText(['숲숲학교', '대림도서관', '빵!탐정', '문고리', '흥업초·호저초']);
     await expect(page).toHaveURL(/#projects$/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.locator('.project-card').first().click({ position: { x: 40, y: 40 } });
+    await expect(page.locator('#projectModal')).toHaveClass(/active/);
+    await expect(page.locator('#projectDetailTitle')).toHaveText('숲숲학교 〈숲의 문장들〉');
+    await expect(page.locator('#projectDetailResult')).toContainText('아홉 권의 개인 책');
+    await expect(page.getByRole('button', { name: '프로젝트 상세 닫기' })).toBeVisible();
+    await page.getByRole('button', { name: '프로젝트 상세 닫기' }).click();
+    await expect(page.locator('#projectModal')).not.toHaveClass(/active/);
     await page.screenshot({ path: path.join(screenshotDir, `homepage-projects-${viewport.name}.png`), fullPage: true });
 
     await page.evaluate(() => switchView('main', 'library'));
