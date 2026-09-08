@@ -1367,6 +1367,26 @@ background: rgba(0, 0, 0, 0.5);
 @media(max-width:900px){.portals-row{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.portals-row{grid-template-columns:1fr}}
 
+/* ===== 프로젝트 아카이브 ===== */
+.sec-projects{background:var(--gray-bg);padding:58px 5vw 92px;min-height:72vh}
+.project-wrap{max-width:1180px;margin:0 auto}
+.project-head{max-width:760px;margin-bottom:34px}
+.project-kicker{font-size:12px;letter-spacing:2px;color:var(--accent);font-weight:900}
+.project-title{font-family:'Gowun Batang',serif;font-size:clamp(34px,5vw,54px);line-height:1.16;color:var(--brown);margin:9px 0 12px}
+.project-lead{color:#746b64;font-size:16px;line-height:1.75}
+.project-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.project-card{background:#fff;border:1px solid #e7ddd2;border-radius:24px;padding:25px;display:flex;flex-direction:column;gap:13px;min-height:285px}
+.project-card:nth-child(2){background:#F7F9ED}.project-card:nth-child(3){background:#F2F8FC}.project-card:nth-child(4){background:#FBF6EE}.project-card:nth-child(5){background:#F7F3FC}
+.project-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.project-tag,.project-status{font-size:12px;font-weight:900;border-radius:999px;padding:6px 10px}
+.project-tag{background:var(--brown);color:#fff}.project-status{background:#FDE8BF;color:var(--brown)}
+.project-card h3{font-size:24px;line-height:1.3;color:var(--brown);margin:2px 0 0}
+.project-card p{font-size:14px;line-height:1.72;color:#6f655d;margin:0}
+.project-result{margin-top:auto;padding-top:12px;border-top:1px dashed #d9cec4;font-size:13px;font-weight:800;color:var(--brown);line-height:1.6}
+.project-link{width:max-content;max-width:100%;border:0;background:transparent;padding:0;color:var(--accent);font-family:inherit;font-size:13px;font-weight:900;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.project-note{margin-top:22px;padding:18px 20px;background:#fff;border-radius:16px;color:#746b64;font-size:14px;line-height:1.65}
+@media(max-width:720px){.sec-projects{padding-top:38px}.project-grid{grid-template-columns:1fr}.project-card{min-height:0}}
+
 /* ===== [화면 전환형] 활성 탭 강조 + 문고리 홈 버튼 ===== */
 .gnb a.nav-active, .gnb-sub a.nav-active{ color:var(--accent); font-weight:800; }
 .st-cta-row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
@@ -1488,6 +1508,7 @@ background: rgba(0, 0, 0, 0.5);
 </nav>
 <nav class="gnb-sub">
 <a onclick="switchView('publisher')">출판사 소개</a>
+<a onclick="switchView('main', 'projects')">프로젝트</a>
 <a onclick="switchView('main', 'game')">게임</a>
 <a onclick="switchView('main', 'gaedditv')">개띠랑TV</a>
 </nav>
@@ -1504,6 +1525,7 @@ background: rgba(0, 0, 0, 0.5);
 <a onclick="toggleMobileNav(); switchView('main', 'finder')">기록 도구</a>
 <a onclick="toggleMobileNav(); switchView('main', 'program')">프로그램</a>
 <a onclick="toggleMobileNav(); switchView('publisher')">출판사 소개</a>
+<a onclick="toggleMobileNav(); switchView('main', 'projects')">프로젝트</a>
 <a onclick="toggleMobileNav(); switchView('main', 'game')">게임</a>
 <a onclick="toggleMobileNav(); switchView('main', 'gaedditv')">개띠랑TV</a>
 <a class="mnav-cta" onclick="toggleMobileNav(); openEmotionModal()">기록 시작하기 ›</a>
@@ -1766,6 +1788,52 @@ background: rgba(0, 0, 0, 0.5);
 <div class="img-slot filled" style="aspect-ratio:16/7"><img src="assets/images/program-group-writing.webp" alt="글을 쓰는 두루·개띠랑·다솜" loading="lazy"></div>
 </div>
 <div class="prog-grid-wrap"><div class="prog-grid" id="progGrid"></div>
+</div>
+</section>
+
+<section data-cat="projects" class="sec-projects" id="projects">
+<div class="project-wrap">
+<div class="project-head">
+<div class="project-kicker">WHAT WE HAVE MADE</div>
+<h2 class="project-title">기록이 책과 수업,<br>새로운 이야기로 이어진 과정</h2>
+<p class="project-lead">개띠랑은 출판부터 공공문화 프로그램, 도서관 기록 수업, 오리지널 콘텐츠까지 함께 기획하고 운영합니다. 완료된 결과와 현재 이어가는 일을 확인된 범위에서 소개합니다.</p>
+</div>
+<div class="project-grid">
+<article class="project-card" data-project="숲숲학교 숲의 문장들 경기상상캠퍼스 책 만들기">
+<div class="project-meta"><span class="project-tag">공공문화 · 출판교육</span><span class="project-status">2026.05–11 · 진행 중</span></div>
+<h3>숲숲학교 〈숲의 문장들〉</h3>
+<p>경기상상캠퍼스의 숲을 읽고 걷고 쓰며, 각자의 기록을 한 권의 책으로 완성하는 10회 과정입니다. 개띠랑이 봄·가을 학기를 기획하고 운영합니다.</p>
+<div class="project-result">봄학기 10회 운영 · 참여자의 아홉 권 개인 책 완성<br>가을학기 2026.09.20–11.22 운영</div>
+<a class="project-link" href="https://members.ggcf.kr/events/3451" target="_blank" rel="noopener noreferrer">가을학기 공식 안내 보기 →</a>
+</article>
+<article class="project-card" data-project="대림도서관 기록공작소 마음기록공작소 나의 계절 도감">
+<div class="project-meta"><span class="project-tag">도서관 · 시민기록</span><span class="project-status">2025–2026 · 진행 중</span></div>
+<h3>대림도서관 기록공작소</h3>
+<p>마음과 계절을 관찰하고 글과 이미지로 엮어보는 시민 기록 과정입니다. 5기 〈마음기록공작소〉에 이어 6기 〈나의 계절 도감〉을 두루가 진행합니다.</p>
+<div class="project-result">6기 2026.08.20–10.15 · 8회 과정<br>완성 기록을 함께 나누는 출간기념회 예정</div>
+</article>
+<article class="project-card" data-project="개띠랑 빵탐정 오리지널 IP 미스터리 코미디 연재">
+<div class="project-meta"><span class="project-tag">오리지널 IP · 연재</span><span class="project-status">2026.09– · 공개 시작</span></div>
+<h3>개띠랑 빵!탐정</h3>
+<p>빵과 재료가 살아 움직이는 세계에서 벌어지는, 가볍고 조금 이상한 미스터리 코미디입니다. 파일럿 이야기를 시작으로 개띠랑의 새 연재 세계를 만들어갑니다.</p>
+<div class="project-result">티저 공개 · 1화 2026.09.09 공개 예정</div>
+<a class="project-link" href="https://www.instagram.com/gaeddirangverse/" target="_blank" rel="noopener noreferrer">개띠랑 인스타그램에서 보기 →</a>
+</article>
+<article class="project-card" data-project="문고리 신태림 단편소설집 북OST 출판 북토크">
+<div class="project-meta"><span class="project-tag">출판 · 음악</span><span class="project-status">2026.07 · 출간</span></div>
+<h3>《문고리》 출간과 북OST</h3>
+<p>신태림 작가의 첫 단편소설집을 기획·출간하고, 여섯 편의 이야기와 작가가 만든 여섯 곡을 함께 경험하는 ‘읽고 듣는 소설’로 선보였습니다.</p>
+<div class="project-result">단편 6편 · 북OST 6곡 · 출간 북토크 진행</div>
+<button class="project-link" type="button" onclick="switchView('main','moongori')">프로젝트 결과 자세히 보기 →</button>
+</article>
+<article class="project-card" data-project="문막교육도서관 한 학기 한 권 읽기 출판 과정 원주 흥업초 호저초 감정탐험대 공동문집">
+<div class="project-meta"><span class="project-tag">학교 · 출판교육</span><span class="project-status">2026.04–07 · 완료</span></div>
+<h3>흥업초·호저초 책 만들기</h3>
+<p>문막교육도서관 〈한 학기 한 권 읽기: 출판 과정〉으로 원주 흥업초와 호저초 학생들이 감정을 발견하고 글과 그림으로 표현하도록 함께했습니다. 개띠랑은 수업부터 원고 편집·디자인·인쇄까지 맡아 기록을 실제 책으로 완성했습니다.</p>
+<div class="project-result">학교별 수업 6회 + 출간기념회 1회<br>학교별 학급 공동문집 1종 · 총 두 권 출간</div>
+</article>
+</div>
+<p class="project-note">학교·도서관·기관과 함께할 기록 프로젝트를 찾고 계신가요? 대상과 목적에 맞춰 출판, 수업, 워크숍을 함께 설계합니다. <a href="mailto:gaeddirang085@naver.com">협업 문의하기 →</a></p>
 </div>
 </section>
 
@@ -2345,7 +2413,7 @@ function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function __afterNav(){ window.scrollTo({ top:0, left:0, behavior:'auto' }); setTimeout(()=>window.dispatchEvent(new Event('resize')),100); }
 function __setActiveTab(cat){
   document.querySelectorAll('#header .mtab, #header .gnb-sub a').forEach(a=>a.classList.remove('nav-active'));
-  const map={library:'책과 이야기',authors:'작가들',finder:'기록 도구',program:'프로그램',publisher:'출판사 소개',game:'게임',gaedditv:'개띠랑TV'};
+  const map={library:'책과 이야기',authors:'작가들',finder:'기록 도구',program:'프로그램',projects:'프로젝트',publisher:'출판사 소개',game:'게임',gaedditv:'개띠랑TV'};
   const label=map[cat];
   if(label) document.querySelectorAll('#header .mtab, #header .gnb-sub a').forEach(a=>{ if(a.textContent.trim()===label) a.classList.add('nav-active'); });
 }
@@ -2383,7 +2451,7 @@ function switchView(viewName, targetId = null, push = true) {
 // [화면 라우팅] 주소(해시) → 화면 복원 + 뒤로가기
 function __routeFromHash(push){
   const h = (location.hash||'').replace(/^#/,'');
-  const cats = ['moongori','library','finder','program','game','gaedditv'];
+  const cats = ['moongori','library','finder','program','projects','game','gaedditv'];
   if(h==='authors') switchView('authors', null, push);
   else if(h==='publisher') switchView('publisher', null, push);
   else if(cats.indexOf(h)>=0) switchView('main', h, push);
@@ -2852,6 +2920,18 @@ const ARCHIVED_NOTICE_TITLES = new Set([
 
 const CURRENT_NEWS = [{
   category: 'news',
+  title: '[현장] 대림도서관 기록공작소 6기 진행 중',
+  date_label: '09.08',
+  published_on: '2026-09-08',
+  body: '영등포구립 대림도서관에서 기록공작소 6기 《나의 계절 도감》을 진행하고 있습니다. 8월 20일부터 10월 15일까지 여덟 번 만나 마음과 계절을 관찰하고, 각자의 기록을 한 권의 도감으로 엮어갑니다.'
+}, {
+  category: 'news',
+  title: '[프로젝트] 숲숲학교 가을학기, 9월 20일 시작',
+  date_label: '09.08',
+  published_on: '2026-09-08',
+  body: '경기상상캠퍼스 숲숲학교 가을학기 《숲의 문장들 2》가 9월 20일부터 11월 22일까지 열립니다. 숲을 읽고 걷고 쓰며 각자의 기록을 한 권의 책으로 만드는 10회 과정입니다. 자세한 모집 상태와 신청은 홈페이지 프로그램 카드의 공식 페이지에서 확인해 주세요.'
+}, {
+  category: 'news',
   title: '[프로그램] 희로애락 마음쓰기 2기 시작 · 늦은 합류 가능',
   date_label: '09.08',
   published_on: '2026-09-08',
@@ -2937,7 +3017,7 @@ function renderNoticesUI(data) {
   ];
   const visible = [
     ...merged.filter(n => n.category !== 'news').slice(0, 3),
-    ...merged.filter(n => n.category === 'news').slice(0, 4),
+    ...merged.filter(n => n.category === 'news').slice(0, 6),
   ];
   visible.forEach(n => {
     NOTICE_BODIES[n.title] = n.body;
@@ -3572,6 +3652,16 @@ idx.push({
 type: '프로그램', title: plainTitle, sub: plainDesc,
 text: (plainTitle + ' ' + plainDesc).toLowerCase(),
 action: () => { document.getElementById('program').scrollIntoView({behavior:'smooth'}); setTimeout(() => openProgramModal(slug), 300); }
+});
+});
+document.querySelectorAll('.project-card').forEach(card => {
+const title = card.querySelector('h3')?.textContent?.trim() || '프로젝트';
+const sub = card.querySelector('p')?.textContent?.trim() || '';
+const text = `${title} ${sub} ${card.dataset.project || ''}`.toLowerCase();
+idx.push({
+type: '프로젝트', title, sub,
+text,
+action: () => { switchView('main', 'projects'); setTimeout(() => card.scrollIntoView({behavior:'smooth', block:'center'}), 100); }
 });
 });
 if (typeof NOTICE_BODIES !== 'undefined') {

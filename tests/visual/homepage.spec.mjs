@@ -32,6 +32,8 @@ for (const viewport of [
     await expect(page.locator('#nbListNotice')).not.toContainText('새로운 공간으로 이전');
     await expect(page.locator('#nbListNotice')).not.toContainText('경기상상캠퍼스로 보금자리');
     await expect(page.locator('#nbListNews')).toContainText('빵!탐정 1화');
+    await expect(page.locator('#nbListNews')).toContainText('대림도서관 기록공작소 6기');
+    await expect(page.locator('#nbListNews')).toContainText('숲숲학교 가을학기');
     await expect(page.locator('#nbListNews')).toContainText('입고 제안 진행 중');
     await expect(page.locator('#nbListNews')).toContainText('3차 입고 준비 중');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -48,6 +50,13 @@ for (const viewport of [
     await expect(page.locator('#programModal .pm-close')).toBeVisible();
     await page.locator('#programModal .pm-close').click();
     await expect(page.locator('#programModal')).not.toHaveClass(/active/);
+
+    await page.evaluate(() => switchView('main', 'projects'));
+    await expect(page.locator('.project-card')).toHaveCount(5);
+    await expect(page.locator('.project-card')).toContainText(['숲숲학교', '대림도서관', '빵!탐정', '문고리', '흥업초·호저초']);
+    await expect(page).toHaveURL(/#projects$/);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.screenshot({ path: path.join(screenshotDir, `homepage-projects-${viewport.name}.png`), fullPage: true });
 
     await page.evaluate(() => switchView('main', 'library'));
     await expect(page.locator('.book-card').filter({ hasText: '문고리' })).toHaveCount(1);
