@@ -183,6 +183,9 @@
   .qdoc .notes li b{color:var(--accent-deep)}
   .qdoc .sign{text-align:right;margin-top:10px;font-size:13px}
   .qdoc .sign .name{font-size:15px;font-weight:900}
+  .qdoc .seal-wrap{position:relative;display:inline-block}
+  .qdoc .seal-wrap img{position:absolute;right:-14px;top:50%;width:56px;height:auto;transform:translateY(-44%);opacity:.92;pointer-events:none}
+  .seal-chk{margin:0 4px 0 0;font-weight:600}
   .qdoc .receive{display:flex;justify-content:space-between;gap:16px;margin-top:14px;font-size:13px}
   .qdoc .receive .memo{flex:1;border:1px solid var(--line);border-radius:8px;padding:9px 14px;min-height:54px;white-space:pre-wrap}
   .qdoc .receive .memo .k{font-size:11.5px;color:var(--muted);font-weight:700;display:block;margin-bottom:2px}
@@ -307,6 +310,7 @@
         <div class="preview-head">
           <span class="fit" id="fitNote">미리보기</span>
           <button class="btn-sm" id="resetBtn">새로 쓰기</button>
+          <label class="chk seal-chk hidden"><input type="checkbox" class="sealToggle" checked> 도장</label>
           <button class="btn-sm hidden" id="saveBtn">저장</button>
           <button class="btn-primary" id="printBtn">PDF 저장</button>
         </div>
@@ -356,6 +360,7 @@
         <div class="preview-head">
           <span class="fit" id="tsFit">미리보기</span>
           <button class="btn-sm" id="tsResetBtn">새로 쓰기</button>
+          <label class="chk seal-chk hidden"><input type="checkbox" class="sealToggle" checked> 도장</label>
           <button class="btn-primary" id="tsPrintBtn">PDF 저장</button>
         </div>
         <div class="preview-box" id="tsBox"><div class="sheet" id="tsSheet"></div></div>
@@ -473,6 +478,8 @@ let ITEMS = [];             // 견적서 탭 품목
 let CURRENT = null;         // 견적서 탭에서 고치는 중인 저장된 견적
 let CURRENT_INQUIRY = null; // 문의에서 넘어왔으면 문의 id
 let CURRENT_VIEW = 'quote';
+let SEAL = null;            // 도장 이미지 (관리자 로그인 후 DB에서 받음)
+let USE_SEAL = true;
 
 /* ---------- 도구 ---------- */
 const $ = s => document.querySelector(s);
@@ -633,6 +640,12 @@ function buildQuote(d){
 }
 
 /* ---------- 문서 그리기 ---------- */
+function sealMark(){ return `<span class="seal-wrap">(인)${SEAL && USE_SEAL ? `<img src="${SEAL}" alt="">` : ''}</span>`; }
+function setSeal(url){
+  if(!/^data:image\//.test(url||'')) return;
+  SEAL = url;
+  document.querySelectorAll('.seal-chk').forEach(el=>el.classList.remove('hidden'));
+}
 function supplierRows(keys){
   return keys.map(k=>`<div class="row"><span class="k">${k==='사업자번호'?'등록번호':k}</span><span class="v">${esc(SUPPLIER[k])}</span></div>`).join('');
 }
@@ -674,7 +687,7 @@ function quoteHtml(q, dense){
       <tbody>${rows}</tbody>
     </table>
     <div class="notes"><div class="h">· 안내사항</div><ol>${q.notes.map(n=>`<li>${n}</li>`).join('')}</ol></div>
-    <div class="sign">위와 같이 견적서를 제출합니다. ${q.dateLabel}<br><span class="name">${esc(SUPPLIER.상호)} 대표 ${esc(SUPPLIER.대표자)} (인)</span></div>
+    <div class="sign">위와 같이 견적서를 제출합니다. ${q.dateLabel}<br><span class="name">${esc(SUPPLIER.상호)} 대표 ${esc(SUPPLIER.대표자)} ${sealMark()}</span></div>
     <div class="foot">${esc(FOOTER())}</div>
   </div></div>`;
 }
@@ -713,7 +726,7 @@ function statementHtml(s, dense){
       <div class="memo"><span class="k">비고</span>${esc(s.memo)}</div>
       <div class="sig"><span class="k">인수자 확인</span><div class="line">(인)</div></div>
     </div>
-    <div class="sign">위와 같이 거래합니다. ${dotDate(s.date)}<br><span class="name">${esc(SUPPLIER.상호)} 대표 ${esc(SUPPLIER.대표자)} (인)</span></div>
+    <div class="sign">위와 같이 거래합니다. ${dotDate(s.date)}<br><span class="name">${esc(SUPPLIER.상호)} 대표 ${esc(SUPPLIER.대표자)} ${sealMark()}</span></div>
     <div class="foot">${esc(FOOTER())}</div>
   </div></div>`;
 }
@@ -1339,6 +1352,12 @@ $('#rNewBtn').onclick = ()=>{ resetForm(); switchView('quote'); };
 $('#rNewTsBtn').onclick = ()=>{ switchView('statement'); selectStatementSource('direct'); };
 $('#iAddBtn').onclick = ()=>{ CATALOG.push({ id:null, name:'', keys:[], desc:'', list:null, inst:null, unit:'세트', taxable:true, active:true, sort:(Math.max(0,...CATALOG.map(c=>c.sort||0))+10) }); renderItemsTable(); };
 $('#lAddBtn').onclick = addLink;
+document.querySelectorAll('.sealToggle').forEach(cb=>cb.onchange=e=>{
+  USE_SEAL = e.target.checked;
+  document.querySelectorAll('.sealToggle').forEach(x=>x.checked=USE_SEAL);
+  if(CURRENT_VIEW==='quote') update();
+  if(CURRENT_VIEW==='statement') renderStatement();
+});
 document.querySelectorAll('#docTabs .doc-tab[data-view]').forEach(t=>t.onclick=()=>switchView(t.dataset.view));
 window.addEventListener('resize', ()=>{ if(CURRENT_VIEW==='quote') update(); if(CURRENT_VIEW==='statement') renderStatement(); });
 refreshCatalogList();
@@ -1358,6 +1377,8 @@ async function loadDb(){
   }
   if(it.data.length) CATALOG = it.data.map(fromDbItem);
   QUOTES = qu.data; LINKS = li.data;
+  const seal = await sb.from('doc_assets').select('data_url').eq('key', 'seal').maybeSingle();
+  if(!seal.error && seal.data) setSeal(seal.data.data_url);
   refreshCatalogList();
   return true;
 }
@@ -1384,6 +1405,12 @@ async function boot(){
           { name:'1안 · 모든감정카드 32장 세트', desc:'32장 1세트 · 동아리별 반복 활용 대화도구', price:17000, qty:200, unitWord:'세트', list:25000, taxable:true },
           { name:'2안 · 대형 키워드카드 40장 세트', desc:'A5 148×210mm · 40종 · 양면 컬러 · 코팅', price:24000, qty:200, unitWord:'세트', list:35000, taxable:true }] });
     }
+    if(params.has('sealtest')){  // 확인용: 커밋하지 않는 __seal_test.png 로 도장 위치를 본다
+      try{
+        const blob = await fetch('__seal_test.png').then(r=>r.ok ? r.blob() : null);
+        if(blob) setSeal(await new Promise(res=>{ const fr = new FileReader(); fr.onload = ()=>res(fr.result); fr.readAsDataURL(blob); }));
+      }catch(e){}
+    }
     switchView(view);
     // 확인용: 인쇄 칸을 미리 채워 두면 headless 크롬 인쇄로 결과 PDF를 볼 수 있다
     const printTest = params.get('printtest');
@@ -1406,7 +1433,7 @@ async function boot(){
   $('#gateView').classList.remove('hidden');
 }
 window.__docs = { parseRequest, parseItems, matchCatalog, calcLine, buildQuote, loadData, fillFromText, readForm, koreanAmount,
-  buildStatement, switchView, selectStatementSource, tsItems: () => TS_ITEMS };
+  buildStatement, switchView, selectStatementSource, tsItems: () => TS_ITEMS, hasSeal: () => !!SEAL };
 boot();
 </script>
 </body>
