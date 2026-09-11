@@ -245,7 +245,7 @@
       <button class="doc-tab" data-view="links">링크 모음</button>
       <span class="doc-tab soon">월급명세서 · 준비 중</span>
       <span class="doc-tab soon">위탁도서 정산서 · 준비 중</span>
-      <span class="doc-tab soon">문고리 정산서 · 준비 중</span>
+      <button class="doc-tab" data-view="royalty">문고리 인세 정산서</button>
     </div>
   </header>
   <div class="banner hidden" id="banner"></div>
@@ -365,6 +365,58 @@
         </div>
         <div class="preview-box" id="tsBox"><div class="sheet" id="tsSheet"></div></div>
         <p class="print-tip" id="tsTip"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 문고리 인세 정산서 ===== -->
+  <section class="page view hidden" id="view-royalty">
+    <div class="layout">
+      <div class="form-col">
+        <div class="card">
+          <h3>① 정산 기간</h3>
+          <div class="row2">
+            <div><label class="f" for="ryStart">시작일</label><input class="in" id="ryStart" type="date"></div>
+            <div><label class="f" for="ryEnd">종료일</label><input class="in" id="ryEnd" type="date"></div>
+          </div>
+          <div class="row2">
+            <div><label class="f" for="ryPay">지급 예정일</label><input class="in" id="ryPay" type="date"></div>
+            <div><label class="f" for="ryIssue">발행일</label><input class="in" id="ryIssue" type="date"></div>
+          </div>
+          <div class="btns"><button class="btn-sm" id="ryThisQ">이번 분기</button><button class="btn-sm" id="ryPrevQ">지난 분기</button>
+            <span class="hint">계약상 분기말 기준 · 다음 달 10일 지급</span></div>
+        </div>
+        <div class="card">
+          <h3>② 인세 원장 붙여넣기</h3>
+          <p class="hint" style="margin-bottom:6px">인세시트 「인세 원장(DB)」 탭에서 제목줄부터 표 전체를 선택(⌘A)·복사(⌘C)해 붙여넣고 「불러오기」를 누르세요. 정산 기간 안의 판매만 자동으로 체크됩니다.</p>
+          <textarea class="in" id="ryPaste" rows="4" placeholder="정산월  판매일  채널  거래처  정가  판매권수  …"></textarea>
+          <div class="btns"><button class="btn-sm" id="ryParseBtn">불러오기</button><a class="btn-link hidden" id="ryLedgerLink" target="_blank" rel="noopener noreferrer">인세시트 열기 ↗</a></div>
+          <div class="parse-note" id="ryNote"></div>
+          <div class="ts-lines" id="ryRows"></div>
+        </div>
+        <div class="card">
+          <h3>③ 원천징수 · 기타</h3>
+          <label class="f" for="ryTax">원천징수 <span class="hint">(꼭 골라 주세요 · 세무 확인 사항)</span></label>
+          <select class="in" id="ryTax">
+            <option value="">— 선택 —</option>
+            <option value="none">원천징수 없음 (인세 전액 지급)</option>
+            <option value="biz">사업소득 3.3%</option>
+            <option value="etc">기타소득 8.8% (필요경비 60% 공제)</option>
+          </select>
+          <label class="f" for="ryExempt">판매 외 목적 인세 면제 200부 중 누적 사용 부수</label>
+          <input class="in" id="ryExempt" inputmode="numeric" placeholder="예: 2 (인세시트 대시보드 참고)">
+          <label class="f" for="ryMemo">추가 안내 <span class="hint">(한 줄에 하나)</span></label>
+          <textarea class="in" id="ryMemo" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="preview-col">
+        <div class="preview-head">
+          <span class="fit" id="ryFit">미리보기</span>
+          <label class="chk seal-chk hidden"><input type="checkbox" class="sealToggle" checked> 도장</label>
+          <button class="btn-primary" id="ryPrintBtn">PDF 저장</button>
+        </div>
+        <div class="preview-box" id="ryBox"><div class="sheet" id="rySheet"></div></div>
+        <p class="print-tip">원장 숫자로 다시 계산합니다(정가 × 권수 × 30%). 원장 인세액과 다른 줄은 목록에 빨갛게 표시됩니다.</p>
       </div>
     </div>
   </section>
@@ -491,7 +543,7 @@ function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('sh
 function store(key, value){ try{ if(value===undefined) return JSON.parse(localStorage.getItem(key)||'null'); localStorage.setItem(key, JSON.stringify(value)); }catch(e){ return null; } }
 
 function parseWon(text){
-  const t = String(text==null?'':text).replace(/[,\s원]/g,'');
+  const t = String(text==null?'':text).replace(/[,\s원₩]/g,'');
   if(!t) return null;
   const m = t.match(/^(?:(\d+(?:\.\d+)?)만)?(?:(\d+)천)?(\d+)?$/);
   if(!m || !(m[1]||m[2]||m[3])) return NaN;
@@ -1155,6 +1207,195 @@ async function printStatement(){
   printHtml(s.html, [s.number, '거래명세서', s.toName].filter(Boolean).join('_'));
 }
 
+/* ============ 문고리 인세 정산서 ============ */
+const BOOK = { author:'신태림', title:'문고리', isbn:'979-11-992715-2-4', price:17000, rate:0.30, exemptLimit:200 };
+const LEDGER_COLS = ['정산월','판매일','채널','거래처','정가','판매권수','공급률','인세율','인세액','팀 순몫','지급상태','비고','transaction_id'];
+let RY_ROWS = [];
+let RY_READY = false;
+
+function quarterRange(offset){
+  const now = new Date();
+  const q = Math.floor(now.getMonth()/3) + (offset||0);
+  const fmt = d => d.toLocaleDateString('sv-SE');
+  const start = new Date(now.getFullYear(), q*3, 1), end = new Date(now.getFullYear(), q*3+3, 0), pay = new Date(now.getFullYear(), q*3+3, 10);
+  return { start: fmt(start), end: fmt(end), pay: fmt(pay) };
+}
+function quarterLabel(start){
+  const [y, m] = (start||'').split('-').map(Number);
+  return y ? `${y}년 ${Math.floor((m-1)/3)+1}분기` : '';
+}
+function parseLedger(text){
+  const lines = String(text||'').split(/\r?\n/).filter(l=>l.replace(/\t/g,'').trim());
+  const cells = lines.map(l=>l.split('\t').map(c=>c.trim()));
+  const hi = cells.findIndex(r => r.includes('채널') && r.includes('판매권수'));
+  const header = hi >= 0 ? cells[hi] : LEDGER_COLS;
+  const get = (r, n) => { const i = header.indexOf(n); return i >= 0 ? (r[i]||'') : ''; };
+  return cells.slice(hi + 1).map(r => ({
+    month: get(r,'정산월'), date: get(r,'판매일'), channel: get(r,'채널'), partner: get(r,'거래처'),
+    price: parseWon(get(r,'정가')) || BOOK.price, qty: parseCount(get(r,'판매권수')) || 0,
+    sheetRoyalty: parseWon(get(r,'인세액')), status: get(r,'지급상태'), memo: get(r,'비고'),
+  })).filter(r => r.qty > 0 && r.channel);
+}
+function inPeriod(r, start, end){
+  const s = (r.date||'').trim() || (r.month||'').trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s >= start && s <= end;
+  if(/^\d{4}-\d{2}$/.test(s)) return s >= start.slice(0,7) && s <= end.slice(0,7);
+  return null;
+}
+function reapplyPeriod(){
+  const start = $('#ryStart').value, end = $('#ryEnd').value;
+  RY_ROWS.forEach(r => { r.period = inPeriod(r, start, end); r.include = r.period === true; });
+}
+function withholding(amount, mode){
+  if(mode === 'biz'){
+    const tax = Math.floor(amount*0.03/10)*10, local = Math.floor(tax*0.1/10)*10;
+    return { tax, local, label:'사업소득 3.3%' };
+  }
+  if(mode === 'etc'){
+    const income = Math.floor(amount*0.4);            // 필요경비 60% 공제 후 기타소득금액
+    if(income <= 50000) return { tax:0, local:0, label:'기타소득 (과세최저한 이하)' };
+    const tax = Math.floor(income*0.2/10)*10, local = Math.floor(tax*0.1/10)*10;
+    return { tax, local, label:'기타소득 8.8%' };
+  }
+  return { tax:0, local:0, label:'원천징수 없음' };
+}
+function buildRoyalty(){
+  const start = $('#ryStart').value, end = $('#ryEnd').value;
+  const per = Math.round(BOOK.price*BOOK.rate);
+  const lines = RY_ROWS.filter(r=>r.include).map(r=>({ ...r, per: Math.round(r.price*BOOK.rate), royalty: Math.round(r.price*r.qty*BOOK.rate) }));
+  const qty = lines.reduce((a,l)=>a+l.qty,0), royalty = lines.reduce((a,l)=>a+l.royalty,0);
+  const mode = $('#ryTax').value;
+  const wh = mode ? withholding(royalty, mode) : null;
+  const exempt = parseCount($('#ryExempt').value);
+  return { start, end, pay: $('#ryPay').value, issue: $('#ryIssue').value || today(), per, lines, qty, royalty, mode, wh,
+    net: wh ? royalty - wh.tax - wh.local : null, exempt,
+    memo: $('#ryMemo').value.split('\n').map(x=>x.trim()).filter(Boolean) };
+}
+function royaltyHtml(s, dense){
+  const rows = s.lines.length ? s.lines.map(l=>`<tr>
+      <td class="item-c">${esc(l.date||l.month||'')}</td>
+      <td class="num">${esc(l.channel)}</td>
+      <td class="num" style="white-space:normal">${esc(l.partner)}</td>
+      <td class="num">${won(l.qty)}권</td>
+      <td class="num">${won(l.per)}원</td>
+      <td class="num">${won(l.royalty)}원</td></tr>`).join('')
+    : `<tr><td colspan="6" style="text-align:center;color:#b3a99f;padding:18px">인세 원장을 붙여넣으면 여기에 표시됩니다</td></tr>`;
+  const taxText = !s.mode ? '<b>원천징수 방식을 골라 주세요.</b>'
+    : s.mode==='none' ? '원천징수 없이 인세 전액을 지급합니다.'
+    : s.mode==='biz' ? '사업소득 원천징수 3.3%(소득세 3% + 지방소득세 0.3%)를 차감하고 지급합니다.'
+    : '기타소득 원천징수(필요경비 60% 공제 후 소득세 20% + 지방소득세 2%)를 차감하고 지급합니다.';
+  const notes = [
+    `인세는 정가(${won(BOOK.price)}원)의 30%, 권당 ${won(s.per)}원이며 1쇄부터 적용합니다. (계약 13조)`,
+    '판매일 기준으로 집계했습니다. 판매 외 목적(납본·증정·홍보 등) 부수와 파손분, 저자 본인 구입분은 인세 대상에서 제외합니다. (계약 12조·13조)',
+  ];
+  if(s.exempt != null) notes.push(`판매 외 목적 인세 면제 ${BOOK.exemptLimit}부 중 누적 ${won(s.exempt)}부 사용, 잔여 ${won(Math.max(0, BOOK.exemptLimit - s.exempt))}부입니다.`);
+  notes.push('계약금 500,000원은 판매 인세와 별도로 지급한 금액이며 인세에서 차감하지 않습니다. (계약 15조)');
+  notes.push(taxText);
+  s.memo.forEach(m => notes.push(esc(m)));
+  const whTable = s.wh && s.mode !== 'none' ? `
+    <table style="margin-top:10px">
+      <colgroup><col style="width:70%"><col style="width:30%"></colgroup>
+      <tbody>
+        <tr><td class="item-c">인세 합계</td><td class="num">${won(s.royalty)}원</td></tr>
+        <tr><td class="item-c">원천징수 소득세</td><td class="num">− ${won(s.wh.tax)}원</td></tr>
+        <tr><td class="item-c">원천징수 지방소득세</td><td class="num">− ${won(s.wh.local)}원</td></tr>
+      </tbody>
+      <tfoot><tr><td>실지급액</td><td>${won(s.net)}원</td></tr></tfoot>
+    </table>` : '';
+  return `<div class="qdoc${dense>=1?' d1':''}${dense>=2?' d2':''}"><div class="wrap">
+    <div class="head">
+      <div><h1>인세 정산서</h1><div class="subtitle">${esc(BOOK.author)} 《${esc(BOOK.title)}》 · ${esc(quarterLabel(s.start))}</div></div>
+      <div class="head-meta">정산기간 <b>${dotDate(s.start)} ~ ${dotDate(s.end)}</b><br>지급예정일 <b>${dotDate(s.pay)}</b><br>발행일 <b>${dotDate(s.issue)}</b></div>
+    </div>
+    <hr class="rule">
+    <div class="info-grid">
+      <div class="box"><div class="box-head">저작자</div><div class="box-body">
+        <div class="row"><span class="k">성명</span><span class="v">${esc(BOOK.author)}</span></div>
+        <div class="row"><span class="k">도서</span><span class="v">《${esc(BOOK.title)}》</span></div>
+        <div class="row"><span class="k">ISBN</span><span class="v">${esc(BOOK.isbn)}</span></div>
+        <div class="row"><span class="k">정가</span><span class="v">${won(BOOK.price)}원</span></div>
+      </div></div>
+      <div class="box"><div class="box-head">발행자 (출판사)</div><div class="box-body">${supplierRows(['상호','사업자번호','대표자','연락처'])}</div></div>
+    </div>
+    <div class="total-bar">
+      <div class="trow"><span>이번 정산 인세 (정가 30% · ${won(s.qty)}권)</span><span class="amt">${won(s.royalty)}원</span></div>
+      ${s.wh && s.mode!=='none' ? `<div class="trow" style="margin-top:6px"><span>${esc(s.wh.label)} 원천징수 ${won(s.wh.tax + s.wh.local)}원 차감</span><span style="font-weight:900">실지급액 ${won(s.net)}원</span></div>` : ''}
+    </div>
+    <h2>판매 내역</h2>
+    <table>
+      <colgroup><col style="width:17%"><col style="width:15%"><col style="width:25%"><col style="width:13%"><col style="width:13%"><col style="width:17%"></colgroup>
+      <thead><tr><th>판매일</th><th>채널</th><th>거래처</th><th>판매권수</th><th>권당 인세</th><th>인세액</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td>합계</td><td></td><td></td><td>${won(s.qty)}권</td><td></td><td>${won(s.royalty)}원</td></tr></tfoot>
+    </table>
+    ${whTable}
+    <div class="notes"><div class="h">· 정산 기준</div><ol>${notes.map(n=>`<li>${n}</li>`).join('')}</ol></div>
+    <div class="sign">위와 같이 인세를 정산합니다. ${dotDate(s.issue)}<br><span class="name">${esc(SUPPLIER.상호)} 대표 ${esc(SUPPLIER.대표자)} ${sealMark()}</span></div>
+    <div class="foot">${esc(FOOTER())}</div>
+  </div></div>`;
+}
+function renderRoyaltyRows(){
+  const host = $('#ryRows'); host.innerHTML = '';
+  RY_ROWS.forEach(r=>{
+    const calc = Math.round(r.price*r.qty*BOOK.rate);
+    const flags = [];
+    if(r.period === false) flags.push('기간 밖');
+    if(r.period === null) flags.push('판매일 없음');
+    if(r.sheetRoyalty != null && !Number.isNaN(r.sheetRoyalty) && r.sheetRoyalty !== calc) flags.push(`원장 인세액 ${won(r.sheetRoyalty)}원과 다름`);
+    const lab = document.createElement('label');
+    lab.innerHTML = `<input type="checkbox" ${r.include?'checked':''}> <span>${esc(r.date||r.month||'날짜 없음')} · ${esc(r.channel)}${r.partner?' · '+esc(r.partner):''} · ${won(r.qty)}권 · 인세 ${won(calc)}원${r.status?' · '+esc(r.status):''}${flags.length?` <b style="color:#d9583c">(${esc(flags.join(', '))})</b>`:''}</span>`;
+    lab.querySelector('input').onchange = e => { r.include = e.target.checked; renderRoyalty(); };
+    host.appendChild(lab);
+  });
+}
+function renderRoyalty(){
+  const s = buildRoyalty();
+  const r = renderSheet($('#rySheet'), $('#ryBox'), dense => royaltyHtml(s, dense), s.lines.length > 8 ? 1 : 0);
+  setFit($('#ryFit'), r);
+  const link = LINKS.find(l => /인세/.test(l.title) && /docs\.google\.com/.test(l.url));
+  const a = $('#ryLedgerLink');
+  if(link){ a.href = link.url; a.classList.remove('hidden'); } else a.classList.add('hidden');
+  s.html = r.html;
+  return s;
+}
+function applyRoyaltyPaste(text){
+  RY_ROWS = parseLedger(text);
+  reapplyPeriod();
+  const note = $('#ryNote');
+  if(!RY_ROWS.length){ note.className='parse-note warn'; note.textContent='판매권수가 있는 줄을 찾지 못했어요. 「인세 원장(DB)」 탭에서 제목줄부터 복사했는지 확인해 주세요.'; }
+  else {
+    const inQ = RY_ROWS.filter(r=>r.include);
+    note.className='parse-note';
+    note.textContent = `원장 ${RY_ROWS.length}줄을 읽었어요. 정산 기간 안: ${inQ.length}줄 · ${won(inQ.reduce((a,r)=>a+r.qty,0))}권. 체크를 바꿔 넣고 뺄 수 있어요.`;
+  }
+  renderRoyaltyRows(); renderRoyalty();
+}
+function setQuarter(offset){
+  const q = quarterRange(offset);
+  $('#ryStart').value = q.start; $('#ryEnd').value = q.end; $('#ryPay').value = q.pay;
+  if(RY_ROWS.length){ reapplyPeriod(); renderRoyaltyRows(); }
+  renderRoyalty();
+}
+function initRoyalty(){
+  if(RY_READY) return;
+  RY_READY = true;
+  $('#ryIssue').value = today();
+  setQuarter(0);
+}
+async function printRoyalty(){
+  const s = renderRoyalty();
+  if(!s.lines.length){ toast('인세 원장을 붙여넣고 넣을 판매를 골라 주세요'); return; }
+  if(!s.mode){ toast('원천징수 방식을 먼저 골라 주세요'); $('#ryTax').focus(); return; }
+  printHtml(s.html, `문고리_인세정산서_${s.start}_${s.end}`);
+}
+$('#ryParseBtn').onclick = () => applyRoyaltyPaste($('#ryPaste').value);
+$('#ryThisQ').onclick = () => setQuarter(0);
+$('#ryPrevQ').onclick = () => setQuarter(-1);
+['#ryStart','#ryEnd'].forEach(sel => $(sel).addEventListener('change', () => { if(RY_ROWS.length){ reapplyPeriod(); renderRoyaltyRows(); } renderRoyalty(); }));
+['#ryPay','#ryIssue','#ryTax'].forEach(sel => $(sel).addEventListener('change', renderRoyalty));
+['#ryExempt','#ryMemo'].forEach(sel => $(sel).addEventListener('input', renderRoyalty));
+$('#ryPrintBtn').onclick = printRoyalty;
+
 /* ============ 기록 ============ */
 function renderRecords(){
   const host = $('#recList');
@@ -1301,7 +1542,7 @@ async function addLink(){
 }
 
 /* ============ 화면 전환 ============ */
-const VIEWS = ['quote','statement','records','items','links'];
+const VIEWS = ['quote','statement','records','items','links','royalty'];
 function switchView(name){
   if(!VIEWS.includes(name)) name = 'quote';
   CURRENT_VIEW = name;
@@ -1316,6 +1557,7 @@ function switchView(name){
   if(name==='records') renderRecords();
   if(name==='items') renderItemsTable();
   if(name==='links') renderLinks();
+  if(name==='royalty'){ initRoyalty(); renderRoyalty(); }
   window.scrollTo(0,0);
 }
 
@@ -1357,9 +1599,10 @@ document.querySelectorAll('.sealToggle').forEach(cb=>cb.onchange=e=>{
   document.querySelectorAll('.sealToggle').forEach(x=>x.checked=USE_SEAL);
   if(CURRENT_VIEW==='quote') update();
   if(CURRENT_VIEW==='statement') renderStatement();
+  if(CURRENT_VIEW==='royalty') renderRoyalty();
 });
 document.querySelectorAll('#docTabs .doc-tab[data-view]').forEach(t=>t.onclick=()=>switchView(t.dataset.view));
-window.addEventListener('resize', ()=>{ if(CURRENT_VIEW==='quote') update(); if(CURRENT_VIEW==='statement') renderStatement(); });
+window.addEventListener('resize', ()=>{ if(CURRENT_VIEW==='quote') update(); if(CURRENT_VIEW==='statement') renderStatement(); if(CURRENT_VIEW==='royalty') renderRoyalty(); });
 refreshCatalogList();
 
 /* ---------- 시작 ---------- */
@@ -1416,6 +1659,16 @@ async function boot(){
     const printTest = params.get('printtest');
     if(printTest==='quote'){ switchView('quote'); $('#printArea').innerHTML = update().html; }
     if(printTest==='statement'){ switchView('statement'); selectStatementSource('current'); $('#printArea').innerHTML = renderStatement().html; }
+    if(printTest==='royalty'){  // 확인용 가짜 원장 (실제 거래처 아님)
+      switchView('royalty');
+      $('#ryStart').value='2026-07-01'; $('#ryEnd').value='2026-09-30'; $('#ryPay').value='2026-10-10'; $('#ryIssue').value='2026-10-05';
+      applyRoyaltyPaste(['정산월\t판매일\t채널\t거래처\t정가\t판매권수\t공급률\t인세율\t인세액\t팀 순몫\t지급상태\t비고',
+        '2026-07\t2026-07\t스마트스토어\t자사몰\t17000\t10\t수수료차감\t30%\t51000\t\t진행중\t예시',
+        '2026-08\t2026-08-20\t책방위탁\t예시책방\t17000\t3\t70%\t30%\t15300\t\t미지급\t예시',
+        '2026-10\t2026-10-02\t직판\t예시\t17000\t1\t100%\t30%\t5100\t\t미지급\t기간 밖 예시'].join('\n'));
+      $('#ryTax').value='biz'; $('#ryExempt').value='2';
+      $('#printArea').innerHTML = renderRoyalty().html;
+    }
     return;
   }
   const { data:{ session } } = await sb.auth.getSession();
@@ -1433,7 +1686,8 @@ async function boot(){
   $('#gateView').classList.remove('hidden');
 }
 window.__docs = { parseRequest, parseItems, matchCatalog, calcLine, buildQuote, loadData, fillFromText, readForm, koreanAmount,
-  buildStatement, switchView, selectStatementSource, tsItems: () => TS_ITEMS, hasSeal: () => !!SEAL };
+  buildStatement, switchView, selectStatementSource, tsItems: () => TS_ITEMS, hasSeal: () => !!SEAL,
+  parseLedger, applyRoyaltyPaste, buildRoyalty, withholding, setQuarter };
 boot();
 </script>
 </body>
