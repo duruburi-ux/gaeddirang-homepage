@@ -9,7 +9,7 @@
 <style>
   :root{
     --orange:#F26D4F; --orange-d:#d9583c; --ink:#2b2622; --muted:#8a817a;
-    --line:#eee3da; --bg:#faf6f1; --card:#fff; --ok:#2e9e6b; --warn:#e2a13a;
+    --line:#eee3da; --bg:#faf6f1; --card:#fff; --ok:#2e9e6b; --warn:#e2a13a; --blue:#3f68c4;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
@@ -36,8 +36,9 @@
   .doc-tab.soon{color:#c9bfb5;cursor:default;font-weight:500}
   .banner{max-width:1240px;margin:12px auto 0;padding:10px 14px;border-radius:10px;background:#fdf3e0;color:#8a5a12;font-size:13px}
 
-  /* ---- 배치 ---- */
-  .layout{max-width:1240px;margin:0 auto;padding:18px;display:grid;grid-template-columns:minmax(320px,430px) 1fr;gap:18px;align-items:start}
+  /* ---- 공통 ---- */
+  .page{max-width:1240px;margin:0 auto;padding:18px}
+  .layout{display:grid;grid-template-columns:minmax(320px,430px) 1fr;gap:18px;align-items:start}
   @media (max-width:880px){ .layout{grid-template-columns:1fr} }
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin-bottom:12px}
   .card h3{font-size:14px;margin-bottom:8px}
@@ -45,20 +46,36 @@
   label.f{display:block;font-size:11.5px;color:var(--muted);font-weight:600;margin:8px 0 3px}
   .in{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:14px;background:#fff;font-family:inherit;color:var(--ink)}
   .in:focus{outline:none;border-color:var(--orange)}
+  .in[readonly]{background:#f7f3ee;color:var(--muted)}
+  .in.sm{padding:6px 8px;font-size:13px;width:auto}
   textarea.in{resize:vertical}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .chk{display:flex;align-items:center;gap:7px;font-size:13px;margin-top:10px;color:var(--ink)}
   .btns{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
   .btn-primary{background:var(--orange);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;display:inline-block}
   .btn-primary:hover{background:var(--orange-d)}
-  .btn-sm{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:13px;color:var(--ink);font-weight:600}
+  .btn-primary:disabled{opacity:.5;cursor:default}
+  .btn-sm{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:13px;color:var(--ink);font-weight:600;white-space:nowrap}
   .btn-sm:hover{border-color:#e6cbb8}
   .btn-sm.wide{width:100%}
+  .btn-sm.danger{color:var(--orange-d)}
   .btn-link{background:none;border:none;color:var(--muted);font-size:12.5px;text-decoration:underline}
   .parse-note{font-size:12.5px;color:var(--ok);margin-top:8px;white-space:pre-wrap}
   .parse-note.warn{color:var(--orange-d)}
+  .empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;background:var(--card);border:1px dashed var(--line);border-radius:14px}
+  .chip{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700;white-space:nowrap;vertical-align:1px}
+  .chip.s-작성{background:#f1ede9;color:var(--muted)}
+  .chip.s-보냄{background:#eef4ff;color:var(--blue)}
+  .chip.s-수주{background:#e6f5ee;color:var(--ok)}
+  .chip.s-무산{background:#f7f3ef;color:#c3b7ac}
+  .chip.draft{background:#fff1e9;color:var(--orange-d)}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:13.5px;z-index:60;opacity:0;transition:.2s;pointer-events:none}
+  .toast.show{opacity:1}
 
-  /* ---- 품목 ---- */
+  /* ---- 견적서 편집 ---- */
+  .saved-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:12px}
+  .saved-bar b{font-size:14px}
+  .saved-bar .grow{flex:1}
   .item{border:1px solid var(--line);border-radius:11px;padding:10px;margin-bottom:8px;background:#fffdfb}
   .item-top{display:flex;gap:6px;margin-bottom:6px}
   .item-top .x{background:none;border:1px solid var(--line);border-radius:8px;width:34px;color:var(--muted);font-size:18px}
@@ -77,17 +94,56 @@
   .preview-box{background:#e8e1d9;border-radius:14px;padding:16px;overflow:hidden}
   .sheet{width:688px;background:#fff;box-shadow:0 4px 18px rgba(60,40,20,.12);transform-origin:top left}
   .print-tip{font-size:12px;color:var(--muted);margin-top:8px}
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:13.5px;z-index:60;opacity:0;transition:.2s;pointer-events:none}
-  .toast.show{opacity:1}
 
-  /* ---- 견적서 양식 (2026-08 기준양식과 같은 모양) ---- */
+  /* ---- 견적 기록 ---- */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .filters .in{width:auto}
+  .count-note{font-size:13px;color:var(--muted);margin-left:auto}
+  .recs{display:flex;flex-direction:column;gap:9px}
+  .rec{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .rec-main{flex:1;min-width:220px}
+  .rec-top{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .rec-top b{font-size:14.5px}
+  .rec-name{font-size:14px;font-weight:600;margin-top:3px}
+  .rec-sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .rec-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+  /* ---- 거래명세서 ---- */
+  .ts-lines{display:flex;flex-direction:column;gap:5px;margin-top:4px}
+  .ts-lines label{display:flex;gap:7px;align-items:flex-start;font-size:13px;background:#fffdfb;border:1px solid var(--line);border-radius:9px;padding:7px 9px}
+
+  /* ---- 품목표 ---- */
+  .table-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:14px}
+  table.grid{border-collapse:collapse;width:100%;min-width:1060px;font-size:13px}
+  table.grid th{background:#f7f3ee;color:var(--muted);font-size:11.5px;font-weight:700;text-align:left;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+  table.grid td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+  table.grid tr:last-child td{border-bottom:none}
+  table.grid .in{padding:6px 8px;font-size:13px}
+  table.grid tr.off td{opacity:.55}
+
+  /* ---- 링크 모음 ---- */
+  .link-add{display:grid;grid-template-columns:150px 1fr 1.4fr 1fr auto;gap:8px;align-items:end}
+  @media (max-width:880px){ .link-add{grid-template-columns:1fr} }
+  .link-group{margin-top:18px}
+  .link-group h3{font-size:13px;color:var(--muted);font-weight:700;margin:0 2px 8px}
+  .link-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:9px}
+  .link-card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+  .link-card a.t{font-weight:700;font-size:14.5px;color:var(--ink);text-decoration:none}
+  .link-card a.t:hover{color:var(--orange-d);text-decoration:underline}
+  .link-card .n{font-size:12.5px;color:var(--muted)}
+  .link-card .h{font-size:11.5px;color:#b3a99f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .link-card .acts{display:flex;gap:6px;margin-top:4px}
+  .link-card .acts button{padding:5px 9px;font-size:12px}
+
+  /* ---- 문서 양식 (2026-08 기준양식과 같은 모양) ---- */
   .qdoc{--ink:#221b15;--muted:#8a8177;--line:#e3ddd4;--accent:#e2723a;--accent-deep:#c85a18;--wash:#fbeee1;--dark:#2a2019;
     color:var(--ink);background:#fff;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",system-ui,sans-serif;
     line-height:1.5;font-variant-numeric:tabular-nums;word-break:keep-all;overflow-wrap:break-word;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .qdoc .wrap{max-width:760px;margin:0 auto;padding:16px 30px 8px}
   .qdoc .head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
-  .qdoc h1{font-size:32px;font-weight:900;letter-spacing:.5em;margin:0;padding-left:.5em}
+  .qdoc h1{font-size:32px;font-weight:900;letter-spacing:.5em;margin:0;padding-left:.5em;white-space:nowrap}
   .qdoc .subtitle{font-size:13px;color:var(--muted);margin-top:6px}
+  .qdoc .draft-tag{display:inline-block;font-size:12px;font-weight:800;color:var(--accent-deep);border:1.5px solid var(--accent);border-radius:6px;padding:1px 7px;margin-right:6px}
   .qdoc .head-meta{text-align:right;font-size:12.5px;color:var(--muted);line-height:1.9;white-space:nowrap}
   .qdoc .head-meta b{color:var(--ink);font-weight:800}
   .qdoc .rule{height:4px;background:var(--accent);border:none;margin:10px 0 12px;border-radius:2px}
@@ -117,12 +173,20 @@
   .qdoc .name{font-weight:800}
   .qdoc .sub{font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px}
   .qdoc tbody td:last-child{font-weight:900;color:var(--accent-deep);font-size:13.5px}
+  .qdoc tfoot td{padding:9px 8px;font-weight:800;background:#f7f3ee;text-align:center;white-space:nowrap}
+  .qdoc tfoot td:first-child{text-align:left;padding-left:10px}
   .qdoc .notes{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:9px 16px;margin-top:12px}
   .qdoc .notes .h{font-weight:800;font-size:12.5px;margin-bottom:6px}
   .qdoc .notes ol{margin:0;padding-left:18px;font-size:12px;line-height:1.55}
   .qdoc .notes li b{color:var(--accent-deep)}
   .qdoc .sign{text-align:right;margin-top:10px;font-size:13px}
   .qdoc .sign .name{font-size:15px;font-weight:900}
+  .qdoc .receive{display:flex;justify-content:space-between;gap:16px;margin-top:14px;font-size:13px}
+  .qdoc .receive .memo{flex:1;border:1px solid var(--line);border-radius:8px;padding:9px 14px;min-height:54px;white-space:pre-wrap}
+  .qdoc .receive .memo .k{font-size:11.5px;color:var(--muted);font-weight:700;display:block;margin-bottom:2px}
+  .qdoc .receive .sig{width:230px;border:1px solid var(--line);border-radius:8px;padding:9px 14px}
+  .qdoc .receive .sig .k{font-size:11.5px;color:var(--muted);font-weight:700;display:block;margin-bottom:18px}
+  .qdoc .receive .sig .line{border-bottom:1px solid var(--ink);text-align:right;padding-bottom:2px}
   .qdoc .foot{border-top:1px solid var(--line);margin-top:12px;padding-top:8px;text-align:center;font-size:11px;color:var(--muted)}
   .qdoc.d1 tbody td{padding:6px 8px}
   .qdoc.d1 .sub{font-size:11px;margin-top:1px}
@@ -140,15 +204,13 @@
   .qdoc.d2 .sign{margin-top:8px}
   .qdoc.d2 .foot{margin-top:8px;padding-top:6px}
 
-  /* ---- 인쇄: 견적서만 A4로 ---- */
+  /* ---- 인쇄: 인쇄용 칸만 A4로 ---- */
+  #printArea{display:none}
   @media print{
     @page{size:A4;margin:10mm 14mm}
     html,body{background:#fff}
-    header,.banner,.form-col,.preview-head,.print-tip,.toast,#gateView{display:none!important}
-    .layout{display:block;padding:0;max-width:none;margin:0}
-    .preview-col{position:static}
-    .preview-box{background:none;padding:0;border-radius:0;height:auto!important;overflow:visible}
-    .sheet{box-shadow:none;transform:none!important;width:auto}
+    body > *:not(#printArea){display:none!important}
+    #printArea{display:block!important}
   }
 </style>
 </head>
@@ -167,12 +229,15 @@
 <div id="appView" class="hidden">
   <header>
     <div class="head-in">
-      <a class="logo" href="./">🐾 개띠랑 관리실</a><span class="crumb">› 서류실</span>
+      <a class="logo" href="./">🐾 개띠랑 관리실</a><span class="crumb">› 서류·링크</span>
       <span class="head-user" id="headUser"></span>
     </div>
-    <div class="doc-tabs">
-      <button class="doc-tab active">견적서</button>
-      <span class="doc-tab soon">거래명세서 · 준비 중</span>
+    <div class="doc-tabs" id="docTabs">
+      <button class="doc-tab active" data-view="quote">견적서</button>
+      <button class="doc-tab" data-view="records">견적 기록</button>
+      <button class="doc-tab" data-view="statement">거래명세서</button>
+      <button class="doc-tab" data-view="items">품목표</button>
+      <button class="doc-tab" data-view="links">링크 모음</button>
       <span class="doc-tab soon">월급명세서 · 준비 중</span>
       <span class="doc-tab soon">위탁도서 정산서 · 준비 중</span>
       <span class="doc-tab soon">문고리 정산서 · 준비 중</span>
@@ -180,70 +245,151 @@
   </header>
   <div class="banner hidden" id="banner"></div>
 
-  <div class="layout">
-    <div class="form-col">
-      <div class="card">
-        <h3>① 메일·문의 내용 붙여넣기 <span class="hint">(선택)</span></h3>
-        <textarea class="in" id="pasteBox" rows="5" placeholder="견적 요청 메일 본문을 통째로 붙여넣고 「칸 채우기」를 누르세요."></textarea>
-        <div class="btns">
-          <button class="btn-sm" id="parseBtn">칸 채우기</button>
-          <button class="btn-link" id="copyReplyBtn">견적 요청 회신 문구 복사</button>
+  <!-- ===== 견적서 ===== -->
+  <section class="page view" id="view-quote">
+    <div class="layout">
+      <div class="form-col">
+        <div class="saved-bar" id="savedBar"></div>
+
+        <div class="card">
+          <h3>① 메일·문의 내용 붙여넣기 <span class="hint">(선택)</span></h3>
+          <textarea class="in" id="pasteBox" rows="4" placeholder="견적 요청 메일 본문을 통째로 붙여넣고 「칸 채우기」를 누르세요."></textarea>
+          <div class="btns">
+            <button class="btn-sm" id="parseBtn">칸 채우기</button>
+            <button class="btn-link" id="copyReplyBtn">견적 요청 회신 문구 복사</button>
+          </div>
+          <div class="parse-note" id="parseNote"></div>
         </div>
-        <div class="parse-note" id="parseNote"></div>
+
+        <div class="card">
+          <h3>② 받는 곳 <span class="hint">(몰라도 비워 두면 됩니다)</span></h3>
+          <label class="f" for="toName">기관·회사 이름</label>
+          <input class="in" id="toName" placeholder="예: 대림도서관">
+          <div class="row2">
+            <div><label class="f" for="toManager">담당자·연락처</label><input class="in" id="toManager"></div>
+            <div><label class="f" for="toBiz">사업자번호</label><input class="in" id="toBiz"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>③ 견적 정보</h3>
+          <label class="f" for="title">건명</label>
+          <input class="in" id="title" placeholder="예: 감정카드 30세트 납품">
+          <div class="row2">
+            <div><label class="f" for="qDate">견적일</label><input class="in" id="qDate" type="date"></div>
+            <div><label class="f" for="qNumber">견적번호</label><input class="in" id="qNumber" readonly></div>
+          </div>
+          <div class="row2">
+            <div><label class="f" for="vatMode">금액 표기</label>
+              <select class="in" id="vatMode"><option value="in">VAT 포함</option><option value="out">VAT 별도</option></select></div>
+            <div><label class="f" for="validDays">유효기간(일)</label><input class="in" id="validDays" type="number" min="1" max="365" value="30"></div>
+          </div>
+          <label class="chk"><input type="checkbox" id="draftMode"> <span><b>가견적</b> — 상대 정보 없이 먼저 보내는 참고용 견적</span></label>
+          <label class="chk"><input type="checkbox" id="altMode"> 1안·2안처럼 하나를 고르는 비교 견적</label>
+        </div>
+
+        <div class="card">
+          <h3>④ 품목</h3>
+          <div id="itemsHost"></div>
+          <button class="btn-sm wide" id="addItemBtn">+ 품목 추가</button>
+          <div class="budget hidden" id="budgetNote"></div>
+        </div>
+
+        <div class="card">
+          <h3>⑤ 추가 안내 <span class="hint">(한 줄에 하나)</span></h3>
+          <textarea class="in" id="extraNotes" rows="3" placeholder="예: 납품은 발주 후 1주 이내입니다."></textarea>
+        </div>
       </div>
 
-      <div class="card">
-        <h3>② 받는 곳</h3>
-        <label class="f" for="toName">기관·회사 이름</label>
-        <input class="in" id="toName" placeholder="예: 대림도서관">
-        <div class="row2">
-          <div><label class="f" for="toManager">담당자·연락처</label><input class="in" id="toManager"></div>
-          <div><label class="f" for="toBiz">사업자번호 (선택)</label><input class="in" id="toBiz"></div>
+      <div class="preview-col">
+        <div class="preview-head">
+          <span class="fit" id="fitNote">미리보기</span>
+          <button class="btn-sm" id="resetBtn">새로 쓰기</button>
+          <button class="btn-sm hidden" id="saveBtn">저장</button>
+          <button class="btn-primary" id="printBtn">PDF 저장</button>
         </div>
-      </div>
-
-      <div class="card">
-        <h3>③ 견적 정보</h3>
-        <label class="f" for="title">건명</label>
-        <input class="in" id="title" placeholder="예: 감정카드 30세트 납품">
-        <div class="row2">
-          <div><label class="f" for="qDate">견적일</label><input class="in" id="qDate" type="date"></div>
-          <div><label class="f" for="qNumber">견적번호</label><input class="in" id="qNumber"></div>
-        </div>
-        <div class="row2">
-          <div><label class="f" for="vatMode">금액 표기</label>
-            <select class="in" id="vatMode"><option value="in">VAT 포함</option><option value="out">VAT 별도</option></select></div>
-          <div><label class="f" for="validDays">유효기간(일)</label><input class="in" id="validDays" type="number" min="1" value="30"></div>
-        </div>
-        <label class="chk"><input type="checkbox" id="altMode"> 1안·2안처럼 하나를 고르는 비교 견적</label>
-      </div>
-
-      <div class="card">
-        <h3>④ 품목</h3>
-        <div id="itemsHost"></div>
-        <button class="btn-sm wide" id="addItemBtn">+ 품목 추가</button>
-        <div class="budget hidden" id="budgetNote"></div>
-      </div>
-
-      <div class="card">
-        <h3>⑤ 추가 안내 <span class="hint">(한 줄에 하나)</span></h3>
-        <textarea class="in" id="extraNotes" rows="3" placeholder="예: 납품은 발주 후 1주 이내입니다."></textarea>
+        <div class="preview-box" id="previewBox"><div class="sheet" id="sheet"></div></div>
+        <p class="print-tip">「PDF 저장」을 누르면 인쇄 창이 뜹니다. 대상을 「PDF로 저장」으로 고른 뒤 저장하세요. 파일 이름은 견적번호로 잡힙니다.</p>
       </div>
     </div>
+  </section>
 
-    <div class="preview-col">
-      <div class="preview-head">
-        <span class="fit" id="fitNote">미리보기</span>
-        <button class="btn-sm" id="resetBtn">새로 쓰기</button>
-        <button class="btn-primary" id="printBtn">PDF 저장</button>
-      </div>
-      <div class="preview-box" id="previewBox"><div class="sheet" id="sheet"></div></div>
-      <p class="print-tip">「PDF 저장」을 누르면 인쇄 창이 뜹니다. 대상을 「PDF로 저장」으로 고른 뒤 저장하세요. 파일 이름은 견적번호로 잡힙니다.</p>
+  <!-- ===== 견적 기록 ===== -->
+  <section class="page view hidden" id="view-records">
+    <div class="filters">
+      <select class="in" id="rStatus">
+        <option value="">전체</option><option>작성</option><option>보냄</option><option>수주</option><option>무산</option><option value="가견적">가견적만</option>
+      </select>
+      <input class="in" id="rSearch" placeholder="번호·기관·건명 검색" style="min-width:220px">
+      <button class="btn-sm" id="rNewBtn">+ 새 견적</button>
+      <span class="count-note" id="rCount"></span>
     </div>
-  </div>
+    <div class="recs" id="recList"></div>
+  </section>
+
+  <!-- ===== 거래명세서 ===== -->
+  <section class="page view hidden" id="view-statement">
+    <div class="layout">
+      <div class="form-col">
+        <div class="card">
+          <h3>① 어떤 견적으로 만들까요?</h3>
+          <select class="in" id="tsSource"></select>
+          <label class="f">넣을 품목</label>
+          <div class="ts-lines" id="tsLines"></div>
+        </div>
+        <div class="card">
+          <h3>② 거래 정보</h3>
+          <label class="f" for="tsDate">거래일자 (납품일)</label>
+          <input class="in" id="tsDate" type="date">
+          <label class="f" for="tsToName">받는 곳</label>
+          <input class="in" id="tsToName">
+          <div class="row2">
+            <div><label class="f" for="tsToManager">담당자·연락처</label><input class="in" id="tsToManager"></div>
+            <div><label class="f" for="tsToBiz">사업자번호</label><input class="in" id="tsToBiz"></div>
+          </div>
+          <label class="f" for="tsMemo">비고</label>
+          <textarea class="in" id="tsMemo" rows="2" placeholder="예: 10/20 도서관 1층으로 납품"></textarea>
+        </div>
+      </div>
+      <div class="preview-col">
+        <div class="preview-head">
+          <span class="fit" id="tsFit">미리보기</span>
+          <button class="btn-primary" id="tsPrintBtn">PDF 저장</button>
+        </div>
+        <div class="preview-box" id="tsBox"><div class="sheet" id="tsSheet"></div></div>
+        <p class="print-tip">저장된 견적으로 뽑으면 그 견적의 상태가 「수주」로 바뀌고 거래일자가 기록됩니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 품목표 ===== -->
+  <section class="page view hidden" id="view-items">
+    <div class="filters">
+      <span class="hint">여기서 고친 정가·설명·과세 여부가 견적서에 바로 쓰입니다. 「찾는말」은 메일에 적힐 법한 다른 이름을 쉼표로.</span>
+      <button class="btn-sm" id="iAddBtn" style="margin-left:auto">+ 품목 추가</button>
+    </div>
+    <div id="itemsTableHost"></div>
+  </section>
+
+  <!-- ===== 링크 모음 ===== -->
+  <section class="page view hidden" id="view-links">
+    <div class="card">
+      <h3>링크 추가</h3>
+      <div class="link-add">
+        <div><label class="f" for="lCat">분류</label><input class="in" id="lCat" list="lCatList" placeholder="예: 상품·재고"></div>
+        <div><label class="f" for="lTitle">이름</label><input class="in" id="lTitle" placeholder="예: SCM 장부 (구글시트)"></div>
+        <div><label class="f" for="lUrl">주소</label><input class="in" id="lUrl" placeholder="https://"></div>
+        <div><label class="f" for="lNote">메모</label><input class="in" id="lNote" placeholder="무엇이 들어 있는지"></div>
+        <div><button class="btn-primary" id="lAddBtn">추가</button></div>
+      </div>
+      <datalist id="lCatList"></datalist>
+    </div>
+    <div id="linksHost"></div>
+  </section>
 </div>
 
 <datalist id="catList"></datalist>
+<div id="printArea"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -253,28 +399,30 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ---------- 고정 정보 ---------- */
 const SUPPLIER = { 상호:'개띠랑', 사업자번호:'663-05-02444', 대표자:'이진이', 연락처:'010-3343-0936',
-  이메일:'gaeddirang085@naver.com', 소개:'마음과 이야기를 엮는 곳' };
+  이메일:'gaeddirang085@naver.com', 소개:'마음과 이야기를 엮는 곳',
+  업태:'정보통신업, 도매 및 소매업', 종목:'일반 서적 출판업 전자상거래 소매업' };
+const STATUSES = ['작성','보냄','수주','무산'];
 
-// 품목표 — 정가·과세 여부. 기관공급가(inst)를 적어 두면 단가 기본값이 된다.
-const CATALOG = [
-  {name:'32가지 모든감정카드', keys:['모든감정','모든 감정 카드','32가지 감정'], desc:'32장 1세트 · 54×86mm · 양면 컬러', list:25000, unit:'세트', taxable:true},
-  {name:'35가지 불편감정카드', keys:['불편감정','불편한 감정 카드','불편한감정','35가지 감정'], desc:'35장 1세트 · 54×86mm · 양면 컬러', list:25000, unit:'세트', taxable:true},
-  {name:'두루마음체크카드 (노랑)', keys:['마음체크카드 노랑','마음체크 노랑','노랑'], desc:'40장 1세트 · 54×86mm · 양면 컬러', list:25000, unit:'세트', taxable:true},
-  {name:'두루마음체크카드 (초록)', keys:['마음체크카드 초록','마음체크 초록','초록'], desc:'40장 1세트 · 54×86mm · 양면 컬러', list:25000, unit:'세트', taxable:true},
-  {name:'40가지 빵질문카드', keys:['빵질문','빵 질문'], desc:'40장 1세트 · 54×86mm · 양면 컬러', list:25000, unit:'세트', taxable:true},
-  {name:'대형 키워드카드 40장 세트', keys:['대형 키워드','큰 키워드','키워드카드'], desc:'A5 148×210mm · 40종 · 양면 컬러 · 코팅', list:35000, unit:'세트', taxable:true},
-  {name:'5문장으로 1권의 책을 만나는 연필문학', keys:['연필문학','연필'], desc:'', list:15000, unit:'개', taxable:true},
-  {name:'어느 날 문득 잘 살고 싶어졌다', keys:['어느날 문득','잘 살고 싶어졌다','어문잘'], desc:'두루 지음', list:13000, unit:'권', taxable:false},
-  {name:'우울의 바깥을 향하며', keys:['우울의 바깥','우울 바깥'], desc:'두루 지음', list:13000, unit:'권', taxable:false},
-  {name:'불안과 밤 산책', keys:['불안과 밤산책','밤 산책'], desc:'두루 지음', list:15000, unit:'권', taxable:false},
-  {name:'모든 감정 도감', keys:['모든감정도감','감정 도감'], desc:'이다솜 지음', list:15000, unit:'권', taxable:false},
-  {name:'이러나저러나 불편한 거야 불편한 건', keys:['이러나저러나'], desc:'이다솜 지음', list:15000, unit:'권', taxable:false},
-  {name:'우당탕탕 잡았다 내 감정!', keys:['우당탕탕'], desc:'이다솜 지음', list:16000, unit:'권', taxable:false},
-  {name:'백빵기행 1', keys:['백빵기행1'], desc:'개띠랑 지음', list:15000, unit:'권', taxable:false},
-  {name:'백빵기행 2', keys:['백빵기행2'], desc:'개띠랑 지음', list:15000, unit:'권', taxable:false},
-  {name:'대한민국 빵집 대장정', keys:['빵집 대장정'], desc:'개띠랑 지음', list:18000, unit:'권', taxable:false},
-  {name:'나에게도 빵빵한 하루가 필요해', keys:['빵빵한 하루'], desc:'개띠랑·이다솜·두루 지음', list:15000, unit:'권', taxable:false},
-];
+// 로그인 전(로컬 미리보기)이나 DB를 못 읽을 때 쓰는 기본 품목표. 실제 품목표는 DB(doc_items).
+const FALLBACK_CATALOG = [
+  ['32가지 모든감정카드', ['모든감정','모든 감정 카드','32가지 감정'], '32장 1세트 · 54×86mm · 양면 컬러', 25000, '세트', true],
+  ['35가지 불편감정카드', ['불편감정','불편한 감정 카드','불편한감정','35가지 감정'], '35장 1세트 · 54×86mm · 양면 컬러', 25000, '세트', true],
+  ['두루마음체크카드 (노랑)', ['마음체크카드 노랑','마음체크 노랑','노랑'], '40장 1세트 · 54×86mm · 양면 컬러', 25000, '세트', true],
+  ['두루마음체크카드 (초록)', ['마음체크카드 초록','마음체크 초록','초록'], '40장 1세트 · 54×86mm · 양면 컬러', 25000, '세트', true],
+  ['40가지 빵질문카드', ['빵질문','빵 질문'], '40장 1세트 · 54×86mm · 양면 컬러', 25000, '세트', true],
+  ['대형 키워드카드 40장 세트', ['대형 키워드','큰 키워드','키워드카드'], 'A5 148×210mm · 40종 · 양면 컬러 · 코팅', 35000, '세트', true],
+  ['5문장으로 1권의 책을 만나는 연필문학', ['연필문학','연필'], '', 15000, '개', true],
+  ['어느 날 문득 잘 살고 싶어졌다', ['어느날 문득','잘 살고 싶어졌다','어문잘'], '두루 지음', 13000, '권', false],
+  ['우울의 바깥을 향하며', ['우울의 바깥','우울 바깥'], '두루 지음', 13000, '권', false],
+  ['불안과 밤 산책', ['불안과 밤산책','밤 산책'], '두루 지음', 15000, '권', false],
+  ['모든 감정 도감', ['모든감정도감','감정 도감'], '이다솜 지음', 15000, '권', false],
+  ['이러나저러나 불편한 거야 불편한 건', ['이러나저러나'], '이다솜 지음', 15000, '권', false],
+  ['우당탕탕 잡았다 내 감정!', ['우당탕탕'], '이다솜 지음', 16000, '권', false],
+  ['백빵기행 1', ['백빵기행1'], '개띠랑 지음', 15000, '권', false],
+  ['백빵기행 2', ['백빵기행2'], '개띠랑 지음', 15000, '권', false],
+  ['대한민국 빵집 대장정', ['빵집 대장정'], '개띠랑 지음', 18000, '권', false],
+  ['나에게도 빵빵한 하루가 필요해', ['빵빵한 하루'], '개띠랑·이다솜·두루 지음', 15000, '권', false],
+].map(([name, keys, desc, list, unit, taxable], i) => ({ id:null, name, keys, desc, list, inst:null, unit, taxable, active:true, sort:(i+1)*10 }));
 
 const REPLY_TEMPLATE = `안녕하세요, 개띠랑입니다.
 견적 문의 주셔서 감사합니다.
@@ -299,11 +447,23 @@ gaeddirang085@naver.com · 010-3343-0936`;
 
 const A4_CONTENT_HEIGHT = 1046; // A4 297mm − 위아래 여백 20mm, 96dpi 기준 px
 
+/* ---------- 상태 ---------- */
+let MODE = 'none';          // 'db' (관리자 로그인) | 'preview' (로컬 미리보기)
+let CATALOG = FALLBACK_CATALOG.slice();
+let QUOTES = [];            // 저장된 견적
+let LINKS = [];
+let ITEMS = [];             // 편집 중인 견적의 품목
+let CURRENT = null;         // 편집 중인 견적이 저장된 것이면 그 행
+let CURRENT_INQUIRY = null; // 문의에서 넘어왔으면 문의 id
+let CURRENT_VIEW = 'quote';
+
 /* ---------- 도구 ---------- */
 const $ = s => document.querySelector(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 const won = n => (n||0).toLocaleString('ko-KR');
-function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1800); }
+const today = () => new Date().toLocaleDateString('sv-SE');
+const dotDate = s => { const [y,m,d] = (s||'').split('-'); return y ? `${y}. ${m}. ${d}.` : ''; };
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200); }
 function store(key, value){ try{ if(value===undefined) return JSON.parse(localStorage.getItem(key)||'null'); localStorage.setItem(key, JSON.stringify(value)); }catch(e){ return null; } }
 
 function parseWon(text){
@@ -315,15 +475,35 @@ function parseWon(text){
 }
 function parseCount(text){ const d=String(text==null?'':text).replace(/[^\d]/g,''); return d?parseInt(d,10):null; }
 
+// 1400000 → "일백사십만"
+function koreanAmount(n){
+  n = Math.floor(n||0);
+  if(n <= 0) return '영';
+  const digits = ['','일','이','삼','사','오','육','칠','팔','구'], small = ['천','백','십',''], big = ['','만','억','조'];
+  let out = '', g = 0;
+  while(n > 0){
+    const part = n % 10000;
+    if(part){
+      const s = String(part).padStart(4,'0').split('').map((c,i)=> +c ? digits[+c]+small[i] : '').join('');
+      out = s + big[g] + out;
+    }
+    n = Math.floor(n/10000); g++;
+  }
+  return out;
+}
+
 /* ---------- 품목표 찾기 ---------- */
 const norm = s => (s||'').replace(/[\s()（）\[\]·.,!\-_/~]/g,'').toLowerCase();
 function matchCatalog(name){
   const target = norm(name); let best=null, bestLen=0;
-  CATALOG.forEach(c => [c.name, ...c.keys].forEach(k => {
+  CATALOG.filter(c=>c.active).forEach(c => [c.name, ...(c.keys||[])].forEach(k => {
     const nk = norm(k);
     if(nk && target.includes(nk) && nk.length > bestLen){ best=c; bestLen=nk.length; }
   }));
   return best;
+}
+function refreshCatalogList(){
+  $('#catList').innerHTML = CATALOG.filter(c=>c.active).map(c=>`<option value="${esc(c.name)}">`).join('');
 }
 
 /* ---------- 견적 요청 메일 읽기 (quote.py 와 같은 규칙) ---------- */
@@ -404,17 +584,20 @@ function defaultNotes(vatIncluded){
     '결제조건·납기·배송비는 발주 확정 시 협의합니다.',
   ];
 }
+const validLine = it => it.name && it.price!=null && !isNaN(it.price) && it.qty;
 function buildQuote(d){
   const vatIncluded = d.vatMode !== 'out';
-  const lines = d.items.filter(it => it.name && it.price!=null && !isNaN(it.price) && it.qty).map(it => calcLine(it, vatIncluded));
+  const lines = (d.items||[]).filter(validLine).map(it => calcLine(it, vatIncluded));
   const key = vatIncluded ? 'total' : 'supply';
   const vatWord = vatIncluded ? 'VAT 포함' : 'VAT 별도';
-  let headline;
+  let headline, headValue;
   if(d.alt && lines.length > 1){
     const vals = lines.map(l=>l[key]);
     headline = `공급가 ${won(Math.min(...vals))} ~ ${won(Math.max(...vals))}원 (${vatWord})`;
+    headValue = Math.max(...lines.map(l=>l.total));
   } else {
     headline = `총 ${won(lines.reduce((s,l)=>s+l[key],0))}원 (${vatWord})`;
+    headValue = lines.reduce((s,l)=>s+l.total,0);
   }
   const pcts = lines.map(l=>l.pct).filter(p=>p!=null);
   let summary = '';
@@ -422,19 +605,23 @@ function buildQuote(d){
     const lo = Math.floor(Math.min(...pcts)), hi = Math.ceil(Math.max(...pcts));
     summary = `정상가 대비 약 ${lo===hi?lo:lo+'~'+hi}% 할인된 기관 특별 공급가입니다.`;
   }
-  const notes = defaultNotes(vatIncluded).concat(d.extra.map(esc));
+  const notes = [];
+  if(d.isDraft) notes.push('<b>가견적</b>입니다. 수량·사양이 확정되면 정식 견적서를 다시 드립니다.');
+  notes.push(...defaultNotes(vatIncluded), ...(d.extra||[]).map(esc));
   if(lines.some(l=>!l.taxable)) notes.push('도서 등 면세 품목은 부가가치세가 붙지 않습니다.');
   lines.forEach((l,i)=>{ l.cont = i>0 && lines[i-1].name===l.name; });
   lines.forEach((l,i)=>{ if(!l.cont){ let s=1; while(i+s<lines.length && lines[i+s].cont) s++; l.span=s; } });
-  const [y,m,dd] = (d.date||'').split('-');
-  return { ...d, lines, headline, summary, special: pcts.length>0, notes,
-    dateLabel: y ? `${y}. ${m}. ${dd}.` : '', unitHeader: vatIncluded ? '단가(VAT포함)' : '단가' };
+  return { ...d, lines, headline, headValue, summary, special: pcts.length>0, notes,
+    dateLabel: dotDate(d.date), unitHeader: vatIncluded ? '단가(VAT포함)' : '단가' };
 }
 
-/* ---------- 견적서 그리기 ---------- */
+/* ---------- 문서 그리기 ---------- */
+function supplierRows(keys){
+  return keys.map(k=>`<div class="row"><span class="k">${k==='사업자번호'?'등록번호':k}</span><span class="v">${esc(SUPPLIER[k])}</span></div>`).join('');
+}
+const FOOTER = () => [SUPPLIER.상호, SUPPLIER.소개, SUPPLIER.이메일, SUPPLIER.연락처, '사업자등록번호 '+SUPPLIER.사업자번호].join(' · ');
+
 function quoteHtml(q, dense){
-  const supplierRows = [['상호',SUPPLIER.상호],['사업자번호',SUPPLIER.사업자번호],['대표자',SUPPLIER.대표자],['연락처',SUPPLIER.연락처],['이메일',SUPPLIER.이메일]]
-    .map(([k,v])=>`<div class="row"><span class="k">${k}</span><span class="v">${esc(v)}</span></div>`).join('');
   const rows = q.lines.length ? q.lines.map(l=>`<tr>
       ${l.cont?'':`<td class="item-c" rowspan="${l.span}"><span class="name">${esc(l.name)}</span>${l.desc?`<div class="sub">${esc(l.desc)}</div>`:''}</td>`}
       <td class="num">${l.pct!=null
@@ -445,10 +632,9 @@ function quoteHtml(q, dense){
       <td class="num">${l.taxable?won(l.vat)+'원':'면세'}</td>
       <td class="num">${won(l.total)}원</td></tr>`).join('')
     : `<tr><td colspan="6" style="text-align:center;color:#b3a99f;padding:18px">품목을 넣으면 여기에 표시됩니다</td></tr>`;
-  const footer = [SUPPLIER.상호, SUPPLIER.소개, SUPPLIER.이메일, SUPPLIER.연락처, '사업자등록번호 '+SUPPLIER.사업자번호].join(' · ');
   return `<div class="qdoc${dense>=1?' d1':''}${dense>=2?' d2':''}"><div class="wrap">
     <div class="head">
-      <div><h1>견 적 서</h1><div class="subtitle">${esc(q.title)}</div></div>
+      <div><h1>견 적 서</h1><div class="subtitle">${q.isDraft?'<span class="draft-tag">가견적</span>':''}${esc(q.title)}</div></div>
       <div class="head-meta">견적번호 <b>${esc(q.number)}</b><br>견적일자 <b>${q.dateLabel}</b><br>유효기간 <b>견적일로부터 ${esc(q.validDays)}일</b></div>
     </div>
     <hr class="rule">
@@ -458,7 +644,9 @@ function quoteHtml(q, dense){
         <div class="row"><span class="k">사업자번호</span><span class="v">${esc(q.toBiz)}</span></div>
         <div class="row"><span class="k">담당/연락처</span><span class="v">${esc(q.toManager)}</span></div>
       </div></div>
-      <div class="box"><div class="box-head">공급자 (供)</div><div class="box-body">${supplierRows}</div></div>
+      <div class="box"><div class="box-head">공급자 (供)</div><div class="box-body">${
+        [['상호',SUPPLIER.상호],['사업자번호',SUPPLIER.사업자번호],['대표자',SUPPLIER.대표자],['연락처',SUPPLIER.연락처],['이메일',SUPPLIER.이메일]]
+          .map(([k,v])=>`<div class="row"><span class="k">${k}</span><span class="v">${esc(v)}</span></div>`).join('')}</div></div>
     </div>
     <div class="total-bar">${q.special?'<div class="badge">★ 기관 특별 공급가</div>':''}
       <div class="trow"><span>아래와 같이 견적합니다.${q.summary?' '+esc(q.summary):''}</span><span class="amt">${esc(q.headline)}</span></div></div>
@@ -470,22 +658,88 @@ function quoteHtml(q, dense){
     </table>
     <div class="notes"><div class="h">· 안내사항</div><ol>${q.notes.map(n=>`<li>${n}</li>`).join('')}</ol></div>
     <div class="sign">위와 같이 견적서를 제출합니다. ${q.dateLabel}<br><span class="name">${esc(SUPPLIER.상호)} 대표 ${esc(SUPPLIER.대표자)} (인)</span></div>
-    <div class="foot">${esc(footer)}</div>
+    <div class="foot">${esc(FOOTER())}</div>
   </div></div>`;
 }
 
-/* ---------- 입력 상태 ---------- */
-let ITEMS = [];
-let numberTouched = false;
+function statementHtml(s, dense){
+  const rows = s.lines.length ? s.lines.map(l=>`<tr>
+      <td class="item-c"><span class="name">${esc(l.name)}</span>${l.desc?`<div class="sub">${esc(l.desc)}</div>`:''}</td>
+      <td class="num">${esc(l.qty+(l.unitWord||''))}</td>
+      <td class="num">${won(l.unit)}원</td>
+      <td class="num">${won(l.supply)}원</td>
+      <td class="num">${l.taxable?won(l.vat)+'원':'면세'}</td>
+      <td class="num">${won(l.total)}원</td></tr>`).join('')
+    : `<tr><td colspan="6" style="text-align:center;color:#b3a99f;padding:18px">견적과 품목을 고르면 여기에 표시됩니다</td></tr>`;
+  return `<div class="qdoc${dense>=1?' d1':''}${dense>=2?' d2':''}"><div class="wrap">
+    <div class="head">
+      <div><h1>거래명세서</h1><div class="subtitle">${esc(s.title)}</div></div>
+      <div class="head-meta">거래일자 <b>${dotDate(s.date)}</b><br>${s.number?`견적번호 <b>${esc(s.number)}</b>`:'&nbsp;'}</div>
+    </div>
+    <hr class="rule">
+    <div class="info-grid">
+      <div class="box"><div class="box-head">공급받는자 (受)</div><div class="box-body">
+        <div class="row"><span class="k">상호</span><span class="v">${esc(s.toName)}</span></div>
+        <div class="row"><span class="k">사업자번호</span><span class="v">${esc(s.toBiz)}</span></div>
+        <div class="row"><span class="k">담당/연락처</span><span class="v">${esc(s.toManager)}</span></div>
+      </div></div>
+      <div class="box"><div class="box-head">공급자 (供)</div><div class="box-body">${supplierRows(['사업자번호','상호','대표자','업태','종목','연락처'])}</div></div>
+    </div>
+    <div class="total-bar"><div class="trow"><span>합계금액 (공급가액 + 세액)</span><span class="amt">일금 ${koreanAmount(s.total)}원정 (₩${won(s.total)})</span></div></div>
+    <table>
+      <colgroup><col style="width:31%"><col style="width:11%"><col style="width:14%"><col style="width:16%"><col style="width:12%"><col style="width:16%"></colgroup>
+      <thead><tr><th>품목 / 규격</th><th>수량</th><th>${s.unitHeader}</th><th>공급가액</th><th>세액</th><th>합계</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td>합계</td><td></td><td></td><td>${won(s.supply)}원</td><td>${won(s.vat)}원</td><td>${won(s.total)}원</td></tr></tfoot>
+    </table>
+    <div class="receive">
+      <div class="memo"><span class="k">비고</span>${esc(s.memo)}</div>
+      <div class="sig"><span class="k">인수자 확인</span><div class="line">(인)</div></div>
+    </div>
+    <div class="sign">위와 같이 거래합니다. ${dotDate(s.date)}<br><span class="name">${esc(SUPPLIER.상호)} 대표 ${esc(SUPPLIER.대표자)} (인)</span></div>
+    <div class="foot">${esc(FOOTER())}</div>
+  </div></div>`;
+}
 
+// 미리보기에 그리고, A4 한 장을 넘으면 간격을 줄여 다시 그린다
+function renderSheet(sheet, box, build, startDense){
+  let dense = startDense||0, html = '', height = 0;
+  for(;;){
+    html = build(dense); sheet.innerHTML = html; height = sheet.scrollHeight;
+    if(height <= A4_CONTENT_HEIGHT || dense >= 2) break;
+    dense++;
+  }
+  const scale = Math.max(0.2, Math.min(1, (box.clientWidth - 32) / 688));
+  sheet.style.transform = `scale(${scale})`;
+  box.style.height = (height*scale + 32) + 'px';
+  return { html, dense, over: height > A4_CONTENT_HEIGHT };
+}
+function setFit(el, r){
+  el.textContent = r.over ? 'A4 한 장을 넘습니다 · 설명이나 안내 문구를 줄여 주세요' : `A4 한 장${r.dense?' (간격 줄임)':''}`;
+  el.classList.toggle('warn', r.over);
+}
+function printHtml(html, fileTitle){
+  $('#printArea').innerHTML = html;
+  const oldTitle = document.title;
+  document.title = fileTitle.replace(/[\\/:*?"<>|]/g,'');
+  window.addEventListener('afterprint', ()=>{ document.title = oldTitle; }, { once:true });
+  window.print();
+}
+
+/* ============ 견적서 편집 ============ */
 function blankItem(){ return { name:'', desc:'', price:null, qty:null, unitWord:'세트', list:null, taxable:true, catalog:null }; }
 function readForm(){
   return {
     toName: $('#toName').value.trim(), toManager: $('#toManager').value.trim(), toBiz: $('#toBiz').value.trim(),
-    title: $('#title').value.trim(), date: $('#qDate').value, number: $('#qNumber').value.trim(),
-    vatMode: $('#vatMode').value, validDays: parseInt($('#validDays').value,10)||30, alt: $('#altMode').checked,
+    title: $('#title').value.trim(), date: $('#qDate').value, number: CURRENT ? CURRENT.number : '',
+    vatMode: $('#vatMode').value, validDays: Math.min(365, Math.max(1, parseInt($('#validDays').value,10)||30)),
+    alt: $('#altMode').checked, isDraft: $('#draftMode').checked,
     items: ITEMS, extra: $('#extraNotes').value.split('\n').map(s=>s.trim()).filter(Boolean),
   };
+}
+function cleanItems(){
+  return ITEMS.filter(it=>it.name).map(it=>({ name:it.name, desc:it.desc||'', price:(it.price!=null&&!isNaN(it.price))?it.price:null,
+    qty:it.qty||null, unitWord:it.unitWord||'', list:it.list||null, taxable:it.taxable!==false }));
 }
 
 function renderItems(){
@@ -531,11 +785,11 @@ function applyCatalog(it, typed, fromUser){
   it.taxable = c.taxable;
   if(it.price==null || isNaN(it.price)) it.price = c.inst || c.list;
 }
-
 function updateItemNotes(q){
   document.querySelectorAll('#itemsHost .item').forEach((box, i)=>{
     const it = ITEMS[i], note = box.querySelector('.it-note');
-    const calc = (it.name && it.price!=null && !isNaN(it.price) && it.qty) ? calcLine(it, q.vatMode!=='out') : null;
+    if(!it) return;
+    const calc = validLine(it) ? calcLine(it, q.vatMode!=='out') : null;
     const parts = [];
     if(it.catalog) parts.push(`품목표: ${esc(it.catalog)}`);
     if(it.price!=null && isNaN(it.price)) parts.push('<span style="color:#d9583c">단가를 숫자로 적어 주세요 (예: 17000, 1만7천)</span>');
@@ -544,7 +798,7 @@ function updateItemNotes(q){
   });
 }
 
-function autoNumber(dateStr){
+function localNumber(dateStr){
   const d = (dateStr||'').replace(/-/g,'');
   if(d.length!==8) return '';
   const base = `GDR-${d.slice(0,4)}-${d.slice(4,8)}`;
@@ -553,48 +807,95 @@ function autoNumber(dateStr){
   for(const L of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'){ if(!used.includes(`${base}-${L}`)) return `${base}-${L}`; }
   return base;
 }
+function displayNumber(d){
+  if(CURRENT) return CURRENT.number;
+  return MODE==='db' ? '저장하면 매겨짐' : localNumber(d.date);
+}
+
+function renderSavedBar(){
+  const bar = $('#savedBar');
+  if(CURRENT){
+    bar.innerHTML = `<b>${esc(CURRENT.number)}</b>${CURRENT.is_draft?' <span class="chip draft">가견적</span>':''}
+      <span class="grow" style="color:var(--muted)">저장된 견적을 고치는 중</span>
+      <select class="in sm" id="curStatus">${STATUSES.map(s=>`<option ${s===CURRENT.status?'selected':''}>${s}</option>`).join('')}</select>`;
+    bar.querySelector('#curStatus').onchange = e => setStatus(CURRENT, e.target.value);
+  } else {
+    bar.innerHTML = `<b>새 견적</b><span class="grow" style="color:var(--muted)">${MODE==='db'?'아직 저장 안 됨':'미리보기 모드 · 저장은 로그인 후'}</span>`;
+  }
+}
 
 function update(){
   const d = readForm();
+  d.number = displayNumber(d);
+  $('#qNumber').value = d.number;
   const q = buildQuote(d);
-  const sheet = $('#sheet');
-  let dense = q.lines.length > 4 ? 1 : 0, height = 0;
-  for(;;){
-    sheet.innerHTML = quoteHtml(q, dense);
-    height = sheet.scrollHeight;
-    if(height <= A4_CONTENT_HEIGHT || dense >= 2) break;
-    dense++;
-  }
-  const over = height > A4_CONTENT_HEIGHT;
-  const fit = $('#fitNote');
-  fit.textContent = over ? 'A4 한 장을 넘습니다 · 안내 문구나 설명을 줄여 주세요' : `A4 한 장${dense?' (간격 줄임)':''}`;
-  fit.classList.toggle('warn', over);
-  const box = $('#previewBox');
-  const scale = Math.min(1, (box.clientWidth - 32) / 688);
-  sheet.style.transform = `scale(${scale})`;
-  box.style.height = (height*scale + 32) + 'px';
+  const r = renderSheet($('#sheet'), $('#previewBox'), dense => quoteHtml(q, dense), q.lines.length > 4 ? 1 : 0);
+  setFit($('#fitNote'), r);
   updateItemNotes(q);
-  store('docs_quote_draft', { ...d, items: ITEMS, numberTouched });
+  if(!CURRENT) store('docs_quote_draft', { ...readForm(), items: ITEMS, inquiry: CURRENT_INQUIRY });
+  q.html = r.html;
   return q;
 }
 
 function loadData(data){
   $('#toName').value = data.toName||''; $('#toManager').value = data.toManager||''; $('#toBiz').value = data.toBiz||'';
   $('#title').value = data.title||'';
-  if(data.date) $('#qDate').value = data.date;
-  numberTouched = !!(data.number && data.numberTouched!==false);
-  $('#qNumber').value = data.number || autoNumber($('#qDate').value);
+  $('#qDate').value = data.date || today();
   $('#vatMode').value = data.vatMode==='out' ? 'out' : 'in';
   $('#validDays').value = data.validDays||30;
   $('#altMode').checked = !!data.alt;
+  $('#draftMode').checked = !!data.isDraft;
   $('#extraNotes').value = (data.extra||[]).join('\n');
-  ITEMS = (data.items && data.items.length ? data.items : [blankItem()]).map(it=>({ ...blankItem(), ...it }));
-  renderItems(); update();
+  ITEMS = (data.items && data.items.length ? data.items : [blankItem()]).map(it=>({ ...blankItem(), ...it, catalog: matchCatalog(it.name||'') ? matchCatalog(it.name).name : null }));
+  renderSavedBar(); renderItems(); update();
+}
+function rowToData(r){
+  return { toName:r.to_name, toManager:r.to_manager, toBiz:r.to_biz, title:r.title, date:r.quote_date, vatMode:r.vat_mode,
+    validDays:r.valid_days, alt:r.alt, isDraft:r.is_draft, extra:r.extra_notes||[], items:r.items||[] };
+}
+function resetForm(){
+  CURRENT = null; CURRENT_INQUIRY = null;
+  $('#pasteBox').value=''; $('#parseNote').textContent=''; $('#budgetNote').classList.add('hidden');
+  loadData({ date: today() });
+}
+function openQuote(row){
+  CURRENT = row; CURRENT_INQUIRY = row.inquiry_id || null;
+  $('#pasteBox').value=''; $('#parseNote').textContent=''; $('#budgetNote').classList.add('hidden');
+  loadData(rowToData(row));
+  switchView('quote');
 }
 
-function resetForm(){
-  $('#pasteBox').value=''; $('#parseNote').textContent=''; $('#budgetNote').classList.add('hidden');
-  loadData({ date: new Date().toLocaleDateString('sv-SE') });
+async function saveQuote(){
+  if(MODE!=='db'){ toast('저장은 관리실에 로그인해야 할 수 있어요'); return null; }
+  const d = readForm();
+  const q = buildQuote(d);
+  if(!q.lines.length){ toast('품목·단가·수량을 먼저 넣어 주세요'); return null; }
+  const row = { quote_date: d.date || today(), to_name: d.toName, to_manager: d.toManager, to_biz: d.toBiz, title: d.title,
+    vat_mode: d.vatMode, valid_days: d.validDays, alt: d.alt, is_draft: d.isDraft, items: cleanItems(),
+    extra_notes: d.extra, total_amount: q.headValue, inquiry_id: CURRENT_INQUIRY };
+  const btns = [$('#saveBtn'), $('#printBtn')]; btns.forEach(b=>b.disabled=true);
+  const res = CURRENT
+    ? await sb.from('quotes').update(row).eq('id', CURRENT.id).select().single()
+    : await sb.from('quotes').insert(row).select().single();
+  btns.forEach(b=>b.disabled=false);
+  if(res.error){ toast('저장하지 못했어요: '+res.error.message); return null; }
+  const isNew = !CURRENT;
+  CURRENT = res.data;
+  QUOTES = [CURRENT, ...QUOTES.filter(x=>x.id!==CURRENT.id)];
+  if(isNew) store('docs_quote_draft', null);
+  renderSavedBar(); update(); renderRecords();
+  toast(`${CURRENT.number} ${isNew?'저장했어요':'고쳤어요'}`);
+  return CURRENT;
+}
+async function setStatus(row, status, quiet){
+  const { data, error } = await sb.from('quotes').update({ status }).eq('id', row.id).select().single();
+  if(error){ toast('상태를 바꾸지 못했어요: '+error.message); return null; }
+  Object.assign(row, data);
+  QUOTES = QUOTES.map(x=>x.id===row.id?row:x);
+  if(CURRENT && CURRENT.id===row.id){ CURRENT = row; renderSavedBar(); }
+  renderRecords();
+  if(!quiet) toast(`${row.number} → ${status}`);
+  return row;
 }
 
 /* ---------- 메일 붙여넣기 ---------- */
@@ -607,8 +908,11 @@ function fillFromText(text, extraNotes){
     note.textContent='「기관명:」「필요한 품목과 수량:」 같은 칸을 찾지 못했어요. 아래 칸에 직접 적어 주세요.';
     return false;
   }
-  // 새 요청이니 이전 견적의 날짜·번호·비교 견적·안내 문구가 남지 않게 먼저 비운다 (붙여넣은 글은 그대로)
-  loadData({ date: new Date().toLocaleDateString('sv-SE') });
+  // 새 요청이니 이전 견적의 날짜·번호·비교 견적·안내 문구가 남지 않게 먼저 비운다 (붙여넣은 글과 문의 연결은 그대로)
+  const keepInquiry = CURRENT_INQUIRY;
+  CURRENT = null;
+  loadData({ date: today() });
+  CURRENT_INQUIRY = keepInquiry;
   if(f['상호']) $('#toName').value = f['상호'];
   if(f['담당']) $('#toManager').value = f['담당'];
   if(f['사업자번호']) $('#toBiz').value = f['사업자번호'];
@@ -619,10 +923,7 @@ function fillFromText(text, extraNotes){
   const notes = (extraNotes||[]).slice();
   if(f['납품일']) notes.push(`희망 납품일: ${f['납품일']}`);
   if(f['배송지']) notes.push(`배송지: ${f['배송지']}`);
-  if(notes.length){
-    const cur = $('#extraNotes').value.split('\n').map(s=>s.trim()).filter(Boolean);
-    $('#extraNotes').value = [...new Set(cur.concat(notes))].join('\n');
-  }
+  if(notes.length) $('#extraNotes').value = [...new Set(notes)].join('\n');
   if(items.length){
     ITEMS = items.map(p=>{ const it = { ...blankItem(), qty:p.qty, unitWord:p.unit||'세트' }; applyCatalog(it, p.name, false); if(!p.unit && it.catalog){ it.unitWord = matchCatalog(p.name).unit; } return it; });
   }
@@ -632,7 +933,7 @@ function fillFromText(text, extraNotes){
   const missing = ITEMS.filter(it=>!it.catalog && it.name).map(it=>it.name);
   note.className='parse-note';
   note.textContent = `칸을 채웠어요. 품목 ${items.length}개${missing.length?` (품목표에 없는 것: ${missing.join(', ')} — 단가를 직접 적어 주세요)`:''}. 단가를 확인해 주세요.`;
-  renderItems(); update();
+  renderSavedBar(); renderItems(); update();
   return true;
 }
 
@@ -640,74 +941,354 @@ function fillFromText(text, extraNotes){
 async function loadInquiry(id){
   const { data, error } = await sb.from('inquiries').select('*').eq('id', id).maybeSingle();
   if(error || !data){ toast('문의를 불러오지 못했어요'); return; }
+  resetForm();
+  CURRENT_INQUIRY = data.id;
   $('#toName').value = data.org_name||'';
   $('#toManager').value = [data.manager_name, data.contact, data.email].filter(Boolean).join(' / ');
   $('#title').value = data.program_wanted || data.inquiry_type || '';
   const notes = [];
   if(data.desired_time) notes.push(`희망 시기: ${data.desired_time}`);
-  if(data.message){ $('#pasteBox').value = data.message; fillFromText(data.message, notes); }
-  else if(notes.length){ $('#extraNotes').value = notes.join('\n'); }
+  if(data.message){
+    $('#pasteBox').value = data.message;
+    if(fillFromText(data.message, notes)){
+      if(!$('#toName').value) $('#toName').value = data.org_name||'';
+      if(!$('#toManager').value) $('#toManager').value = [data.manager_name, data.contact, data.email].filter(Boolean).join(' / ');
+    } else if(notes.length){ $('#extraNotes').value = notes.join('\n'); }
+  } else if(notes.length){ $('#extraNotes').value = notes.join('\n'); }
   if(data.headcount){ const bud=$('#budgetNote'); bud.textContent = `참고 · 문의에 적힌 인원: ${data.headcount}명`; bud.classList.remove('hidden'); }
   update();
   toast(`「${data.org_name||'문의'}」 내용을 불러왔어요`);
 }
 
+/* ============ 견적 기록 ============ */
+function renderRecords(){
+  const host = $('#recList');
+  if(MODE!=='db'){ host.innerHTML = '<div class="empty">관리실에 로그인하면 저장된 견적이 여기에 쌓입니다.</div>'; $('#rCount').textContent=''; return; }
+  const fs = $('#rStatus').value, qt = $('#rSearch').value.trim().toLowerCase();
+  const rows = QUOTES.filter(r => (!fs || (fs==='가견적' ? r.is_draft : r.status===fs)) &&
+    (!qt || [r.number, r.to_name, r.title, r.to_manager].join(' ').toLowerCase().includes(qt)));
+  $('#rCount').textContent = `${rows.length}건`;
+  if(!rows.length){ host.innerHTML = `<div class="empty">${QUOTES.length?'조건에 맞는 견적이 없어요.':'아직 저장된 견적이 없어요. 견적서 탭에서 「저장」을 누르면 여기에 쌓입니다.'}</div>`; return; }
+  host.innerHTML = '';
+  rows.forEach(r=>{
+    const el = document.createElement('div'); el.className='rec';
+    el.innerHTML = `<div class="rec-main">
+        <div class="rec-top"><b>${esc(r.number)}</b>${r.is_draft?'<span class="chip draft">가견적</span>':''}<span class="chip s-${esc(r.status)}">${esc(r.status)}</span></div>
+        <div class="rec-name">${esc(r.to_name||'(받는 곳 없음)')}${r.title?' · '+esc(r.title):''}</div>
+        <div class="rec-sub">${dotDate(r.quote_date)} · ${won(r.total_amount)}원${r.alt?' (비교 견적 최대)':''}${r.statement_date?' · 거래명세서 '+dotDate(r.statement_date):''} · ${esc((r.created_by||'').split('@')[0])}</div>
+      </div>
+      <div class="rec-actions">
+        <select class="in sm rec-status">${STATUSES.map(s=>`<option ${s===r.status?'selected':''}>${s}</option>`).join('')}</select>
+        <button class="btn-sm rec-open">열기</button>
+        <button class="btn-sm rec-ts">거래명세서</button>
+      </div>`;
+    el.querySelector('.rec-status').onchange = e => setStatus(r, e.target.value);
+    el.querySelector('.rec-open').onclick = () => openQuote(r);
+    el.querySelector('.rec-ts').onclick = () => { switchView('statement'); selectStatementSource(r.id); };
+    host.appendChild(el);
+  });
+}
+
+/* ============ 거래명세서 ============ */
+let TS_INCLUDE = [];
+function statementSourceData(){
+  const id = $('#tsSource').value;
+  if(id === 'current'){ const d = readForm(); return { data: { ...d, number: CURRENT ? CURRENT.number : '' }, row: CURRENT }; }
+  const row = QUOTES.find(x=>x.id===id);
+  return row ? { data: { ...rowToData(row), number: row.number }, row } : { data: null, row: null };
+}
+function fillStatementSelect(keep){
+  const sel = $('#tsSource');
+  const cur = keep || sel.value || 'current';
+  sel.innerHTML = `<option value="current">지금 견적서 탭에서 편집 중인 견적${CURRENT?' ('+esc(CURRENT.number)+')':''}</option>` +
+    QUOTES.map(r=>`<option value="${esc(r.id)}">${esc(r.number)} · ${esc(r.to_name||'(받는 곳 없음)')} · ${esc(r.status)}</option>`).join('');
+  sel.value = [...sel.options].some(o=>o.value===cur) ? cur : 'current';
+}
+function selectStatementSource(id){
+  fillStatementSelect(id);
+  onStatementSourceChange();
+}
+function onStatementSourceChange(){
+  const { data, row } = statementSourceData();
+  const valid = data ? (data.items||[]).filter(validLine) : [];
+  TS_INCLUDE = valid.map((_, i) => !(data && data.alt && valid.length > 1) || i === 0);  // 비교 견적이면 첫 안만 기본 선택
+  $('#tsToName').value = data ? data.toName||'' : '';
+  $('#tsToManager').value = data ? data.toManager||'' : '';
+  $('#tsToBiz').value = data ? data.toBiz||'' : '';
+  $('#tsDate').value = (row && row.statement_date) || today();
+  const host = $('#tsLines');
+  host.innerHTML = valid.length ? '' : '<span class="hint">이 견적에는 단가·수량이 들어간 품목이 없어요.</span>';
+  valid.forEach((it, i)=>{
+    const lab = document.createElement('label');
+    lab.innerHTML = `<input type="checkbox" ${TS_INCLUDE[i]?'checked':''}> <span>${esc(it.name)} · ${esc((it.qty||'')+(it.unitWord||''))} · ${won(it.price)}원</span>`;
+    lab.querySelector('input').onchange = e => { TS_INCLUDE[i] = e.target.checked; renderStatement(); };
+    host.appendChild(lab);
+  });
+  renderStatement();
+}
+function buildStatement(){
+  const { data, row } = statementSourceData();
+  const vatIncluded = !data || data.vatMode !== 'out';
+  const valid = data ? (data.items||[]).filter(validLine) : [];
+  const lines = valid.filter((_, i)=>TS_INCLUDE[i]).map(it => calcLine(it, vatIncluded));
+  return {
+    row, number: data ? data.number : '', title: data ? data.title : '', date: $('#tsDate').value || today(),
+    toName: $('#tsToName').value.trim(), toManager: $('#tsToManager').value.trim(), toBiz: $('#tsToBiz').value.trim(),
+    memo: $('#tsMemo').value.trim(), lines, unitHeader: vatIncluded ? '단가(VAT포함)' : '단가',
+    supply: lines.reduce((s,l)=>s+l.supply,0), vat: lines.reduce((s,l)=>s+l.vat,0), total: lines.reduce((s,l)=>s+l.total,0),
+  };
+}
+function renderStatement(){
+  const s = buildStatement();
+  const r = renderSheet($('#tsSheet'), $('#tsBox'), dense => statementHtml(s, dense), s.lines.length > 5 ? 1 : 0);
+  setFit($('#tsFit'), r);
+  s.html = r.html;
+  return s;
+}
+async function printStatement(){
+  const s = renderStatement();
+  if(!s.lines.length){ toast('넣을 품목을 하나 이상 골라 주세요'); return; }
+  if(MODE==='db' && s.row){
+    const patch = { statement_date: s.date };
+    if(['작성','보냄'].includes(s.row.status)) patch.status = '수주';
+    const { data, error } = await sb.from('quotes').update(patch).eq('id', s.row.id).select().single();
+    if(error){ toast('견적 기록을 고치지 못했어요: '+error.message); }
+    else {
+      Object.assign(s.row, data); QUOTES = QUOTES.map(x=>x.id===data.id?s.row:x);
+      if(CURRENT && CURRENT.id===data.id){ CURRENT = s.row; renderSavedBar(); }
+      renderRecords(); fillStatementSelect(data.id);
+      if(patch.status) toast(`${data.number} → 수주`);
+    }
+  }
+  printHtml(s.html, [s.number, '거래명세서', s.toName].filter(Boolean).join('_'));
+}
+
+/* ============ 품목표 ============ */
+function fromDbItem(r){
+  return { id:r.id, name:r.name, keys:r.search_keys||[], desc:r.description||'', list:r.list_price, inst:r.inst_price,
+    unit:r.unit||'세트', taxable:r.taxable!==false, active:r.active!==false, sort:r.sort||0 };
+}
+function renderItemsTable(){
+  const host = $('#itemsTableHost');
+  const editable = MODE==='db';
+  $('#iAddBtn').classList.toggle('hidden', !editable);
+  const rows = CATALOG.slice().sort((a,b)=>(a.sort||0)-(b.sort||0));
+  host.innerHTML = `${editable?'':'<div class="empty" style="margin-bottom:12px">관리실에 로그인하면 품목표를 고칠 수 있어요. 지금은 기본 품목표를 보여 줍니다.</div>'}
+    <div class="table-wrap"><table class="grid"><thead><tr>
+      <th style="width:210px">품목명</th><th style="width:180px">찾는말 (쉼표)</th><th>설명</th><th style="width:96px">정가</th><th style="width:96px">기관공급가</th>
+      <th style="width:70px">단위</th><th style="width:80px">과세</th><th style="width:54px">사용</th><th style="width:64px">순서</th><th style="width:70px"></th>
+    </tr></thead><tbody></tbody></table></div>`;
+  const tbody = host.querySelector('tbody');
+  rows.forEach(c=>{
+    const tr = document.createElement('tr'); if(!c.active) tr.className='off';
+    const dis = editable ? '' : ' disabled';
+    tr.innerHTML = `<td><input class="in c-name" value="${esc(c.name)}"${dis}></td>
+      <td><input class="in c-keys" value="${esc((c.keys||[]).join(', '))}"${dis}></td>
+      <td><input class="in c-desc" value="${esc(c.desc)}"${dis}></td>
+      <td><input class="in c-list" inputmode="numeric" value="${c.list?won(c.list):''}"${dis}></td>
+      <td><input class="in c-inst" inputmode="numeric" value="${c.inst?won(c.inst):''}" placeholder="비우면 정가"${dis}></td>
+      <td><input class="in c-unit" value="${esc(c.unit)}"${dis}></td>
+      <td><select class="in c-tax"${dis}><option value="1"${c.taxable?' selected':''}>과세</option><option value="0"${c.taxable?'':' selected'}>면세</option></select></td>
+      <td style="text-align:center"><input type="checkbox" class="c-active"${c.active?' checked':''}${dis}></td>
+      <td><input class="in c-sort" type="number" value="${c.sort||0}"${dis}></td>
+      <td>${editable?'<button class="btn-sm c-save">저장</button>':''}</td>`;
+    if(editable) tr.querySelector('.c-save').onclick = () => saveCatalogRow(c, tr);
+    tbody.appendChild(tr);
+  });
+}
+async function saveCatalogRow(c, tr){
+  const v = sel => tr.querySelector(sel);
+  const name = v('.c-name').value.trim();
+  if(!name){ toast('품목명을 적어 주세요'); return; }
+  const list = parseWon(v('.c-list').value), inst = parseWon(v('.c-inst').value);
+  if(Number.isNaN(list) || Number.isNaN(inst)){ toast('정가·기관공급가는 숫자로 적어 주세요'); return; }
+  const row = { name, search_keys: v('.c-keys').value.split(',').map(s=>s.trim()).filter(Boolean), description: v('.c-desc').value.trim(),
+    list_price: list, inst_price: inst, unit: v('.c-unit').value.trim()||'세트', taxable: v('.c-tax').value==='1',
+    active: v('.c-active').checked, sort: parseInt(v('.c-sort').value,10)||0 };
+  const res = c.id ? await sb.from('doc_items').update(row).eq('id', c.id).select().single()
+                   : await sb.from('doc_items').insert(row).select().single();
+  if(res.error){ toast('저장하지 못했어요: '+res.error.message); return; }
+  const saved = fromDbItem(res.data);
+  CATALOG = [...CATALOG.filter(x=>x!==c && x.id!==saved.id), saved];
+  refreshCatalogList(); renderItemsTable();
+  toast(`「${saved.name}」 저장했어요`);
+}
+
+/* ============ 링크 모음 ============ */
+function renderLinks(){
+  const host = $('#linksHost');
+  const addCard = document.querySelector('#view-links .card');
+  addCard.classList.toggle('hidden', MODE!=='db');
+  if(MODE!=='db'){ host.innerHTML = '<div class="empty">링크 모음은 관리실에 로그인해야 보입니다. (구글시트 주소가 밖에 드러나지 않게 서버에만 둡니다)</div>'; return; }
+  const cats = [...new Set(LINKS.map(l=>l.category))];
+  $('#lCatList').innerHTML = cats.map(c=>`<option value="${esc(c)}">`).join('');
+  if(!LINKS.length){ host.innerHTML = '<div class="empty">아직 링크가 없어요. 위에서 추가해 주세요.</div>'; return; }
+  const sorted = LINKS.slice().sort((a,b)=>(a.sort-b.sort) || a.title.localeCompare(b.title,'ko'));
+  const order = [...new Set(sorted.map(l=>l.category))];
+  host.innerHTML = '';
+  order.forEach(cat=>{
+    const g = document.createElement('div'); g.className='link-group';
+    g.innerHTML = `<h3>${esc(cat)}</h3><div class="link-grid"></div>`;
+    const grid = g.querySelector('.link-grid');
+    sorted.filter(l=>l.category===cat).forEach(l=> grid.appendChild(linkCard(l)));
+    host.appendChild(g);
+  });
+}
+function hostOf(url){ try{ return new URL(url).host; }catch(e){ return url; } }
+function linkCard(l){
+  const el = document.createElement('div'); el.className='link-card';
+  el.innerHTML = `<a class="t" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.title)} ↗</a>
+    ${l.note?`<div class="n">${esc(l.note)}</div>`:''}
+    <div class="h">${esc(hostOf(l.url))}</div>
+    <div class="acts"><button class="btn-sm l-copy">주소 복사</button><button class="btn-sm l-edit">고치기</button><button class="btn-sm danger l-del">삭제</button></div>`;
+  el.querySelector('.l-copy').onclick = () => navigator.clipboard.writeText(l.url).then(()=>toast('주소를 복사했어요')).catch(()=>toast('복사하지 못했어요'));
+  el.querySelector('.l-del').onclick = async () => {
+    if(!confirm(`「${l.title}」 링크를 지울까요?`)) return;
+    const { error } = await sb.from('team_links').delete().eq('id', l.id);
+    if(error){ toast('지우지 못했어요: '+error.message); return; }
+    LINKS = LINKS.filter(x=>x.id!==l.id); renderLinks(); toast('링크를 지웠어요');
+  };
+  el.querySelector('.l-edit').onclick = () => {
+    el.innerHTML = `<label class="f">분류</label><input class="in e-cat" list="lCatList" value="${esc(l.category)}">
+      <label class="f">이름</label><input class="in e-title" value="${esc(l.title)}">
+      <label class="f">주소</label><input class="in e-url" value="${esc(l.url)}">
+      <label class="f">메모</label><input class="in e-note" value="${esc(l.note)}">
+      <label class="f">순서</label><input class="in e-sort" type="number" value="${l.sort||0}">
+      <div class="acts"><button class="btn-primary e-save" style="padding:6px 12px;font-size:13px">저장</button><button class="btn-sm e-cancel">취소</button></div>`;
+    el.querySelector('.e-cancel').onclick = renderLinks;
+    el.querySelector('.e-save').onclick = async () => {
+      const row = { category: el.querySelector('.e-cat').value.trim()||'기타', title: el.querySelector('.e-title').value.trim(),
+        url: el.querySelector('.e-url').value.trim(), note: el.querySelector('.e-note').value.trim(), sort: parseInt(el.querySelector('.e-sort').value,10)||0 };
+      if(!row.title || !/^https?:\/\//i.test(row.url)){ toast('이름과 https:// 로 시작하는 주소를 적어 주세요'); return; }
+      const { data, error } = await sb.from('team_links').update(row).eq('id', l.id).select().single();
+      if(error){ toast('저장하지 못했어요: '+error.message); return; }
+      LINKS = LINKS.map(x=>x.id===data.id?data:x); renderLinks(); toast('링크를 고쳤어요');
+    };
+  };
+  return el;
+}
+async function addLink(){
+  const row = { category: $('#lCat').value.trim()||'기타', title: $('#lTitle').value.trim(), url: $('#lUrl').value.trim(), note: $('#lNote').value.trim() };
+  if(!row.title || !/^https?:\/\//i.test(row.url)){ toast('이름과 https:// 로 시작하는 주소를 적어 주세요'); return; }
+  const sameCat = LINKS.filter(l=>l.category===row.category);
+  row.sort = sameCat.length ? Math.max(...sameCat.map(l=>l.sort||0)) + 10 : (Math.max(0, ...LINKS.map(l=>l.sort||0)) + 100);
+  const { data, error } = await sb.from('team_links').insert(row).select().single();
+  if(error){ toast('추가하지 못했어요: '+error.message); return; }
+  LINKS.push(data); ['#lTitle','#lUrl','#lNote'].forEach(s=>$(s).value='');
+  renderLinks(); toast('링크를 추가했어요');
+}
+
+/* ============ 화면 전환 ============ */
+const VIEWS = ['quote','records','statement','items','links'];
+function switchView(name){
+  if(!VIEWS.includes(name)) name = 'quote';
+  CURRENT_VIEW = name;
+  document.querySelectorAll('#docTabs .doc-tab[data-view]').forEach(t=>t.classList.toggle('active', t.dataset.view===name));
+  VIEWS.forEach(v=>$('#view-'+v).classList.toggle('hidden', v!==name));
+  if(location.hash !== '#'+name) history.replaceState(null, '', location.pathname + location.search + '#' + name);
+  if(name==='quote') update();
+  if(name==='records') renderRecords();
+  if(name==='statement'){ fillStatementSelect(); onStatementSourceChange(); }
+  if(name==='items') renderItemsTable();
+  if(name==='links') renderLinks();
+  window.scrollTo(0,0);
+}
+
 /* ---------- 이벤트 ---------- */
 ['#toName','#toManager','#toBiz','#title','#validDays','#extraNotes'].forEach(s=>$(s).addEventListener('input', update));
-['#vatMode','#altMode'].forEach(s=>$(s).addEventListener('change', update));
-$('#qDate').addEventListener('change', ()=>{ if(!numberTouched) $('#qNumber').value = autoNumber($('#qDate').value); update(); });
-$('#qNumber').addEventListener('input', ()=>{ numberTouched = true; update(); });
+['#vatMode','#altMode','#draftMode','#qDate'].forEach(s=>$(s).addEventListener('change', update));
 $('#addItemBtn').onclick = ()=>{ ITEMS.push(blankItem()); renderItems(); update(); const names=document.querySelectorAll('.it-name'); names[names.length-1].focus(); };
 $('#parseBtn').onclick = ()=>fillFromText($('#pasteBox').value);
 $('#copyReplyBtn').onclick = ()=>navigator.clipboard.writeText(REPLY_TEMPLATE).then(()=>toast('회신 문구를 복사했어요')).catch(()=>toast('복사하지 못했어요'));
-$('#resetBtn').onclick = ()=>{ if(confirm('지금 쓴 내용을 지우고 새로 쓸까요?')) resetForm(); };
-$('#printBtn').onclick = ()=>{
-  const q = update();
+$('#resetBtn').onclick = ()=>{ if(confirm('새 견적을 쓸까요? 저장하지 않은 내용은 지워집니다.')) resetForm(); };
+$('#saveBtn').onclick = ()=>saveQuote();
+$('#printBtn').onclick = async ()=>{
+  let q = update();
   if(!q.lines.length){ toast('품목·단가·수량을 먼저 넣어 주세요'); return; }
-  const used = store('gdr_used_numbers') || [];
-  if(q.number && !used.includes(q.number)){ used.push(q.number); store('gdr_used_numbers', used.slice(-200)); }
-  const oldTitle = document.title;
-  document.title = [q.number, q.toName || q.title].filter(Boolean).join('_').replace(/[\\/:*?"<>|]/g,'');
-  window.addEventListener('afterprint', ()=>{ document.title = oldTitle; }, { once:true });
-  window.print();
+  if(MODE==='db'){
+    if(!await saveQuote()) return;
+    q = update();
+  } else {
+    const used = store('gdr_used_numbers') || [];
+    if(q.number && !used.includes(q.number)){ used.push(q.number); store('gdr_used_numbers', used.slice(-200)); }
+  }
+  printHtml(q.html, [q.number, q.toName || q.title, q.isDraft ? '가견적' : ''].filter(Boolean).join('_'));
 };
-window.addEventListener('resize', ()=>update());
-document.querySelector('#catList').innerHTML = CATALOG.map(c=>`<option value="${esc(c.name)}">`).join('');
+$('#rStatus').addEventListener('change', renderRecords);
+$('#rSearch').addEventListener('input', renderRecords);
+$('#rNewBtn').onclick = ()=>{ resetForm(); switchView('quote'); };
+$('#tsSource').addEventListener('change', onStatementSourceChange);
+['#tsDate','#tsToName','#tsToManager','#tsToBiz','#tsMemo'].forEach(s=>$(s).addEventListener('input', renderStatement));
+$('#tsPrintBtn').onclick = printStatement;
+$('#iAddBtn').onclick = ()=>{ CATALOG.push({ id:null, name:'', keys:[], desc:'', list:null, inst:null, unit:'세트', taxable:true, active:true, sort:(Math.max(0,...CATALOG.map(c=>c.sort||0))+10) }); renderItemsTable(); };
+$('#lAddBtn').onclick = addLink;
+document.querySelectorAll('#docTabs .doc-tab[data-view]').forEach(t=>t.onclick=()=>switchView(t.dataset.view));
+window.addEventListener('resize', ()=>{ if(CURRENT_VIEW==='quote') update(); if(CURRENT_VIEW==='statement') renderStatement(); });
+refreshCatalogList();
 
 /* ---------- 시작 ---------- */
+async function loadDb(){
+  const [it, qu, li] = await Promise.all([
+    sb.from('doc_items').select('*').order('sort'),
+    sb.from('quotes').select('*').order('created_at', { ascending:false }).limit(500),
+    sb.from('team_links').select('*').order('sort'),
+  ]);
+  if(it.error || qu.error || li.error){
+    const msg = (it.error||qu.error||li.error).message;
+    $('#banner').textContent = `서버에서 품목표·견적 기록을 읽지 못했어요 (${msg}). 기본 품목표로 작성은 할 수 있지만 저장은 안 됩니다.`;
+    $('#banner').classList.remove('hidden');
+    return false;
+  }
+  if(it.data.length) CATALOG = it.data.map(fromDbItem);
+  QUOTES = qu.data; LINKS = li.data;
+  refreshCatalogList();
+  return true;
+}
 function startEditor(userLabel, bannerText){
   $('#gateView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#headUser').textContent = userLabel||'';
+  $('#saveBtn').classList.toggle('hidden', MODE!=='db');
+  $('#printBtn').textContent = MODE==='db' ? '저장하고 PDF' : 'PDF 저장';
   if(bannerText){ $('#banner').textContent = bannerText; $('#banner').classList.remove('hidden'); }
   const draft = store('docs_quote_draft');
-  if(draft && draft.items && draft.items.some(it=>it.name)) loadData(draft);
+  if(draft && draft.items && draft.items.some(it=>it.name)){ CURRENT_INQUIRY = draft.inquiry || null; loadData(draft); }
   else resetForm();
 }
 async function boot(){
   const params = new URLSearchParams(location.search);
   const isLocal = ['localhost','127.0.0.1'].includes(location.hostname);
+  const view = (location.hash||'').slice(1);
   if(isLocal && params.has('preview')){
-    startEditor('미리보기', '로컬 미리보기 모드입니다. 로그인 없이 화면만 확인합니다 (실제 주소에서는 관리실 로그인이 필요합니다).');
+    MODE = 'preview';
+    startEditor('미리보기', '로컬 미리보기 모드입니다. 로그인 없이 화면만 확인합니다 (실제 주소에서는 관리실 로그인이 필요하고, 저장·기록·링크는 로그인 후에만 됩니다).');
     if(params.has('sample')){  // 확인용: 2026-08-19 독서동아리 견적
-      loadData({ title:'독서동아리 네트워크 행사 카드 굿즈 · 1안·2안 · 200세트 기준', date:'2026-08-19', number:'GDR-2026-0819',
+      loadData({ title:'독서동아리 네트워크 행사 카드 굿즈 · 1안·2안 · 200세트 기준', date:'2026-08-19',
         vatMode:'in', validDays:30, alt:true, extra:[], items:[
           { name:'1안 · 모든감정카드 32장 세트', desc:'32장 1세트 · 동아리별 반복 활용 대화도구', price:17000, qty:200, unitWord:'세트', list:25000, taxable:true },
           { name:'2안 · 대형 키워드카드 40장 세트', desc:'A5 148×210mm · 40종 · 양면 컬러 · 코팅', price:24000, qty:200, unitWord:'세트', list:35000, taxable:true }] });
     }
+    switchView(view);
+    // 확인용: 인쇄 칸을 미리 채워 두면 headless 크롬 인쇄로 결과 PDF를 볼 수 있다
+    const printTest = params.get('printtest');
+    if(printTest==='quote'){ switchView('quote'); $('#printArea').innerHTML = update().html; }
+    if(printTest==='statement'){ switchView('statement'); $('#printArea').innerHTML = renderStatement().html; }
     return;
   }
   const { data:{ session } } = await sb.auth.getSession();
   if(session){
     const { data } = await sb.rpc('is_admin');
     if(data === true){
+      MODE = 'db';
+      await loadDb();
       startEditor(session.user.email);
-      if(params.get('inquiry')){ resetForm(); await loadInquiry(params.get('inquiry')); }
+      if(params.get('inquiry')){ await loadInquiry(params.get('inquiry')); switchView('quote'); }
+      else switchView(view);
       return;
     }
   }
   $('#gateView').classList.remove('hidden');
 }
-window.__docs = { parseRequest, parseItems, matchCatalog, calcLine, buildQuote, loadData, fillFromText, readForm };
+window.__docs = { parseRequest, parseItems, matchCatalog, calcLine, buildQuote, loadData, fillFromText, readForm, koreanAmount, buildStatement, switchView };
 boot();
 </script>
 </body>
