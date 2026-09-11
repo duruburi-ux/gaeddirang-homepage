@@ -172,6 +172,7 @@
       <button class="tab" data-tab="members">고객 명부</button>
       <button class="tab" data-tab="cohorts">프로그램</button>
       <button class="tab" data-tab="alerts">출간알림</button>
+      <a class="tab-link" href="docs.html" style="padding:12px 13px;font-size:14px;font-weight:600;color:var(--muted);text-decoration:none;white-space:nowrap;border-bottom:2.5px solid transparent">서류 📄</a>
     </div>
   </header>
   <main>
@@ -812,6 +813,7 @@ function openInquiry(id){
     ${i.message?`<div class="field"><div class="k">문의 내용</div><div class="v">${esc(i.message)}</div></div>`:''}
     <div class="field"><div class="k">접수일시</div><div class="v">${fmtDT(i.created_at)}</div></div>
     <div class="actions">
+      <a class="btn-primary" style="display:block;text-align:center;text-decoration:none" href="docs.html?inquiry=${encodeURIComponent(i.id)}">📄 이 문의로 견적서 만들기</a>
       <div class="st-row"><span>상태</span>
         <select id="iStatusSel">${INQ_STATUSES.map(s=>`<option ${s===st?'selected':''}>${s}</option>`).join('')}</select></div>
     </div>

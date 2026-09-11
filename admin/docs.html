@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>개띠랑 서류실</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root{
+    --orange:#F26D4F; --orange-d:#d9583c; --ink:#2b2622; --muted:#8a817a;
+    --line:#eee3da; --bg:#faf6f1; --card:#fff; --ok:#2e9e6b; --warn:#e2a13a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+  button{font-family:inherit;cursor:pointer}
+  .hidden{display:none!important}
+
+  /* ---- 로그인 안내 ---- */
+  .gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .gate-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:34px 28px;max-width:360px;width:100%;text-align:center}
+  .gate-card h1{font-size:20px;margin-bottom:6px}
+  .gate-card p{color:var(--muted);font-size:14px;margin-bottom:20px}
+
+  /* ---- 헤더 ---- */
+  header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+  .head-in{max-width:1240px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:8px}
+  .logo{font-weight:800;font-size:17px;color:var(--orange);text-decoration:none}
+  .crumb{font-weight:700;font-size:15px;color:var(--ink)}
+  .head-user{margin-left:auto;font-size:13px;color:var(--muted)}
+  .doc-tabs{max-width:1240px;margin:0 auto;padding:0 18px;display:flex;gap:2px;overflow-x:auto}
+  .doc-tabs::-webkit-scrollbar{display:none}
+  .doc-tab{background:none;border:none;padding:11px 13px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:2.5px solid transparent;white-space:nowrap}
+  .doc-tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+  .doc-tab.soon{color:#c9bfb5;cursor:default;font-weight:500}
+  .banner{max-width:1240px;margin:12px auto 0;padding:10px 14px;border-radius:10px;background:#fdf3e0;color:#8a5a12;font-size:13px}
+
+  /* ---- 배치 ---- */
+  .layout{max-width:1240px;margin:0 auto;padding:18px;display:grid;grid-template-columns:minmax(320px,430px) 1fr;gap:18px;align-items:start}
+  @media (max-width:880px){ .layout{grid-template-columns:1fr} }
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin-bottom:12px}
+  .card h3{font-size:14px;margin-bottom:8px}
+  .hint{font-weight:400;color:var(--muted);font-size:12px}
+  label.f{display:block;font-size:11.5px;color:var(--muted);font-weight:600;margin:8px 0 3px}
+  .in{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:14px;background:#fff;font-family:inherit;color:var(--ink)}
+  .in:focus{outline:none;border-color:var(--orange)}
+  textarea.in{resize:vertical}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .chk{display:flex;align-items:center;gap:7px;font-size:13px;margin-top:10px;color:var(--ink)}
+  .btns{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+  .btn-primary{background:var(--orange);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;display:inline-block}
+  .btn-primary:hover{background:var(--orange-d)}
+  .btn-sm{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:13px;color:var(--ink);font-weight:600}
+  .btn-sm:hover{border-color:#e6cbb8}
+  .btn-sm.wide{width:100%}
+  .btn-link{background:none;border:none;color:var(--muted);font-size:12.5px;text-decoration:underline}
+  .parse-note{font-size:12.5px;color:var(--ok);margin-top:8px;white-space:pre-wrap}
+  .parse-note.warn{color:var(--orange-d)}
+
+  /* ---- 품목 ---- */
+  .item{border:1px solid var(--line);border-radius:11px;padding:10px;margin-bottom:8px;background:#fffdfb}
+  .item-top{display:flex;gap:6px;margin-bottom:6px}
+  .item-top .x{background:none;border:1px solid var(--line);border-radius:8px;width:34px;color:var(--muted);font-size:18px}
+  .item-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px}
+  .item-grid label.f{margin-top:4px}
+  .it-note{font-size:12px;color:var(--muted);margin-top:6px}
+  .it-note b{color:var(--ink)}
+  .budget{font-size:12.5px;color:#8a5a12;background:#fdf3e0;border-radius:8px;padding:7px 10px;margin-top:8px}
+
+  /* ---- 미리보기 ---- */
+  .preview-col{position:sticky;top:110px}
+  @media (max-width:880px){ .preview-col{position:static} }
+  .preview-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .preview-head .fit{font-size:12.5px;color:var(--muted);margin-right:auto}
+  .preview-head .fit.warn{color:var(--orange-d);font-weight:700}
+  .preview-box{background:#e8e1d9;border-radius:14px;padding:16px;overflow:hidden}
+  .sheet{width:688px;background:#fff;box-shadow:0 4px 18px rgba(60,40,20,.12);transform-origin:top left}
+  .print-tip{font-size:12px;color:var(--muted);margin-top:8px}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:13.5px;z-index:60;opacity:0;transition:.2s;pointer-events:none}
+  .toast.show{opacity:1}
+
+  /* ---- 견적서 양식 (2026-08 기준양식과 같은 모양) ---- */
+  .qdoc{--ink:#221b15;--muted:#8a8177;--line:#e3ddd4;--accent:#e2723a;--accent-deep:#c85a18;--wash:#fbeee1;--dark:#2a2019;
+    color:var(--ink);background:#fff;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",system-ui,sans-serif;
+    line-height:1.5;font-variant-numeric:tabular-nums;word-break:keep-all;overflow-wrap:break-word;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .qdoc .wrap{max-width:760px;margin:0 auto;padding:16px 30px 8px}
+  .qdoc .head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+  .qdoc h1{font-size:32px;font-weight:900;letter-spacing:.5em;margin:0;padding-left:.5em}
+  .qdoc .subtitle{font-size:13px;color:var(--muted);margin-top:6px}
+  .qdoc .head-meta{text-align:right;font-size:12.5px;color:var(--muted);line-height:1.9;white-space:nowrap}
+  .qdoc .head-meta b{color:var(--ink);font-weight:800}
+  .qdoc .rule{height:4px;background:var(--accent);border:none;margin:10px 0 12px;border-radius:2px}
+  .qdoc .info-grid{display:flex;gap:16px;margin:0 0 6px}
+  .qdoc .box{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .qdoc .box-head{background:var(--wash);color:var(--accent-deep);font-weight:800;padding:9px 16px;font-size:12.5px;border-bottom:1px solid var(--line)}
+  .qdoc .box-body{padding:0 16px}
+  .qdoc .box .row{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--line);font-size:13.5px;min-height:29px}
+  .qdoc .box .row:last-child{border-bottom:none}
+  .qdoc .box .row .k{color:var(--muted);white-space:nowrap}
+  .qdoc .box .row .v{font-weight:700;text-align:right}
+  .qdoc .badge{display:inline-block;background:var(--accent);color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;margin-bottom:8px;letter-spacing:.02em}
+  .qdoc .total-bar{background:#f7f3ee;border-radius:10px;padding:12px 18px;margin:14px 0 16px;font-size:13.5px}
+  .qdoc .trow{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+  .qdoc .amt{font-weight:900;color:var(--accent-deep);font-size:19px;white-space:nowrap}
+  .qdoc .price-stack{display:flex;flex-direction:column;align-items:center;gap:2px}
+  .qdoc .was{font-size:11px;color:var(--muted);text-decoration:line-through}
+  .qdoc .now{font-weight:800;font-size:13.5px;color:var(--ink)}
+  .qdoc .pct{font-size:10px;color:var(--accent-deep);font-weight:800;background:var(--wash);border-radius:4px;padding:1px 6px}
+  .qdoc h2{font-size:15px;font-weight:800;margin:0 0 10px}
+  .qdoc table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+  .qdoc thead th{background:var(--dark);color:#fff;padding:9px 8px;font-weight:700;font-size:12px;text-align:center;vertical-align:middle}
+  .qdoc thead th:first-child{text-align:left;padding-left:10px}
+  .qdoc tbody td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+  .qdoc tbody td.item-c{padding-left:10px}
+  .qdoc tbody td.num{text-align:center;white-space:nowrap}
+  .qdoc .name{font-weight:800}
+  .qdoc .sub{font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px}
+  .qdoc tbody td:last-child{font-weight:900;color:var(--accent-deep);font-size:13.5px}
+  .qdoc .notes{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:9px 16px;margin-top:12px}
+  .qdoc .notes .h{font-weight:800;font-size:12.5px;margin-bottom:6px}
+  .qdoc .notes ol{margin:0;padding-left:18px;font-size:12px;line-height:1.55}
+  .qdoc .notes li b{color:var(--accent-deep)}
+  .qdoc .sign{text-align:right;margin-top:10px;font-size:13px}
+  .qdoc .sign .name{font-size:15px;font-weight:900}
+  .qdoc .foot{border-top:1px solid var(--line);margin-top:12px;padding-top:8px;text-align:center;font-size:11px;color:var(--muted)}
+  .qdoc.d1 tbody td{padding:6px 8px}
+  .qdoc.d1 .sub{font-size:11px;margin-top:1px}
+  .qdoc.d2 .wrap{padding:6px 24px 4px}
+  .qdoc.d2 h1{font-size:28px}
+  .qdoc.d2 .rule{margin:8px 0 10px}
+  .qdoc.d2 .box-head{padding:6px 14px}
+  .qdoc.d2 .box .row{padding:2px 0;min-height:24px;font-size:13px}
+  .qdoc.d2 .total-bar{padding:9px 16px;margin:10px 0 12px}
+  .qdoc.d2 .amt{font-size:17px}
+  .qdoc.d2 thead th{padding:6px 8px}
+  .qdoc.d2 tbody td{padding:4px 8px}
+  .qdoc.d2 .notes{padding:7px 14px;margin-top:10px}
+  .qdoc.d2 .notes ol{font-size:11.5px;line-height:1.45}
+  .qdoc.d2 .sign{margin-top:8px}
+  .qdoc.d2 .foot{margin-top:8px;padding-top:6px}
+
+  /* ---- 인쇄: 견적서만 A4로 ---- */
+  @media print{
+    @page{size:A4;margin:10mm 14mm}
+    html,body{background:#fff}
+    header,.banner,.form-col,.preview-head,.print-tip,.toast,#gateView{display:none!important}
+    .layout{display:block;padding:0;max-width:none;margin:0}
+    .preview-col{position:static}
+    .preview-box{background:none;padding:0;border-radius:0;height:auto!important;overflow:visible}
+    .sheet{box-shadow:none;transform:none!important;width:auto}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ 로그인 안내 ============ -->
+<div id="gateView" class="gate hidden">
+  <div class="gate-card">
+    <h1>📄 개띠랑 서류실</h1>
+    <p>관리실에서 먼저 로그인해 주세요.</p>
+    <a class="btn-primary" href="./">관리실로 가기</a>
+  </div>
+</div>
+
+<!-- ============ 서류실 ============ -->
+<div id="appView" class="hidden">
+  <header>
+    <div class="head-in">
+      <a class="logo" href="./">🐾 개띠랑 관리실</a><span class="crumb">› 서류실</span>
+      <span class="head-user" id="headUser"></span>
+    </div>
+    <div class="doc-tabs">
+      <button class="doc-tab active">견적서</button>
+      <span class="doc-tab soon">거래명세서 · 준비 중</span>
+      <span class="doc-tab soon">월급명세서 · 준비 중</span>
+      <span class="doc-tab soon">위탁도서 정산서 · 준비 중</span>
+      <span class="doc-tab soon">문고리 정산서 · 준비 중</span>
+    </div>
+  </header>
+  <div class="banner hidden" id="banner"></div>
+
+  <div class="layout">
+    <div class="form-col">
+      <div class="card">
+        <h3>① 메일·문의 내용 붙여넣기 <span class="hint">(선택)</span></h3>
+        <textarea class="in" id="pasteBox" rows="5" placeholder="견적 요청 메일 본문을 통째로 붙여넣고 「칸 채우기」를 누르세요."></textarea>
+        <div class="btns">
+          <button class="btn-sm" id="parseBtn">칸 채우기</button>
+          <button class="btn-link" id="copyReplyBtn">견적 요청 회신 문구 복사</button>
+        </div>
+        <div class="parse-note" id="parseNote"></div>
+      </div>
+
+      <div class="card">
+        <h3>② 받는 곳</h3>
+        <label class="f" for="toName">기관·회사 이름</label>
+        <input class="in" id="toName" placeholder="예: 대림도서관">
+        <div class="row2">
+          <div><label class="f" for="toManager">담당자·연락처</label><input class="in" id="toManager"></div>
+          <div><label class="f" for="toBiz">사업자번호 (선택)</label><input class="in" id="toBiz"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>③ 견적 정보</h3>
+        <label class="f" for="title">건명</label>
+        <input class="in" id="title" placeholder="예: 감정카드 30세트 납품">
+        <div class="row2">
+          <div><label class="f" for="qDate">견적일</label><input class="in" id="qDate" type="date"></div>
+          <div><label class="f" for="qNumber">견적번호</label><input class="in" id="qNumber"></div>
+        </div>
+        <div class="row2">
+          <div><label class="f" for="vatMode">금액 표기</label>
+            <select class="in" id="vatMode"><option value="in">VAT 포함</option><option value="out">VAT 별도</option></select></div>
+          <div><label class="f" for="validDays">유효기간(일)</label><input class="in" id="validDays" type="number" min="1" value="30"></div>
+        </div>
+        <label class="chk"><input type="checkbox" id="altMode"> 1안·2안처럼 하나를 고르는 비교 견적</label>
+      </div>
+
+      <div class="card">
+        <h3>④ 품목</h3>
+        <div id="itemsHost"></div>
+        <button class="btn-sm wide" id="addItemBtn">+ 품목 추가</button>
+        <div class="budget hidden" id="budgetNote"></div>
+      </div>
+
+      <div class="card">
+        <h3>⑤ 추가 안내 <span class="hint">(한 줄에 하나)</span></h3>
+        <textarea class="in" id="extraNotes" rows="3" placeholder="예: 납품은 발주 후 1주 이내입니다."></textarea>
+      </div>
+    </div>
+
+    <div class="preview-col">
+      <div class="preview-head">
+        <span class="fit" id="fitNote">미리보기</span>
+        <button class="btn-sm" id="resetBtn">새로 쓰기</button>
+        <button class="btn-primary" id="printBtn">PDF 저장</button>
+      </div>
+      <div class="preview-box" id="previewBox"><div class="sheet" id="sheet"></div></div>
+      <p class="print-tip">「PDF 저장」을 누르면 인쇄 창이 뜹니다. 대상을 「PDF로 저장」으로 고른 뒤 저장하세요. 파일 이름은 견적번호로 잡힙니다.</p>
+    </div>
+  </div>
+</div>
+
+<datalist id="catList"></datalist>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://zrmljsyxeozcnfqmyumw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybWxqc3l4ZW96Y25mcW15dW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzkwNTAsImV4cCI6MjA5OTA1NTA1MH0.G31yEksYsiR43t2pWPwTdCrpBHcxLkZ4mYSvk5urZxQ';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ---------- 고정 정보 ---------- */
+const SUPPLIER = { 상호:'개띠랑', 사업자번호:'663-05-02444', 대표자:'이진이', 연락처:'010-3343-0936',
+  이메일:'gaeddirang085@naver.com', 소개:'마음과 이야기를 엮는 곳' };
+
+// 품목표 — 정가·과세 여부. 기관공급가(inst)를 적어 두면 단가 기본값이 된다.
+const CATALOG = [
+  {name:'32가지 모든감정카드', keys:['모든감정','모든 감정 카드','32가지 감정'], desc:'32장 1세트 · 54×86mm · 양면 컬러', list:25000, unit:'세트', taxable:true},
+  {name:'35가지 불편감정카드', keys:['불편감정','불편한 감정 카드','불편한감정','35가지 감정'], desc:'35장 1세트 · 54×86mm · 양면 컬러', list:25000, unit:'세트', taxable:true},
+  {name:'두루마음체크카드 (노랑)', keys:['마음체크카드 노랑','마음체크 노랑','노랑'], desc:'40장 1세트 · 54×86mm · 양면 컬러', list:25000, unit:'세트', taxable:true},
+  {name:'두루마음체크카드 (초록)', keys:['마음체크카드 초록','마음체크 초록','초록'], desc:'40장 1세트 · 54×86mm · 양면 컬러', list:25000, unit:'세트', taxable:true},
+  {name:'40가지 빵질문카드', keys:['빵질문','빵 질문'], desc:'40장 1세트 · 54×86mm · 양면 컬러', list:25000, unit:'세트', taxable:true},
+  {name:'대형 키워드카드 40장 세트', keys:['대형 키워드','큰 키워드','키워드카드'], desc:'A5 148×210mm · 40종 · 양면 컬러 · 코팅', list:35000, unit:'세트', taxable:true},
+  {name:'5문장으로 1권의 책을 만나는 연필문학', keys:['연필문학','연필'], desc:'', list:15000, unit:'개', taxable:true},
+  {name:'어느 날 문득 잘 살고 싶어졌다', keys:['어느날 문득','잘 살고 싶어졌다','어문잘'], desc:'두루 지음', list:13000, unit:'권', taxable:false},
+  {name:'우울의 바깥을 향하며', keys:['우울의 바깥','우울 바깥'], desc:'두루 지음', list:13000, unit:'권', taxable:false},
+  {name:'불안과 밤 산책', keys:['불안과 밤산책','밤 산책'], desc:'두루 지음', list:15000, unit:'권', taxable:false},
+  {name:'모든 감정 도감', keys:['모든감정도감','감정 도감'], desc:'이다솜 지음', list:15000, unit:'권', taxable:false},
+  {name:'이러나저러나 불편한 거야 불편한 건', keys:['이러나저러나'], desc:'이다솜 지음', list:15000, unit:'권', taxable:false},
+  {name:'우당탕탕 잡았다 내 감정!', keys:['우당탕탕'], desc:'이다솜 지음', list:16000, unit:'권', taxable:false},
+  {name:'백빵기행 1', keys:['백빵기행1'], desc:'개띠랑 지음', list:15000, unit:'권', taxable:false},
+  {name:'백빵기행 2', keys:['백빵기행2'], desc:'개띠랑 지음', list:15000, unit:'권', taxable:false},
+  {name:'대한민국 빵집 대장정', keys:['빵집 대장정'], desc:'개띠랑 지음', list:18000, unit:'권', taxable:false},
+  {name:'나에게도 빵빵한 하루가 필요해', keys:['빵빵한 하루'], desc:'개띠랑·이다솜·두루 지음', list:15000, unit:'권', taxable:false},
+];
+
+const REPLY_TEMPLATE = `안녕하세요, 개띠랑입니다.
+견적 문의 주셔서 감사합니다.
+
+정확한 견적서를 바로 보내드릴 수 있도록, 아래 항목을 채워 이 메일에 답장으로 보내 주세요. 모르는 항목은 비워 두셔도 괜찮습니다.
+
+[견적 요청 정보]
+기관명:
+담당자 성함·연락처:
+사업자등록번호(세금계산서가 필요하면):
+필요한 품목과 수량: (예: 모든감정카드 200세트, 불편감정카드 100세트)
+사용 목적·행사명:
+희망 납품일:
+배송지:
+예산 범위(있으면):
+금액 표기(부가세 포함 / 별도):
+
+답장을 받는 대로 견적서를 PDF로 보내드리겠습니다.
+
+개띠랑 드림
+gaeddirang085@naver.com · 010-3343-0936`;
+
+const A4_CONTENT_HEIGHT = 1046; // A4 297mm − 위아래 여백 20mm, 96dpi 기준 px
+
+/* ---------- 도구 ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const won = n => (n||0).toLocaleString('ko-KR');
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1800); }
+function store(key, value){ try{ if(value===undefined) return JSON.parse(localStorage.getItem(key)||'null'); localStorage.setItem(key, JSON.stringify(value)); }catch(e){ return null; } }
+
+function parseWon(text){
+  const t = String(text==null?'':text).replace(/[,\s원]/g,'');
+  if(!t) return null;
+  const m = t.match(/^(?:(\d+(?:\.\d+)?)만)?(?:(\d+)천)?(\d+)?$/);
+  if(!m || !(m[1]||m[2]||m[3])) return NaN;
+  return Math.round(parseFloat(m[1]||0)*10000 + parseInt(m[2]||0,10)*1000 + parseInt(m[3]||0,10));
+}
+function parseCount(text){ const d=String(text==null?'':text).replace(/[^\d]/g,''); return d?parseInt(d,10):null; }
+
+/* ---------- 품목표 찾기 ---------- */
+const norm = s => (s||'').replace(/[\s()（）\[\]·.,!\-_/~]/g,'').toLowerCase();
+function matchCatalog(name){
+  const target = norm(name); let best=null, bestLen=0;
+  CATALOG.forEach(c => [c.name, ...c.keys].forEach(k => {
+    const nk = norm(k);
+    if(nk && target.includes(nk) && nk.length > bestLen){ best=c; bestLen=nk.length; }
+  }));
+  return best;
+}
+
+/* ---------- 견적 요청 메일 읽기 (quote.py 와 같은 규칙) ---------- */
+const REQUEST_FIELDS = [
+  ['사업자번호',/사업자/], ['담당',/담당|성함|연락처/], ['품목',/품목|수량/], ['목적',/목적|행사/],
+  ['납품일',/납품|납기/], ['배송지',/배송|주소/], ['예산',/예산/], ['부가세',/부가세|VAT|금액\s*표기/i],
+  ['상호',/기관|회사|학교|단체|상호/],
+];
+function parseRequest(text){
+  const f = {}; let cur = null;
+  for(const raw of String(text||'').split(/\r?\n/)){
+    const line = raw.replace(/^[\s>]+/,'').replace(/\s+$/,'');
+    if(!line){ if(!(cur==='품목' && !f['품목'])) cur=null; continue; }
+    const labelLine = line.replace(/^(?:[-*•·]|\d+[.)]|[①-⑩])\s*/,'');
+    const m = labelLine.match(/^([^:：]{1,40})[:：]\s*(.*)$/);
+    if(m){
+      const label = m[1];
+      const value = m[2].replace(/\(\s*(?:예|예시)\s*[:：)].*?\)/g,'').trim();
+      cur = null;
+      for(const [key, pattern] of REQUEST_FIELDS){
+        if(pattern.test(label)){
+          if(value && !f[key]){ f[key]=value; cur=key; }
+          else if(!f[key]){ cur=key; }      // 값이 다음 줄에 이어서 올 수 있다
+          break;                             // 이미 채워진 항목(인용된 빈 양식 등)은 건드리지 않는다
+        }
+      }
+      continue;
+    }
+    if(cur==='품목' && !line.startsWith('-----')) f['품목'] = f['품목'] ? f['품목']+'\n'+line : line;
+  }
+  return f;
+}
+const UNIT = '(세트|개|권|부|장|명|박스|set|ea)';
+function parseItems(text){
+  const items = [];
+  const trimEdge = s => s.replace(/^[\s\/:-]+|[\s\/:-]+$/g,'');
+  for(let chunk of String(text||'').split(/[,\n;]|\s및\s/)){
+    chunk = chunk.replace(/^[\s\-•·*]+|[\s\-•·*]+$/g,'');
+    if(!chunk) continue;
+    let pieces = [chunk];
+    if((chunk.match(new RegExp('\\d[\\d,]*\\s*'+UNIT,'gi'))||[]).length >= 2) pieces = chunk.split('/').map(p=>p.trim()).filter(Boolean);
+    for(const piece of pieces){
+      let name, qty=null, unit='';
+      const m = piece.match(new RegExp('^(.*?)[\\s/:：x×\\-]*(\\d[\\d,]*)\\s*'+UNIT+'?\\s*$','i'));
+      if(m && trimEdge(m[1])){ name=m[1]; qty=m[2]; unit=m[3]||''; }
+      else {
+        const m2 = piece.match(new RegExp('^(\\d[\\d,]*)\\s*'+UNIT+'?\\s+(.+)$','i'));
+        if(m2){ qty=m2[1]; unit=m2[2]||''; name=m2[3]; } else { name=piece; }
+      }
+      name = trimEdge(name).replace(/\s*(약|총|대략)$/,'');
+      items.push({ name, qty: qty ? parseInt(qty.replace(/,/g,''),10) : null, unit });
+    }
+  }
+  return items;
+}
+
+/* ---------- 계산 (quote.py 와 같은 규칙) ---------- */
+function calcLine(it, vatIncluded){
+  const unit = it.price||0, qty = it.qty||0, taxable = it.taxable!==false;
+  let total, supply, vat;
+  if(vatIncluded){
+    total = unit*qty;
+    supply = taxable ? Math.floor(Math.floor(total*10/11)/100)*100 : total;   // 합계 ÷ 1.1, 100원 단위 버림
+    vat = total - supply;
+  } else {
+    supply = unit*qty;
+    vat = taxable ? Math.floor(supply/10) : 0;
+    total = supply + vat;
+  }
+  const pct = (it.list && it.list > unit && unit > 0) ? Math.round((1-unit/it.list)*1000)/10 : null;
+  return { ...it, unit, qty, taxable, total, supply, vat, pct };
+}
+function defaultNotes(vatIncluded){
+  return [
+    `상기 단가는 <b>부가가치세(10%)를 ${vatIncluded?'포함한':'별도로 한'}</b> 금액입니다.`,
+    '수량·구성에 따라 단가는 조정될 수 있습니다.',
+    '본 견적서는 참고용이며, 정식 발주 시 거래명세서 및 세금계산서를 발행합니다.',
+    '결제조건·납기·배송비는 발주 확정 시 협의합니다.',
+  ];
+}
+function buildQuote(d){
+  const vatIncluded = d.vatMode !== 'out';
+  const lines = d.items.filter(it => it.name && it.price!=null && !isNaN(it.price) && it.qty).map(it => calcLine(it, vatIncluded));
+  const key = vatIncluded ? 'total' : 'supply';
+  const vatWord = vatIncluded ? 'VAT 포함' : 'VAT 별도';
+  let headline;
+  if(d.alt && lines.length > 1){
+    const vals = lines.map(l=>l[key]);
+    headline = `공급가 ${won(Math.min(...vals))} ~ ${won(Math.max(...vals))}원 (${vatWord})`;
+  } else {
+    headline = `총 ${won(lines.reduce((s,l)=>s+l[key],0))}원 (${vatWord})`;
+  }
+  const pcts = lines.map(l=>l.pct).filter(p=>p!=null);
+  let summary = '';
+  if(pcts.length){
+    const lo = Math.floor(Math.min(...pcts)), hi = Math.ceil(Math.max(...pcts));
+    summary = `정상가 대비 약 ${lo===hi?lo:lo+'~'+hi}% 할인된 기관 특별 공급가입니다.`;
+  }
+  const notes = defaultNotes(vatIncluded).concat(d.extra.map(esc));
+  if(lines.some(l=>!l.taxable)) notes.push('도서 등 면세 품목은 부가가치세가 붙지 않습니다.');
+  lines.forEach((l,i)=>{ l.cont = i>0 && lines[i-1].name===l.name; });
+  lines.forEach((l,i)=>{ if(!l.cont){ let s=1; while(i+s<lines.length && lines[i+s].cont) s++; l.span=s; } });
+  const [y,m,dd] = (d.date||'').split('-');
+  return { ...d, lines, headline, summary, special: pcts.length>0, notes,
+    dateLabel: y ? `${y}. ${m}. ${dd}.` : '', unitHeader: vatIncluded ? '단가(VAT포함)' : '단가' };
+}
+
+/* ---------- 견적서 그리기 ---------- */
+function quoteHtml(q, dense){
+  const supplierRows = [['상호',SUPPLIER.상호],['사업자번호',SUPPLIER.사업자번호],['대표자',SUPPLIER.대표자],['연락처',SUPPLIER.연락처],['이메일',SUPPLIER.이메일]]
+    .map(([k,v])=>`<div class="row"><span class="k">${k}</span><span class="v">${esc(v)}</span></div>`).join('');
+  const rows = q.lines.length ? q.lines.map(l=>`<tr>
+      ${l.cont?'':`<td class="item-c" rowspan="${l.span}"><span class="name">${esc(l.name)}</span>${l.desc?`<div class="sub">${esc(l.desc)}</div>`:''}</td>`}
+      <td class="num">${l.pct!=null
+        ? `<div class="price-stack"><span class="was">${won(l.list)}원</span><span class="now">${won(l.unit)}원</span><span class="pct">-${l.pct.toFixed(1)}%</span></div>`
+        : `${won(l.unit)}원`}</td>
+      <td class="num">${esc(l.qty+(l.unitWord||''))}</td>
+      <td class="num">${won(l.supply)}원</td>
+      <td class="num">${l.taxable?won(l.vat)+'원':'면세'}</td>
+      <td class="num">${won(l.total)}원</td></tr>`).join('')
+    : `<tr><td colspan="6" style="text-align:center;color:#b3a99f;padding:18px">품목을 넣으면 여기에 표시됩니다</td></tr>`;
+  const footer = [SUPPLIER.상호, SUPPLIER.소개, SUPPLIER.이메일, SUPPLIER.연락처, '사업자등록번호 '+SUPPLIER.사업자번호].join(' · ');
+  return `<div class="qdoc${dense>=1?' d1':''}${dense>=2?' d2':''}"><div class="wrap">
+    <div class="head">
+      <div><h1>견 적 서</h1><div class="subtitle">${esc(q.title)}</div></div>
+      <div class="head-meta">견적번호 <b>${esc(q.number)}</b><br>견적일자 <b>${q.dateLabel}</b><br>유효기간 <b>견적일로부터 ${esc(q.validDays)}일</b></div>
+    </div>
+    <hr class="rule">
+    <div class="info-grid">
+      <div class="box"><div class="box-head">공급받는자 (受)</div><div class="box-body">
+        <div class="row"><span class="k">상호</span><span class="v">${esc(q.toName)}</span></div>
+        <div class="row"><span class="k">사업자번호</span><span class="v">${esc(q.toBiz)}</span></div>
+        <div class="row"><span class="k">담당/연락처</span><span class="v">${esc(q.toManager)}</span></div>
+      </div></div>
+      <div class="box"><div class="box-head">공급자 (供)</div><div class="box-body">${supplierRows}</div></div>
+    </div>
+    <div class="total-bar">${q.special?'<div class="badge">★ 기관 특별 공급가</div>':''}
+      <div class="trow"><span>아래와 같이 견적합니다.${q.summary?' '+esc(q.summary):''}</span><span class="amt">${esc(q.headline)}</span></div></div>
+    <h2>견적 내역</h2>
+    <table>
+      <colgroup><col style="width:29%"><col style="width:14%"><col style="width:10%"><col style="width:16%"><col style="width:13%"><col style="width:18%"></colgroup>
+      <thead><tr><th>안 / 구성</th><th>${q.unitHeader}</th><th>수량</th><th>공급가액</th><th>부가세(10%)</th><th>합계</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="notes"><div class="h">· 안내사항</div><ol>${q.notes.map(n=>`<li>${n}</li>`).join('')}</ol></div>
+    <div class="sign">위와 같이 견적서를 제출합니다. ${q.dateLabel}<br><span class="name">${esc(SUPPLIER.상호)} 대표 ${esc(SUPPLIER.대표자)} (인)</span></div>
+    <div class="foot">${esc(footer)}</div>
+  </div></div>`;
+}
+
+/* ---------- 입력 상태 ---------- */
+let ITEMS = [];
+let numberTouched = false;
+
+function blankItem(){ return { name:'', desc:'', price:null, qty:null, unitWord:'세트', list:null, taxable:true, catalog:null }; }
+function readForm(){
+  return {
+    toName: $('#toName').value.trim(), toManager: $('#toManager').value.trim(), toBiz: $('#toBiz').value.trim(),
+    title: $('#title').value.trim(), date: $('#qDate').value, number: $('#qNumber').value.trim(),
+    vatMode: $('#vatMode').value, validDays: parseInt($('#validDays').value,10)||30, alt: $('#altMode').checked,
+    items: ITEMS, extra: $('#extraNotes').value.split('\n').map(s=>s.trim()).filter(Boolean),
+  };
+}
+
+function renderItems(){
+  const host = $('#itemsHost'); host.innerHTML='';
+  ITEMS.forEach((it, i)=>{
+    const box = document.createElement('div'); box.className='item';
+    box.innerHTML = `
+      <div class="item-top"><input class="in it-name" list="catList" placeholder="품목 이름 (목록에서 고르거나 직접 입력)" value="${esc(it.name)}"><button class="x" title="이 품목 빼기">×</button></div>
+      <input class="in it-desc" placeholder="설명 (구성·규격)" value="${esc(it.desc)}">
+      <div class="item-grid">
+        <div><label class="f">단가</label><input class="in it-price" inputmode="numeric" placeholder="17,000" value="${it.price!=null&&!isNaN(it.price)?won(it.price):''}"></div>
+        <div><label class="f">수량</label><input class="in it-qty" inputmode="numeric" value="${it.qty||''}"></div>
+        <div><label class="f">단위</label><input class="in it-unit" value="${esc(it.unitWord)}"></div>
+        <div><label class="f">정가 (할인 표시)</label><input class="in it-list" inputmode="numeric" value="${it.list?won(it.list):''}"></div>
+        <div><label class="f">과세</label><select class="in it-tax"><option value="1"${it.taxable?' selected':''}>과세</option><option value="0"${it.taxable?'':' selected'}>면세</option></select></div>
+      </div>
+      <div class="it-note"></div>`;
+    const q = sel => box.querySelector(sel);
+    q('.x').onclick = ()=>{ ITEMS.splice(i,1); if(!ITEMS.length) ITEMS.push(blankItem()); renderItems(); update(); };
+    q('.it-name').addEventListener('input', e=>{ it.name=e.target.value; update(); });
+    q('.it-name').addEventListener('change', e=>{ applyCatalog(it, e.target.value, true); renderItems(); update(); });
+    q('.it-desc').addEventListener('input', e=>{ it.desc=e.target.value; update(); });
+    q('.it-price').addEventListener('input', e=>{ it.price=parseWon(e.target.value); update(); });
+    q('.it-price').addEventListener('blur', e=>{ if(it.price!=null && !isNaN(it.price)) e.target.value=won(it.price); });
+    q('.it-qty').addEventListener('input', e=>{ it.qty=parseCount(e.target.value); update(); });
+    q('.it-unit').addEventListener('input', e=>{ it.unitWord=e.target.value.trim(); update(); });
+    q('.it-list').addEventListener('input', e=>{ it.list=parseWon(e.target.value)||null; update(); });
+    q('.it-list').addEventListener('blur', e=>{ if(it.list) e.target.value=won(it.list); });
+    q('.it-tax').addEventListener('change', e=>{ it.taxable=e.target.value==='1'; update(); });
+    host.appendChild(box);
+  });
+}
+// 품목 이름이 품목표에 있으면 설명·정가·단위·과세·단가를 채운다 (이미 적은 값은 건드리지 않음)
+function applyCatalog(it, typed, fromUser){
+  const c = matchCatalog(typed);
+  it.name = typed;
+  if(!c){ it.catalog=null; return; }
+  it.catalog = c.name;
+  it.name = c.name;
+  if(!it.desc) it.desc = c.desc;
+  if(!it.list) it.list = c.list;
+  if(!it.unitWord || (fromUser && it.unitWord==='세트')) it.unitWord = c.unit;
+  it.taxable = c.taxable;
+  if(it.price==null || isNaN(it.price)) it.price = c.inst || c.list;
+}
+
+function updateItemNotes(q){
+  document.querySelectorAll('#itemsHost .item').forEach((box, i)=>{
+    const it = ITEMS[i], note = box.querySelector('.it-note');
+    const calc = (it.name && it.price!=null && !isNaN(it.price) && it.qty) ? calcLine(it, q.vatMode!=='out') : null;
+    const parts = [];
+    if(it.catalog) parts.push(`품목표: ${esc(it.catalog)}`);
+    if(it.price!=null && isNaN(it.price)) parts.push('<span style="color:#d9583c">단가를 숫자로 적어 주세요 (예: 17000, 1만7천)</span>');
+    if(calc) parts.push(`합계 <b>${won(calc.total)}원</b>${calc.pct!=null?` · 할인 ${calc.pct.toFixed(1)}%`:''}`);
+    note.innerHTML = parts.join(' · ');
+  });
+}
+
+function autoNumber(dateStr){
+  const d = (dateStr||'').replace(/-/g,'');
+  if(d.length!==8) return '';
+  const base = `GDR-${d.slice(0,4)}-${d.slice(4,8)}`;
+  const used = store('gdr_used_numbers') || [];
+  if(!used.includes(base)) return base;
+  for(const L of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'){ if(!used.includes(`${base}-${L}`)) return `${base}-${L}`; }
+  return base;
+}
+
+function update(){
+  const d = readForm();
+  const q = buildQuote(d);
+  const sheet = $('#sheet');
+  let dense = q.lines.length > 4 ? 1 : 0, height = 0;
+  for(;;){
+    sheet.innerHTML = quoteHtml(q, dense);
+    height = sheet.scrollHeight;
+    if(height <= A4_CONTENT_HEIGHT || dense >= 2) break;
+    dense++;
+  }
+  const over = height > A4_CONTENT_HEIGHT;
+  const fit = $('#fitNote');
+  fit.textContent = over ? 'A4 한 장을 넘습니다 · 안내 문구나 설명을 줄여 주세요' : `A4 한 장${dense?' (간격 줄임)':''}`;
+  fit.classList.toggle('warn', over);
+  const box = $('#previewBox');
+  const scale = Math.min(1, (box.clientWidth - 32) / 688);
+  sheet.style.transform = `scale(${scale})`;
+  box.style.height = (height*scale + 32) + 'px';
+  updateItemNotes(q);
+  store('docs_quote_draft', { ...d, items: ITEMS, numberTouched });
+  return q;
+}
+
+function loadData(data){
+  $('#toName').value = data.toName||''; $('#toManager').value = data.toManager||''; $('#toBiz').value = data.toBiz||'';
+  $('#title').value = data.title||'';
+  if(data.date) $('#qDate').value = data.date;
+  numberTouched = !!(data.number && data.numberTouched!==false);
+  $('#qNumber').value = data.number || autoNumber($('#qDate').value);
+  $('#vatMode').value = data.vatMode==='out' ? 'out' : 'in';
+  $('#validDays').value = data.validDays||30;
+  $('#altMode').checked = !!data.alt;
+  $('#extraNotes').value = (data.extra||[]).join('\n');
+  ITEMS = (data.items && data.items.length ? data.items : [blankItem()]).map(it=>({ ...blankItem(), ...it }));
+  renderItems(); update();
+}
+
+function resetForm(){
+  $('#pasteBox').value=''; $('#parseNote').textContent=''; $('#budgetNote').classList.add('hidden');
+  loadData({ date: new Date().toLocaleDateString('sv-SE') });
+}
+
+/* ---------- 메일 붙여넣기 ---------- */
+function fillFromText(text, extraNotes){
+  const f = parseRequest(text);
+  const note = $('#parseNote');
+  const items = parseItems(f['품목']||'');
+  if(!f['상호'] && !items.length){
+    note.className='parse-note warn';
+    note.textContent='「기관명:」「필요한 품목과 수량:」 같은 칸을 찾지 못했어요. 아래 칸에 직접 적어 주세요.';
+    return false;
+  }
+  // 새 요청이니 이전 견적의 날짜·번호·비교 견적·안내 문구가 남지 않게 먼저 비운다 (붙여넣은 글은 그대로)
+  loadData({ date: new Date().toLocaleDateString('sv-SE') });
+  if(f['상호']) $('#toName').value = f['상호'];
+  if(f['담당']) $('#toManager').value = f['담당'];
+  if(f['사업자번호']) $('#toBiz').value = f['사업자번호'];
+  if(f['목적']) $('#title').value = f['목적'];
+  else if(items.length && !$('#title').value) $('#title').value = `${items[0].name} ${items[0].qty||''}${items[0].unit||''}`.trim() + (items.length>1?` 외 ${items.length-1}건`:'');
+  if(/별도/.test(f['부가세']||'')) $('#vatMode').value='out';
+  else if(/포함/.test(f['부가세']||'')) $('#vatMode').value='in';
+  const notes = (extraNotes||[]).slice();
+  if(f['납품일']) notes.push(`희망 납품일: ${f['납품일']}`);
+  if(f['배송지']) notes.push(`배송지: ${f['배송지']}`);
+  if(notes.length){
+    const cur = $('#extraNotes').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    $('#extraNotes').value = [...new Set(cur.concat(notes))].join('\n');
+  }
+  if(items.length){
+    ITEMS = items.map(p=>{ const it = { ...blankItem(), qty:p.qty, unitWord:p.unit||'세트' }; applyCatalog(it, p.name, false); if(!p.unit && it.catalog){ it.unitWord = matchCatalog(p.name).unit; } return it; });
+  }
+  const bud = $('#budgetNote');
+  if(f['예산']){ bud.textContent = `참고 · 메일에 적힌 예산: ${f['예산']} (견적서에는 들어가지 않아요)`; bud.classList.remove('hidden'); }
+  else bud.classList.add('hidden');
+  const missing = ITEMS.filter(it=>!it.catalog && it.name).map(it=>it.name);
+  note.className='parse-note';
+  note.textContent = `칸을 채웠어요. 품목 ${items.length}개${missing.length?` (품목표에 없는 것: ${missing.join(', ')} — 단가를 직접 적어 주세요)`:''}. 단가를 확인해 주세요.`;
+  renderItems(); update();
+  return true;
+}
+
+/* ---------- 문의 탭에서 넘어온 경우 ---------- */
+async function loadInquiry(id){
+  const { data, error } = await sb.from('inquiries').select('*').eq('id', id).maybeSingle();
+  if(error || !data){ toast('문의를 불러오지 못했어요'); return; }
+  $('#toName').value = data.org_name||'';
+  $('#toManager').value = [data.manager_name, data.contact, data.email].filter(Boolean).join(' / ');
+  $('#title').value = data.program_wanted || data.inquiry_type || '';
+  const notes = [];
+  if(data.desired_time) notes.push(`희망 시기: ${data.desired_time}`);
+  if(data.message){ $('#pasteBox').value = data.message; fillFromText(data.message, notes); }
+  else if(notes.length){ $('#extraNotes').value = notes.join('\n'); }
+  if(data.headcount){ const bud=$('#budgetNote'); bud.textContent = `참고 · 문의에 적힌 인원: ${data.headcount}명`; bud.classList.remove('hidden'); }
+  update();
+  toast(`「${data.org_name||'문의'}」 내용을 불러왔어요`);
+}
+
+/* ---------- 이벤트 ---------- */
+['#toName','#toManager','#toBiz','#title','#validDays','#extraNotes'].forEach(s=>$(s).addEventListener('input', update));
+['#vatMode','#altMode'].forEach(s=>$(s).addEventListener('change', update));
+$('#qDate').addEventListener('change', ()=>{ if(!numberTouched) $('#qNumber').value = autoNumber($('#qDate').value); update(); });
+$('#qNumber').addEventListener('input', ()=>{ numberTouched = true; update(); });
+$('#addItemBtn').onclick = ()=>{ ITEMS.push(blankItem()); renderItems(); update(); const names=document.querySelectorAll('.it-name'); names[names.length-1].focus(); };
+$('#parseBtn').onclick = ()=>fillFromText($('#pasteBox').value);
+$('#copyReplyBtn').onclick = ()=>navigator.clipboard.writeText(REPLY_TEMPLATE).then(()=>toast('회신 문구를 복사했어요')).catch(()=>toast('복사하지 못했어요'));
+$('#resetBtn').onclick = ()=>{ if(confirm('지금 쓴 내용을 지우고 새로 쓸까요?')) resetForm(); };
+$('#printBtn').onclick = ()=>{
+  const q = update();
+  if(!q.lines.length){ toast('품목·단가·수량을 먼저 넣어 주세요'); return; }
+  const used = store('gdr_used_numbers') || [];
+  if(q.number && !used.includes(q.number)){ used.push(q.number); store('gdr_used_numbers', used.slice(-200)); }
+  const oldTitle = document.title;
+  document.title = [q.number, q.toName || q.title].filter(Boolean).join('_').replace(/[\\/:*?"<>|]/g,'');
+  window.addEventListener('afterprint', ()=>{ document.title = oldTitle; }, { once:true });
+  window.print();
+};
+window.addEventListener('resize', ()=>update());
+document.querySelector('#catList').innerHTML = CATALOG.map(c=>`<option value="${esc(c.name)}">`).join('');
+
+/* ---------- 시작 ---------- */
+function startEditor(userLabel, bannerText){
+  $('#gateView').classList.add('hidden'); $('#appView').classList.remove('hidden');
+  $('#headUser').textContent = userLabel||'';
+  if(bannerText){ $('#banner').textContent = bannerText; $('#banner').classList.remove('hidden'); }
+  const draft = store('docs_quote_draft');
+  if(draft && draft.items && draft.items.some(it=>it.name)) loadData(draft);
+  else resetForm();
+}
+async function boot(){
+  const params = new URLSearchParams(location.search);
+  const isLocal = ['localhost','127.0.0.1'].includes(location.hostname);
+  if(isLocal && params.has('preview')){
+    startEditor('미리보기', '로컬 미리보기 모드입니다. 로그인 없이 화면만 확인합니다 (실제 주소에서는 관리실 로그인이 필요합니다).');
+    if(params.has('sample')){  // 확인용: 2026-08-19 독서동아리 견적
+      loadData({ title:'독서동아리 네트워크 행사 카드 굿즈 · 1안·2안 · 200세트 기준', date:'2026-08-19', number:'GDR-2026-0819',
+        vatMode:'in', validDays:30, alt:true, extra:[], items:[
+          { name:'1안 · 모든감정카드 32장 세트', desc:'32장 1세트 · 동아리별 반복 활용 대화도구', price:17000, qty:200, unitWord:'세트', list:25000, taxable:true },
+          { name:'2안 · 대형 키워드카드 40장 세트', desc:'A5 148×210mm · 40종 · 양면 컬러 · 코팅', price:24000, qty:200, unitWord:'세트', list:35000, taxable:true }] });
+    }
+    return;
+  }
+  const { data:{ session } } = await sb.auth.getSession();
+  if(session){
+    const { data } = await sb.rpc('is_admin');
+    if(data === true){
+      startEditor(session.user.email);
+      if(params.get('inquiry')){ resetForm(); await loadInquiry(params.get('inquiry')); }
+      return;
+    }
+  }
+  $('#gateView').classList.remove('hidden');
+}
+window.__docs = { parseRequest, parseItems, matchCatalog, calcLine, buildQuote, loadData, fillFromText, readForm };
+boot();
+</script>
+</body>
+</html>
