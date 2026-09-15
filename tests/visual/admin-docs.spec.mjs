@@ -9,7 +9,7 @@ const views = [
   ['kit', '기관 제출 서류'],
   ['roster', '명단·출석부'],
   ['fees', '사례비 지급 명세'],
-  ['royalty', '문고리 인세'],
+  ['royalty', '작가 정산'],
   ['links', '링크 모음'],
 ];
 
@@ -122,6 +122,7 @@ test('admin docs: every printable form stays on one branded A4 page', async ({ p
     ['quote', 'quote'],
     ['statement', 'statement'],
     ['royalty', 'royalty'],
+    ['royalty-consignment', 'royalty:consignment'],
     ['kit-plan', 'kit:plan'],
     ['kit-profile', 'kit:profile'],
     ['kit-confirm', 'kit:confirm'],
