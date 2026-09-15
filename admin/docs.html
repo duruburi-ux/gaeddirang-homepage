@@ -1586,7 +1586,7 @@ function royaltyHtml(s, dense){
     </table>
     ${whTable}
     <div class="notes"><div class="h">· 정산 기준</div><ol>${notes.map(n=>`<li>${n}</li>`).join('')}</ol></div>
-    <div class="sign">위와 같이 ${amountName}을 정산합니다. ${dotDate(s.issue)}<br><span class="name">${esc(SUPPLIER.상호)} 대표 ${esc(SUPPLIER.대표자)} ${sealMark()}</span></div>
+    <div class="sign">${BOOK.isRoyalty?'위와 같이 인세를 정산합니다.':'위와 같이 작가 정산액을 정산합니다.'} ${dotDate(s.issue)}<br><span class="name">${esc(SUPPLIER.상호)} 대표 ${esc(SUPPLIER.대표자)} ${sealMark()}</span></div>
     <div class="foot">${esc(FOOTER())}</div>
   </div></div>`;
 }
@@ -1629,7 +1629,7 @@ function applyRoyaltyPaste(text){
 }
 function selectRoyaltyBook(key, keepDates=true){
   const picked=RY_BOOKS.find(b=>b.key===key);if(!picked)return;
-  BOOK={...picked,rate:Number(picked.rate)||0,price:Number(picked.price)||0};
+  BOOK={...picked,rate:Number(picked.rate)||0,price:Number(picked.price)||0,isbn:picked.isbn||(picked.title==='문고리'?'979-11-992715-2-4':'')};
   RY_ROWS=(picked.sales||[]).map(r=>({...r,price:Number(r.price)||BOOK.price,qty:Number(r.qty)||0,sheetRoyalty:r.sheetRoyalty==null?null:Number(r.sheetRoyalty)}));
   RY_NONSALE=(picked.operations||[]).map(r=>({label:String(r.label||r.purpose||''),qty:Number(r.qty),note:String(r.note||'')}));
   const sel=$('#ryBook');if(sel.value!==key)sel.value=key;

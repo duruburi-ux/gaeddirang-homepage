@@ -9,7 +9,9 @@ export const RANGES={
 const LEDGER_REQUIRED=['채널','판매권수','인세액'];
 const BASIS_REQUIRED=['작가','도서','관리 구분','정가','작가율'];
 const INVENTORY_REQUIRED=['일자','작가','도서','구분','입고','판매/유출'];
-const SETTLEMENT_REQUIRED=['작가','도서','판매권수','작가율','작가 정산액'];
+// 작가정산 탭의 금액 열 이름은 시트에서 `작가금액`을 쓴다. 이 화면은 지급상태만 읽으므로
+// 금액 열 이름에 결합하지 않고 실제 사용 열만 계약으로 삼는다.
+const SETTLEMENT_REQUIRED=['작가','도서','지급상태'];
 const text=v=>v==null?'':String(v).trim();
 const number=v=>{const s=text(v).replaceAll(',','').replace(/[원권부]/g,'').replace('%','');const n=Number(s);return s!==''&&Number.isFinite(n)?n:null};
 const ratio=v=>{const n=number(v);return n==null?null:(String(v).includes('%')||n>1?n/100:n)};
@@ -107,7 +109,7 @@ export function buildRoyalty(raw){
     b.exemptUsed=b.exemptLimit?legacy.exemptUsed:null;
     b.payoutStatus=payoutStatus(settlements,b);
     return b;
-  }).filter(b=>b.author&&b.title);
+  }).filter(b=>b.author&&b.title&&b.price>0&&b.rate>0);
   if(!books.length)throw Error('SCHEMA_CHANGED');
   return {header:ledger.header,rows:ledger.rows,exemptUsed:legacy.exemptUsed,nonSaleRows:legacy.nonSaleRows,dashboard:legacy.dashboard,books};
 }
