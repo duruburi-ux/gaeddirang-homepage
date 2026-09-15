@@ -99,6 +99,22 @@ test('admin docs: fee privacy, PDF readiness and save-race guards', async ({ pag
   await expect(page.locator('[data-f="confirm.headcount"]')).toHaveValue('');
   await page.locator('#kitPrint').click();
   await expect(page.locator('#toast')).toContainText('실제 출강 날짜와 시간');
+
+  await page.evaluate(() => {
+    setSeal('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=');
+    switchView('statement');
+  });
+  await expect(page.locator('#tsSheet .statement-doc')).toHaveCount(1);
+  await expect(page.locator('#tsSheet .blank-row')).toHaveCount(4);
+  await expect(page.locator('#tsSheet')).not.toContainText('인수자 확인');
+  await expect(page.locator('#tsSheet .receive .sig')).toHaveCount(0);
+  await expect(page.locator('#tsSheet .sign .seal-wrap img')).toHaveCount(1);
+  await expect(page.locator('#tsTip')).toContainText('머리글과 바닥글');
+
+  await page.evaluate(() => { switchView('kit'); });
+  await page.locator('#kitSeg [data-sub="plan"]').click();
+  await expect(page.locator('#kitSheet .sign')).toContainText('대표 이진이');
+  await expect(page.locator('#kitSheet .sign .seal-wrap img')).toHaveCount(1);
 });
 
 test('admin docs: every printable form stays on one branded A4 page', async ({ page }) => {

@@ -233,7 +233,7 @@
   .qdoc .sign{text-align:right;margin-top:13px;padding-top:8px;border-top:1px solid #eee8e1;font-size:13px}
   .qdoc .sign .name{font-size:15px;font-weight:900}
   .qdoc .seal-wrap{position:relative;display:inline-block}
-  .qdoc .seal-wrap img{position:absolute;right:-14px;top:50%;width:56px;height:auto;transform:translateY(-44%);opacity:.92;pointer-events:none}
+  .qdoc .seal-wrap img{position:absolute;right:-16px;top:50%;width:60px;height:auto;transform:translateY(-46%);opacity:.96;pointer-events:none}
   .seal-chk{margin:0 4px 0 0;font-weight:600}
   .qdoc .receive{display:flex;justify-content:space-between;gap:16px;margin-top:14px;font-size:13px}
   .qdoc .receive .memo{flex:1;border:1px solid var(--line);border-radius:5px;padding:9px 14px;min-height:54px;white-space:pre-wrap}
@@ -241,6 +241,8 @@
   .qdoc .receive .sig{width:230px;border:1px solid var(--line);border-radius:5px;padding:9px 14px}
   .qdoc .receive .sig .k{font-size:11.5px;color:var(--muted);font-weight:700;display:block;margin-bottom:18px}
   .qdoc .receive .sig .line{border-bottom:1px solid var(--ink);text-align:right;padding-bottom:2px}
+  .qdoc.statement-doc tbody tr.blank-row td{height:31px;padding:0;border-bottom:1px solid var(--line);color:transparent}
+  .qdoc.statement-doc tbody tr.blank-row td:last-child{font-size:inherit}
   .qdoc .foot{border-top:1px solid var(--line);margin-top:12px;padding-top:8px;text-align:center;font-size:11px;color:var(--muted)}
   .qdoc.d1 tbody td{padding:6px 8px}
   .qdoc.d1 .sub{font-size:11px;margin-top:1px}
@@ -372,7 +374,7 @@
           <button class="btn-primary" id="printBtn">PDF 저장</button>
         </div>
         <div class="preview-box" id="previewBox"><div class="sheet" id="sheet"></div></div>
-        <p class="print-tip">「PDF 저장」을 누르면 인쇄 창이 뜹니다. 대상을 「PDF로 저장」으로 고른 뒤 저장하세요. 파일 이름은 견적번호로 잡힙니다. 아이폰은 인쇄 화면에서 공유 버튼 → 「파일에 저장」.</p>
+        <p class="print-tip">「PDF 저장」을 누르면 인쇄 창이 뜹니다. 대상을 「PDF로 저장」으로 고른 뒤, 「머리글과 바닥글」을 꺼 주세요. 파일 이름은 견적번호로 잡힙니다. 아이폰은 인쇄 화면에서 공유 버튼 → 「파일에 저장」.</p>
       </div>
     </div>
   </section>
@@ -477,7 +479,7 @@
           <button class="btn-primary" id="ryPrintBtn">PDF 저장</button>
         </div>
         <div class="preview-box" id="ryBox"><div class="sheet" id="rySheet"></div></div>
-        <p class="print-tip">원장 숫자로 다시 계산합니다(정가 × 권수 × 30%). 원장 인세액과 다른 줄은 목록에 빨갛게 표시됩니다.</p>
+        <p class="print-tip">원장 숫자로 다시 계산합니다(정가 × 권수 × 30%). 원장 인세액과 다른 줄은 목록에 빨갛게 표시됩니다. PDF로 저장할 때는 「머리글과 바닥글」을 꺼 주세요.</p>
       </div>
     </div>
   </section>
@@ -788,6 +790,7 @@ function supplierRows(keys){
   return keys.map(k=>`<div class="row"><span class="k">${k==='사업자번호'?'등록번호':k}</span><span class="v">${esc(SUPPLIER[k])}</span></div>`).join('');
 }
 const FOOTER = () => [SUPPLIER.상호, SUPPLIER.소개, SUPPLIER.이메일, SUPPLIER.연락처, '사업자등록번호 '+SUPPLIER.사업자번호].join(' · ');
+const PRINT_CLEAN_GUIDE = ' 인쇄 설정에서 「머리글과 바닥글」을 꺼야 날짜와 주소 없이 깔끔하게 저장됩니다.';
 
 function quoteHtml(q, dense){
   const rows = q.lines.length ? q.lines.map(l=>`<tr>
@@ -831,7 +834,7 @@ function quoteHtml(q, dense){
 }
 
 function statementHtml(s, dense){
-  const rows = s.lines.length ? s.lines.map(l=>`<tr>
+  const itemRows = s.lines.length ? s.lines.map(l=>`<tr>
       <td class="item-c"><span class="name">${esc(l.name)}</span>${l.desc?`<div class="sub">${esc(l.desc)}</div>`:''}</td>
       <td class="num">${esc(l.qty+(l.unitWord||''))}</td>
       <td class="num">${won(l.unit)}원</td>
@@ -839,7 +842,9 @@ function statementHtml(s, dense){
       <td class="num">${l.taxable?won(l.vat)+'원':'면세'}</td>
       <td class="num">${won(l.total)}원</td></tr>`).join('')
     : `<tr><td colspan="6" style="text-align:center;color:#b3a99f;padding:18px">품목을 넣으면 여기에 표시됩니다</td></tr>`;
-  return `<div class="qdoc${dense>=1?' d1':''}${dense>=2?' d2':''}"><div class="wrap">
+  const blankCount = Math.max(0, 5 - Math.max(1, s.lines.length));
+  const blankRows = Array.from({ length:blankCount }, ()=>'<tr class="blank-row" aria-hidden="true"><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>').join('');
+  return `<div class="qdoc statement-doc${dense>=1?' d1':''}${dense>=2?' d2':''}"><div class="wrap">
     <div class="head">
       <div><h1>거래명세서</h1><div class="subtitle">${esc(s.title)}</div></div>
       <div class="head-meta">거래일자 <b>${dotDate(s.date)}</b><br>${s.number?`번호 <b>${esc(s.number)}</b>`:'&nbsp;'}</div>
@@ -857,12 +862,11 @@ function statementHtml(s, dense){
     <table>
       <colgroup><col style="width:31%"><col style="width:11%"><col style="width:14%"><col style="width:16%"><col style="width:12%"><col style="width:16%"></colgroup>
       <thead><tr><th>품목 / 규격</th><th>수량</th><th>${s.unitHeader}</th><th>공급가액</th><th>세액</th><th>합계</th></tr></thead>
-      <tbody>${rows}</tbody>
+      <tbody>${itemRows}${blankRows}</tbody>
       <tfoot><tr><td>합계</td><td></td><td></td><td>${won(s.supply)}원</td><td>${won(s.vat)}원</td><td>${won(s.total)}원</td></tr></tfoot>
     </table>
     <div class="receive">
       <div class="memo"><span class="k">비고</span>${esc(s.memo)}</div>
-      <div class="sig"><span class="k">인수자 확인</span><div class="line">(인)</div></div>
     </div>
     <div class="sign">위와 같이 거래합니다. ${dotDate(s.date)}<br><span class="name">${esc(SUPPLIER.상호)} 대표 ${esc(SUPPLIER.대표자)} ${sealMark()}</span></div>
     <div class="foot">${esc(FOOTER())}</div>
@@ -1344,10 +1348,10 @@ function refreshStatementForm(){
   }
   const saveNeeded = MODE==='db' && (direct || kind==='quote' || (kind==='current' && CURRENT));
   $('#tsPrintBtn').textContent = (MODE==='db' && direct) ? '저장하고 PDF' : 'PDF 저장';
-  $('#tsTip').textContent = MODE!=='db' ? '미리보기 모드에서는 PDF만 뽑고 기록은 남지 않습니다.'
+  $('#tsTip').textContent = (MODE!=='db' ? '미리보기 모드에서는 PDF만 뽑고 기록은 남지 않습니다.'
     : direct ? '「저장하고 PDF」를 누르면 번호가 매겨지고 기록 탭에 「거래명세서만」으로 남습니다.'
     : saveNeeded ? '저장된 견적으로 뽑으면 그 견적이 「수주」로 바뀌고 거래일자가 기록됩니다.'
-    : '견적서 탭에서 저장하지 않은 견적이면 기록은 남지 않고 PDF만 나옵니다.';
+    : '견적서 탭에서 저장하지 않은 견적이면 기록은 남지 않고 PDF만 나옵니다.') + PRINT_CLEAN_GUIDE;
   renderStatement();
 }
 function buildStatement(){

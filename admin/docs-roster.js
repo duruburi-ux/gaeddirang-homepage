@@ -133,7 +133,7 @@
         <button class="btn-primary" id="roPrint">PDF 저장</button>
       </div>
       <div class="preview-box" id="roBox"><div class="sheet" id="roSheet"></div></div>
-      <p class="print-tip">「PDF 저장」을 누르면 인쇄 창이 떠요. 대상을 「PDF로 저장」으로 고르면 돼요. 사람이 많아 여러 장이 되면 장마다 표 제목줄이 다시 나와요. 이 탭은 신청자 표를 읽기만 하고 아무것도 바꾸지 않아요.</p>
+      <p class="print-tip">「PDF 저장」을 누르면 인쇄 창이 떠요. 대상을 「PDF로 저장」으로 고른 뒤, 「머리글과 바닥글」을 꺼 주세요. 사람이 많아 여러 장이 되면 장마다 표 제목줄이 다시 나와요. 이 탭은 신청자 표를 읽기만 하고 아무것도 바꾸지 않아요.</p>
     </div>
   </div>`;
 

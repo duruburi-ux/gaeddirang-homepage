@@ -345,7 +345,7 @@ function planHtml(p, dense){
       ${mats.length ? `<div class="h">· 준비물</div><ul class="kit-ul">${mats.map(m=>`<li>${esc(m)}</li>`).join('')}</ul>` : ''}
       ${notes.length ? `<div class="h">· 기타 안내</div><ul class="kit-ul">${notes.map(m=>`<li>${esc(m)}</li>`).join('')}</ul>` : ''}
     </div>` : ''}
-    <div class="sign">위와 같이 강의계획서를 제출합니다. ${dotDate(p.date)}<br><span class="name">${p.instructor ? '강사 '+esc(p.instructor)+' · ' : ''}${esc(SUPPLIER.상호)}</span></div>
+    <div class="sign">위와 같이 강의계획서를 제출합니다. ${dotDate(p.date)}<br><span class="name">${p.instructor ? '강사 '+esc(p.instructor)+' · ' : ''}${esc(SUPPLIER.상호)} 대표 ${esc(SUPPLIER.대표자)} ${sealMark()}</span></div>
     <div class="foot">${esc(FOOTER())}</div>
   </div></div>`;
 }
@@ -598,7 +598,7 @@ function printDoc(){
   printHtml(r.html, parts.map(x => S(x).trim()).filter(Boolean).join('_'));
 }
 function tipText(sub){
-  const pdf = '「PDF 저장」을 누르면 인쇄 창이 떠요. 대상을 「PDF로 저장」으로 고르면 돼요.';
+  const pdf = '「PDF 저장」을 누르면 인쇄 창이 떠요. 대상을 「PDF로 저장」으로 고르면 돼요.' + PRINT_CLEAN_GUIDE;
   const pv = '미리보기 모드라 저장은 안 되고 PDF만 확인할 수 있어요. ';
   if(sub==='plan') return (MODE==='db' ? '제출처·기간·장소·작성일은 기관마다 달라서 저장하지 않아요. 나머지는 「저장」해 두면 다음 기관에 다시 쓸 수 있어요. ' : pv) + pdf;
   if(sub==='profile') return (MODE==='db' ? '「저장」해 두면 다음 기관에도 그대로 꺼내 쓸 수 있어요. ' : pv) + pdf;
@@ -613,7 +613,7 @@ function setSub(sub){
   q('#kitDocs').classList.toggle('hidden', !isDoc);
   q('#kitChecklist').classList.toggle('hidden', isDoc);
   document.querySelectorAll('#view-kit [data-form]').forEach(el => el.classList.toggle('hidden', el.dataset.form!==sub));
-  q('#kitSealChk').classList.toggle('kit-off', sub!=='confirm');
+  q('#kitSealChk').classList.toggle('kit-off', sub==='profile');
   q('#kitSave').classList.toggle('hidden', !(MODE==='db' && (sub==='plan' || sub==='profile')));
   q('#kitTip').textContent = isDoc ? tipText(sub) : '';
   if(sub==='confirm') fillCfSource();
