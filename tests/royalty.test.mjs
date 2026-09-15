@@ -13,6 +13,11 @@ test('작가·도서별 인세와 외부위탁 판매·샘플·재고를 분리�
       ['누적 판매권수(인세대상)','58'],['누적 인세(정가30%)','295800'],['지급 완료','0'],['미지급(지급 예정)','295800'],
       ['용도','부수','누적 사용','','','비고'],['납본','2','2','','','대한출판문화협회'],
     ]),
+    scmStatus:range([
+      ['[문고리 유통 현황 — 자동집계]'],['항목','값'],['증정/샘플 누적','7'],
+      [],['[신태림 인세 면제 200부 (계약13조)]'],['용도','부수'],
+      ['납본','2'],['책방/증정 샘플','7'],['서평단 배포','9'],['면제 사용 합계','18'],
+    ]),
     basis:range([
       ['작가','도서','관리 구분','재고 소유','정가','작가율','권당 작가몫','팀 기준','정산 주기','다음 정산일','기준재고','현재고','확인일','근거·주의사항'],
       ['엄인용','나는 언제 웃고 있었지?','외부위탁','','12,000','70%','','','','','45','9','2026-09-11','확인 필요'],
@@ -47,5 +52,7 @@ test('작가·도서별 인세와 외부위탁 판매·샘플·재고를 분리�
   const um=out.books.find(b=>b.author==='엄인용');
   assert.equal(um.sales.reduce((a,r)=>a+r.qty,0),37);assert.equal(um.currentStock,9);
   const moon=out.books.find(b=>b.title==='문고리');
-  assert.equal(moon.isRoyalty,true);assert.equal(moon.sales[0].sheetRoyalty,295800);assert.equal(moon.exemptUsed,2);
+  assert.equal(moon.isRoyalty,true);assert.equal(moon.sales[0].sheetRoyalty,295800);assert.equal(moon.exemptUsed,18);
+  assert.equal(moon.operations.find(r=>r.label==='책방/증정 샘플').qty,7);
+  assert.equal(moon.operations.find(r=>r.label==='서평단 배포').qty,9);
 });

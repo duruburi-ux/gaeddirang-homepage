@@ -27,8 +27,9 @@ export function makeHandler({env,fetcher=fetch,now=()=>Date.now(),cryptoImpl=cry
     const d=await response.json();if(!d.access_token)throw Error('SOURCE_AUTH_FAILED');
     token=d.access_token;tokenExpiry=now()+Math.min(Number(d.expires_in)||3600,3600)*1000;return token;
   }
-  async function read(sheetId){
-    const hit=cache.get(sheetId);
+  async function read(sheetId,scmSheetId){
+    const cacheKey=sheetId+':'+scmSheetId;
+    const hit=cache.get(cacheKey);
     if(hit&&now()-hit.at<55000)return hit;
     const access=await googleToken();
     const url=new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sheetId)}/values:batchGet`);
@@ -40,8 +41,14 @@ export function makeHandler({env,fetcher=fetch,now=()=>Date.now(),cryptoImpl=cry
       throw Error(res.status===403||res.status===404?'SHEET_NOT_SHARED':res.status===400?'SCHEMA_CHANGED':'SOURCE_READ_FAILED');
     }
     const d=await res.json();if(d.valueRanges?.length!==Object.keys(RANGES).length)throw Error('SCHEMA_CHANGED');
-    const entry={data:buildRoyalty(Object.fromEntries(Object.keys(RANGES).map((k,i)=>[k,d.valueRanges[i]]))),at:now()};
-    cache.set(sheetId,entry);return entry;
+    const scmUrl=new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(scmSheetId)}/values:batchGet`);
+    scmUrl.searchParams.append('ranges',"'현황'!A1:F20");scmUrl.searchParams.set('valueRenderOption','FORMATTED_VALUE');
+    const scmRes=await request(scmUrl,{headers:{Authorization:'Bearer '+access}});
+    if(!scmRes.ok)throw Error(scmRes.status===403||scmRes.status===404?'SHEET_NOT_SHARED':scmRes.status===400?'SCHEMA_CHANGED':'SOURCE_READ_FAILED');
+    const scm=await scmRes.json();if(!scm.valueRanges?.[0])throw Error('SCHEMA_CHANGED');
+    const raw=Object.fromEntries(Object.keys(RANGES).map((k,i)=>[k,d.valueRanges[i]]));raw.scmStatus=scm.valueRanges[0];
+    const entry={data:buildRoyalty(raw),at:now()};
+    cache.set(cacheKey,entry);return entry;
   }
   return async function handle(req){
     const origin=req.headers.get('origin');
@@ -56,7 +63,7 @@ export function makeHandler({env,fetcher=fetch,now=()=>Date.now(),cryptoImpl=cry
     if(!apiKey){try{apiKey=JSON.parse(env('SUPABASE_PUBLISHABLE_KEYS')||'{}').default}catch{}}
     if(!base||!apiKey)return send({error:'SERVER_NOT_CONFIGURED'},503);
     const h={Authorization:auth,apikey:apiKey};
-    let sheetId;
+    let sheetId,scmSheetId;
     try{
       const userRes=await request(base+'/auth/v1/user',{headers:h});
       if(userRes.status===401||userRes.status===403)return send({error:'LOGIN_REQUIRED'},401);
@@ -69,17 +76,19 @@ export function makeHandler({env,fetcher=fetch,now=()=>Date.now(),cryptoImpl=cry
       if(!allowRes.ok)return send({error:'AUTH_CHECK_FAILED'},503);
       const allow=await allowRes.json();
       if(!Array.isArray(allow)||!allow.some(r=>String(r.email).toLowerCase()===user.email.toLowerCase()))return send({error:'ADMIN_REQUIRED'},403);
-      const setRes=await request(base+'/rest/v1/doc_settings?select=value&key=eq.royalty_sheet_id',{headers:h});
+      const setRes=await request(base+'/rest/v1/doc_settings?select=key,value&key=in.(royalty_sheet_id,scm_sheet_id)',{headers:h});
       if(!setRes.ok)return send({error:'AUTH_CHECK_FAILED'},503);
-      sheetId=String((await setRes.json())[0]?.value||'').trim();
+      const settings=await setRes.json();
+      sheetId=String(settings.find(r=>r.key==='royalty_sheet_id')?.value||'').trim();
+      scmSheetId=String(settings.find(r=>r.key==='scm_sheet_id')?.value||'').trim();
     }catch{return send({error:'AUTH_CHECK_FAILED'},503)}
-    if(!/^[A-Za-z0-9_-]{20,100}$/.test(sheetId))return send({error:'SOURCE_NOT_CONFIGURED',meta:{readOnly:true}},503);
+    if(!/^[A-Za-z0-9_-]{20,100}$/.test(sheetId)||!/^[A-Za-z0-9_-]{20,100}$/.test(scmSheetId))return send({error:'SOURCE_NOT_CONFIGURED',meta:{readOnly:true}},503);
     try{
-      const entry=await read(sheetId);
+      const entry=await read(sheetId,scmSheetId);
       return send({...entry.data,meta:{fetchedAt:new Date(entry.at).toISOString(),stale:false,readOnly:true}});
     }catch(e){
       const error=KNOWN.includes(e.message)?e.message:'SOURCE_READ_FAILED';
-      const hit=cache.get(sheetId);
+      const hit=cache.get(sheetId+':'+scmSheetId);
       if(hit&&now()-hit.at<600000)return send({...hit.data,meta:{fetchedAt:new Date(hit.at).toISOString(),stale:true,error,readOnly:true}});
       return send({error,meta:{readOnly:true,serviceAccount:error==='SHEET_NOT_SHARED'?serviceEmail:undefined}},503);
     }
