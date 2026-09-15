@@ -13,11 +13,16 @@ export function buildRoyalty(raw){
   const dash=(raw.dashboard?.values||[]).map(r=>r.map(text));
   const pick=label=>number(dash.find(r=>r[0]===label)?.[1]);
   // 인세 면제 200부 표: 「누적 사용」 칸의 마지막 숫자가 지금까지 쓴 부수
-  let exemptUsed=null;
+  let exemptUsed=null,nonSaleRows=[];
   const eh=dash.findIndex(r=>r[0]==='용도'&&r.includes('누적 사용'));
   if(eh>=0){
-    const col=dash[eh].indexOf('누적 사용');
-    for(const r of dash.slice(eh+1)){if(!r[0])break;const n=number(r[col]);if(n!=null)exemptUsed=n}
+    const qtyCol=dash[eh].indexOf('부수'),usedCol=dash[eh].indexOf('누적 사용'),noteCol=dash[eh].indexOf('비고');
+    for(const r of dash.slice(eh+1)){
+      if(!r[0])break;
+      const qty=number(r[qtyCol]),used=number(r[usedCol]);
+      if(used!=null)exemptUsed=used;
+      if(qty!=null&&qty>0)nonSaleRows.push({purpose:r[0],qty,note:noteCol>=0?r[noteCol]:''});
+    }
   }
-  return {header,rows,exemptUsed,dashboard:{totalQty:pick('누적 판매권수(인세대상)'),totalRoyalty:pick('누적 인세(정가30%)'),paid:pick('지급 완료'),unpaid:pick('미지급(지급 예정)')}};
+  return {header,rows,exemptUsed,nonSaleRows,dashboard:{totalQty:pick('누적 판매권수(인세대상)'),totalRoyalty:pick('누적 인세(정가30%)'),paid:pick('지급 완료'),unpaid:pick('미지급(지급 예정)')}};
 }
