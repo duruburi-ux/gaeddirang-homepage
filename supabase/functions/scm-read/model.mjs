@@ -16,7 +16,17 @@ export function buildData(raw){
     const skuStock=num(p['현재고']);
     const returned=String(p['활성상태']).includes('반품');
     const status=stock==null?'수량 미확인':returned?(stock===0?'반품 완료':'반품·재고 확인'):stock<0?'실사 필요':stock===0?'품절':stock<=3?'1~3개 보유':'재고 있음';
-    const x={sku,kind,name:p['페이히어상품명']||p['내부표준상품명']||sku,category:p['페이히어카테고리']||'미분류',price:num(p['정가']),cost:num(p['원가']),stock,skuStock,status,barcode:String(p['바코드번호']||''),owner:p['재고소유']||'미확인'};
+    const x={
+      sku,kind,
+      name:p['페이히어상품명']||p['내부표준상품명']||sku,
+      category:p['페이히어카테고리']||'미분류',
+      price:num(p['정가']),cost:num(p['원가']),stock,skuStock,status,
+      barcode:String(p['바코드번호']||''),
+      isbn:String(source?.['ISBN']||p['ISBN']||''),
+      author:String(source?.['저자']||''),
+      owner:p['재고소유']||source?.['재고소유']||'미확인',
+      note:String(source?.['비고']||'')
+    };
     inventory.push(x);
     if(stock==null||stock<0)warn(x.name+' 실사 필요','장부 '+(stock??'미확인')+' · 장소와 기준일을 함께 확인하세요.');
     if(returned&&stock!==0)warn(x.name+' 반품 후 재고 이상','반품 상품에 수량이 남았습니다. 판매 가능으로 판단하지 마세요.');
