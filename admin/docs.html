@@ -1535,7 +1535,7 @@ function royaltyHtml(s, dense){
     '입고·판매·샘플·현재 재고는 통합 인세시트의 확인된 기록을 기준으로 표시했습니다.',
     '개별 판매일·판매처 등 세부 판매 내역은 요청 시 제공합니다.',
   ];
-  if(BOOK.isRoyalty && s.exempt != null && BOOK.exemptLimit) notes.push(`판매 외 목적 인세 면제 ${BOOK.exemptLimit}부 중 누적 ${won(s.exempt)}부 사용, 잔여 ${won(Math.max(0, BOOK.exemptLimit - s.exempt))}부입니다.`);
+  if(BOOK.isRoyalty && s.exempt != null && BOOK.exemptLimit) notes.push(`계약에 따라 판매 외 제공분은 최대 ${BOOK.exemptLimit}부까지 인세 대상에서 제외됩니다. 현재 ${won(s.exempt)}부가 제공되었으며, 잔여 범위는 ${won(Math.max(0, BOOK.exemptLimit - s.exempt))}부입니다.`);
   if(BOOK.isRoyalty && BOOK.title==='문고리') notes.push('계약금 500,000원은 판매 인세와 별도로 지급한 금액이며 인세에서 차감하지 않습니다. (계약 15조)');
   if(BOOK.note) notes.push(`기준정보 참고: ${esc(BOOK.note)}`);
   notes.push(taxText);
@@ -1577,12 +1577,12 @@ function royaltyHtml(s, dense){
       <tbody>${rows}</tbody>
       <tfoot><tr><td>합계</td><td>${won(s.qty)}권</td><td></td><td>${won(s.royalty)}원</td></tr></tfoot>
     </table>
-    <h2>도서 운영 현황 <span style="font-size:10px;font-weight:600;color:#8d8178">누적 기준</span></h2>
+    <h2>판매 외 제공 내역 <span style="font-size:10px;font-weight:600;color:#8d8178">누적 기준</span></h2>
     <table>
       <colgroup><col style="width:34%"><col style="width:18%"><col style="width:48%"></colgroup>
-      <thead><tr><th>운영 항목</th><th>수량</th><th>비고</th></tr></thead>
+      <thead><tr><th>구분</th><th>부수</th><th>제공 목적</th></tr></thead>
       <tbody>${nonSaleRows}</tbody>
-      ${!BOOK.isRoyalty||s.exempt==null||!BOOK.exemptLimit?'':`<tfoot><tr><td>인세 면제 범위</td><td>${won(s.exempt)}권 사용</td><td>잔여 ${won(Math.max(0, BOOK.exemptLimit-s.exempt))}권 / 총 ${won(BOOK.exemptLimit)}권</td></tr></tfoot>`}
+      ${!BOOK.isRoyalty||s.exempt==null||!BOOK.exemptLimit?'':`<tfoot><tr><td>판매 외 제공 합계</td><td>${won(s.exempt)}권</td><td>계약상 한도 ${won(BOOK.exemptLimit)}권 중 잔여 ${won(Math.max(0, BOOK.exemptLimit-s.exempt))}권</td></tr></tfoot>`}
     </table>
     ${whTable}
     <div class="notes"><div class="h">· 정산 기준</div><ol>${notes.map(n=>`<li>${n}</li>`).join('')}</ol></div>

@@ -43,10 +43,10 @@ function legacyDashboard(dash,scmDash=[]){
   const scmPick=label=>number(scmDash.find(r=>text(r[0])===label)?.[1]);
   const scmExempt=scmPick('면제 사용 합계');
   const scmRows=[
-    ['납본','대한출판문화협회'],
-    ['책방/증정 샘플','SCM 입출고원장 증정 자동집계'],
-    ['서평단 배포','서평 목적 배포'],
-  ].map(([purpose,note])=>({purpose,qty:scmPick(purpose),note})).filter(r=>r.qty!=null&&r.qty>0);
+    ['납본','납본','도서 등록을 위해 제공한 부수'],
+    ['책방/증정 샘플','책방 샘플 제공','책방 비치·소개를 위해 제공한 부수'],
+    ['서평단 배포','서평용 제공','서평 및 도서 소개를 위해 제공한 부수'],
+  ].map(([source,purpose,note])=>({purpose,qty:scmPick(source),note})).filter(r=>r.qty!=null&&r.qty>0);
   if(scmRows.length){nonSaleRows=scmRows;if(scmExempt!=null)exemptUsed=scmExempt;}
   return {exemptUsed,nonSaleRows,dashboard:{totalQty:pick('누적 판매권수(인세대상)'),totalRoyalty:pick('누적 인세(정가30%)'),paid:pick('지급 완료'),unpaid:pick('미지급(지급 예정)')}};
 }

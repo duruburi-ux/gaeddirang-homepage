@@ -53,6 +53,6 @@ test('작가·도서별 인세와 외부위탁 판매·샘플·재고를 분리�
   assert.equal(um.sales.reduce((a,r)=>a+r.qty,0),37);assert.equal(um.currentStock,9);
   const moon=out.books.find(b=>b.title==='문고리');
   assert.equal(moon.isRoyalty,true);assert.equal(moon.sales[0].sheetRoyalty,295800);assert.equal(moon.exemptUsed,18);
-  assert.equal(moon.operations.find(r=>r.label==='책방/증정 샘플').qty,7);
-  assert.equal(moon.operations.find(r=>r.label==='서평단 배포').qty,9);
+  assert.equal(moon.operations.find(r=>r.label==='책방 샘플 제공').qty,7);
+  assert.equal(moon.operations.find(r=>r.label==='서평용 제공').qty,9);
 });
