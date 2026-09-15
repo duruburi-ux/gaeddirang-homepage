@@ -110,9 +110,11 @@
       const el = $(n); if(!el) return;
       el.setAttribute('list', 'partnerList');
       el.addEventListener('change', () => {
-        const f = lookup(el.value.trim()); if(!f) return;
-        if(!$(m).value && f.manager) $(m).value = f.manager;
-        if(!$(b).value && f.biz) $(b).value = f.biz;
+        // 자동으로 채운 값만 바꾼다: 받는 곳을 A→B로 바꾸면 A의 연락처가 B로 바뀌고, 사람이 직접 고친 값은 그대로
+        const f = lookup(el.value.trim()), auto = el._auto || {};
+        const put = (sel, val, key) => { const box = $(sel); if(!box.value || box.value === auto[key]) box.value = val || ''; };
+        put(m, f && f.manager, 'manager'); put(b, f && f.biz, 'biz');
+        el._auto = f ? { manager: f.manager || '', biz: f.biz || '' } : {};
         redraw();
       });
     });
@@ -127,8 +129,10 @@
     return h;
   }
   function toStatement(name, manager, biz){
-    switchView('statement'); selectStatementSource('direct');
+    switchView('statement');
+    if(selectStatementSource('direct') === false) return;   // 쓰던 거래명세서를 버리지 않기로 했으면 그대로
     $('#tsToName').value = name; $('#tsToManager').value = manager || ''; $('#tsToBiz').value = biz || '';
+    $('#tsToName')._auto = { manager: manager || '', biz: biz || '' };
     renderStatement();
   }
   function shopCard(p){
@@ -158,7 +162,13 @@
       <div class="pt-line"><span class="k">최근</span><span>${dotDate(o.last)}</span></div>
       <div class="pt-acts"><button class="btn-sm a-q">새 견적</button><button class="btn-sm a-ts">거래명세서</button>
         <button class="btn-sm a-rec">기록 보기</button></div>`;
-    el.querySelector('.a-q').onclick = () => { resetForm(); switchView('quote'); $('#toName').value = o.name; $('#toManager').value = o.manager; $('#toBiz').value = o.biz; update(); };
+    el.querySelector('.a-q').onclick = () => {
+      if(!confirmDiscardQuote()) return;
+      resetForm(); switchView('quote');
+      $('#toName').value = o.name; $('#toManager').value = o.manager; $('#toBiz').value = o.biz;
+      $('#toName')._auto = { manager: o.manager || '', biz: o.biz || '' };
+      update();
+    };
     el.querySelector('.a-ts').onclick = () => toStatement(o.name, o.manager, o.biz);
     el.querySelector('.a-rec').onclick = () => { switchView('records'); $('#rSearch').value = o.name; renderRecords(); };
     return el;

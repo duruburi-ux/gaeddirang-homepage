@@ -18,7 +18,15 @@ const CSS = `
 .kit-sv-t{font-size:13.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kit-sv-s{font-size:11.5px;color:var(--muted)}
 .kit-sv button{padding:5px 9px;font-size:12px}
-.kit-cur{font-size:12.5px;color:var(--muted);margin-top:8px}
+.kit-cur{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.55}
+.kit-cur .btn-sm{margin-top:6px;padding:6px 10px;font-size:12.5px}
+.kit-cur.restored{color:var(--orange-d)}
+.in.kit-need{border-color:#eab08c;background:#fffaf5}
+.kit-dlg{border:none;border-radius:16px;padding:20px 22px;width:min(92vw,440px);box-shadow:0 12px 40px rgba(60,40,20,.25);color:var(--ink);background:var(--card)}
+.kit-dlg::backdrop{background:rgba(40,30,20,.38)}
+.kit-dlg h4{font-size:16px;margin:0 0 8px}
+.kit-dlg p{font-size:13.5px;line-height:1.6;white-space:pre-line;margin:0 0 16px}
+.kit-dlg .btns{justify-content:flex-end}
 .kit-sess .item-top .s-no{width:92px;flex:none}
 .kit-sess textarea{margin-bottom:6px}
 .kit-ck-head{display:flex;align-items:baseline;gap:10px;margin:2px 2px 10px;font-size:14px}
@@ -36,14 +44,14 @@ const CSS = `
 .kit-ck-links .btn-sm{padding:5px 10px;font-size:12.5px;text-decoration:none}
 .kit-ck-miss{font-size:12.5px;color:var(--orange-d)}
 /* 문서 */
-.qdoc table.kit-kv{border:1px solid var(--line);border-radius:10px;border-collapse:separate;border-spacing:0;overflow:hidden;margin:0 0 4px}
+.qdoc table.kit-kv{border:1px solid var(--line);border-radius:6px;border-collapse:separate;border-spacing:0;overflow:hidden;margin:0 0 4px}
 .qdoc table.kit-kv th{background:var(--wash);color:var(--accent-deep);font-weight:800;font-size:12px;text-align:left;padding:7px 12px;border-bottom:1px solid var(--line);vertical-align:middle;word-break:keep-all}
 .qdoc table.kit-kv td{padding:7px 12px;border-bottom:1px solid var(--line);font-size:13px;font-weight:600;vertical-align:middle;color:var(--ink)}
 .qdoc table.kit-kv tbody td:last-child{font-weight:600;color:var(--ink);font-size:13px}
 .qdoc table.kit-kv tr:last-child th,.qdoc table.kit-kv tr:last-child td{border-bottom:none}
 .qdoc table.kit-kv td.kit-lt{border-left:1px solid var(--line)}
 .qdoc table.kit-kv th.kit-lt{border-left:1px solid var(--line)}
-.qdoc .kit-sec{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:8px 14px;margin-top:10px}
+.qdoc .kit-sec{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:5px;padding:8px 14px;margin-top:10px}
 .qdoc .kit-sec-h{font-weight:800;font-size:12.5px;margin-bottom:3px}
 .qdoc .kit-sec-b{font-size:12.5px;line-height:1.6}
 .qdoc h2.kit-h2{margin:14px 0 8px}
@@ -54,7 +62,7 @@ const CSS = `
 .qdoc table.kit-t td.kit-topic{font-weight:800}
 .qdoc table.kit-t td.kit-empty{text-align:center;color:#b3a99f;padding:18px}
 .qdoc .kit-ul{margin:0 0 4px;padding-left:18px;font-size:12px;line-height:1.55}
-.qdoc .kit-hero{background:#f7f3ee;border-radius:10px;padding:14px 18px}
+.qdoc .kit-hero{background:#f5f1eb;border:1px solid #e6ddd3;border-radius:6px;padding:14px 18px}
 .qdoc .kit-hero-name{font-size:25px;font-weight:900;letter-spacing:.04em}
 .qdoc .kit-hero-line{font-size:13.5px;font-weight:800;color:var(--accent-deep);margin-top:1px}
 .qdoc .kit-hero-intro{font-size:12.5px;line-height:1.65;margin-top:8px}
@@ -157,19 +165,21 @@ const HTML = `
       <div class="card"><h3>① 강의계획서에서 가져오기 <span class="hint">(선택)</span></h3>
         <select class="in" id="kitCfSrc"></select>
         <div class="btns"><button class="btn-sm" id="kitCfImport">가져오기</button></div>
+        <p class="hint" style="margin-top:6px">강의명·강사명·기관명·장소를 채워요. 일시와 참여 인원은 실제로 한 대로 적어 주세요.</p>
         <div class="parse-note" id="kitCfNote"></div>
       </div>
       <div class="card"><h3>② 출강 내용</h3>
+        <div class="kit-cur restored hidden" id="kitCfRestored" style="margin:0 0 4px"></div>
         <div class="row2">
           <div><label class="f">강사명</label><input class="in" data-f="confirm.instructor" placeholder="예: 홍길동"></div>
           <div><label class="f">기관명</label><input class="in" data-f="confirm.org" placeholder="예: ○○도서관"></div>
         </div>
         <label class="f">강의명</label><input class="in" data-f="confirm.title" placeholder="예: 마음 날씨 기록 워크숍">
-        <label class="f">일시 <span class="hint">(한 줄에 한 회차)</span></label>
+        <label class="f">일시 <span class="hint">(실제로 출강한 날짜·시간 · 한 줄에 한 회차)</span></label>
         <textarea class="in" rows="4" data-f="confirm.dates" placeholder="예: 2026. 10. 7.(수) 16:00~17:30"></textarea>
         <div class="row2">
           <div><label class="f">장소</label><input class="in" data-f="confirm.place" placeholder="예: 2층 강의실"></div>
-          <div><label class="f">참여 인원</label><input class="in" data-f="confirm.headcount" placeholder="예: 15명"></div>
+          <div><label class="f">실제 참여 인원 <span class="hint">(계획 인원 말고)</span></label><input class="in" data-f="confirm.headcount" placeholder="예: 13명 (출석부 기준)"></div>
         </div>
         <div class="row2">
           <div><label class="f">확인일</label><input class="in" type="date" data-f="confirm.date"></div>
@@ -214,6 +224,16 @@ const HTML = `
     <p class="hint" id="kitCkNote" style="margin:4px 4px 0"></p>
   </div>
 </div>
+
+<dialog class="kit-dlg" id="kitDlg">
+  <h4>원본을 고칠까요, 새로 저장할까요?</h4>
+  <p id="kitDlgMsg"></p>
+  <div class="btns">
+    <button class="btn-link" data-v="">취소</button>
+    <button class="btn-sm" data-v="update">원본 고치기</button>
+    <button class="btn-primary" data-v="new">새로 저장 (원본은 그대로)</button>
+  </div>
+</dialog>
 `;
 
 /* ---------- 도구 ---------- */
@@ -231,24 +251,29 @@ const K = {
   sub: 'plan', started: false,
   plan: null, profile: null, confirm: null,
   lists: { plan:{ rows:[], loaded:false, loading:false, error:'' }, profile:{ rows:[], loaded:false, loading:false, error:'' } },
+  base: { plan:'', profile:'', confirm:'' },      // 마지막으로 열거나 저장한 내용 (이것과 다르면 「저장 안 한 수정」)
+  owned: { plan:null, profile:null },             // 이번에 저장해서 「원본 고치기」로 굳힌 id (다시 묻지 않음)
+  restored: { plan:false, profile:false, confirm:false },   // 이 브라우저에 보관된 쓰던 내용을 불러왔으면 그 시각
+  saving: false,
 };
 const blankSession = n => ({ no: n+'회', topic:'', content:'', materials:'' });
-const blankPlan = () => ({ id:null, title:'', target:'', headcount:'', duration:'', goal:'', overview:'', materials:'', instructor:'', note:'',
+const blankPlan = () => ({ id:null, _updatedAt:null, title:'', target:'', headcount:'', duration:'', goal:'', overview:'', materials:'', instructor:'', note:'',
   sessions:[blankSession(1)], org:'', period:'', place:'', date: today() });
-const blankProfile = () => ({ id:null, name:'', headline:'', intro:'', careers:'', works:'', lectures:'', sort:0, date: today() });
+const blankProfile = () => ({ id:null, _updatedAt:null, name:'', headline:'', intro:'', careers:'', works:'', lectures:'', sort:0, date: today() });
 const blankConfirm = () => ({ instructor:'', org:'', title:'', dates:'', place:'', headcount:'', date: today() });
 
 function planFromRow(r){
   const p = blankPlan();
   PLAN_DB.forEach(k => p[k] = r[k] || '');
   p.id = r.id;
+  p._updatedAt = r.updated_at || null;
   const ss = Array.isArray(r.sessions) ? r.sessions : [];
   p.sessions = ss.length ? ss.map((s,i) => ({ no: s && s.no != null ? String(s.no) : (i+1)+'회', topic:(s&&s.topic)||'', content:(s&&s.content)||'', materials:(s&&s.materials)||'' })) : [blankSession(1)];
   return p;
 }
 function profileFromRow(r){
   const p = blankProfile();
-  p.id = r.id; p.name = r.name||''; p.headline = r.headline||''; p.intro = r.intro||''; p.sort = r.sort||0;
+  p.id = r.id; p._updatedAt = r.updated_at || null; p.name = r.name||''; p.headline = r.headline||''; p.intro = r.intro||''; p.sort = r.sort||0;
   ['careers','works','lectures'].forEach(k => p[k] = (Array.isArray(r[k]) ? r[k] : []).join('\n'));
   return p;
 }
@@ -278,7 +303,7 @@ function sampleProfile(){
 function sampleConfirm(){
   return { instructor:'(예시) 김하늘', org:'(예시) 햇살마을도서관', title:'(예시) 마음 날씨 기록 워크숍',
     dates:'2026. 10. 7.(수) 16:00~17:30\n2026. 10. 14.(수) 16:00~17:30\n2026. 10. 21.(수) 16:00~17:30',
-    place:'도서관 2층 강의실', headcount:'15명', date: today() };
+    place:'도서관 2층 강의실', headcount:'13명', date: today() };
 }
 
 /* ---------- 문서: 강의계획서 ---------- */
@@ -399,42 +424,126 @@ function normPlan(o){
   if(!o || typeof o!=='object') return p;
   [...PLAN_DB, 'org','period','place','date'].forEach(k => { if(o[k]!=null) p[k] = S(o[k]); });
   p.id = o.id || null;
+  p._updatedAt = o._updatedAt || null;
   if(Array.isArray(o.sessions) && o.sessions.length) p.sessions = o.sessions.map((s,i) => ({ no: S(s&&s.no) || (i+1)+'회', topic:S(s&&s.topic), content:S(s&&s.content), materials:S(s&&s.materials) }));
   return p;
 }
 function normFlat(o, blank){
   const p = blank();
   if(!o || typeof o!=='object') return p;
-  Object.keys(p).forEach(k => { if(k==='id') p.id = o.id || null; else if(k==='sort') p.sort = parseInt(o.sort,10)||0; else if(o[k]!=null) p[k] = S(o[k]); });
+  Object.keys(p).forEach(k => { if(k==='id') p.id = o.id || null; else if(k==='_updatedAt') p._updatedAt = o._updatedAt || null; else if(k==='sort') p.sort = parseInt(o.sort,10)||0; else if(o[k]!=null) p[k] = S(o[k]); });
   return p;
 }
-function saveDraft(doc){ if(MODE==='db') store('kit_draft_'+doc, K[doc]); }
+/* ---------- 저장 안 한 수정 알아채기 ---------- */
+// DB에 들어가는 모양 그대로 (계획서의 제출처·기간·장소·작성일은 저장하지 않으니 빼고 본다)
+function planRow(cur){
+  const row = {};
+  PLAN_DB.forEach(k => row[k] = S(cur[k]).trim());
+  row.sessions = (cur.sessions || []).filter(s => (S(s.topic)+S(s.content)+S(s.materials)).trim())
+    .map((s,i) => ({ no: S(s.no).trim() || (i+1)+'회', topic: S(s.topic).trim(), content: S(s.content).trim(), materials: S(s.materials).trim() }));
+  return row;
+}
+function profileRow(cur){
+  return { name: S(cur.name).trim(), headline: S(cur.headline).trim(), intro: S(cur.intro).trim(),
+    careers: lines(cur.careers), works: lines(cur.works), lectures: lines(cur.lectures) };
+}
+const CF_KEYS = ['instructor','org','title','dates','place','headcount'];
+function snapOf(doc, o){
+  if(doc==='plan') return JSON.stringify(planRow(o));
+  if(doc==='profile') return JSON.stringify(profileRow(o));
+  return JSON.stringify(CF_KEYS.map(k => S(o[k]).trim()));
+}
+const blankOf = doc => doc==='plan' ? blankPlan() : doc==='profile' ? blankProfile() : blankConfirm();
+const isDirty = doc => !!K[doc] && snapOf(doc, K[doc]) !== K.base[doc];
+// 지우면 사라지는 게 있나 (계획서는 저장 안 되는 「이번 제출처」 칸도 본다)
+const hasWork = doc => isDirty(doc) || (doc==='plan' && !!(S(K.plan.org)+S(K.plan.period)+S(K.plan.place)).trim());
+function markClean(doc, snapStr){ K.base[doc] = snapStr != null ? snapStr : snapOf(doc, K[doc]); }
+// 되돌리기용으로 지금 상태를 통째로 떠 둔다
+const takeState = doc => ({ doc: JSON.parse(JSON.stringify(K[doc])), base: K.base[doc], owned: K.owned[doc] || null, restored: K.restored[doc] });
+function putState(doc, st){
+  K[doc] = st.doc; K.base[doc] = st.base; if(doc!=='confirm') K.owned[doc] = st.owned; K.restored[doc] = st.restored;
+  fillForm(doc); saveDraft(doc);
+  if(doc==='confirm') renderCfRestored(); else renderSaved(doc);
+  if(doc==='plan') fillCfSource();
+  if(K.sub===doc) renderDoc();
+}
+
+function saveDraft(doc){
+  if(MODE!=='db') return;
+  const d = { ...K[doc], _at: Date.now() };
+  if(doc!=='confirm'){ d._base = K.base[doc]; d._owned = K.owned[doc] || null; }
+  store('kit_draft_'+doc, d);
+}
+const fld = key => q(`[data-f="${key}"]`);
+function focusField(key){ const el = fld(key); if(el){ el.focus(); el.scrollIntoView({ block:'center' }); } }
 function fillForm(doc){
   document.querySelectorAll(`#view-kit [data-f^="${doc}."]`).forEach(el => {
     const k = el.dataset.f.split('.')[1];
     el.value = S(K[doc][k]);
   });
   if(doc==='plan') renderSessions();
+  if(doc==='confirm') markNeeds();
+}
+function restoreDraft(doc, d){
+  K[doc] = doc==='plan' ? normPlan(d) : normFlat(d, doc==='profile' ? blankProfile : blankConfirm);
+  const blank = snapOf(doc, blankOf(doc));
+  if(doc==='confirm') K.base.confirm = blank;
+  else {
+    // 예전 초안에는 _base 가 없다 → 저장된 것을 열어 둔 초안이면 「수정 있음」으로 본다 (묻는 쪽이 안전)
+    K.base[doc] = d && typeof d._base==='string' ? d._base : (K[doc].id ? '' : blank);
+    K.owned[doc] = d && d._owned && d._owned===K[doc].id ? d._owned : null;
+  }
+  K.restored[doc] = d && hasWork(doc) ? (Number(d._at) || true) : false;
+}
+function restoredText(doc){
+  const at = K.restored[doc];
+  if(!at) return '';
+  const day = typeof at==='number' ? new Date(at).toLocaleDateString('sv-SE') : '';
+  return `${day && day!==today() ? dotDate(day)+'에 ' : ''}쓰던 내용을 이 브라우저에서 불러왔어요. 필요 없으면 「새로 쓰기」를 눌러 주세요.`;
+}
+function renderCfRestored(){
+  const el = q('#kitCfRestored');
+  if(!el) return;
+  const t = restoredText('confirm');
+  el.textContent = t; el.classList.toggle('hidden', !t);
 }
 function start(){
   if(K.started) return;
   K.started = true;
   if(MODE==='preview'){
     K.plan = samplePlan(); K.profile = sampleProfile(); K.confirm = sampleConfirm();
+    ['plan','profile','confirm'].forEach(d => markClean(d, snapOf(d, blankOf(d))));   // 예시도 「쓰던 내용」으로 친다
     q('#kitCkOrg').value = '(예시) 햇살마을도서관';
   } else {
-    K.plan = normPlan(store('kit_draft_plan')); K.plan.date = today();
-    K.profile = normFlat(store('kit_draft_profile'), blankProfile); K.profile.date = today();
-    K.confirm = normFlat(store('kit_draft_confirm'), blankConfirm); if(!K.confirm.date) K.confirm.date = today();
+    restoreDraft('plan', store('kit_draft_plan')); K.plan.date = today();
+    restoreDraft('profile', store('kit_draft_profile')); K.profile.date = today();
+    restoreDraft('confirm', store('kit_draft_confirm')); if(!K.confirm.date) K.confirm.date = today();
     q('#kitCkOrg').value = S(store('kit_checklist_last'));
   }
   const s = store('kit_sub');
   if(SUBS.includes(s)) K.sub = s;
   ['plan','profile','confirm'].forEach(fillForm);
+  renderCfRestored();
 }
 function changed(doc){
   saveDraft(doc);
+  if(doc==='confirm') markNeeds();
   if(K.sub===doc) renderDoc();
+}
+
+/* ---------- 출강확인서: 빈칸·자리표시 확인 ---------- */
+const PH_LINE = /날짜\s*·\s*시간\s*\)|^\(.*(날짜|시간).*\)$/;   // 예전 「가져오기」가 넣던 "(1회 날짜·시간)" 같은 줄
+function cfDatesProblem(c){
+  const ds = lines(c.dates);
+  return !ds.length ? 'empty' : ds.some(l => PH_LINE.test(l)) ? 'placeholder' : '';
+}
+function markNeeds(){
+  const c = K.confirm;
+  if(!c) return;
+  const started = !!(S(c.title)+S(c.instructor)).trim();
+  const d = fld('confirm.dates'), h = fld('confirm.headcount');
+  if(d) d.classList.toggle('kit-need', started && !!cfDatesProblem(c));
+  if(h) h.classList.toggle('kit-need', started && !S(c.headcount).trim());
 }
 
 /* ---------- 회차 입력 ---------- */
@@ -480,6 +589,9 @@ function printDoc(){
     parts = ['강사프로필', K.profile.name];
   } else {
     if(!K.confirm.instructor.trim() || !K.confirm.title.trim()){ toast('강사명과 강의명을 먼저 적어 주세요'); return; }
+    const datesProblem = cfDatesProblem(K.confirm);
+    if(datesProblem){ toast(datesProblem==='empty' ? '실제 출강 날짜와 시간을 먼저 적어 주세요' : '괄호로 된 날짜·시간 자리표시자를 실제 값으로 바꿔 주세요'); focusField('confirm.dates'); return; }
+    if(!K.confirm.headcount.trim()){ toast('계획 인원이 아닌 실제 참여 인원을 적어 주세요'); focusField('confirm.headcount'); return; }
     parts = ['출강확인서', K.confirm.org, K.confirm.title];
   }
   if(r.over) toast('A4 한 장을 넘어요 · 내용을 조금 줄이면 한 장에 들어가요');
@@ -572,18 +684,31 @@ function renderSaved(doc){
   if(copy) copy.onclick = () => { K[doc].id = null; saveRow(doc); };
 }
 function openRow(doc, r){
+  if(isDirty(doc) && !confirm(`지금 쓰던 ${WORD_OBJ[doc]} 저장하지 않았어요. 버리고 다른 저장본을 열까요?`)) return;
   if(doc==='plan'){
     const keep = { org:K.plan.org, period:K.plan.period, place:K.plan.place, date:K.plan.date };   // 이번 제출처 칸은 그대로 둔다
     K.plan = { ...planFromRow(r), ...keep };
   } else {
     K.profile = { ...profileFromRow(r), date: K.profile.date || today() };
   }
+  markClean(doc); K.owned[doc] = null; K.restored[doc] = false;
   fillForm(doc); saveDraft(doc); renderSaved(doc);
   if(K.sub===doc) renderDoc();
   toast(`「${doc==='plan' ? (r.title||'강의계획서') : (r.name||'강사 프로필')}」 열었어요`);
 }
+function chooseSaveMode(doc){
+  const dlg = q('#kitDlg');
+  q('#kitDlgMsg').textContent = `저장된 ${WORD_OBJ[doc]} 열어 고친 상태예요. 원본을 바꾸거나 별도 사본으로 저장할 수 있어요.`;
+  return new Promise(resolve => {
+    const done = value => { dlg.close(); resolve(value); };
+    dlg.querySelectorAll('[data-v]').forEach(b => b.onclick = () => done(b.dataset.v));
+    dlg.oncancel = e => { e.preventDefault(); done(''); };
+    dlg.showModal();
+  });
+}
 async function saveRow(doc){
   if(MODE!=='db'){ toast('저장은 관리실에 로그인해야 할 수 있어요'); return; }
+  if(K.saving) return;
   const cur = K[doc];
   let row;
   if(doc==='plan'){
@@ -602,21 +727,40 @@ async function saveRow(doc){
     if(doc==='profile') ins.sort = Math.max(0, ...K.lists.profile.rows.map(r => r.sort||0)) + 10;
     return sb.from(TABLE[doc]).insert(ins).select().single();
   };
+  let mode = cur.id ? 'update' : 'new';
+  if(cur.id && K.owned[doc] !== cur.id){
+    mode = await chooseSaveMode(doc);
+    if(!mode) return;
+  }
+  const targetId = cur.id;
+  const targetUpdatedAt = cur._updatedAt;
+  const startSnap = snapOf(doc, cur);
   const btn = q('#kitSave'); btn.disabled = true;
-  let res, isNew = !cur.id;
+  K.saving = true;
+  let res, isNew = mode === 'new';
   try{
-    res = cur.id ? await sb.from(TABLE[doc]).update(row).eq('id', cur.id).select().single() : await insertRow();
-    if(!isNew && res.error && res.error.code==='PGRST116'){ isNew = true; res = await insertRow(); }   // 그사이 지워졌으면 새로 저장
+    if(isNew) res = await insertRow();
+    else {
+      let req = sb.from(TABLE[doc]).update(row).eq('id', targetId);
+      if(targetUpdatedAt) req = req.eq('updated_at', targetUpdatedAt);
+      res = await req.select().maybeSingle();
+    }
   }catch(e){ res = { error: e }; }
-  btn.disabled = false;
-  if(res.error || !res.data){ toast('저장하지 못했어요: ' + errMsg(res.error || '응답 없음')); return; }
+  btn.disabled = false; K.saving = false;
+  if(res.error){ toast('저장하지 못했어요: ' + errMsg(res.error)); return; }
+  if(!res.data){ toast(`그 사이 다른 곳에서 이 ${WORD_OBJ[doc]} 고쳤거나 삭제했어요. 저장본을 다시 열어 확인해 주세요`); return; }
+  const changedDuringSave = snapOf(doc, cur) !== startSnap;
   cur.id = res.data.id;
+  cur._updatedAt = res.data.updated_at || null;
+  K.owned[doc] = cur.id;
+  markClean(doc, startSnap);
+  if(!changedDuringSave) K.restored[doc] = false;
   const L = K.lists[doc];
   L.rows = [res.data, ...L.rows.filter(x => x.id !== res.data.id)];
   if(doc==='profile') L.rows.sort((a,b) => (a.sort||0) - (b.sort||0));
   saveDraft(doc); renderSaved(doc);
   if(doc==='plan') fillCfSource();
-  toast(`${WORD_OBJ[doc]} ${isNew ? '저장했어요' : '고쳤어요'}`);
+  toast(changedDuringSave ? `${WORD_OBJ[doc]} 저장했고, 저장 중에 더 고친 내용은 아직 저장 안 됐어요.` : `${WORD_OBJ[doc]} ${isNew ? '저장했어요' : '고쳤어요'}`);
 }
 async function deleteRow(doc, r){
   const title = doc==='plan' ? (r.title || '강좌명 없음') : (r.name || '이름 없음');
@@ -635,10 +779,11 @@ async function deleteRow(doc, r){
 function resetDoc(){
   const sub = K.sub;
   if(sub==='checklist') return;
-  if(!confirm('새로 쓸까요? 저장하지 않은 내용은 지워져요.')) return;
+  if(hasWork(sub) && !confirm('새로 쓸까요? 저장하지 않은 내용은 지워져요.')) return;
   if(sub==='plan') K.plan = blankPlan();
   else if(sub==='profile') K.profile = blankProfile();
   else { K.confirm = blankConfirm(); q('#kitCfNote').textContent = ''; }
+  markClean(sub); if(sub!=='confirm') K.owned[sub] = null; K.restored[sub] = false;
   fillForm(sub); saveDraft(sub);
   if(sub!=='confirm') renderSaved(sub);
   renderDoc();
@@ -667,7 +812,6 @@ function importPlan(){
   const got = [];
   if(p.title.trim()){ c.title = p.title.trim(); got.push('강의명'); }
   if(p.instructor.trim()){ c.instructor = p.instructor.trim(); got.push('강사명'); }
-  if(p.headcount.trim()){ c.headcount = p.headcount.trim(); got.push('인원'); }
   if(isCur && p.org.trim()){ c.org = p.org.trim(); got.push('기관명'); }
   if(isCur && p.place.trim()){ c.place = p.place.trim(); got.push('장소'); }
   const ss = p.sessions.filter(s => (s.topic+s.content+s.materials).trim());
@@ -676,8 +820,7 @@ function importPlan(){
   if(period.length && (period.length===ss.length || (ss.length<=1 && period.length===1))){
     c.dates = period.join('\n'); got.push('일시');
   } else if(ss.length){
-    c.dates = ss.map((s,i) => `(${s.no.trim() || (i+1)+'회'} 날짜·시간)`).join('\n');
-    warn = `회차 ${ss.length}개만큼 일시 줄을 만들었어요. 괄호 부분을 실제 날짜·시간으로 바꿔 주세요.`;
+    warn = `계획서에는 실제 출강 일시가 없어요. 출강확인서에는 실제 날짜·시간과 실제 참여 인원을 직접 적어 주세요.`;
   }
   note.className = 'parse-note' + (warn ? ' warn' : '');
   const last = (got[got.length-1] || '').slice(-1);

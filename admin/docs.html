@@ -8,8 +8,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
-    --orange:#F26D4F; --orange-d:#d9583c; --ink:#2b2622; --muted:#8a817a;
-    --line:#eee3da; --bg:#faf6f1; --card:#fff; --ok:#2e9e6b; --warn:#e2a13a; --blue:#3f68c4;
+    --orange:#76513a; --orange-d:#573725; --ink:#2d241e; --muted:#7f746b;
+    --line:#e2d8cd; --bg:#f5f0e9; --card:#fffdfa; --ok:#42745d; --warn:#a87531; --blue:#496482;
+    --cream:#eee4d7; --cream-soft:#f8f4ee; --brown:#4a3224;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
@@ -24,39 +25,60 @@
   .gate-card p{color:var(--muted);font-size:14px;margin-bottom:20px}
 
   /* ---- 헤더 ---- */
-  header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
-  .head-in{max-width:1240px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:8px}
+  header{background:rgba(255,253,250,.96);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;box-shadow:0 7px 24px rgba(63,43,29,.055);backdrop-filter:blur(12px)}
+  .head-in{max-width:1280px;margin:0 auto;padding:13px 20px 9px;display:flex;align-items:center;gap:10px}
   .logo{font-weight:800;font-size:17px;color:var(--orange);text-decoration:none}
   .crumb{font-weight:700;font-size:15px;color:var(--ink)}
   .head-user{margin-left:auto;font-size:13px;color:var(--muted)}
-  .doc-tabs{max-width:1240px;margin:0 auto;padding:0 18px;display:flex;gap:2px;overflow-x:auto}
+  .doc-tabs{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;gap:3px;overflow-x:auto;align-items:center}
   .doc-tabs::-webkit-scrollbar{display:none}
-  .doc-tab{background:none;border:none;padding:11px 13px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:2.5px solid transparent;white-space:nowrap}
-  .doc-tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+  .doc-tab{background:none;border:none;padding:10px 11px 11px;font-size:13.5px;font-weight:650;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;transition:color .16s,border-color .16s,background .16s}
+  .doc-tab:hover{color:var(--ink);background:var(--cream-soft)}
+  .doc-tab.active{color:var(--orange-d);border-bottom-color:var(--orange-d);font-weight:800}
   .doc-tab.soon{color:#c9bfb5;cursor:default;font-weight:500}
-  .banner{max-width:1240px;margin:12px auto 0;padding:10px 14px;border-radius:10px;background:#fdf3e0;color:#8a5a12;font-size:13px}
+  .tab-group{font-size:10px;letter-spacing:.08em;color:#9c8e82;font-weight:800;padding:11px 4px 0 13px;margin-left:7px;border-left:1px solid var(--line);white-space:nowrap;align-self:stretch}
+  .tab-group:first-child{border-left:none;margin-left:0;padding-left:0}
+  .tab-anchor{display:none}
+  .page-switch{display:flex;gap:2px;background:#efe7dc;border:1px solid #e6dacd;border-radius:9px;padding:3px}
+  .page-switch a{padding:6px 12px;border-radius:6px;font-size:13.5px;font-weight:750;color:var(--muted);text-decoration:none;white-space:nowrap}
+  .page-switch a.on{background:#fffdfa;color:var(--orange-d);box-shadow:0 1px 4px rgba(60,40,20,.10)}
+  .back-bar{max-width:1240px;margin:0 auto;padding:2px 18px 6px;font-size:13px}
+  .back-bar a{color:var(--blue);font-weight:700;text-decoration:none}
+  .view-desc{font-size:13px;color:var(--muted);margin:1px 2px 14px;padding-left:10px;border-left:2px solid #b79b83}
+  .qdoc h1{word-spacing:-.4em}
+  .banner{max-width:1280px;margin:14px auto 0;padding:10px 14px;border:1px solid #ead9bd;border-radius:8px;background:#fbf3e5;color:#795421;font-size:13px}
 
   /* ---- 공통 ---- */
-  .page{max-width:1240px;margin:0 auto;padding:18px}
-  .layout{display:grid;grid-template-columns:minmax(320px,430px) 1fr;gap:18px;align-items:start}
-  @media (max-width:880px){ .layout{grid-template-columns:1fr} }
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin-bottom:12px}
-  .card h3{font-size:14px;margin-bottom:8px}
+  .page{max-width:1280px;margin:0 auto;padding:22px 20px 34px}
+  .layout{display:grid;grid-template-columns:minmax(340px,445px) minmax(0,1fr);gap:24px;align-items:start}
+  .layout>*{min-width:0}
+  @media (max-width:880px){ .layout{grid-template-columns:minmax(0,1fr)} }
+  /* 폰: PDF 버튼을 화면 아래에 띄워 긴 입력칸 끝까지 내려가지 않게 */
+  @media (max-width:880px){
+    .preview-head .btn-primary{position:fixed;right:14px;bottom:16px;z-index:40;box-shadow:0 6px 18px rgba(60,40,20,.28);padding:12px 18px}
+    .page{padding-bottom:84px}
+    .head-in{padding:11px 16px 8px}
+    .doc-tabs{flex-wrap:nowrap;overflow-x:auto;gap:2px;padding:0 16px;scroll-snap-type:x proximity}
+    .doc-tab{padding:9px 10px 10px;font-size:13px;scroll-snap-align:center}
+    .tab-group{padding-top:10px;margin-left:4px}
+  }
+  .card{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:17px 17px 18px;margin-bottom:13px;box-shadow:0 3px 12px rgba(63,43,29,.035)}
+  .card h3{font-size:14px;letter-spacing:-.01em;margin-bottom:10px;color:var(--brown)}
   .hint{font-weight:400;color:var(--muted);font-size:12px}
-  label.f{display:block;font-size:11.5px;color:var(--muted);font-weight:600;margin:8px 0 3px}
-  .in{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:14px;background:#fff;font-family:inherit;color:var(--ink)}
-  .in:focus{outline:none;border-color:var(--orange)}
+  label.f{display:block;font-size:11.5px;color:#74685f;font-weight:700;margin:9px 0 4px}
+  .in{width:100%;padding:9px 11px;border:1px solid #ded3c8;border-radius:7px;font-size:14px;background:#fff;font-family:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+  .in:focus{outline:none;border-color:#9c7558;box-shadow:0 0 0 3px rgba(118,81,58,.11)}
   .in[readonly]{background:#f7f3ee;color:var(--muted)}
   .in.sm{padding:6px 8px;font-size:13px;width:auto}
   textarea.in{resize:vertical}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .chk{display:flex;align-items:center;gap:7px;font-size:13px;margin-top:10px;color:var(--ink)}
   .btns{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
-  .btn-primary{background:var(--orange);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;display:inline-block}
+  .btn-primary{background:var(--orange);color:#fff;border:none;padding:10px 16px;border-radius:7px;font-size:14px;font-weight:750;text-decoration:none;display:inline-block;box-shadow:0 2px 5px rgba(71,45,29,.14)}
   .btn-primary:hover{background:var(--orange-d)}
   .btn-primary:disabled{opacity:.5;cursor:default}
-  .btn-sm{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:13px;color:var(--ink);font-weight:600;white-space:nowrap}
-  .btn-sm:hover{border-color:#e6cbb8}
+  .btn-sm{background:var(--card);border:1px solid #dcd0c4;border-radius:7px;padding:8px 12px;font-size:13px;color:var(--ink);font-weight:650;white-space:nowrap}
+  .btn-sm:hover{border-color:#aa8b72;background:#faf6f0}
   .btn-sm.wide{width:100%}
   .btn-sm.danger{color:var(--orange-d)}
   .btn-link{background:none;border:none;color:var(--muted);font-size:12.5px;text-decoration:underline}
@@ -72,12 +94,16 @@
   .chip.kind{background:#eef7f1;color:#3b8f63}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:13.5px;z-index:60;opacity:0;transition:.2s;pointer-events:none}
   .toast.show{opacity:1}
+  .toast.sticky,.toast.act{pointer-events:auto}
+  .toast.sticky{background:#8f3b22;cursor:pointer;width:max-content;max-width:min(92vw,560px);line-height:1.55}
+  .toast button{margin-left:10px;background:#fff;color:var(--ink);border:none;border-radius:7px;padding:4px 10px;font-size:12.5px;font-weight:700}
+  .toast .x{margin-left:10px;opacity:.75;font-size:12px;white-space:nowrap}
 
   /* ---- 품목 입력 ---- */
-  .saved-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:12px}
+  .saved-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:11px 14px;margin-bottom:13px;box-shadow:0 3px 12px rgba(63,43,29,.03)}
   .saved-bar b{font-size:14px}
   .saved-bar .grow{flex:1}
-  .item{border:1px solid var(--line);border-radius:11px;padding:10px;margin-bottom:8px;background:#fffdfb}
+  .item{border:1px solid var(--line);border-radius:8px;padding:11px;margin-bottom:8px;background:#fdfbf8}
   .item-top{display:flex;gap:6px;margin-bottom:6px}
   .item-top .x{background:none;border:1px solid var(--line);border-radius:8px;width:34px;color:var(--muted);font-size:18px}
   .item-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px}
@@ -92,8 +118,8 @@
   .preview-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
   .preview-head .fit{font-size:12.5px;color:var(--muted);margin-right:auto}
   .preview-head .fit.warn{color:var(--orange-d);font-weight:700}
-  .preview-box{background:#e8e1d9;border-radius:14px;padding:16px;overflow:hidden}
-  .sheet{width:688px;background:#fff;box-shadow:0 4px 18px rgba(60,40,20,.12);transform-origin:top left}
+  .preview-box{background:#e5ddd2;border:1px solid #ddd2c6;border-radius:11px;padding:18px;overflow:hidden}
+  .sheet{width:688px;background:#fff;box-shadow:0 7px 24px rgba(56,38,25,.14);border:1px solid #e4ddd5;transform-origin:top left}
   .print-tip{font-size:12px;color:var(--muted);margin-top:8px}
 
   /* ---- 견적 기록 ---- */
@@ -140,6 +166,10 @@
   table.grid tr:last-child td{border-bottom:none}
   table.grid .in{padding:6px 8px;font-size:13px}
   table.grid tr.off td{opacity:.55}
+  table.grid tr.dirty td{background:#fff6e6}
+  table.grid td:last-child,table.grid th:last-child{position:sticky;right:0;background:var(--card);box-shadow:-6px 0 8px -6px rgba(60,40,20,.15)}
+  table.grid th:last-child{background:#f7f3ee}
+  table.grid tr.dirty td:last-child{background:#fff6e6}
 
   /* ---- 링크 모음 ---- */
   .link-add{display:grid;grid-template-columns:150px 1fr 1.4fr 1fr auto;gap:8px;align-items:end}
@@ -156,27 +186,28 @@
   .link-card .acts button{padding:5px 9px;font-size:12px}
 
   /* ---- 문서 양식 (2026-08 기준양식과 같은 모양) ---- */
-  .qdoc{--ink:#221b15;--muted:#8a8177;--line:#e3ddd4;--accent:#e2723a;--accent-deep:#c85a18;--wash:#fbeee1;--dark:#2a2019;
+  .qdoc{--ink:#241d18;--muted:#776d65;--line:#dcd3c9;--accent:#76513a;--accent-deep:#573725;--wash:#f1e8dc;--dark:#3b2a20;
     color:var(--ink);background:#fff;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",system-ui,sans-serif;
     line-height:1.5;font-variant-numeric:tabular-nums;word-break:keep-all;overflow-wrap:break-word;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .qdoc .wrap{max-width:760px;margin:0 auto;padding:16px 30px 8px}
+  .qdoc .wrap{max-width:760px;margin:0 auto;padding:18px 30px 9px}
+  .qdoc .wrap::before{content:"";display:block;width:68px;height:24px;margin:0 0 10px;background:url('../assets/images/brand/gaeddirang_wordmark.png') left center/contain no-repeat}
   .qdoc .head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
-  .qdoc h1{font-size:32px;font-weight:900;letter-spacing:.5em;margin:0;padding-left:.5em;white-space:nowrap}
+  .qdoc h1{font-size:31px;font-weight:850;letter-spacing:.16em;margin:0;padding-left:.16em;white-space:nowrap}
   .qdoc .subtitle{font-size:13px;color:var(--muted);margin-top:6px}
   .qdoc .draft-tag{display:inline-block;font-size:12px;font-weight:800;color:var(--accent-deep);border:1.5px solid var(--accent);border-radius:6px;padding:1px 7px;margin-right:6px}
   .qdoc .head-meta{text-align:right;font-size:12.5px;color:var(--muted);line-height:1.9;white-space:nowrap}
   .qdoc .head-meta b{color:var(--ink);font-weight:800}
-  .qdoc .rule{height:4px;background:var(--accent);border:none;margin:10px 0 12px;border-radius:2px}
+  .qdoc .rule{height:2px;background:var(--accent);border:none;margin:11px 0 13px}
   .qdoc .info-grid{display:flex;gap:16px;margin:0 0 6px}
-  .qdoc .box{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-  .qdoc .box-head{background:var(--wash);color:var(--accent-deep);font-weight:800;padding:9px 16px;font-size:12.5px;border-bottom:1px solid var(--line)}
+  .qdoc .box{flex:1;min-width:0;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .qdoc .box-head{background:var(--wash);color:var(--accent-deep);font-weight:800;padding:8px 16px;font-size:12.5px;border-bottom:1px solid var(--line)}
   .qdoc .box-body{padding:0 16px}
   .qdoc .box .row{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--line);font-size:13.5px;min-height:29px}
   .qdoc .box .row:last-child{border-bottom:none}
   .qdoc .box .row .k{color:var(--muted);white-space:nowrap}
   .qdoc .box .row .v{font-weight:700;text-align:right}
   .qdoc .badge{display:inline-block;background:var(--accent);color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;margin-bottom:8px;letter-spacing:.02em}
-  .qdoc .total-bar{background:#f7f3ee;border-radius:10px;padding:12px 18px;margin:14px 0 16px;font-size:13.5px}
+  .qdoc .total-bar{background:#f5f1eb;border:1px solid #e6ddd3;border-radius:6px;padding:11px 17px;margin:14px 0 16px;font-size:13.5px}
   .qdoc .trow{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
   .qdoc .amt{font-weight:900;color:var(--accent-deep);font-size:19px;white-space:nowrap}
   .qdoc .price-stack{display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -195,25 +226,27 @@
   .qdoc tbody td:last-child{font-weight:900;color:var(--accent-deep);font-size:13.5px}
   .qdoc tfoot td{padding:9px 8px;font-weight:800;background:#f7f3ee;text-align:center;white-space:nowrap}
   .qdoc tfoot td:first-child{text-align:left;padding-left:10px}
-  .qdoc .notes{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:9px 16px;margin-top:12px}
+  .qdoc .notes{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:5px;padding:9px 16px;margin-top:12px}
   .qdoc .notes .h{font-weight:800;font-size:12.5px;margin-bottom:6px}
   .qdoc .notes ol{margin:0;padding-left:18px;font-size:12px;line-height:1.55}
   .qdoc .notes li b{color:var(--accent-deep)}
-  .qdoc .sign{text-align:right;margin-top:10px;font-size:13px}
+  .qdoc .sign{text-align:right;margin-top:13px;padding-top:8px;border-top:1px solid #eee8e1;font-size:13px}
   .qdoc .sign .name{font-size:15px;font-weight:900}
   .qdoc .seal-wrap{position:relative;display:inline-block}
   .qdoc .seal-wrap img{position:absolute;right:-14px;top:50%;width:56px;height:auto;transform:translateY(-44%);opacity:.92;pointer-events:none}
   .seal-chk{margin:0 4px 0 0;font-weight:600}
   .qdoc .receive{display:flex;justify-content:space-between;gap:16px;margin-top:14px;font-size:13px}
-  .qdoc .receive .memo{flex:1;border:1px solid var(--line);border-radius:8px;padding:9px 14px;min-height:54px;white-space:pre-wrap}
+  .qdoc .receive .memo{flex:1;border:1px solid var(--line);border-radius:5px;padding:9px 14px;min-height:54px;white-space:pre-wrap}
   .qdoc .receive .memo .k{font-size:11.5px;color:var(--muted);font-weight:700;display:block;margin-bottom:2px}
-  .qdoc .receive .sig{width:230px;border:1px solid var(--line);border-radius:8px;padding:9px 14px}
+  .qdoc .receive .sig{width:230px;border:1px solid var(--line);border-radius:5px;padding:9px 14px}
   .qdoc .receive .sig .k{font-size:11.5px;color:var(--muted);font-weight:700;display:block;margin-bottom:18px}
   .qdoc .receive .sig .line{border-bottom:1px solid var(--ink);text-align:right;padding-bottom:2px}
   .qdoc .foot{border-top:1px solid var(--line);margin-top:12px;padding-top:8px;text-align:center;font-size:11px;color:var(--muted)}
   .qdoc.d1 tbody td{padding:6px 8px}
   .qdoc.d1 .sub{font-size:11px;margin-top:1px}
+  .qdoc.d1 .wrap::before{height:20px;margin-bottom:7px}
   .qdoc.d2 .wrap{padding:6px 24px 4px}
+  .qdoc.d2 .wrap::before{height:14px;margin-bottom:2px}
   .qdoc.d2 h1{font-size:28px}
   .qdoc.d2 .rule{margin:8px 0 10px}
   .qdoc.d2 .box-head{padding:6px 14px}
@@ -224,8 +257,8 @@
   .qdoc.d2 tbody td{padding:4px 8px}
   .qdoc.d2 .notes{padding:7px 14px;margin-top:10px}
   .qdoc.d2 .notes ol{font-size:11.5px;line-height:1.45}
-  .qdoc.d2 .sign{margin-top:8px}
-  .qdoc.d2 .foot{margin-top:8px;padding-top:6px}
+  .qdoc.d2 .sign{margin-top:5px;padding-top:4px}
+  .qdoc.d2 .foot{margin-top:5px;padding-top:4px}
 
   /* ---- 인쇄: 인쇄용 칸만 A4로 ---- */
   #printArea{display:none}
@@ -243,7 +276,7 @@
 <div id="gateView" class="gate hidden">
   <div class="gate-card">
     <h1>📄 개띠랑 서류실</h1>
-    <p>관리실에서 먼저 로그인해 주세요.</p>
+    <p id="gateMsg">관리실에서 먼저 로그인해 주세요.</p>
     <a class="btn-primary" href="./">관리실로 가기</a>
   </div>
 </div>
@@ -252,18 +285,24 @@
 <div id="appView" class="hidden">
   <header>
     <div class="head-in">
-      <a class="logo" href="./">🐾 개띠랑 관리실</a><span class="crumb">› 서류·링크</span>
+      <nav class="page-switch" aria-label="관리실·서류실 이동"><a href="./">🐾 관리실</a><a class="on" href="docs.html" aria-current="page">📄 서류실</a></nav>
       <span class="head-user" id="headUser"></span>
+      <button class="btn-link hidden" id="logoutBtn">로그아웃</button>
     </div>
+    <div class="back-bar hidden" id="backBar"></div>
     <div class="doc-tabs" id="docTabs">
+      <span class="tab-group">B2B·책방</span>
       <button class="doc-tab active" data-view="quote">견적서</button>
       <button class="doc-tab" data-view="statement">거래명세서</button>
       <button class="doc-tab" data-view="records">B2B 진행</button>
-      <button class="doc-tab" data-view="royalty">문고리 인세 정산서</button>
+      <span class="tab-anchor" data-group="b2b"></span>
       <button class="doc-tab" data-view="items">품목표</button>
+      <span class="tab-group">수업·기관</span>
+      <span class="tab-anchor" data-group="class"></span>
+      <span class="tab-group">정산</span>
+      <button class="doc-tab" data-view="royalty">문고리 인세</button>
+      <span class="tab-group">자료</span>
       <button class="doc-tab" data-view="links">링크 모음</button>
-      <span class="doc-tab soon">월급명세서 · 준비 중</span>
-      <span class="doc-tab soon">위탁도서 정산서 · 준비 중</span>
     </div>
   </header>
   <div class="banner hidden" id="banner"></div>
@@ -333,7 +372,7 @@
           <button class="btn-primary" id="printBtn">PDF 저장</button>
         </div>
         <div class="preview-box" id="previewBox"><div class="sheet" id="sheet"></div></div>
-        <p class="print-tip">「PDF 저장」을 누르면 인쇄 창이 뜹니다. 대상을 「PDF로 저장」으로 고른 뒤 저장하세요. 파일 이름은 견적번호로 잡힙니다.</p>
+        <p class="print-tip">「PDF 저장」을 누르면 인쇄 창이 뜹니다. 대상을 「PDF로 저장」으로 고른 뒤 저장하세요. 파일 이름은 견적번호로 잡힙니다. 아이폰은 인쇄 화면에서 공유 버튼 → 「파일에 저장」.</p>
       </div>
     </div>
   </section>
@@ -456,6 +495,7 @@
       <input class="in" id="rSearch" placeholder="번호·기관·건명 검색" style="min-width:220px">
       <button class="btn-sm" id="rNewBtn">+ 새 견적</button>
       <button class="btn-sm" id="rNewTsBtn">+ 새 거래명세서</button>
+      <button class="btn-sm" id="rRefresh" title="다른 사람이 바꾼 내용까지 다시 읽어요">↻ 새로고침</button>
       <span class="count-note" id="rCount"></span>
     </div>
     <div class="recs" id="recList"></div>
@@ -465,7 +505,8 @@
   <section class="page view hidden" id="view-items">
     <div class="filters">
       <span class="hint">여기서 고친 정가·설명·과세 여부가 견적서·거래명세서에 바로 쓰입니다. 「찾는말」은 메일에 적힐 법한 다른 이름을 쉼표로.</span>
-      <button class="btn-sm" id="iAddBtn" style="margin-left:auto">+ 품목 추가</button>
+      <button class="btn-primary hidden" id="iSaveAllBtn" style="margin-left:auto;padding:8px 14px;font-size:13px">바뀐 줄 모두 저장</button>
+      <button class="btn-sm" id="iAddBtn">+ 품목 추가</button>
     </div>
     <div id="itemsTableHost"></div>
   </section>
@@ -564,7 +605,23 @@ const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'
 const won = n => (n||0).toLocaleString('ko-KR');
 const today = () => new Date().toLocaleDateString('sv-SE');
 const dotDate = s => { const [y,m,d] = (s||'').split('-'); return y ? `${y}. ${m}. ${d}.` : ''; };
-function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200); }
+// opt: true = 오류 알림(닫을 때까지 남음) · { action:'되돌리기', onAction } = 버튼 달린 알림
+function toast(msg, opt){
+  const t = $('#toast'); clearTimeout(t._t);
+  const sticky = opt === true, act = opt && opt.action ? opt : null;
+  t.className = 'toast show' + (sticky ? ' sticky' : '') + (act ? ' act' : '');
+  t.innerHTML = esc(msg) + (act ? ` <button type="button">${esc(act.action)}</button>` : '') + (sticky ? ' <span class="x">닫기 ✕</span>' : '');
+  t.onclick = e => { if(act && e.target.tagName==='BUTTON') act.onAction(); if(sticky || act) t.classList.remove('show'); };
+  if(!sticky) t._t = setTimeout(()=>t.classList.remove('show'), act ? 6000 : 2200);
+}
+// 서버 오류를 팀원이 알아듣는 말로
+function friendlyError(err){
+  const m = String((err && (err.message || err.error_description)) || err || '');
+  if(/jwt|token|expired|not authenticated|401/i.test(m)) return '로그인이 풀렸어요. 관리실을 새 탭으로 열어 다시 로그인한 뒤, 여기로 돌아와 한 번 더 눌러 주세요. 쓰던 내용은 그대로 있어요.';
+  if(/row-level|permission|42501|multiple \(or no\) rows|JSON object requested/i.test(m)) return '저장 권한이 없거나 로그인이 풀렸어요. 관리실에서 다시 로그인한 뒤 한 번 더 눌러 주세요. 쓰던 내용은 그대로 있어요.';
+  if(/failed to fetch|network|timeout|load failed/i.test(m)) return '인터넷 연결이 불안정해요. 잠시 뒤 한 번 더 눌러 주세요.';
+  return `(${m})`;
+}
 function store(key, value){ try{ if(value===undefined) return JSON.parse(localStorage.getItem(key)||'null'); localStorage.setItem(key, JSON.stringify(value)); }catch(e){ return null; } }
 
 function parseWon(text){
@@ -595,11 +652,15 @@ function koreanAmount(n){
 
 /* ---------- 품목표 찾기 ---------- */
 const norm = s => (s||'').replace(/[\s()（）\[\]·.,!\-_/~]/g,'').toLowerCase();
+const QTY_RE = /\d[\d,]*\s*(세트|개|권|부|장|명|박스|set|ea)?/gi;
 function matchCatalog(name){
-  const target = norm(name); let best=null, bestLen=0;
+  const target = norm(name), bare = norm(String(name||'').replace(QTY_RE,'')); let best=null, bestLen=0;
   CATALOG.filter(c=>c.active).forEach(c => [c.name, ...(c.keys||[])].forEach(k => {
     const nk = norm(k);
-    if(nk && target.includes(nk) && nk.length > bestLen){ best=c; bestLen=nk.length; }
+    if(!nk) return;
+    // 「노랑」「연필」 같은 두 글자 찾는말은 그 말만 적었을 때만 (「노랑 파일철」이 카드로 잡히지 않게)
+    const hit = nk.length <= 2 ? bare === nk : target.includes(nk);
+    if(hit && nk.length > bestLen){ best=c; bestLen=nk.length; }
   }));
   return best;
 }
@@ -850,7 +911,7 @@ function renderItemEditor(host, arr, onChange){
       <div class="item-top"><input class="in it-name" list="catList" placeholder="품목 이름 (목록에서 고르거나 직접 입력)" value="${esc(it.name)}"><button class="x" title="이 품목 빼기">×</button></div>
       <input class="in it-desc" placeholder="설명 (구성·규격)" value="${esc(it.desc)}">
       <div class="item-grid">
-        <div><label class="f">단가</label><input class="in it-price" inputmode="numeric" placeholder="17,000" value="${it.price!=null&&!isNaN(it.price)?won(it.price):''}"></div>
+        <div><label class="f">단가</label><input class="in it-price" inputmode="numeric" placeholder="숫자만" value="${it.price!=null&&!isNaN(it.price)?won(it.price):''}"></div>
         <div><label class="f">수량</label><input class="in it-qty" inputmode="numeric" value="${it.qty||''}"></div>
         <div><label class="f">단위</label><input class="in it-unit" value="${esc(it.unitWord)}"></div>
         <div><label class="f">정가 (할인 표시)</label><input class="in it-list" inputmode="numeric" value="${it.list?won(it.list):''}"></div>
@@ -880,15 +941,27 @@ function updateItemNotes(host, arr, vatIncluded){
     const parts = [];
     if(it.catalog) parts.push(`품목표: ${esc(it.catalog)}`);
     if(it.price!=null && isNaN(it.price)) parts.push('<span style="color:#d9583c">단가를 숫자로 적어 주세요 (예: 17000, 1만7천)</span>');
+    else if(it.name && !validLine(it)) parts.push('<span style="color:#d9583c">단가·수량을 채워야 문서에 들어가요</span>');
     if(calc) parts.push(`합계 <b>${won(calc.total)}원</b>${calc.pct!=null?` · 할인 ${calc.pct.toFixed(1)}%`:''}`);
     note.innerHTML = parts.join(' · ');
   });
 }
 // 품목 이름이 품목표에 있으면 설명·정가·단위·과세·단가를 채운다 (이미 적은 값은 건드리지 않음)
+// 단, 사람이 다른 품목으로 바꾸면 이전 품목에서 따라온 값은 새 품목 값으로 바꾼다 (직접 고친 값은 그대로)
 function applyCatalog(it, typed, fromUser){
   const c = matchCatalog(typed);
+  const prev = it.catalog ? CATALOG.find(x=>x.name===it.catalog) : null;
   it.name = typed;
   if(!c){ it.catalog=null; return; }
+  if(fromUser && prev && prev.name !== c.name){
+    if(!it.desc || it.desc===prev.desc) it.desc = c.desc;
+    if(!it.list || it.list===prev.list) it.list = c.list;
+    if(!it.unitWord || it.unitWord===prev.unit) it.unitWord = c.unit;
+    if(it.price==null || isNaN(it.price) || it.price===(prev.inst || prev.list)) it.price = c.inst || c.list;
+    it.taxable = c.taxable;
+    it.catalog = c.name; it.name = c.name;
+    return;
+  }
   it.catalog = c.name;
   it.name = c.name;
   if(!it.desc) it.desc = c.desc;
@@ -924,16 +997,55 @@ function displayNumber(d){
   return MODE==='db' ? '저장하면 매겨짐' : localNumber(d.date);
 }
 
+/* ---------- 저장 안 된 변경 지키기 ---------- */
+let QUOTE_BASE = null;      // 저장된 견적을 열었을 때의 내용 (고쳤는지 비교)
+let DRAFT_INFO = null;      // 지난번 쓰던 초안을 불러왔을 때 그 날짜
+const quoteSnap = () => {
+  const d = { ...readForm(), items: cleanList(ITEMS) };
+  delete d.number; // 신규 저장 뒤 번호가 생겨도 내용이 바뀐 것으로 오인하지 않는다.
+  return JSON.stringify(d);
+};
+const editKey = id => 'docs_quote_edit_' + id;
+function quoteDirty(){
+  if(CURRENT) return QUOTE_BASE !== null && quoteSnap() !== QUOTE_BASE;
+  return ITEMS.some(it=>it.name) || !!($('#toName').value.trim() || $('#title').value.trim());
+}
+function confirmDiscardQuote(){
+  if(!quoteDirty()) return true;
+  const d = readForm(), n = ITEMS.filter(it=>it.name).length;
+  const what = [CURRENT ? CURRENT.number : '', d.toName, n ? `품목 ${n}개` : ''].filter(Boolean).join(', ');
+  return confirm(`쓰던 견적${what ? ` (${what})` : ''}이 저장되지 않았어요.\n버리고 넘어갈까요?`);
+}
+function confirmSkipped(arr){
+  const skipped = arr.filter(it => it.name && !validLine(it)).map(it => it.name);
+  return !skipped.length || confirm(`「${skipped.join('」, 「')}」은(는) 단가나 수량이 비어서 문서에 들어가지 않아요.\n그대로 진행할까요?`);
+}
+
 function renderSavedBar(){
   const bar = $('#savedBar');
   if(CURRENT){
     bar.innerHTML = `<b>${esc(CURRENT.number)}</b>${CURRENT.is_draft?' <span class="chip draft">가견적</span>':''}
       <span class="grow" style="color:var(--muted)">저장된 견적을 고치는 중</span>
+      <button class="btn-link" id="dupBtn" title="내용을 복사해 새 번호로 저장해요">복제해서 새 견적</button>
       <select class="in sm" id="curStatus">${STATUSES.map(s=>`<option ${s===CURRENT.status?'selected':''}>${s}</option>`).join('')}</select>`;
-    bar.querySelector('#curStatus').onchange = e => setStatus(CURRENT, e.target.value);
+    bar.querySelector('#curStatus').onchange = e => changeStatus(CURRENT, e.target.value, e.target);
+    bar.querySelector('#dupBtn').onclick = duplicateQuote;
+  } else if(DRAFT_INFO){
+    const old = DRAFT_INFO.date && DRAFT_INFO.date !== today();
+    bar.innerHTML = `<b>새 견적</b><span class="grow" style="color:var(--orange-d)">${old ? `${dotDate(DRAFT_INFO.date)} 견적일로 쓰던` : '쓰던'} 초안을 불러왔어요</span>
+      ${old ? '<button class="btn-sm" id="draftToday">견적일 오늘로</button>' : ''}<button class="btn-sm" id="draftDrop">버리고 새로</button>`;
+    if(old) bar.querySelector('#draftToday').onclick = () => { $('#qDate').value = today(); DRAFT_INFO = null; renderSavedBar(); update(); };
+    bar.querySelector('#draftDrop').onclick = () => { if(confirm('불러온 초안을 버리고 새로 쓸까요?')) resetForm(); };
   } else {
-    bar.innerHTML = `<b>새 견적</b><span class="grow" style="color:var(--muted)">${MODE==='db'?'아직 저장 안 됨':'미리보기 모드 · 저장은 로그인 후'}</span>`;
+    bar.innerHTML = `<b>새 견적</b><span class="grow" style="color:var(--muted)">${MODE==='db'?'아직 저장 안 됨 · 쓰는 내용은 이 브라우저에 자동 보관돼요':'미리보기 모드 · 저장은 로그인 후'}</span>`;
   }
+}
+function duplicateQuote(){
+  const from = CURRENT.number;
+  CURRENT = null; QUOTE_BASE = null; DRAFT_INFO = null;
+  $('#qDate').value = today();
+  renderSavedBar(); update();
+  toast(`${from}을(를) 복사했어요. 저장하면 새 번호가 매겨져요`);
 }
 
 function update(){
@@ -945,6 +1057,10 @@ function update(){
   setFit($('#fitNote'), r);
   updateItemNotes($('#itemsHost'), ITEMS, q.vatMode!=='out');
   if(!CURRENT) store('docs_quote_draft', { ...readForm(), items: ITEMS, inquiry: CURRENT_INQUIRY });
+  else if(QUOTE_BASE !== null){   // 저장된 견적을 고치는 중이면 따로 자동 보관 (창을 닫아도 이어서 고칠 수 있게)
+    if(quoteDirty()) store(editKey(CURRENT.id), { data: { ...readForm(), items: cleanList(ITEMS) }, snap: quoteSnap(), base: QUOTE_BASE, at: Date.now() });
+    else store(editKey(CURRENT.id), null);
+  }
   q.html = r.html;
   return q;
 }
@@ -966,14 +1082,24 @@ function rowToData(r){
     validDays:r.valid_days, alt:r.alt, isDraft:r.is_draft, extra:r.extra_notes||[], items:r.items||[] };
 }
 function resetForm(){
-  CURRENT = null; CURRENT_INQUIRY = null;
+  CURRENT = null; CURRENT_INQUIRY = null; QUOTE_BASE = null; DRAFT_INFO = null;
   $('#pasteBox').value=''; $('#parseNote').textContent=''; $('#budgetNote').classList.add('hidden');
   loadData({ date: today() });
 }
 function openQuote(row){
-  CURRENT = row; CURRENT_INQUIRY = row.inquiry_id || null;
+  if(CURRENT && CURRENT.id===row.id){ switchView('quote'); return; }
+  if(!confirmDiscardQuote()) return;
+  CURRENT = row; CURRENT_INQUIRY = row.inquiry_id || null; QUOTE_BASE = null; DRAFT_INFO = null;
   $('#pasteBox').value=''; $('#parseNote').textContent=''; $('#budgetNote').classList.add('hidden');
   loadData(rowToData(row));
+  QUOTE_BASE = quoteSnap();
+  const edit = store(editKey(row.id));
+  if(edit && edit.snap && edit.snap !== QUOTE_BASE){
+    const when = new Date(edit.at).toLocaleString('ko-KR', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    const changed = edit.base && edit.base !== QUOTE_BASE ? '\n※ 그 사이 다른 곳에서 저장된 내용이 바뀌었어요. 이어서 고치면 그 변경을 덮어써요.' : '';
+    if(confirm(`${row.number}에 저장 안 된 수정이 있어요 (${when}).\n이어서 고칠까요? 취소하면 저장된 내용으로 열어요.${changed}`)) loadData(edit.data);
+    else store(editKey(row.id), null);
+  } else if(edit) store(editKey(row.id), null);
   switchView('quote');
 }
 
@@ -982,26 +1108,45 @@ async function saveQuote(){
   const d = readForm();
   const q = buildQuote(d);
   if(!q.lines.length){ toast('품목·단가·수량을 먼저 넣어 주세요'); return null; }
+  if(CURRENT && ['보냄','수주'].includes(CURRENT.status) && quoteDirty() &&
+     !confirm(`${CURRENT.number}은(는) 이미 「${CURRENT.status}」 상태예요.\n같은 번호로 고치면 상대가 받은 PDF와 기록이 달라져요. 그래도 고칠까요?\n(새 번호로 만들려면 취소 → 「복제해서 새 견적」)`)) return null;
+  const startSnap = quoteSnap();
+  const target = CURRENT;
+  const isNew = !target;
   const row = { kind:'quote', quote_date: d.date || today(), to_name: d.toName, to_manager: d.toManager, to_biz: d.toBiz, title: d.title,
     vat_mode: d.vatMode, valid_days: d.validDays, alt: d.alt, is_draft: d.isDraft, items: cleanList(ITEMS),
     extra_notes: d.extra, total_amount: q.headValue, inquiry_id: CURRENT_INQUIRY };
   const btns = [$('#saveBtn'), $('#printBtn')]; btns.forEach(b=>b.disabled=true);
-  const res = CURRENT
-    ? await sb.from('quotes').update(row).eq('id', CURRENT.id).select().single()
-    : await sb.from('quotes').insert(row).select().single();
+  let res;
+  if(target){
+    let req = sb.from('quotes').update(row).eq('id', target.id);
+    if(target.updated_at) req = req.eq('updated_at', target.updated_at);
+    res = await req.select().maybeSingle();
+  } else {
+    res = await sb.from('quotes').insert(row).select().single();
+  }
   btns.forEach(b=>b.disabled=false);
-  if(res.error){ toast('저장하지 못했어요: '+res.error.message); return null; }
-  const isNew = !CURRENT;
+  if(res.error){ toast('저장하지 못했어요. ' + friendlyError(res.error), true); return null; }
+  if(target && !res.data){
+    toast('그 사이 다른 곳에서 이 견적을 고쳤어요. 최신 기록을 다시 연 뒤 내용을 확인해 주세요.', true);
+    return null;
+  }
+  const changedDuringSave = quoteSnap() !== startSnap;
   CURRENT = res.data;
   QUOTES = [CURRENT, ...QUOTES.filter(x=>x.id!==CURRENT.id)];
   if(isNew) store('docs_quote_draft', null);
+  QUOTE_BASE = startSnap; DRAFT_INFO = null;
+  if(!changedDuringSave) store(editKey(CURRENT.id), null);
   renderSavedBar(); update(); renderRecords();
-  toast(`${CURRENT.number} ${isNew?'저장했어요':'고쳤어요'}`);
+  toast(changedDuringSave
+    ? `${CURRENT.number}은 저장했고, 저장 중에 더 고친 내용은 아직 저장 안 됐어요.`
+    : `${CURRENT.number} ${isNew?'저장했어요':'고쳤어요'}`,
+    changedDuringSave);
   return CURRENT;
 }
 async function patchQuote(row, patch, msg){
   const { data, error } = await sb.from('quotes').update(patch).eq('id', row.id).select().single();
-  if(error){ toast('바꾸지 못했어요: '+error.message); return null; }
+  if(error){ toast('바꾸지 못했어요. ' + friendlyError(error), true); return null; }
   Object.assign(row, data);
   QUOTES = QUOTES.map(x=>x.id===row.id?row:x);
   if(CURRENT && CURRENT.id===row.id){ CURRENT = row; renderSavedBar(); }
@@ -1014,12 +1159,32 @@ async function setStatus(row, status, quiet){
   if(status==='보냄' && !row.sent_at) patch.sent_at = today();  // 보낸 날부터 7일 세기
   return patchQuote(row, patch, quiet ? '' : `${row.number} → ${status}`);
 }
+// 사람이 상태를 바꿀 때: 무산·수주 되돌리기는 한 번 묻고, 바꾼 뒤 「되돌리기」를 붙인다
+function changeStatus(row, status, sel){
+  const prev = row.status;
+  if(status === prev) return;
+  const risky = status==='무산' || (prev==='수주' && status!=='수주');
+  if(risky && !confirm(`${row.number}을(를) 「${prev}」에서 「${status}」(으)로 바꿀까요?`)){ if(sel) sel.value = prev; return; }
+  setStatus(row, status, true).then(r => {
+    if(r) toast(`${row.number} → ${status}`, { action:'되돌리기', onAction: () => setStatus(row, prev) });
+    else if(sel) sel.value = prev;
+  });
+}
 
 /* ---------- 메일 붙여넣기 ---------- */
 function fillFromText(text, extraNotes){
   const f = parseRequest(text);
   const note = $('#parseNote');
   const items = parseItems(f['품목']||'');
+  let loose = false;
+  if(!f['상호'] && !items.length){
+    // 양식이 아닌 메일: 「품목 이름 + 숫자 + 단위」가 보이는 곳 중 품목표에 있는 것만 잡는다
+    const re = new RegExp('([^,\\n.;:!?]*?)\\s*(\\d[\\d,]*)\\s*' + UNIT, 'gi');
+    for(const m of String(text||'').matchAll(re)){
+      if(matchCatalog(m[1])) items.push({ name: m[1].trim(), qty: parseInt(m[2].replace(/,/g,''),10), unit: m[3] });
+    }
+    loose = items.length > 0;
+  }
   if(!f['상호'] && !items.length){
     note.className='parse-note warn';
     note.textContent='「기관명:」「필요한 품목과 수량:」 같은 칸을 찾지 못했어요. 아래 칸에 직접 적어 주세요.';
@@ -1049,15 +1214,19 @@ function fillFromText(text, extraNotes){
   else bud.classList.add('hidden');
   const missing = ITEMS.filter(it=>!it.catalog && it.name).map(it=>it.name);
   note.className='parse-note';
-  note.textContent = `칸을 채웠어요. 품목 ${items.length}개${missing.length?` (품목표에 없는 것: ${missing.join(', ')} — 단가를 직접 적어 주세요)`:''}. 단가를 확인해 주세요.`;
+  const found = ITEMS.filter(it=>it.catalog).map(it=>it.catalog);
+  note.textContent = loose
+    ? `양식이 아닌 메일이라 품목만 찾았어요: ${found.join(', ')}. 받는 곳·건명은 직접 적고 단가를 확인해 주세요.`
+    : `칸을 채웠어요. 품목 ${items.length}개${found.length?` (품목표에서 찾은 것: ${found.join(', ')})`:''}${missing.length?` · 품목표에 없는 것: ${missing.join(', ')} — 단가를 직접 적어 주세요`:''}. 단가를 확인해 주세요.`;
   renderSavedBar(); renderItems(); update();
   return true;
 }
 
 /* ---------- 문의 탭에서 넘어온 경우 ---------- */
 async function loadInquiry(id){
+  if(!confirmDiscardQuote()) return false;
   const { data, error } = await sb.from('inquiries').select('*').eq('id', id).maybeSingle();
-  if(error || !data){ toast('문의를 불러오지 못했어요'); return; }
+  if(error || !data){ toast('문의를 불러오지 못했어요. ' + friendlyError(error || '문의가 없어요'), true); return false; }
   resetForm();
   CURRENT_INQUIRY = data.id;
   $('#toName').value = data.org_name||'';
@@ -1075,6 +1244,7 @@ async function loadInquiry(id){
   if(data.headcount){ const bud=$('#budgetNote'); bud.textContent = `참고 · 문의에 적힌 인원: ${data.headcount}명`; bud.classList.remove('hidden'); }
   update();
   toast(`「${data.org_name||'문의'}」 내용을 불러왔어요`);
+  return true;
 }
 
 /* ============ 거래명세서 ============ */
@@ -1083,6 +1253,9 @@ let TS_ITEMS = [blankItem()];
 let TS_EDIT = null;          // 고치는 중인 저장된 거래명세서
 let TS_INCLUDE = [];         // 견적에서 가져올 때 넣을 품목
 let TS_READY = false;
+let TS_BASE = '';            // 마지막으로 불러오거나 저장한 거래명세서 내용 (고쳤는지 비교)
+const tsSnap = () => JSON.stringify(['#tsDate','#tsToName','#tsToManager','#tsToBiz','#tsMemo','#tsTitle','#tsVat'].map(s=>$(s).value).concat([cleanList(TS_ITEMS)]));
+const tsDirty = () => TS_READY && tsSnap() !== TS_BASE;
 
 function tsRow(){ const id = $('#tsSource').value; return QUOTES.find(x=>x.id===id) || null; }
 function tsKind(){
@@ -1107,11 +1280,15 @@ function fillStatementSelect(keep){
     (stmts.length ? `<optgroup label="저장된 거래명세서 (다시 열어 고치기)">${stmts.map(r=>`<option value="${esc(r.id)}">${esc(r.number)} · ${esc(r.to_name||'(받는 곳 없음)')} · ${dotDate(r.statement_date)}</option>`).join('')}</optgroup>` : '') +
     (quotes.length ? `<optgroup label="저장된 견적에서 가져오기">${quotes.map(r=>`<option value="${esc(r.id)}">${esc(r.number)} · ${esc(r.to_name||'(받는 곳 없음)')} · ${esc(r.status)}</option>`).join('')}</optgroup>` : '');
   sel.value = [...sel.options].some(o=>o.value===cur) ? cur : 'direct';
+  sel.dataset.prev = sel.value;
 }
-function selectStatementSource(id){
+// 다른 곳(기록·거래처)에서 거래명세서를 열 때. 쓰던 내용이 있으면 먼저 묻는다 (force면 묻지 않음)
+function selectStatementSource(id, force){
+  if(!force && tsDirty() && !confirm('쓰던 거래명세서가 저장되지 않았어요.\n버리고 넘어갈까요?')) return false;
   TS_READY = true;
   fillStatementSelect(id);
   onStatementSourceChange();
+  return true;
 }
 // 출처를 바꿨을 때: 칸을 그 출처 내용으로 채운다
 function onStatementSourceChange(){
@@ -1139,6 +1316,7 @@ function onStatementSourceChange(){
     $('#tsDate').value = (row && row.statement_date) || today();
   }
   refreshStatementForm();
+  TS_BASE = tsSnap();
 }
 // 칸 모양과 미리보기만 다시 그린다 (입력한 내용은 그대로)
 function refreshStatementForm(){
@@ -1207,6 +1385,7 @@ function renderStatement(){
 async function printStatement(){
   let s = renderStatement();
   if(!s.lines.length){ toast('품목·단가·수량을 먼저 넣어 주세요'); return; }
+  if(s.kind==='direct' && !confirmSkipped(TS_ITEMS)) return;
   if(MODE==='db' && s.kind==='direct'){
     const row = { kind:'statement', status:'수주', quote_date: s.date, statement_date: s.date,
       to_name: s.toName, to_manager: s.toManager, to_biz: s.toBiz, title: s.title, vat_mode: s.vatIncluded ? 'in' : 'out',
@@ -1215,18 +1394,19 @@ async function printStatement(){
     const res = TS_EDIT ? await sb.from('quotes').update(row).eq('id', TS_EDIT.id).select().single()
                         : await sb.from('quotes').insert(row).select().single();
     btn.disabled = false;
-    if(res.error){ toast('저장하지 못했어요: '+res.error.message); return; }
+    if(res.error){ toast('저장하지 못했어요. ' + friendlyError(res.error), true); return; }
     const isNew = !TS_EDIT;
     TS_EDIT = res.data;
     QUOTES = [TS_EDIT, ...QUOTES.filter(x=>x.id!==TS_EDIT.id)];
     fillStatementSelect(TS_EDIT.id);
     renderRecords(); refreshStatementForm(); s = renderStatement();
+    TS_BASE = tsSnap();
     toast(`${TS_EDIT.number} 거래명세서를 ${isNew?'저장했어요':'고쳤어요'}`);
   } else if(MODE==='db' && s.row){
     const patch = { statement_date: s.date };
     if(['작성','보냄'].includes(s.row.status)) patch.status = '수주';
     const { data, error } = await sb.from('quotes').update(patch).eq('id', s.row.id).select().single();
-    if(error){ toast('견적 기록을 고치지 못했어요: '+error.message); }
+    if(error){ toast('견적 기록을 고치지 못했어요. ' + friendlyError(error), true); }
     else {
       Object.assign(s.row, data); QUOTES = QUOTES.map(x=>x.id===data.id?s.row:x);
       if(CURRENT && CURRENT.id===data.id){ CURRENT = s.row; renderSavedBar(); }
@@ -1457,14 +1637,19 @@ function initRoyalty(){
   if(RY_READY) return;
   RY_READY = true;
   $('#ryIssue').value = today();
-  setQuarter(0);
+  // 분기가 끝나고 지급일(다음 달 10일)까지는 지난 분기를 정산하는 때라 지난 분기를 기본으로
+  setQuarter(today() <= quarterRange(-1).pay ? -1 : 0);
+  const tax = store('docs_ry_tax');
+  if(tax) $('#ryTax').value = tax;
   if(MODE==='db') loadRoyaltyFromSheet();
   else $('#ryPasteWrap').open = true;
 }
 async function printRoyalty(){
   const s = renderRoyalty();
-  if(!s.lines.length){ toast('인세시트를 불러오고 넣을 판매를 골라 주세요'); return; }
+  if(!s.lines.length){ toast('정산 기간 안에 넣을 판매가 없어요. 기간이 맞는지(지난 분기?) 확인해 주세요', true); return; }
   if(!s.mode){ toast('원천징수 방식을 먼저 골라 주세요'); $('#ryTax').focus(); return; }
+  const bad = s.lines.filter(l => l.sheetRoyalty != null && !Number.isNaN(l.sheetRoyalty) && l.sheetRoyalty !== l.royalty);
+  if(bad.length && !confirm(`원장 인세액과 계산이 다른 줄이 ${bad.length}개 있어요 (목록의 빨간 표시).\n인세시트를 확인했나요? 그대로 PDF를 만들까요?`)) return;
   printHtml(s.html, `문고리_인세정산서_${s.start}_${s.end}`);
 }
 $('#ryParseBtn').onclick = () => applyRoyaltyPaste($('#ryPaste').value);
@@ -1474,6 +1659,7 @@ $('#ryThisQ').onclick = () => setQuarter(0);
 $('#ryPrevQ').onclick = () => setQuarter(-1);
 ['#ryStart','#ryEnd'].forEach(sel => $(sel).addEventListener('change', () => { if(RY_ROWS.length){ reapplyPeriod(); renderRoyaltyRows(); } renderRoyalty(); }));
 ['#ryPay','#ryIssue','#ryTax'].forEach(sel => $(sel).addEventListener('change', renderRoyalty));
+$('#ryTax').addEventListener('change', e => store('docs_ry_tax', e.target.value || null));
 ['#ryExempt','#ryMemo'].forEach(sel => $(sel).addEventListener('input', renderRoyalty));
 $('#ryPrintBtn').onclick = printRoyalty;
 
@@ -1508,7 +1694,7 @@ function inquiryCard(i){
       <div class="rec-sub">접수 ${dotDate(String(i.created_at||'').slice(0,10))}${i.created_at?` (${daysSince(i.created_at)}일 전)`:''}${i.manager_name?' · '+esc(i.manager_name):''}${i.headcount?' · '+esc(i.headcount)+'명':''}</div>
     </div>
     <div class="rec-actions"><button class="btn-primary" style="padding:7px 12px;font-size:13px">견적서 만들기</button></div>`;
-  el.querySelector('button').onclick = async () => { await loadInquiry(i.id); switchView('quote'); };
+  el.querySelector('button').onclick = async () => { if(await loadInquiry(i.id)) switchView('quote'); };
   return el;
 }
 function recordCard(r){
@@ -1549,17 +1735,22 @@ function recordCard(r){
       </div>
     </details>`;
   const q = s => el.querySelector(s);
-  if(q('.a-sent')) q('.a-sent').onclick = () => setStatus(r, '보냄');
-  if(q('.a-won'))  q('.a-won').onclick  = () => setStatus(r, '수주');
-  if(q('.a-lost')) q('.a-lost').onclick = () => { if(confirm(`${r.number}을(를) 무산으로 둘까요?`)) setStatus(r, '무산'); };
-  if(q('.a-paid')) q('.a-paid').onclick = () => patchQuote(r, { paid_at: today() }, `${r.number} 입금 확인 (${dotDate(today())})`);
-  if(q('.a-inv'))  q('.a-inv').onclick  = () => patchQuote(r, { invoice_at: today() }, `${r.number} 계산서 발행으로 표시했어요`);
-  q('.rec-status').onchange = e => setStatus(r, e.target.value);
+  if(q('.a-sent')) q('.a-sent').onclick = () => changeStatus(r, '보냄');
+  if(q('.a-won'))  q('.a-won').onclick  = () => changeStatus(r, '수주');
+  if(q('.a-lost')) q('.a-lost').onclick = () => changeStatus(r, '무산');
+  if(q('.a-paid')) q('.a-paid').onclick = () => patchQuote(r, { paid_at: today() }).then(x => x && toast(`${r.number} 입금 확인 (${dotDate(today())}) · 날짜가 다르면 「날짜·메모 고치기」`, { action:'되돌리기', onAction: () => patchQuote(r, { paid_at: null }, '입금 확인을 되돌렸어요') }));
+  if(q('.a-inv'))  q('.a-inv').onclick  = () => patchQuote(r, { invoice_at: today() }).then(x => x && toast(`${r.number} 계산서 발행으로 표시했어요`, { action:'되돌리기', onAction: () => patchQuote(r, { invoice_at: null }, '계산서 발행 표시를 되돌렸어요') }));
+  q('.rec-status').onchange = e => changeStatus(r, e.target.value, e.target);
   q('.rec-open').onclick = () => { if(isTs){ switchView('statement'); selectStatementSource(r.id); } else openQuote(r); };
   if(!isTs) q('.rec-ts').onclick = () => { switchView('statement'); selectStatementSource(r.id); };
   q('.e-save').onclick = () => {
-    const patch = { paid_at: q('.e-paid').value || null, invoice_at: q('.e-inv').value || null, invoice_skip: q('.e-skip').checked, memo: q('.e-memo').value.trim() };
-    if(!isTs) patch.sent_at = q('.e-sent').value || null;
+    // 이 칸에서 실제로 바꾼 값만 보낸다 (그 사이 다른 사람이 적은 입금일 등을 빈칸으로 덮지 않게)
+    const vals = { paid_at: q('.e-paid').value || null, invoice_at: q('.e-inv').value || null, invoice_skip: q('.e-skip').checked, memo: q('.e-memo').value.trim() };
+    if(!isTs) vals.sent_at = q('.e-sent').value || null;
+    const was = { paid_at: r.paid_at || null, invoice_at: r.invoice_at || null, invoice_skip: !!r.invoice_skip, memo: r.memo || '', sent_at: r.sent_at || null };
+    const patch = {};
+    Object.keys(vals).forEach(k => { if(vals[k] !== was[k]) patch[k] = vals[k]; });
+    if(!Object.keys(patch).length){ toast('바뀐 내용이 없어요'); return; }
     patchQuote(r, patch, `${r.number} 고쳤어요`);
   };
   return el;
@@ -1592,45 +1783,72 @@ function renderItemsTable(){
   const editable = MODE==='db';
   $('#iAddBtn').classList.toggle('hidden', !editable);
   const rows = CATALOG.slice().sort((a,b)=>(a.sort||0)-(b.sort||0));
-  host.innerHTML = `${editable?'':'<div class="empty" style="margin-bottom:12px">관리실에 로그인하면 품목표를 고칠 수 있어요. 지금은 기본 품목표를 보여 줍니다.</div>'}
+  host.innerHTML = `${editable?'<p class="hint" style="margin:0 2px 8px">고친 줄은 노랗게 표시돼요. 한 줄씩 「저장」하거나 위의 「바뀐 줄 모두 저장」을 누르세요.</p>':'<div class="empty" style="margin-bottom:12px">관리실에 로그인하면 품목표를 고칠 수 있어요. 지금은 기본 품목표를 보여 줍니다.</div>'}
     <div class="table-wrap"><table class="grid"><thead><tr>
-      <th style="width:210px">품목명</th><th style="width:180px">찾는말 (쉼표)</th><th>설명</th><th style="width:96px">정가</th><th style="width:96px">기관공급가</th>
-      <th style="width:70px">단위</th><th style="width:80px">과세</th><th style="width:54px">사용</th><th style="width:64px">순서</th><th style="width:70px"></th>
+      <th style="width:210px">품목명</th><th style="width:180px">찾는말 (쉼표 · 3글자 이상 권장)</th><th>설명</th><th style="width:96px">정가</th><th style="width:96px">기관공급가</th>
+      <th style="width:70px">단위</th><th style="width:80px">과세</th><th style="width:54px">사용</th><th style="width:80px">순서</th><th style="width:70px"></th>
     </tr></thead><tbody></tbody></table></div>`;
   const tbody = host.querySelector('tbody');
-  rows.forEach(c=>{
-    const tr = document.createElement('tr'); if(!c.active) tr.className='off';
-    const dis = editable ? '' : ' disabled';
-    tr.innerHTML = `<td><input class="in c-name" value="${esc(c.name)}"${dis}></td>
-      <td><input class="in c-keys" value="${esc((c.keys||[]).join(', '))}"${dis}></td>
-      <td><input class="in c-desc" value="${esc(c.desc)}"${dis}></td>
-      <td><input class="in c-list" inputmode="numeric" value="${c.list?won(c.list):''}"${dis}></td>
-      <td><input class="in c-inst" inputmode="numeric" value="${c.inst?won(c.inst):''}" placeholder="비우면 정가"${dis}></td>
-      <td><input class="in c-unit" value="${esc(c.unit)}"${dis}></td>
-      <td><select class="in c-tax"${dis}><option value="1"${c.taxable?' selected':''}>과세</option><option value="0"${c.taxable?'':' selected'}>면세</option></select></td>
-      <td style="text-align:center"><input type="checkbox" class="c-active"${c.active?' checked':''}${dis}></td>
-      <td><input class="in c-sort" type="number" value="${c.sort||0}"${dis}></td>
-      <td>${editable?'<button class="btn-sm c-save">저장</button>':''}</td>`;
-    if(editable) tr.querySelector('.c-save').onclick = () => saveCatalogRow(c, tr);
-    tbody.appendChild(tr);
-  });
+  rows.forEach(c => tbody.appendChild(itemRow(c, editable)));
+  updateItemsDirty();
 }
-async function saveCatalogRow(c, tr){
+function itemRow(c, editable){
+  const tr = document.createElement('tr'); if(!c.active) tr.className='off';
+  const dis = editable ? '' : ' disabled';
+  tr.innerHTML = `<td><input class="in c-name" value="${esc(c.name)}"${dis}></td>
+    <td><input class="in c-keys" value="${esc((c.keys||[]).join(', '))}"${dis}></td>
+    <td><input class="in c-desc" value="${esc(c.desc)}"${dis}></td>
+    <td><input class="in c-list" inputmode="numeric" value="${c.list?won(c.list):''}"${dis}></td>
+    <td><input class="in c-inst" inputmode="numeric" value="${c.inst?won(c.inst):''}" placeholder="비우면 정가"${dis}></td>
+    <td><input class="in c-unit" value="${esc(c.unit)}"${dis}></td>
+    <td><select class="in c-tax"${dis}><option value="1"${c.taxable?' selected':''}>과세</option><option value="0"${c.taxable?'':' selected'}>면세</option></select></td>
+    <td style="text-align:center"><input type="checkbox" class="c-active"${c.active?' checked':''}${dis}></td>
+    <td><input class="in c-sort" type="number" value="${c.sort||0}"${dis}></td>
+    <td>${editable?'<button class="btn-sm c-save">저장</button>':''}</td>`;
+  if(editable){
+    tr._save = quiet => saveCatalogRow(c, tr, quiet);
+    tr.querySelector('.c-save').onclick = () => tr._save(false);
+    const mark = () => { tr.classList.add('dirty'); updateItemsDirty(); };
+    tr.querySelectorAll('input,select').forEach(el => el.addEventListener(el.type==='checkbox' || el.tagName==='SELECT' ? 'change' : 'input', mark));
+  }
+  return tr;
+}
+function updateItemsDirty(){
+  const n = document.querySelectorAll('#itemsTableHost tr.dirty').length;
+  const b = $('#iSaveAllBtn');
+  b.classList.toggle('hidden', !n); b.textContent = `바뀐 줄 모두 저장 (${n})`;
+}
+// 그 줄만 저장하고 그 줄만 고친다 (다른 줄에 고쳐 둔 값은 그대로)
+async function saveCatalogRow(c, tr, quiet){
   const v = sel => tr.querySelector(sel);
   const name = v('.c-name').value.trim();
-  if(!name){ toast('품목명을 적어 주세요'); return; }
+  if(!name){ toast('품목명을 적어 주세요', true); v('.c-name').focus(); return false; }
   const list = parseWon(v('.c-list').value), inst = parseWon(v('.c-inst').value);
-  if(Number.isNaN(list) || Number.isNaN(inst)){ toast('정가·기관공급가는 숫자로 적어 주세요'); return; }
+  if(Number.isNaN(list) || Number.isNaN(inst)){ toast(`「${name}」 정가·기관공급가는 숫자로 적어 주세요`, true); return false; }
   const row = { name, search_keys: v('.c-keys').value.split(',').map(s=>s.trim()).filter(Boolean), description: v('.c-desc').value.trim(),
     list_price: list, inst_price: inst, unit: v('.c-unit').value.trim()||'세트', taxable: v('.c-tax').value==='1',
     active: v('.c-active').checked, sort: parseInt(v('.c-sort').value,10)||0 };
+  const startSnap = JSON.stringify(row);
   const res = c.id ? await sb.from('doc_items').update(row).eq('id', c.id).select().single()
                    : await sb.from('doc_items').insert(row).select().single();
-  if(res.error){ toast('저장하지 못했어요: '+res.error.message); return; }
-  const saved = fromDbItem(res.data);
-  CATALOG = [...CATALOG.filter(x=>x!==c && x.id!==saved.id), saved];
-  refreshCatalogList(); renderItemsTable();
-  toast(`「${saved.name}」 저장했어요`);
+  if(res.error){ toast(`「${name}」 저장하지 못했어요. ` + friendlyError(res.error), true); return false; }
+  Object.assign(c, fromDbItem(res.data));
+  if(!CATALOG.includes(c)) CATALOG.push(c);
+  const now = { name:v('.c-name').value.trim(), search_keys:v('.c-keys').value.split(',').map(s=>s.trim()).filter(Boolean), description:v('.c-desc').value.trim(),
+    list_price:parseWon(v('.c-list').value), inst_price:parseWon(v('.c-inst').value), unit:v('.c-unit').value.trim()||'세트',
+    taxable:v('.c-tax').value==='1', active:v('.c-active').checked, sort:parseInt(v('.c-sort').value,10)||0 };
+  const changedDuringSave = JSON.stringify(now) !== startSnap;
+  tr.classList.toggle('dirty', changedDuringSave); tr.classList.toggle('off', !now.active);
+  refreshCatalogList(); updateItemsDirty();
+  if(!quiet) toast(changedDuringSave ? `「${c.name}」은 저장했고, 저장 중에 더 고친 내용은 아직 저장 안 됐어요.` : `「${c.name}」 저장했어요`, changedDuringSave);
+  return true;
+}
+async function saveAllItems(){
+  const rows = [...document.querySelectorAll('#itemsTableHost tr.dirty')];
+  let ok = 0;
+  for(const tr of rows){ if(await tr._save(true)) ok++; else break; }
+  if(ok === rows.length) toast(`${ok}줄 저장했어요`);
+  else toast(`${ok}줄 저장하고 멈췄어요. 노랗게 남은 줄을 확인해 주세요`, true);
 }
 
 /* ============ 링크 모음 ============ */
@@ -1664,7 +1882,7 @@ function linkCard(l){
   el.querySelector('.l-del').onclick = async () => {
     if(!confirm(`「${l.title}」 링크를 지울까요?`)) return;
     const { error } = await sb.from('team_links').delete().eq('id', l.id);
-    if(error){ toast('지우지 못했어요: '+error.message); return; }
+    if(error){ toast('지우지 못했어요. ' + friendlyError(error), true); return; }
     LINKS = LINKS.filter(x=>x.id!==l.id); renderLinks(); toast('링크를 지웠어요');
   };
   el.querySelector('.l-edit').onclick = () => {
@@ -1678,31 +1896,74 @@ function linkCard(l){
     el.querySelector('.e-save').onclick = async () => {
       const row = { category: el.querySelector('.e-cat').value.trim()||'기타', title: el.querySelector('.e-title').value.trim(),
         url: el.querySelector('.e-url').value.trim(), note: el.querySelector('.e-note').value.trim(), sort: parseInt(el.querySelector('.e-sort').value,10)||0 };
-      if(!row.title || !/^https?:\/\//i.test(row.url)){ toast('이름과 https:// 로 시작하는 주소를 적어 주세요'); return; }
+      row.url = fixUrl(row.url);
+      if(!row.title || !row.url){ toast('이름과 주소를 적어 주세요'); return; }
       const { data, error } = await sb.from('team_links').update(row).eq('id', l.id).select().single();
-      if(error){ toast('저장하지 못했어요: '+error.message); return; }
+      if(error){ toast('저장하지 못했어요. ' + friendlyError(error), true); return; }
       LINKS = LINKS.map(x=>x.id===data.id?data:x); renderLinks(); toast('링크를 고쳤어요');
     };
   };
   return el;
 }
+// docs.google.com/… 처럼 https:// 없이 붙여넣어도 받아 준다
+function fixUrl(u){
+  u = String(u||'').trim();
+  if(u && !/^https?:\/\//i.test(u)) u = 'https://' + u;
+  return /^https?:\/\/[^\s/]+\.[^\s]+$/i.test(u) ? u : '';
+}
 async function addLink(){
-  const row = { category: $('#lCat').value.trim()||'기타', title: $('#lTitle').value.trim(), url: $('#lUrl').value.trim(), note: $('#lNote').value.trim() };
-  if(!row.title || !/^https?:\/\//i.test(row.url)){ toast('이름과 https:// 로 시작하는 주소를 적어 주세요'); return; }
+  const row = { category: $('#lCat').value.trim()||'기타', title: $('#lTitle').value.trim(), url: fixUrl($('#lUrl').value), note: $('#lNote').value.trim() };
+  if(!row.title || !row.url){ toast('이름과 주소를 적어 주세요 (예: docs.google.com/…)'); return; }
   const sameCat = LINKS.filter(l=>l.category===row.category);
   row.sort = sameCat.length ? Math.max(...sameCat.map(l=>l.sort||0)) + 10 : (Math.max(0, ...LINKS.map(l=>l.sort||0)) + 100);
   const { data, error } = await sb.from('team_links').insert(row).select().single();
-  if(error){ toast('추가하지 못했어요: '+error.message); return; }
+  if(error){ toast('추가하지 못했어요. ' + friendlyError(error), true); return; }
   LINKS.push(data); ['#lTitle','#lUrl','#lNote'].forEach(s=>$(s).value='');
   renderLinks(); toast('링크를 추가했어요');
 }
 
 /* ============ 화면 전환 ============ */
 const VIEWS = ['quote','statement','records','items','links','royalty'];
+// 탭마다 맨 위 한 줄: 언제 쓰는 탭인지
+const VIEW_DESC = {
+  quote: '기관·학교에 보낼 견적서예요. 문의 메일을 붙여넣으면 칸이 채워져요.',
+  statement: '납품할 때 주는 거래명세서예요. 저장된 견적에서 가져오거나 직접 써요.',
+  records: '기관 문의부터 견적·수주·입금·계산서까지 어디까지 했는지 한눈에 봐요.',
+  partners: '책방 주소·연락처·배송 메모예요. 원본은 SCM 「거래처」 탭이에요.',
+  items: '견적서·거래명세서에 들어가는 정가·기관공급가·과세 여부예요.',
+  kit: '도서관·학교 강의에 내는 강의계획서·강사 프로필·출강확인서예요.',
+  roster: '수업이 끝나고 기관 결과보고에 낼 참가자 명단·출석부예요.',
+  fees: '지원사업 강사 사례비와 원천세를 계산하고, 신고용 요약까지 뽑아요.',
+  royalty: '분기마다 신태림 작가님께 드리는 《문고리》 인세 정산서예요.',
+  links: '팀이 같이 쓰는 시트·판매자센터·SNS 주소 모음이에요.',
+};
+const TAB_GROUP = { partners:'b2b', kit:'class', roster:'class', fees:'class' };
+// B2B 진행 탭을 열 때마다 다른 사람이 바꾼 기록까지 다시 읽는다 (15초에 한 번까지)
+let QUOTES_AT = 0;
+async function refreshQuotes(force){
+  if(MODE!=='db' || (!force && Date.now() - QUOTES_AT < 15000)) return;
+  QUOTES_AT = Date.now();
+  const [qu, iq] = await Promise.all([
+    sb.from('quotes').select('*').order('created_at', { ascending:false }).limit(500),
+    sb.from('inquiries').select('id,org_name,manager_name,inquiry_type,program_wanted,headcount,status,created_at').order('created_at', { ascending:false }).limit(300),
+  ]);
+  if(qu.error){ QUOTES_AT = 0; toast('기록을 새로 읽지 못했어요. ' + friendlyError(qu.error), true); return; }
+  QUOTES = qu.data;
+  if(!iq.error) INQUIRIES = iq.data;
+  if(CURRENT){ const fresh = QUOTES.find(x=>x.id===CURRENT.id); if(fresh) CURRENT = fresh; }
+  if(TS_EDIT){ const fresh = QUOTES.find(x=>x.id===TS_EDIT.id); if(fresh) TS_EDIT = fresh; }
+  if(CURRENT_VIEW==='records') renderRecords();
+  return true;
+}
 function switchView(name){
   if(!VIEWS.includes(name)) name = 'quote';
   CURRENT_VIEW = name;
-  document.querySelectorAll('#docTabs .doc-tab[data-view]').forEach(t=>t.classList.toggle('active', t.dataset.view===name));
+  let activeTab = null;
+  document.querySelectorAll('#docTabs .doc-tab[data-view]').forEach(t=>{
+    const on = t.dataset.view===name;
+    t.classList.toggle('active', on);
+    if(on) activeTab = t;
+  });
   VIEWS.forEach(v=>$('#view-'+v).classList.toggle('hidden', v!==name));
   if(location.hash !== '#'+name) history.replaceState(null, '', location.pathname + location.search + '#' + name);
   if(name==='quote') update();
@@ -1710,11 +1971,14 @@ function switchView(name){
     fillStatementSelect();
     if(!TS_READY){ TS_READY = true; onStatementSourceChange(); } else refreshStatementForm();
   }
-  if(name==='records') renderRecords();
-  if(name==='items') renderItemsTable();
+  if(name==='records'){ renderRecords(); refreshQuotes(); }
+  if(name==='items' && !document.querySelector('#itemsTableHost tr.dirty')) renderItemsTable();   // 고치던 줄이 있으면 그대로 둔다
+  const sec = $('#view-'+name);
+  if(VIEW_DESC[name] && !sec.querySelector(':scope > .view-desc')) sec.insertAdjacentHTML('afterbegin', `<p class="view-desc">${VIEW_DESC[name]}</p>`);
   if(name==='links') renderLinks();
   if(name==='royalty'){ initRoyalty(); renderRoyalty(); }
   if(EXT[name] && EXT[name].show) EXT[name].show();
+  if(activeTab && window.matchMedia('(max-width:880px)').matches) activeTab.scrollIntoView({ block:'nearest', inline:'center' });
   window.scrollTo(0,0);
 }
 
@@ -1731,7 +1995,8 @@ function registerDocView(name, opt){
   const btn = document.createElement('button');
   btn.className = 'doc-tab'; btn.dataset.view = name; btn.textContent = opt.label;
   btn.onclick = () => switchView(name);
-  $('#docTabs').insertBefore(btn, document.querySelector('#docTabs .doc-tab[data-view="items"]'));
+  const group = opt.group || TAB_GROUP[name] || 'b2b';
+  $('#docTabs').insertBefore(btn, document.querySelector(`#docTabs .tab-anchor[data-group="${group}"]`));
   const sec = document.createElement('section');
   sec.className = 'page view hidden'; sec.id = 'view-' + name; sec.innerHTML = opt.html || '';
   $('#appView').appendChild(sec);
@@ -1755,13 +2020,19 @@ function rerenderCurrent(){
 ['#toName','#toManager','#toBiz','#title','#validDays','#extraNotes'].forEach(s=>$(s).addEventListener('input', update));
 ['#vatMode','#altMode','#draftMode','#qDate'].forEach(s=>$(s).addEventListener('change', update));
 $('#addItemBtn').onclick = ()=>{ ITEMS.push(blankItem()); renderItems(); update(); const names=document.querySelectorAll('#itemsHost .it-name'); names[names.length-1].focus(); };
-$('#parseBtn').onclick = ()=>fillFromText($('#pasteBox').value);
+$('#parseBtn').onclick = ()=>{
+  if(quoteDirty() && !confirm('지금 쓰던 내용을 비우고, 붙여넣은 메일로 새 견적을 만들까요?')) return;
+  fillFromText($('#pasteBox').value);
+};
 $('#copyReplyBtn').onclick = ()=>navigator.clipboard.writeText(REPLY_TEMPLATE).then(()=>toast('회신 문구를 복사했어요')).catch(()=>toast('복사하지 못했어요'));
-$('#resetBtn').onclick = ()=>{ if(confirm('새 견적을 쓸까요? 저장하지 않은 내용은 지워집니다.')) resetForm(); };
-$('#saveBtn').onclick = ()=>saveQuote();
+$('#resetBtn').onclick = ()=>{ if(!quoteDirty() || confirm('새 견적을 쓸까요? 저장하지 않은 내용은 지워집니다.')) resetForm(); };
+$('#saveBtn').onclick = ()=>{ if(confirmSkipped(ITEMS)) saveQuote(); };
 $('#printBtn').onclick = async ()=>{
   let q = update();
   if(!q.lines.length){ toast('품목·단가·수량을 먼저 넣어 주세요'); return; }
+  if(!confirmSkipped(ITEMS)) return;
+  const d0 = readForm();
+  if(!d0.isDraft && !d0.toName && confirm('받는 곳이 비었어요. 가견적으로 표시할까요?\n(취소하면 그대로 진행해요)')){ $('#draftMode').checked = true; q = update(); }
   if(MODE==='db'){
     if(!await saveQuote()) return;
     q = update();
@@ -1771,18 +2042,38 @@ $('#printBtn').onclick = async ()=>{
   }
   printHtml(q.html, [q.number, q.toName || q.title, q.isDraft ? '가견적' : ''].filter(Boolean).join('_'));
 };
-$('#tsSource').addEventListener('change', onStatementSourceChange);
+$('#tsSource').addEventListener('change', e => {
+  const sel = e.target;
+  if(tsDirty() && !confirm('쓰던 거래명세서가 저장되지 않았어요.\n버리고 넘어갈까요?')){ sel.value = sel.dataset.prev || 'direct'; return; }
+  sel.dataset.prev = sel.value;
+  onStatementSourceChange();
+});
 ['#tsDate','#tsToName','#tsToManager','#tsToBiz','#tsMemo','#tsTitle'].forEach(s=>$(s).addEventListener('input', renderStatement));
 $('#tsVat').addEventListener('change', renderStatement);
 $('#tsAddItem').onclick = ()=>{ TS_ITEMS.push(blankItem()); renderItemEditor($('#tsItemsHost'), TS_ITEMS, renderStatement); renderStatement(); const names=document.querySelectorAll('#tsItemsHost .it-name'); names[names.length-1].focus(); };
-$('#tsResetBtn').onclick = ()=>{ if(confirm('거래명세서를 새로 쓸까요? 저장하지 않은 내용은 지워집니다.')) selectStatementSource('direct'); };
+$('#tsResetBtn').onclick = ()=>{ if(!tsDirty() || confirm('거래명세서를 새로 쓸까요? 저장하지 않은 내용은 지워집니다.')) selectStatementSource('direct', true); };
 $('#tsPrintBtn').onclick = printStatement;
 $('#rKind').addEventListener('change', renderRecords);
 $('#rStatus').addEventListener('change', renderRecords);
 $('#rSearch').addEventListener('input', renderRecords);
-$('#rNewBtn').onclick = ()=>{ resetForm(); switchView('quote'); };
+$('#rNewBtn').onclick = ()=>{ if(!confirmDiscardQuote()) return; resetForm(); switchView('quote'); };
+$('#rRefresh').onclick = ()=>refreshQuotes(true).then(ok => ok && toast('최신 기록을 불러왔어요'));
+$('#iSaveAllBtn').onclick = saveAllItems;
+$('#logoutBtn').onclick = ()=>sb.auth.signOut().finally(()=>{ location.href = './'; });
+// 저장 안 된 수정이 있으면 창을 닫기 전에 한 번 묻는다
+window.addEventListener('beforeunload', e => {
+  if(MODE!=='db') return;
+  const risky = (CURRENT && quoteDirty()) || (tsDirty() && tsKind()==='direct' && TS_ITEMS.some(it=>it.name)) || document.querySelector('#itemsTableHost tr.dirty');
+  if(risky){ e.preventDefault(); e.returnValue = ''; }
+});
 $('#rNewTsBtn').onclick = ()=>{ switchView('statement'); selectStatementSource('direct'); };
-$('#iAddBtn').onclick = ()=>{ CATALOG.push({ id:null, name:'', keys:[], desc:'', list:null, inst:null, unit:'세트', taxable:true, active:true, sort:(Math.max(0,...CATALOG.map(c=>c.sort||0))+10) }); renderItemsTable(); };
+$('#iAddBtn').onclick = ()=>{
+  const c = { id:null, name:'', keys:[], desc:'', list:null, inst:null, unit:'세트', taxable:true, active:true, sort:(Math.max(0,...CATALOG.map(c=>c.sort||0))+10) };
+  const tbody = document.querySelector('#itemsTableHost tbody');
+  if(!tbody) return;
+  const tr = itemRow(c, true); tr.classList.add('dirty'); tbody.appendChild(tr); updateItemsDirty();
+  tr.scrollIntoView({ block:'center' }); tr.querySelector('.c-name').focus();
+};
 $('#lAddBtn').onclick = addLink;
 document.querySelectorAll('.sealToggle').forEach(cb=>cb.onchange=e=>onSealToggle(e.target.checked));
 document.querySelectorAll('#docTabs .doc-tab[data-view]').forEach(t=>t.onclick=()=>switchView(t.dataset.view));
@@ -1798,12 +2089,12 @@ async function loadDb(){
   ]);
   if(it.error || qu.error || li.error){
     const msg = (it.error||qu.error||li.error).message;
-    $('#banner').textContent = `서버에서 품목표·기록을 읽지 못했어요 (${msg}). 기본 품목표로 작성은 할 수 있지만 저장은 안 됩니다.`;
+    $('#banner').textContent = `서버에서 품목표·기록을 읽지 못해 저장과 「저장하고 PDF」가 안 돼요. 새로고침해 주세요. ${friendlyError(msg)}`;
     $('#banner').classList.remove('hidden');
     return false;
   }
   if(it.data.length) CATALOG = it.data.map(fromDbItem);
-  QUOTES = qu.data; LINKS = li.data;
+  QUOTES = qu.data; LINKS = li.data; QUOTES_AT = Date.now();
   const iq = await sb.from('inquiries').select('id,org_name,manager_name,inquiry_type,program_wanted,headcount,status,created_at').order('created_at', { ascending:false }).limit(300);
   if(!iq.error) INQUIRIES = iq.data;
   const seal = await sb.from('doc_assets').select('data_url').eq('key', 'seal').maybeSingle();
@@ -1818,7 +2109,8 @@ function startEditor(userLabel, bannerText){
   $('#printBtn').textContent = MODE==='db' ? '저장하고 PDF' : 'PDF 저장';
   if(bannerText){ $('#banner').textContent = bannerText; $('#banner').classList.remove('hidden'); }
   const draft = store('docs_quote_draft');
-  if(draft && draft.items && draft.items.some(it=>it.name)){ CURRENT_INQUIRY = draft.inquiry || null; loadData(draft); }
+  $('#logoutBtn').classList.toggle('hidden', MODE!=='db');
+  if(draft && draft.items && draft.items.some(it=>it.name)){ CURRENT_INQUIRY = draft.inquiry || null; DRAFT_INFO = { date: draft.date }; loadData(draft); }
   else resetForm();
 }
 async function boot(){
@@ -1860,17 +2152,32 @@ async function boot(){
     return;
   }
   const { data:{ session } } = await sb.auth.getSession();
+  // 로그인하고 나면 이 주소로 다시 오게 (관리실이 next를 받아 돌려보냄)
+  $('#gateView a').href = './?next=' + encodeURIComponent('docs.html' + location.search + location.hash);
   if(session){
-    const { data } = await sb.rpc('is_admin');
+    const { data, error } = await sb.rpc('is_admin');
     if(data === true){
       MODE = 'db';
-      await loadDb();
+      const loaded = await loadDb();
+      // 로그인은 됐어도 원본을 읽지 못한 상태에서는 쓰기 기능을 닫는다.
+      // 화면과 PDF 미리보기는 쓸 수 있지만 기본값을 원본에 저장하면 안 된다.
+      if(!loaded) MODE = 'offline';
       Object.values(EXT).forEach(e => { if(e.load) e.load(); });  // 추가 탭이 미리 읽어 둘 것 (거래처 자동완성 등)
       startEditor(session.user.email);
-      if(params.get('inquiry')){ await loadInquiry(params.get('inquiry')); switchView('quote'); }
+      const inq = params.get('inquiry');
+      if(inq && params.get('from')==='inquiries'){
+        const bar = $('#backBar');
+        bar.innerHTML = `<a href="./?open=inquiry:${encodeURIComponent(inq)}#inquiries">← 관리실 기관 문의로 돌아가기</a>`;
+        bar.classList.remove('hidden');
+      }
+      if(inq){ await loadInquiry(inq); switchView('quote'); }
       else switchView(view);
       return;
     }
+    $('#gateMsg').textContent = error
+      ? '서버 연결이 잠깐 안 됐어요. 새로고침해 주세요.'
+      : `${session.user.email} 계정은 아직 서류실 권한이 없어요. 대표에게 이 이메일을 관리자로 등록해 달라고 알려 주세요.`;
+    $('#gateView a').textContent = '관리실로 돌아가기';
   }
   $('#gateView').classList.remove('hidden');
 }

@@ -12,9 +12,15 @@
   const KIND_CELL = { biz:'사업소득', etc:'기타소득', none:'징수 없음' };
   // 경기문화재단 「원천세 온라인 신고 납부 가이드」의 홈택스 입력 칸
   const HOMETAX_CELL = { biz:'매월징수 (A25)', etc:'그 외 (A42)', none:'—' };
+  // 쓰던 내용 자동 보관 (db 모드만, 이 브라우저 localStorage)
+  //  - 새 명세서: DRAFT_KEY · 저장본을 열어 고치던 것: DRAFT_KEY + '_' + id (그 명세서 id별로 따로)
+  //  - OPEN_KEY: 마지막으로 열어 둔 저장본 id (새로고침 뒤 어느 초안을 되살릴지)
   const DRAFT_KEY = 'docs_fees_draft';
+  const OPEN_KEY = 'docs_fees_open';
+  const draftKey = id => id ? `${DRAFT_KEY}_${id}` : DRAFT_KEY;
+  const LIST_LIMIT = 300;
 
-  const S = { ready:false, rows:[], current:null, dirty:false, belongTouched:false,
+  const S = { ready:false, rows:[], current:null, dirty:false, belongTouched:false, rev:0, restoredAt:null,
     list:[], loaded:false, loading:false, loadError:'' };
 
   /* ---------- 도구 ---------- */
@@ -36,12 +42,30 @@
     const [y, m] = (payDate||'').split('-').map(Number);
     return y && m ? new Date(y, m, 10).toLocaleDateString('sv-SE') : '';
   }
-  // 주민등록번호(6-7자리)나 계좌번호처럼 숫자가 10개 넘게 이어진 조각
-  function looksSensitive(text){
+  // 주민등록번호(6-7자리)나 계좌번호처럼 숫자가 10개 넘게 이어진 조각.
+  // 막는 기준은 그대로 두고, 안내 문구만 나누려고 전화번호(01X로 시작하는 10~11자리)인지 따로 알려 준다.
+  function sensitiveKind(text){  // null | 'id' | 'phone'
     const t = String(text||'');
-    if(/\d{6}\s*-\s*[1-8]\d{6}/.test(t)) return true;
-    return (t.match(/\d[\d-]*\d/g)||[]).some(m => m.replace(/\D/g,'').length >= 10);
+    if(/\d{6}\s*-\s*[1-8]\d{6}/.test(t)) return 'id';
+    const long = (t.match(/\d[\d-]*\d/g)||[]).map(m => m.replace(/\D/g,'')).filter(d => d.length >= 10);
+    if(!long.length) return null;
+    return long.every(d => /^01[016789]\d{7,8}$/.test(d)) ? 'phone' : 'id';
   }
+  const looksSensitive = text => !!sensitiveKind(text);
+  const sensitiveMsg = (label, kind) => kind === 'phone'
+    ? `「${label}」 칸의 전화번호는 넣지 않아도 돼요. 지우고 다시 해 주세요`
+    : `「${label}」 칸에 10자리 이상 이어진 숫자가 있어요. 주민등록번호·계좌번호일 수 있어 막았어요. 지우고 다시 해 주세요`;
+
+  function whenText(ms){  // 초안 보관 시각을 「오늘 오후 3:10」처럼
+    if(!ms) return '';
+    const d = new Date(ms), now = new Date(), y = new Date(); y.setDate(now.getDate() - 1);
+    const day = x => x.toLocaleDateString('sv-SE');
+    const hm = d.toLocaleTimeString('ko-KR', { hour:'numeric', minute:'2-digit' });
+    if(day(d) === day(now)) return `오늘 ${hm}`;
+    if(day(d) === day(y)) return `어제 ${hm}`;
+    return `${d.getMonth()+1}월 ${d.getDate()}일 ${hm}`;
+  }
+  const forget = key => { try{ localStorage.removeItem(key); }catch(e){} };
   const isAmount = c => { const v = parseWon(c); return v != null && !Number.isNaN(v) && v >= 1000; };
   function kindOf(text){
     const t = String(text||'').replace(/\s/g,'');
@@ -108,6 +132,11 @@
         <div class="saved-bar" id="feSavedBar"></div>
 
         <div class="card">
+          <h3>저장된 명세서</h3>
+          <div id="feList"></div>
+        </div>
+
+        <div class="card">
           <h3>① 지급 정보</h3>
           <label class="f" for="feTitle">사업명</label>
           <input class="in" id="feTitle" placeholder="예: 2026 가을 인문학 워크숍">
@@ -118,6 +147,7 @@
           <p class="hint fees-mt">귀속월은 지급일의 달로 채워져요. 다른 달 사례비면 직접 고쳐 주세요.</p>
           <label class="f" for="feNote">비고 <span class="hint">(한 줄에 하나)</span></label>
           <textarea class="in" id="feNote" rows="2" placeholder="예: 1~4회차 강사비와 기획회의 2회분"></textarea>
+          <div class="it-note" id="feInfoWarn"></div>
         </div>
 
         <div class="card">
@@ -125,8 +155,9 @@
           <p class="hint" style="margin-bottom:6px">한 줄에 한 사람씩 「이름, 역할, 금액」으로 적거나 엑셀에서 칸째 복사해 붙여넣으세요. 소득 구분 칸(사업·기타·없음)이 있으면 그걸 따라요.</p>
           <textarea class="in" id="fePaste" rows="3" placeholder="김하늘, 주강사, 300,000&#10;박바다&#9;보조강사&#9;150000"></textarea>
           <div class="btns">
+            <label class="f fees-kind-l" for="fePasteKind">소득 구분 칸이 없으면</label>
             <select class="in sm" id="fePasteKind">${kindOptions('biz')}</select>
-            <button class="btn-sm" id="fePasteBtn">칸 채우기</button>
+            <button class="btn-sm" id="fePasteBtn">붙여넣은 내용 넣기</button>
           </div>
           <div class="parse-note" id="fePasteNote"></div>
         </div>
@@ -137,11 +168,6 @@
           <div id="feRows"></div>
           <button class="btn-sm wide" id="feAddRow">+ 사람 추가</button>
           <div class="budget">소득 구분(사업소득·기타소득)과 소액부징수·과세최저한 같은 예외는 세무사에게 꼭 확인해 주세요. 여기서는 3.3%·8.8% 기본 계산만 해요.</div>
-        </div>
-
-        <div class="card">
-          <h3>저장된 명세서</h3>
-          <div id="feList"></div>
         </div>
       </div>
 
@@ -167,8 +193,14 @@
     .fees-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:6px}
     .fees-grid label.f{margin-top:2px}
     .fees-warn{color:#d9583c}
+    .fees-list{max-height:280px;overflow:auto}
     .fees-list .rec{padding:9px 11px;gap:8px}
     .fees-list .rec-main{min-width:170px}
+    .in.fees-bad{border-color:#d9583c;box-shadow:0 0 0 2px rgba(217,88,60,.15)}
+    #feInfoWarn:empty{display:none}
+    #feInfoWarn{margin-top:6px}
+    .fees-kind-l{display:inline;margin:0}
+    .saved-bar .fees-restored{color:var(--orange-d);font-weight:700}
 
     .qdoc.fees-doc h1{font-size:28px;letter-spacing:.14em;padding-left:0}
     .qdoc.fees-doc .ph{color:#b3a99f}
@@ -243,6 +275,46 @@
     $('#fePasteNote').textContent = '';
     renderRows(); renderSavedBar(); renderSheet_();
   }
+  const fromRow = row => ({ title:row.title, payDate:row.pay_date, belong:row.belong_month, note:row.note, rows:row.rows });
+  // 초안과 저장본이 사실상 같은지 (빈 줄·앞뒤 공백·귀속월 표기 차이는 무시)
+  function sameContent(a, b){
+    const norm = d => {
+      const pay = d.payDate || '';
+      return JSON.stringify({ title:(d.title||'').trim(), pay, belong: normMonth(d.belong) || pay.slice(0,7), note:(d.note||'').trim(),
+        rows:(d.rows||[]).map(r=>({ name:(r.name||'').trim(), role:(r.role||'').trim(), note:(r.note||'').trim(),
+          kind: KIND_NAME[r.kind] ? r.kind : 'biz', gross: r.gross == null || r.gross === '' ? null : Number(r.gross) }))
+          .filter(r => r.name || r.role || r.note || r.gross != null) });
+    };
+    return norm(a) === norm(b);
+  }
+
+  /* ---------- 쓰던 내용 자동 보관 (새 명세서 · 열어 고치던 명세서 모두) ---------- */
+  function saveDraft(){
+    if(MODE!=='db' || !S.ready || !S.dirty) return;
+    // 서버 저장과 마찬가지로 브라우저 초안에도 민감한 번호를 남기지 않는다.
+    if(sensitiveFields(readForm()).length) return;
+    const at = Date.now();
+    if(S.current){
+      const c = S.current;
+      store(draftKey(c.id), { ...readForm(), savedAt: at,
+        sheet: { id:c.id, title:c.title||'', pay_date:c.pay_date||'', updated_at:c.updated_at||null } });
+      store(OPEN_KEY, c.id);
+    } else {
+      store(DRAFT_KEY, { ...readForm(), savedAt: at });
+      forget(OPEN_KEY);
+    }
+  }
+  function dropCurrentDraft(){  // 쓰던 내용을 버리기로 확인받은 뒤에만 부른다
+    if(S.current) forget(draftKey(S.current.id)); else forget(DRAFT_KEY);
+  }
+  // 입력이 바뀔 때마다: 미리보기 다시 그리고 초안 보관
+  function touch(){
+    const was = S.dirty;
+    S.dirty = true; S.rev++;
+    renderSheet_();
+    saveDraft();
+    if(!was) renderSavedBar();
+  }
   function sampleData(){  // 미리보기 확인용 가상 인물·금액 (실제 사람·사업 아님)
     const pay = today();
     return { title:'예시 · 가을 인문학 워크숍 1~4회차', payDate: pay, belong: pay.slice(0,7),
@@ -284,7 +356,7 @@
         <input class="in r-note fees-mt" placeholder="비고 (예: 150,000원×4회)" value="${esc(r.note)}">
         <div class="it-note"></div>`;
       const q = sel => box.querySelector(sel);
-      const changed = () => { S.dirty = true; renderSheet_(); };
+      const changed = touch;
       q('.x').onclick = () => { S.rows.splice(i, 1); if(!S.rows.length) S.rows.push(blankRow()); renderRows(); changed(); };
       q('.r-name').addEventListener('input', e=>{ r.name = e.target.value; changed(); });
       q('.r-role').addEventListener('input', e=>{ r.role = e.target.value; changed(); });
@@ -296,11 +368,25 @@
     });
   }
   function updateRowNotes(){
+    // 사업명·비고 칸
+    const info = [['#feTitle', '사업명'], ['#feNote', '비고']].map(([sel, label]) => {
+      const el = $(sel), kind = sensitiveKind(el.value);
+      el.classList.toggle('fees-bad', !!kind);
+      return kind ? `<span class="fees-warn">${esc(sensitiveMsg(label, kind))}</span>` : '';
+    }).filter(Boolean);
+    const infoHost = $('#feInfoWarn');
+    if(infoHost) infoHost.innerHTML = info.join('<br>');
+    // 받는 사람 칸
     document.querySelectorAll('#feRows .item').forEach((box, i)=>{
       const r = S.rows[i], note = box.querySelector('.it-note');
       if(!r || !note) return;
       const parts = [];
-      if(looksSensitive(r.name) || looksSensitive(r.role) || looksSensitive(r.note)) parts.push('<span class="fees-warn">주민등록번호·계좌번호처럼 보이는 숫자가 있어요. 지워 주세요</span>');
+      const bad = [['.r-name', r.name], ['.r-role', r.role], ['.r-note', r.note]].map(([sel, v]) => {
+        const kind = sensitiveKind(v), el = box.querySelector(sel);
+        if(el) el.classList.toggle('fees-bad', !!kind);
+        return kind;
+      }).filter(Boolean);
+      if(bad.length) parts.push(`<span class="fees-warn">${bad.every(k=>k==='phone') ? '전화번호는 넣지 않아도 돼요. 빨간 칸에서 지워 주세요' : '주민등록번호·계좌번호처럼 보이는 숫자(10자리 이상)가 있어요. 빨간 칸에서 지워 주세요'}</span>`);
       if(r.gross != null && Number.isNaN(r.gross)) parts.push('<span class="fees-warn">금액을 숫자로 적어 주세요 (예: 300000, 30만)</span>');
       else if(hasAmount(r)){
         const c = calcRow(r);
@@ -327,7 +413,20 @@
       lines: ls, groups, gross: sum(ls,'gross'), tax: sum(ls,'tax'), local: sum(ls,'local'), net: sum(ls,'net'),
       whCount: sum(wh,'count'), whGross: sum(wh,'gross'), notes: lines(d.note),
       partial: S.rows.filter(partialRow).length, badAmount: S.rows.some(r=>r.gross!=null && Number.isNaN(r.gross)),
-      sensitive: [d.title, d.note, ...S.rows.flatMap(r=>[r.name, r.role, r.note])].some(looksSensitive) };
+      sensitive: sensitiveFields(d) };
+  }
+  // 주민등록번호·계좌번호·전화번호처럼 보이는 칸 목록 (칸 이름과 종류). 비어 있으면 []
+  function sensitiveFields(d){
+    const out = [];
+    const check = (label, value, sel, idx) => { const kind = sensitiveKind(value); if(kind) out.push({ label, kind, sel, idx }); };
+    check('사업명', d.title, '#feTitle');
+    check('비고', d.note, '#feNote');
+    (d.rows||[]).forEach((r, i) => {
+      check(`${i+1}번 성명`, r.name, '.r-name', i);
+      check(`${i+1}번 역할`, r.role, '.r-role', i);
+      check(`${i+1}번 비고`, r.note, '.r-note', i);
+    });
+    return out;
   }
 
   function feesHtml(s, dense){
@@ -401,17 +500,17 @@
     const r = renderSheet($('#feSheet'), $('#feBox'), dense => feesHtml(s, dense), s.lines.length > 8 ? 1 : 0);
     setFit($('#feFit'), r);
     updateRowNotes();
-    if(MODE==='db' && !S.current && S.ready) store(DRAFT_KEY, readForm());
     s.html = r.html;
     return s;
   }
 
   function renderSavedBar(){
     const bar = $('#feSavedBar');
+    const restored = S.restoredAt ? `<span class="fees-restored">${esc(whenText(S.restoredAt))} 쓰던 내용을 복원했어요</span>` : '';
     if(S.current){
-      bar.innerHTML = `<b>${esc(S.current.title||'(사업명 없음)')}</b><span class="grow" style="color:var(--muted)">저장된 명세서를 고치는 중 · 지급일 ${dotDate(S.current.pay_date)}</span>`;
+      bar.innerHTML = `<b>${esc(S.current.title||'(사업명 없음)')}</b><span class="grow" style="color:var(--muted)">${S.dirty?'저장 안 된 수정 있음':'저장된 명세서를 고치는 중'} · 지급일 ${dotDate(S.current.pay_date)}</span>${restored}`;
     } else {
-      bar.innerHTML = `<b>새 명세서</b><span class="grow" style="color:var(--muted)">${MODE==='db'?'아직 저장 안 됨':'미리보기 모드 · 저장은 로그인 후'}</span>`;
+      bar.innerHTML = `<b>새 명세서</b><span class="grow" style="color:var(--muted)">${MODE==='db'?(S.dirty?'저장 안 된 내용은 이 브라우저에 자동 보관돼요':'아직 저장 안 됨'):'미리보기 모드 · 저장은 로그인 후'}</span>${restored}`;
     }
   }
   function refreshButtons(){
@@ -424,7 +523,7 @@
 
   /* ---------- 저장·목록 (db 모드만) ---------- */
   function checkReady(s){
-    if(s.sensitive){ toast('주민등록번호·계좌번호처럼 보이는 숫자가 있어요. 지우고 다시 해 주세요'); return false; }
+    if(s.sensitive.length){ toast('주민등록번호·계좌번호처럼 보이는 숫자가 있어요. 지우고 다시 해 주세요'); return false; }
     if(s.badAmount){ toast('금액을 숫자로 적어 주세요 (예: 300000, 30만)'); return false; }
     if(s.partial){ toast(`성명이나 금액이 빠진 줄이 ${s.partial}개 있어요. 채우거나 빼 주세요`); return false; }
     if(!s.lines.length){ toast('받는 사람의 성명과 세전 지급액을 넣어 주세요'); return false; }
@@ -452,7 +551,8 @@
       const isNew = !S.current;
       S.current = res.data; S.dirty = false;
       S.list = [res.data, ...S.list.filter(x=>x.id!==res.data.id)];
-      if(isNew) store(DRAFT_KEY, null);
+      if(isNew) forget(DRAFT_KEY);
+      forget(draftKey(res.data.id)); forget(OPEN_KEY); S.restoredAt = null;
       renderSavedBar(); renderList();
       toast(`「${res.data.title}」 ${isNew?'저장했어요':'고쳤어요'}`);
       return res.data;
@@ -467,9 +567,22 @@
     if(MODE!=='db' || S.loading) return;
     S.loading = true; S.loadError = ''; renderList();
     try{
-      const { data, error } = await sb.from('fee_sheets').select('*').order('pay_date', { ascending:false }).order('updated_at', { ascending:false }).limit(300);
+      const { data, error } = await sb.from('fee_sheets').select('*').order('pay_date', { ascending:false }).order('updated_at', { ascending:false }).limit(LIST_LIMIT);
       if(error){ S.loadError = error.message; toast('저장된 명세서를 읽지 못했어요: ' + error.message); }
-      else { S.list = data || []; S.loaded = true; }
+      else {
+        S.list = data || []; S.loaded = true;
+        const openId = store(OPEN_KEY);
+        const row = openId && S.list.find(x => String(x.id) === String(openId));
+        let draft = row && store(draftKey(row.id));
+        if(draft && sensitiveFields(draft).length){ forget(draftKey(row.id)); forget(OPEN_KEY); draft = null; }
+        if(row && draft && !S.current && !S.dirty && !sameContent(draft, fromRow(row))){
+          S.current = row; S.restoredAt = draft.savedAt || null;
+          loadData(draft); S.dirty = true;
+        } else if(openId && (!row || !draft || (row && sameContent(draft, fromRow(row))))){
+          if(row) forget(draftKey(row.id));
+          forget(OPEN_KEY);
+        }
+      }
     }catch(e){
       S.loadError = String(e && e.message || e); toast('저장된 명세서를 읽지 못했어요');
     }finally{
@@ -503,8 +616,14 @@
   function openSheet(row){
     if(S.dirty && !confirm('지금 쓰던 내용은 저장하지 않으면 사라져요. 이 명세서를 열까요?')) return;
     S.current = row;
-    loadData({ title:row.title, payDate:row.pay_date, belong:row.belong_month, note:row.note, rows:row.rows });
-    S.dirty = false;
+    const saved = fromRow(row); let draft = store(draftKey(row.id));
+    if(draft && sensitiveFields(draft).length){ forget(draftKey(row.id)); forget(OPEN_KEY); draft = null; }
+    const restore = draft && !sameContent(draft, saved) && confirm(`「${row.title||'명세서'}」에 저장하지 않은 수정이 있어요 (${whenText(draft.savedAt)}).\n이어서 고칠까요?`);
+    S.restoredAt = restore ? draft.savedAt || null : null;
+    if(draft && !restore){ forget(draftKey(row.id)); forget(OPEN_KEY); }
+    loadData(restore ? draft : saved);
+    S.dirty = !!restore;
+    renderSavedBar();
     renderList();
     window.scrollTo(0, 0);
     toast(`「${row.title||'명세서'}」를 열었어요`);
@@ -517,6 +636,8 @@
       if(!data || !data.length){ toast('지우지 못했어요 (권한을 확인해 주세요)'); return; }
     }catch(e){ toast('지우지 못했어요: ' + (e && e.message || e)); return; }
     S.list = S.list.filter(x=>x.id!==row.id);
+    forget(draftKey(row.id));
+    if(String(store(OPEN_KEY))===String(row.id)) forget(OPEN_KEY);
     if(S.current && S.current.id===row.id){ S.current = null; S.dirty = true; renderSavedBar(); }
     renderList();
     toast('명세서를 지웠어요');
@@ -533,16 +654,16 @@
       return;
     }
     if(S.rows.every(blankish)) S.rows = res.rows; else S.rows.push(...res.rows);
-    S.dirty = true;
     note.className = 'parse-note' + (res.dropped ? ' warn' : '');
     note.textContent = `${res.rows.length}명을 채웠어요.${res.skipped ? ` 읽지 못한 줄 ${res.skipped}개(제목줄 등)는 건너뛰었어요.` : ''}${warn} 소득 구분을 한 번씩 확인해 주세요.`;
     $('#fePaste').value = '';
-    renderRows(); renderSheet_();
+    renderRows(); touch();
   }
   function resetSheet(){
     if(S.dirty && !confirm('새로 쓸까요? 저장하지 않은 내용은 지워져요.')) return;
+    dropCurrentDraft(); forget(OPEN_KEY);
     S.current = null;
-    store(DRAFT_KEY, null);
+    S.restoredAt = null;
     loadData({ payDate: today() });
     S.dirty = false;
     renderList();
@@ -565,7 +686,7 @@
       const style = document.createElement('style');
       style.textContent = CSS;
       document.head.appendChild(style);
-      const changed = () => { S.dirty = true; renderSheet_(); };
+      const changed = touch;
       $('#feTitle').addEventListener('input', changed);
       $('#feNote').addEventListener('input', changed);
       $('#fePayDate').addEventListener('change', () => {
@@ -575,12 +696,12 @@
       $('#feBelong').addEventListener('input', () => { S.belongTouched = true; changed(); });
       $('#feBelong').addEventListener('blur', e => {
         const v = normMonth(e.target.value);
-        if(v) e.target.value = v;
-        else if(!e.target.value.trim()){ S.belongTouched = false; e.target.value = ($('#fePayDate').value||'').slice(0,7); renderSheet_(); }
+        if(v && e.target.value !== v){ e.target.value = v; touch(); }
+        else if(!e.target.value.trim()){ S.belongTouched = false; e.target.value = ($('#fePayDate').value||'').slice(0,7); touch(); }
       });
       $('#fePasteBtn').onclick = applyPaste;
       $('#feAddRow').onclick = () => {
-        S.rows.push(blankRow()); renderRows(); renderSheet_();
+        S.rows.push(blankRow()); renderRows(); touch();
         const names = document.querySelectorAll('#feRows .r-name'); names[names.length-1].focus();
       };
       $('#feResetBtn').onclick = resetSheet;
@@ -593,7 +714,8 @@
         let data = { payDate: today() };
         if(MODE==='preview') data = sampleData();
         else if(MODE==='db'){
-          const draft = store(DRAFT_KEY);
+          let draft = store(DRAFT_KEY);
+          if(draft && sensitiveFields(draft).length){ forget(DRAFT_KEY); draft = null; }
           if(draft && Array.isArray(draft.rows) && draft.rows.some(r=>r && (r.name||'').trim())){ data = draft; S.dirty = true; }
         }
         loadData(data);
