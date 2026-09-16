@@ -10,7 +10,7 @@
   const PHONE_RE = /(?:^|\D)(?:\+?82[- .]?)?0(?:2|1[016789]|[3-6][1-5])[- .]?\d{3,4}[- .]?\d{4}(?:\D|$)/;
   const EMAIL_RE = /[\w.+-]+@[\w.-]+\.[a-z]{2,}/i;
   const URL_RE = /(?:https?:\/\/|www\.|instagram\.com|facebook\.com|blog\.naver\.com)/i;
-  const ROLE_RE = /(강사|작가|저자|기획자|연구자|교육가|교사|대표|디렉터|퍼실리테이터|상담사|예술가|활동가|글쓰기|창작)/;
+  const ROLE_RE = /(강사|작가|저자|기획자|연구자|교육가|교사|대표|디렉터|퍼실리테이터|상담사|예술가|활동가|기록가|크리에이터|글쓰기|창작)/;
   const LECTURE_RE = /(출강|강의|강연|특강|워크숍|워크샵|수업|교육|프로그램|도서관|학교|센터|문화재단|문화원|복지관|청소년|평생학습|기관)/;
   const WORK_RE = /(저서|출간|출판|작품|공저|단독|전자책|에세이|시집|소설|ISBN|《|〈|『|<[^>]+>)/i;
   const DATE_AT_START_RE = /^(?:19|20)\d{2}(?:\s*[.\-/년]\s*\d{1,2})?(?:\s*[.\-/월]\s*\d{1,2})?/;
@@ -24,9 +24,9 @@
     ['intro', /^(?:소개|소개글|자기소개|강사\s*소개|프로필|profile|about)$/i],
     ['careers', /^(?:경력|직장\s*경력|주요\s*경력|활동\s*경력|이력|약력|프로필\s*이력)$/i],
     ['education', /^(?:학력|전공)$/i],
-    ['certificates', /^(?:자격|자격증|수료|인증|수상\s*[/·ㆍ]?\s*자격\s*및\s*주요\s*프로젝트)$/i],
+    ['certificates', /^(?:자격|기타\s*자격|자격증|수료|인증|수상\s*[/·ㆍ]?\s*자격\s*및\s*주요\s*프로젝트)$/i],
     ['works', /^(?:저서|저서\s*목록|저서\s*및\s*작품|저서[·ㆍ]\s*작품|작품|출간|출판|저작)$/i],
-    ['lectures', /^(?:출강|대표\s*(?:강연|강의)\s*이력|주요\s*출강(?:\s*이력)?|출강\s*이력|강의\s*경력|강의\s*이력|강연\s*이력|교육\s*이력)$/i],
+    ['lectures', /^(?:출강|강연\s*[/·ㆍ]\s*행사\s*[/·ㆍ]\s*모임|대표\s*(?:강연|강의)\s*이력|주요\s*출강(?:\s*이력)?|출강\s*이력|강의\s*경력|강의\s*이력|강연\s*이력|교육\s*이력)$/i],
   ];
 
   function cleanText(value){
@@ -75,6 +75,19 @@
       return true;
     });
   }
+  function mergeOpenParentheses(lines){
+    const out = [];
+    (lines || []).forEach(raw => {
+      const line = plainLine(raw);
+      if(!line) return;
+      const previous = out[out.length-1] || '';
+      const opens = (previous.match(/\(/g) || []).length;
+      const closes = (previous.match(/\)/g) || []).length;
+      if(out.length && opens > closes) out[out.length-1] = `${previous} ${line}`.trim();
+      else out.push(line);
+    });
+    return out;
+  }
   function inlineField(line){
     const m = plainLine(line).match(/^([^:：]{1,22})\s*[:：]\s*(.+)$/);
     if(!m) return null;
@@ -119,7 +132,7 @@
   }
   function extractBracketHeadline(lines){
     for(const raw of lines.slice(0, 18)){
-      const m = String(raw).match(/[\[【]\s*([^\]】]{3,48})\s*[\]】]/);
+      const m = String(raw).match(/[\[【]\s*([^\]】]{3,48})\s*[\]】]/) || String(raw).match(/<\s*([^>]{3,48})\s*>/);
       if(!m || PRIVATE_LABEL_RE.test(m[1])) continue;
       const value = m[1].replace(/\s*[,/|]\s*/g, ' · ').replace(/\s+/g, ' ').trim();
       if(ROLE_RE.test(value)) return value;
@@ -156,13 +169,17 @@
     })
       .sort((a,b) => b.key - a.key || a.index - b.index).map(x => x.line);
   }
-  function takeIntro(sections, loose, identityLines){
+  function takeIntro(sections, loose, identityLines, spillover=[]){
     const explicit = safeLines(sections.intro || []);
     if(explicit.length) return explicit.join('\n');
-    return safeLines(loose.filter(line =>
+    const candidates = [
+      ...loose.map(line => ({line, spillover:false})),
+      ...spillover.map(line => ({line, spillover:true})),
+    ];
+    return safeLines(candidates.filter(({line, spillover:isSpillover}) =>
       !identityLines.includes(line) && line.length >= 18 && line.length <= 260 && !DATE_AT_START_RE.test(line) &&
-      !WORK_RE.test(line) && !(LECTURE_RE.test(line) && /\d|회|년/.test(line))
-    )).slice(0, 3).join('\n');
+      (isSpillover || !WORK_RE.test(line)) && !(LECTURE_RE.test(line) && /\d|회|년/.test(line))
+    ).map(x => x.line)).slice(0, 3).join('\n');
   }
   function parseProfile(text, filenames){
     const cleaned = cleanText(text);
@@ -174,10 +191,12 @@
     const explicitHeadline = safeLines(sections.headline || [])[0] || '';
     const headline = explicitHeadline || bracketHeadline || loose.find(x => x.length <= 58 && ROLE_RE.test(x) && x !== name && !/[()（）]/.test(x)) || '';
     const identityLines = all.filter(x => (name && x.includes(name)) || (headline && x.includes(headline)));
-    const intro = takeIntro(sections, loose, identityLines);
+    const educationSource = mergeOpenParentheses(safeLines(sections.education || []));
+    const education = compactEntries(educationSource.filter(line => /학과|전공|학위|졸업|재학|수료|대학교|대학원/.test(line)), 1);
+    const educationSpillover = educationSource.filter(line => !/학과|전공|학위|졸업|재학|수료|대학교|대학원/.test(line));
+    const intro = takeIntro(sections, loose, identityLines, educationSpillover);
 
     const careers = compactEntries(sections.careers || [], 2, 4);
-    const education = compactEntries(sections.education || [], 1);
     const certificates = compactEntries(sections.certificates || [], 1, 3);
     if(education.length) careers.unshift(`[학력] ${education.join(' · ')}`);
     if(certificates.length) careers.push(...certificates.map(x => `[수상·자격] ${x}`));

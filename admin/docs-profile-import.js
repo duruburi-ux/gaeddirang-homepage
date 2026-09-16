@@ -67,11 +67,15 @@ async function readPdf(file){
   for(let n=1; n<=pdf.numPages; n++){
     status(`${file.name} 읽는 중 · ${n}/${pdf.numPages}쪽`);
     const content = await (await pdf.getPage(n)).getTextContent();
-    let line = '', lastY = null; const rows = [];
+    let line = '', lastY = null, lastEndX = null; const rows = [];
     content.items.forEach(item => {
       const y = item.transform && item.transform[5];
-      if(lastY != null && y != null && Math.abs(y-lastY) > 3){ if(line.trim()) rows.push(line.trim()); line = ''; }
-      line += (line ? ' ' : '') + (item.str || ''); lastY = y;
+      const x = item.transform && item.transform[4];
+      if(lastY != null && y != null && Math.abs(y-lastY) > 3){ if(line.trim()) rows.push(line.trim()); line = ''; lastEndX = null; }
+      const gap = line && x != null && lastEndX != null ? x-lastEndX : 0;
+      const space = line && gap > Math.max(1.5, Number(item.height || 10) * .12) ? ' ' : '';
+      line += space + (item.str || ''); lastY = y;
+      if(x != null) lastEndX = x + Number(item.width || 0);
     });
     if(line.trim()) rows.push(line.trim()); pages.push(rows.join('\n'));
   }

@@ -174,6 +174,29 @@ test('admin docs: uncertain profile import stops without overwriting the form', 
   await expect(page.locator('[data-f="profile.name"]')).toHaveValue(before);
 });
 
+test('admin docs: manual real HWP profile fixture can be inspected', async ({ page }) => {
+  const fixture = process.env.PROFILE_HWP_FIXTURE;
+  test.skip(!fixture, 'Set PROFILE_HWP_FIXTURE only when checking a private real HWP locally.');
+  await page.goto('/admin/docs.html?preview#kit', { waitUntil:'domcontentloaded' });
+  await page.locator('#kitSeg [data-sub="profile"]').click();
+  page.on('dialog', dialog => dialog.accept());
+  const chooserPromise = page.waitForEvent('filechooser');
+  await page.locator('.profile-import-btn').click();
+  const chooser = await chooserPromise;
+  await chooser.setFiles(fixture);
+  await expect(page.locator('.profile-import-note')).not.toContainText('읽는 중', { timeout:30000 });
+  const result = await page.evaluate(() => ({
+    note:document.querySelector('.profile-import-note')?.textContent || '',
+    name:document.querySelector('[data-f="profile.name"]')?.value || '',
+    headline:document.querySelector('[data-f="profile.headline"]')?.value || '',
+    intro:document.querySelector('[data-f="profile.intro"]')?.value || '',
+    careers:document.querySelector('[data-f="profile.careers"]')?.value || '',
+    works:document.querySelector('[data-f="profile.works"]')?.value || '',
+    lectures:document.querySelector('[data-f="profile.lectures"]')?.value || '',
+  }));
+  console.log('REAL_HWP_RESULT', JSON.stringify(result));
+});
+
 test('admin docs: long instructor profile splits by whole rows and repeats its identity', async ({ page }) => {
   await page.goto('/admin/docs.html?preview#kit', { waitUntil:'domcontentloaded' });
   await page.locator('#kitSeg [data-sub="profile"]').click();

@@ -163,6 +163,48 @@ test('한글 HWP 전용 체크표시와 반복 날짜가 있는 실제 이력서
   assert.doesNotMatch(JSON.stringify(result), /010-4004|instagram\.com|捤獥/);
 });
 
+test('PDF 표의 강연·행사·모임과 기타 자격 머리말을 구분한다', () => {
+  const result = model.parseProfile(`
+이다솜
+▶ 느껴온 감정을 기록하고 표현하는 <감정 기록가>
+▶ 학력 : 한국대학교 문예창작학과 졸업
+▶ 연락처 : 010-0000-0000
+▶ 출판을 비롯한 다양한 콘텐츠를 제작하는 종합 콘텐츠 크리에이터로 활동
+▶ 감정 기록 관련 도구(모든 감정 카드·불편 감정
+카드 등)를 개발·활용하며 강연과 워크숍을 진행합니다.
+ 경력
+기간 활동 내용
+2020.01~2022.01
+방송 프로그램 구성작가
+ 저서
+2025.06
+에세이 <이러나저러나 불편한 거야 불편한 건>
+ 강연 / 행사 / 모임
+기간 활동 내용 주최 주관 진행
+2026.01
+감정을 다채롭게 표현하는 <내 마음을 톡! 감정 표현 교실> 강연
+화성 다원이음터도서관
+2025.11~12
+사진을 보고 글로 기록하는 <포토북 글쓰기> 강연
+화성 양감초등학교 & 양감작은도서관
+ 기타 자격
+2025.03
+화성시 시민강사 자격 인증
+`);
+  assert.equal(result.blockedReason, '');
+  assert.equal(result.name, '이다솜');
+  assert.equal(result.headline, '감정 기록가');
+  assert.match(result.intro, /종합 콘텐츠 크리에이터/);
+  assert.match(result.intro, /불편 감정 카드 등\)를 개발/);
+  assert.match(result.works, /이러나저러나 불편한 거야/);
+  assert.doesNotMatch(result.works, /감정 기록가/);
+  assert.match(result.lectures, /다원이음터도서관/);
+  assert.match(result.lectures, /양감초등학교/);
+  assert.doesNotMatch(result.lectures, /시민강사 자격/);
+  assert.match(result.careers, /\[수상·자격\].*시민강사 자격/);
+  assert.doesNotMatch(JSON.stringify(result), /010-0000-0000/);
+});
+
 test('분류가 무너지면 자동 채움을 막는다', () => {
   const result = model.parseProfile(`
 장진호 / 필명 : 장두루
