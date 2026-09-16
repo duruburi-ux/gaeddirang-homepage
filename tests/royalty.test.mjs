@@ -36,6 +36,8 @@ test('작가·도서별 인세와 외부위탁 판매·샘플·재고를 분리�
       ['2026-07-01','엄인용','나는 언제 웃고 있었지?','입고','45','0','45','','확인','',''],
       ['2026-09-01','엄인용','나는 언제 웃고 있었지?','판매','0','37','8','스마트스토어','확인','',''],
       ['2026-09-12','엄인용','나는 언제 웃고 있었지?','결제완료(미출고)','0','0','8','스마트스토어','대기','',''],
+      ['2026-09-15','엄인용','나는 언제 웃고 있었지?','판매','0','1','7','스마트스토어','확인','',''],
+      ['2026-09-16','엄인용','나는 언제 웃고 있었지?','결제완료(미출고)','0','0','7','스마트스토어','대기','',''],
     ]),
     settlements:range([
       ['작가','관리 구분','도서','채널','판매권수','정가','작가율','작가금액','팀금액','지급상태','지급일','다음 정산일','비고'],
@@ -50,7 +52,7 @@ test('작가·도서별 인세와 외부위탁 판매·샘플·재고를 분리�
   assert.equal(an.operations.find(r=>r.label==='샘플 제공').qty,1);
   assert.equal(an.operations.find(r=>r.label==='현재 재고').qty,7);
   const um=out.books.find(b=>b.author==='엄인용');
-  assert.equal(um.sales.reduce((a,r)=>a+r.qty,0),37);assert.equal(um.currentStock,9);
+  assert.equal(um.sales.reduce((a,r)=>a+r.qty,0),38);assert.equal(um.currentStock,7);assert.equal(um.checkedAt,'2026-09-16');
   const moon=out.books.find(b=>b.title==='문고리');
   assert.equal(moon.isRoyalty,true);assert.equal(moon.sales[0].sheetRoyalty,295800);assert.equal(moon.exemptUsed,18);
   assert.equal(moon.operations.find(r=>r.label==='책방 샘플 제공').qty,7);

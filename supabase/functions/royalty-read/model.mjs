@@ -93,6 +93,19 @@ function consignmentOperations(inventory,b){
   return operations;
 }
 
+function latestInventoryBalance(inventory,b){
+  const {rows,get}=inventory;
+  let latest=null;
+  for(const r of rows){
+    if(!matchBook(r,get,b))continue;
+    const qty=number(get(r,'잔량'));
+    if(qty==null)continue;
+    const date=get(r,'일자');
+    if(!latest||date>=latest.date)latest={qty,date};
+  }
+  return latest;
+}
+
 function payoutStatus(settlements,b){
   const {rows,get}=settlements,matched=rows.filter(r=>matchBook(r,get,b));
   const statuses=[...new Set(matched.map(r=>get(r,'지급상태')).filter(Boolean))];
@@ -112,6 +125,10 @@ export function buildRoyalty(raw){
       checkedAt:basis.get(r,'확인일'),note:basis.get(r,'근거·주의사항'),
     };
     b.key=keyOf(b.author,b.title);b.isRoyalty=/인세|자체출판/.test(b.type);
+    if(!b.isRoyalty){
+      const latest=latestInventoryBalance(inventory,b);
+      if(latest){b.currentStock=latest.qty;b.checkedAt=latest.date;}
+    }
     b.sales=b.isRoyalty?ledgerSales(ledger,b):consignmentSales(inventory,b);
     b.operations=b.isRoyalty?legacy.nonSaleRows.map(x=>({label:x.purpose,qty:x.qty,note:x.note})):consignmentOperations(inventory,b);
     b.exemptLimit=b.isRoyalty&&b.title==='문고리'?200:null;

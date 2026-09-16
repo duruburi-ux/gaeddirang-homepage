@@ -1537,7 +1537,6 @@ function royaltyHtml(s, dense){
   ];
   if(BOOK.isRoyalty && s.exempt != null && BOOK.exemptLimit) notes.push(`계약에 따라 판매 외 제공분은 최대 ${BOOK.exemptLimit}부까지 인세 대상에서 제외됩니다. 현재 ${won(s.exempt)}부가 제공되었으며, 잔여 범위는 ${won(Math.max(0, BOOK.exemptLimit - s.exempt))}부입니다.`);
   if(BOOK.isRoyalty && BOOK.title==='문고리') notes.push('계약금 500,000원은 판매 인세와 별도로 지급한 금액이며 인세에서 차감하지 않습니다. (계약 15조)');
-  if(BOOK.note) notes.push(`기준정보 참고: ${esc(BOOK.note)}`);
   notes.push(taxText);
   s.memo.forEach(m => notes.push(esc(m)));
   const whTable = s.wh && s.mode !== 'none' ? `
