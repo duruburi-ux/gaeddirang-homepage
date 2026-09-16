@@ -4,7 +4,7 @@
 
 const MAX_FILE = 20 * 1024 * 1024;
 const MAX_FILES = 6;
-const IMPORTER_VERSION = '2026.09.16.4';
+const IMPORTER_VERSION = '2026.09.16.5';
 const CDN = {
   zip:'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',
   pdf:'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
@@ -68,17 +68,33 @@ async function readPdf(file){
   for(let n=1; n<=pdf.numPages; n++){
     status(`${file.name} 읽는 중 · ${n}/${pdf.numPages}쪽`);
     const content = await (await pdf.getPage(n)).getTextContent();
-    let line = '', lastY = null, lastEndX = null; const rows = [];
-    content.items.forEach(item => {
-      const y = item.transform && item.transform[5];
-      const x = item.transform && item.transform[4];
-      if(lastY != null && y != null && Math.abs(y-lastY) > 3){ if(line.trim()) rows.push(line.trim()); line = ''; lastEndX = null; }
-      const gap = line && x != null && lastEndX != null ? x-lastEndX : 0;
-      const space = line && gap > Math.max(1.5, Number(item.height || 10) * .12) ? ' ' : '';
-      line += space + (item.str || ''); lastY = y;
-      if(x != null) lastEndX = x + Number(item.width || 0);
+    // PDF.js가 글자 조각을 돌려주는 순서는 브라우저·OS에 따라 달라질 수 있다.
+    // 원본 배열 순서를 믿지 않고 실제 페이지 좌표로 행을 다시 만든다.
+    const pieces = content.items.map((item, index) => ({
+      text:String(item.str || ''), index,
+      x:Number(item.transform?.[4] || 0), y:Number(item.transform?.[5] || 0),
+      width:Number(item.width || 0), height:Number(item.height || 10),
+    })).filter(item => item.text.trim());
+    pieces.sort((a,b) => b.y-a.y || a.x-b.x || a.index-b.index);
+    const grouped = [];
+    pieces.forEach(piece => {
+      let row = grouped.find(candidate => Math.abs(candidate.y-piece.y) <= Math.max(2.4, Math.min(candidate.height, piece.height)*.22));
+      if(!row){ row = { y:piece.y, height:piece.height, pieces:[] }; grouped.push(row); }
+      row.pieces.push(piece);
     });
-    if(line.trim()) rows.push(line.trim()); pages.push(rows.join('\n'));
+    grouped.sort((a,b) => b.y-a.y);
+    const rows = grouped.map(row => {
+      row.pieces.sort((a,b) => a.x-b.x || a.index-b.index);
+      let line = '', lastEndX = null;
+      row.pieces.forEach(piece => {
+        const gap = line && lastEndX != null ? piece.x-lastEndX : 0;
+        const space = line && gap > Math.max(1.5, piece.height*.12) ? ' ' : '';
+        line += space + piece.text;
+        lastEndX = Math.max(lastEndX == null ? -Infinity : lastEndX, piece.x+piece.width);
+      });
+      return line.trim();
+    }).filter(Boolean);
+    pages.push(rows.join('\n'));
   }
   return pages.join('\n');
 }

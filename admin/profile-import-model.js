@@ -6,7 +6,8 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(){
   'use strict';
 
-  const PRIVATE_LABEL_RE = /(생년월일|주민등록|휴대폰|핸드폰|연락처|전화번호|전화|이메일|e-?mail|주소|계좌|은행|인스타(?:그램)?|sns|사진)/i;
+  const PRIVATE_LABEL_RE = /(생년월일|주민등록|휴대폰|핸드폰|연락처|전화번호|전화|이메일|e-?mail|주소|계좌|은행|인스타(?:그램)?|sns)/i;
+  const PHOTO_LABEL_RE = /^(?:증명\s*)?사진\s*[:：]?$/;
   const PHONE_RE = /(?:^|\D)(?:\+?82[- .]?)?0(?:2|1[016789]|[3-6][1-5])[- .]?\d{3,4}[- .]?\d{4}(?:\D|$)/;
   const EMAIL_RE = /[\w.+-]+@[\w.-]+\.[a-z]{2,}/i;
   const URL_RE = /(?:https?:\/\/|www\.|instagram\.com|facebook\.com|blog\.naver\.com)/i;
@@ -50,7 +51,7 @@
   }
   function isPrivate(line){
     const s = String(line || '');
-    return PRIVATE_LABEL_RE.test(s) || PHONE_RE.test(s) || EMAIL_RE.test(s) || URL_RE.test(s);
+    return PRIVATE_LABEL_RE.test(s) || PHOTO_LABEL_RE.test(plainLine(s)) || PHONE_RE.test(s) || EMAIL_RE.test(s) || URL_RE.test(s);
   }
   function isNoise(line){
     const s = plainLine(line).replace(/[|｜:：]+/g, ' ').replace(/\s+/g, ' ').trim();
@@ -128,7 +129,7 @@
       m = line.match(/^(?:본명\s*[:：]?\s*)?([가-힣]{2,6}).*?필명\s*[:：]?\s*([가-힣]{2,8})/);
       if(m) return m[2];
       const simple = line.replace(/^(?:성명|이름|강사명)\s*[:：]?\s*/, '').replace(/\s*(?:강사|작가|저자|선생님)\s*$/, '').trim();
-      if(/^[가-힣]{2,8}$/.test(simple) && !keyForHeading(simple) && !/^(프로필|강사소개|자기소개|주요경력|직장경력)$/.test(simple)) return simple;
+      if(/^[가-힣]{2,8}$/.test(simple) && !keyForHeading(simple) && !isNoise(simple) && !ROLE_RE.test(simple) && !/^(프로필|강사소개|자기소개|주요경력|직장경력)$/.test(simple)) return simple;
     }
     return '';
   }
@@ -139,6 +140,16 @@
       const names = base.match(/[가-힣]{2,8}/g) || [];
       const candidate = names.find(x => !ROLE_RE.test(x) && !/^(강사|프로필|이력|경력|전체|총정리|최종|대리림|도서관)$/.test(x));
       if(candidate) return candidate;
+    }
+    return '';
+  }
+  function extractHeadlineFromFilenames(filenames, name){
+    for(const raw of Array.isArray(filenames) ? filenames : []){
+      let base = String(raw || '').normalize('NFC').replace(/\.[^.]+$/, '').replace(/[\[【(（][^\]】)）]*[\]】)）]/g, ' ');
+      base = base.replace(/(?:강사\s*)?프로필|이력서|경력|전체|총정리|최종|사본|복사본/gi, ' ').replace(/[\d_\-]+/g, ' ').replace(/\s+/g, ' ').trim();
+      if(name) base = base.replace(new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), ' ').replace(/\s+/g, ' ').trim();
+      const role = (base.match(/[가-힣A-Za-z ]{2,30}/g) || []).map(x => x.trim()).find(x => ROLE_RE.test(x));
+      if(role) return role.replace(/감정\s*기록가/g, '감정 기록가');
     }
     return '';
   }
@@ -154,6 +165,42 @@
   function safeLines(lines){ return (lines || []).map(plainLine).filter(line => line && !isPrivate(line) && !isNoise(line)); }
   function compactEntries(lines, maxTail=2, limit=0){
     const source = safeLines(lines);
+    const dateAnchors = source.map((line, index) => DATE_AT_START_RE.test(line) ? index : -1).filter(index => index >= 0);
+    if(dateAnchors.length >= 2 && dateAnchors[0] > 0){
+      const groups = dateAnchors.map(() => []);
+      source.forEach((line, index) => {
+        let nearest = 0, distance = Infinity;
+        dateAnchors.forEach((anchor, anchorIndex) => {
+          const nextDistance = Math.abs(index-anchor);
+          if(nextDistance < distance){ nearest = anchorIndex; distance = nextDistance; }
+        });
+        groups[nearest].push({ line, index });
+      });
+      const centered = groups.map((group, groupIndex) => {
+        const anchorIndex = dateAnchors[groupIndex];
+        const anchor = group.find(item => item.index === anchorIndex)?.line || '';
+        const date = anchor.match(/^((?:19|20)\d{2}(?:\s*[.\-/년]\s*\d{1,2})?(?:\s*[.\-/월]\s*\d{1,2})?(?:\s*(?:~|～|–|—)\s*(?:(?:19|20)?\d{2})?(?:\s*[.\-/년]\s*\d{1,2})?(?:\s*[.\-/월]\s*\d{1,2})?)?)(?:\s+|$)(.*)$/);
+        const before = group.filter(item => item.index < anchorIndex).map(item => item.line);
+        const after = group.filter(item => item.index > anchorIndex).map(item => item.line);
+        const details = [...before, date?.[2] || '', ...after].filter(Boolean).slice(0, maxTail);
+        return `${date?.[1] || anchor}${details.length ? ` ${details[0]}${details.slice(1).map(x => ` · ${x}`).join('')}` : ''}`.replace(/\s+/g, ' ').trim();
+      });
+      const repaired = unique(centered);
+      return limit ? repaired.slice(0, limit) : repaired;
+    }
+    // 표가 열 단위로 풀리면 날짜가 전부 나온 뒤 활동 내용이 한꺼번에 나온다.
+    // 연속 날짜 열과 같은 수의 내용 열이 보이면 같은 행끼리 다시 짝지어 준다.
+    let dateColumnSize = 0;
+    while(dateColumnSize < source.length && DATE_ONLY_RE.test(source[dateColumnSize])) dateColumnSize++;
+    if(dateColumnSize >= 2){
+      const details = source.slice(dateColumnSize).filter(line => !DATE_ONLY_RE.test(line));
+      if(details.length >= dateColumnSize){
+        const paired = source.slice(0, dateColumnSize).map((date, index) => `${date} ${details[index]}`.replace(/\s+/g, ' ').trim());
+        const remainder = details.slice(dateColumnSize);
+        const repaired = unique([...paired, ...remainder]);
+        return limit ? repaired.slice(0, limit) : repaired;
+      }
+    }
     const out = [];
     for(let i=0; i<source.length; i++){
       let line = source[i];
@@ -198,10 +245,12 @@
     const sections = splitSections(cleaned);
     const all = cleaned.split('\n').map(plainLine).filter(Boolean);
     const loose = safeLines(sections.loose || []);
-    const name = extractName(all, sections.name) || extractNameFromFilenames(filenames);
+    const filenameName = extractNameFromFilenames(filenames);
+    const name = extractName(all, sections.name) || filenameName;
     const bracketHeadline = extractBracketHeadline(all);
     const explicitHeadline = safeLines(sections.headline || [])[0] || '';
-    const headline = explicitHeadline || bracketHeadline || loose.find(x => x.length <= 58 && ROLE_RE.test(x) && x !== name && !/[()（）]/.test(x)) || '';
+    const filenameHeadline = extractHeadlineFromFilenames(filenames, name);
+    const headline = explicitHeadline || bracketHeadline || filenameHeadline || loose.find(x => x.length <= 34 && ROLE_RE.test(x) && x !== name && !/[()（）]/.test(x) && !/(활동|진행|제작|개발|합니다|있습니다)/.test(x)) || '';
     const identityLines = all.filter(x => (name && x.includes(name)) || (headline && x.includes(headline)));
     const educationSource = mergeOpenParentheses(safeLines(sections.education || []));
     const education = compactEntries(educationSource.filter(line => /학과|전공|학위|졸업|재학|수료|대학교|대학원/.test(line)), 1);
