@@ -4,6 +4,7 @@
 
 const MAX_FILE = 20 * 1024 * 1024;
 const MAX_FILES = 6;
+const IMPORTER_VERSION = '2026.09.16.3';
 const CDN = {
   zip:'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',
   pdf:'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
@@ -177,13 +178,13 @@ async function importFiles(files){
     if(!parts.length){ status(errors.join('\n') || '읽을 수 있는 글자가 없어요', true); return; }
     const result = window.ProfileImportModel.parseProfile(parts.join('\n\n'), files.map(f => f.name));
     if(result.blockedReason){
-      status(`자동 정리를 멈췄어요. 기존 내용은 그대로예요.\n이유: ${result.blockedReason}\nHWP 표 구조가 복잡하면 PDF로 저장해 다시 올리거나, 내용을 직접 확인해 주세요.`, true);
+      status(`[판독기 ${IMPORTER_VERSION}] ${files.map(f => f.name).join(', ')}\n자동 정리를 멈췄어요. 기존 내용은 그대로예요.\n이유: ${result.blockedReason}\n다른 형식으로 다시 올리거나 내용을 직접 확인해 주세요.`, true);
       return;
     }
     const count = fill(result);
     if(count === false){ status('가져오기를 취소했어요. 기존 내용은 그대로예요.'); return; }
     const tail = [...result.warnings, ...errors];
-    status(`${count}개 항목을 정리해 채웠어요. 자동 분류 결과를 확인한 뒤 저장해 주세요.${tail.length ? '\n확인할 점: '+tail.join(' · ') : ''}`, tail.length>0);
+    status(`[판독기 ${IMPORTER_VERSION}] ${count}개 항목을 정리해 채웠어요. 자동 분류 결과를 확인한 뒤 저장해 주세요.${tail.length ? '\n확인할 점: '+tail.join(' · ') : ''}`, tail.length>0);
   } finally {
     busy = false; panel.querySelector('.profile-import-btn').disabled = false;
   }

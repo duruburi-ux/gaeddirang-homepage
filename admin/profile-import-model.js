@@ -108,6 +108,8 @@
     cleanText(text).split('\n').forEach(raw => {
       const line = plainLine(raw);
       if(!line) return;
+      const combinedLecture = line.match(/^(?:강연\s*[/·ㆍ]\s*행사\s*[/·ㆍ]\s*모임|대표\s*(?:강연|강의)\s*이력|주요\s*출강(?:\s*이력)?)\s+(.+)$/i);
+      if(combinedLecture){ current = 'lectures'; (sections[current] ||= []).push(combinedLecture[1]); return; }
       const inline = inlineField(line) || headingWithValue(line);
       if(inline){ current = inline.key; (sections[current] ||= []).push(inline.value); return; }
       const heading = keyForHeading(line);
@@ -126,7 +128,17 @@
       m = line.match(/^(?:본명\s*[:：]?\s*)?([가-힣]{2,6}).*?필명\s*[:：]?\s*([가-힣]{2,8})/);
       if(m) return m[2];
       const simple = line.replace(/^(?:성명|이름|강사명)\s*[:：]?\s*/, '').replace(/\s*(?:강사|작가|저자|선생님)\s*$/, '').trim();
-      if(/^[가-힣]{2,8}$/.test(simple) && !/^(프로필|강사소개|자기소개|주요경력|직장경력)$/.test(simple)) return simple;
+      if(/^[가-힣]{2,8}$/.test(simple) && !keyForHeading(simple) && !/^(프로필|강사소개|자기소개|주요경력|직장경력)$/.test(simple)) return simple;
+    }
+    return '';
+  }
+  function extractNameFromFilenames(filenames){
+    for(const raw of Array.isArray(filenames) ? filenames : []){
+      let base = String(raw || '').replace(/\.[^.]+$/, '').replace(/[\[【(（][^\]】)）]*[\]】)）]/g, ' ');
+      base = base.replace(/(?:강사\s*)?프로필|이력서|경력|전체|총정리|최종|사본|복사본/gi, ' ').replace(/[\d_\-]+/g, ' ').replace(/\s+/g, ' ').trim();
+      const names = base.match(/[가-힣]{2,8}/g) || [];
+      const candidate = names.find(x => !/^(강사|프로필|이력|경력|전체|총정리|최종|대리림|도서관)$/.test(x));
+      if(candidate) return candidate;
     }
     return '';
   }
@@ -186,7 +198,7 @@
     const sections = splitSections(cleaned);
     const all = cleaned.split('\n').map(plainLine).filter(Boolean);
     const loose = safeLines(sections.loose || []);
-    const name = extractName(all, sections.name);
+    const name = extractName(all, sections.name) || extractNameFromFilenames(filenames);
     const bracketHeadline = extractBracketHeadline(all);
     const explicitHeadline = safeLines(sections.headline || [])[0] || '';
     const headline = explicitHeadline || bracketHeadline || loose.find(x => x.length <= 58 && ROLE_RE.test(x) && x !== name && !/[()（）]/.test(x)) || '';
@@ -219,8 +231,8 @@
     const blockers = [];
     if(!result.name || !/^[가-힣A-Za-z][가-힣A-Za-z\s]{1,19}$/.test(result.name) || /[/|:：]/.test(result.name)) blockers.push('이름을 확실히 구분하지 못했어요');
     if(isPrivate(output)) blockers.push('연락처나 주소 같은 개인정보가 결과에 섞여 있어요');
-    if(/(?:저서|출간|출판|저작|작품)/.test(cleaned) && !result.works) blockers.push('저서·작품 항목을 구분하지 못했어요');
-    if(/(?:대표\s*)?(?:강연|강의|출강)\s*(?:이력|경력)?/.test(cleaned) && !result.lectures) blockers.push('강연·출강 항목을 구분하지 못했어요');
+    if(/(?:저서|출간|출판|저작|작품)/.test(cleaned) && !result.works) result.warnings.push('저서·작품은 자동 구분하지 못했어요');
+    if(/(?:대표\s*)?(?:강연|강의|출강)\s*(?:이력|경력)?/.test(cleaned) && !result.lectures) result.warnings.push('강연·출강은 자동 구분하지 못했어요');
     if(!result.intro) result.warnings.push('소개글을 찾지 못했어요');
     if(!result.careers && !result.works && !result.lectures) blockers.push('이력을 항목별로 나누지 못했어요');
     result.filled = ['name','headline','intro','careers','works','lectures'].filter(k => result[k]).length;

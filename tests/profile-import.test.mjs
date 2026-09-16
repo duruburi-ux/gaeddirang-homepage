@@ -205,6 +205,21 @@ test('PDF 표의 강연·행사·모임과 기타 자격 머리말을 구분한�
   assert.doesNotMatch(JSON.stringify(result), /010-0000-0000/);
 });
 
+test('맥북처럼 이름과 강연 표제가 한 줄로 합쳐져도 파일명과 표제 앞부분으로 복구한다', () => {
+  const result = model.parseProfile(`
+느껴온 감정을 기록하고 표현하는 감정 기록가
+경력
+2020.01~2022.01 방송 프로그램 구성작가
+저서
+2025.06 에세이 <감정 기록의 시작>
+강연 / 행사 / 모임 기간 활동 내용 주최 주관 진행
+2026.01 감정 표현 교실 강연 화성 다원이음터도서관
+`, ['이다솜 이력서 (260205).pdf']);
+  assert.equal(result.blockedReason, '');
+  assert.equal(result.name, '이다솜');
+  assert.match(result.lectures, /다원이음터도서관/);
+});
+
 test('분류가 무너지면 자동 채움을 막는다', () => {
   const result = model.parseProfile(`
 장진호 / 필명 : 장두루
