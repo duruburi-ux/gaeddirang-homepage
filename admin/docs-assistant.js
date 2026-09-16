@@ -283,6 +283,7 @@ function syncHelperMode(){
 function moveHelper(){
   const form=activeView()?.querySelector('.form-col');
   if(!form) return;
+  if(window.__profileImport?.install) window.__profileImport.install();
   if(!helper) install(); else if(helper.parentElement!==form) form.prepend(helper);
   syncHelperMode();
   note('');

@@ -62,7 +62,7 @@ test('학력과 자격은 경력 칸에 알아보기 쉬운 말머리로 합친�
 2024.01 ~ 현재 마음책방 운영
 `);
   assert.match(result.careers, /\[학력\]/);
-  assert.match(result.careers, /\[자격·수료\]/);
+  assert.match(result.careers, /\[수상·자격\]/);
   assert.match(result.careers, /마음책방 운영/);
 });
 
@@ -94,7 +94,7 @@ test('실제 HWP처럼 표가 풀려도 필명·경력·저서·강연을 나누
   assert.equal(result.name, '장두루');
   assert.equal(result.headline, '감정 기록 글쓰기 · 창작');
   assert.match(result.intro, /마음 기록과 글쓰기/);
-  assert.match(result.careers, /2017\.12~2023\.05 · 삼성전자 · 연구원/);
+  assert.match(result.careers, /2017\.12~2023\.05 삼성전자 · 연구원/);
   assert.match(result.works, /가족이어서 할 수 없는 이야기/);
   assert.match(result.lectures, /경기상상캠퍼스/);
   assert.doesNotMatch(`${result.careers}\n${result.works}\n${result.lectures}`, /\[학력\].*\[학력\]/s);
@@ -102,6 +102,58 @@ test('실제 HWP처럼 표가 풀려도 필명·경력·저서·강연을 나누
   assert.doesNotMatch(result.careers, /에세이/);
   assert.doesNotMatch(result.works, /\[학력\]/);
   assert.doesNotMatch(result.lectures, /기간 활동 내용/);
+});
+
+test('한글 HWP 전용 체크표시와 반복 날짜가 있는 실제 이력서 구조를 정리한다', () => {
+  const result = model.parseProfile(`
+捤獥 汤捯 湰灧 [감정 기록, 글쓰기, 창작] 장두루 (장진호)
+두루 잘 살고 싶은 사람 ‘두루’라는 필명으로 활동하며,
+마음 기록과 글쓰기 중심으로 창작 활동을 이어가고 있습니다.
+▶ 이름: 장진호 / 필명: 장두루
+▶ 학력 : 금오공과대학교 전자공학부 졸업 (2009~2017년도)
+▶ 연락처 : 010-4004-8396
+▶ 인스타그램 https://www.instagram.com/from.duru
+ 직장 경력
+기간
+내용
+2017.12~2023.05
+■ 삼성전자
+▶ 연구원
+ 저서
+2025.10
+(공저) 에세이 <가족이어서 할 수 없는 이야기> - 가가77페이지 출판사
+2025.05
+(단독) 에세이 <불안과 밤 산책> - 개띠랑 출판사
+ 수상 / 자격 및 주요 프로젝트
+2026.02
+화성시민강사 취득
+2025.12
+기회소득 예술인 수기공모전 우수상
+2025.12
+심리분석사 2급
+ 대표 강연 이력
+공공기관 및 교육청
+기간
+활동 내용
+주최
+주관
+진행
+2026.05~10
+경기문화재단 경기상상캠퍼스 숲숲학교 숲인문학 프로그램 진행
+<숲의 문장들, 봄>
+경기문화재단 경기상상캠퍼스
+2026.06
+(예정)
+마음을 글로 표현하는 감정 기록 워크숍
+화성 송린이음터도서관
+`);
+  assert.equal(result.blockedReason, '');
+  assert.equal(result.name, '장두루');
+  assert.equal(result.headline, '감정 기록 · 글쓰기 · 창작');
+  assert.match(result.works, /2025\.10 \(공저\) 에세이/);
+  assert.equal((result.careers.match(/2025\.12/g) || []).length, 2);
+  assert.match(result.lectures, /2026\.06 \(예정\) 마음을 글로 표현하는 감정 기록 워크숍/);
+  assert.doesNotMatch(JSON.stringify(result), /010-4004|instagram\.com|捤獥/);
 });
 
 test('분류가 무너지면 자동 채움을 막는다', () => {

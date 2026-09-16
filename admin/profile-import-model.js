@@ -14,9 +14,9 @@
   const LECTURE_RE = /(출강|강의|강연|특강|워크숍|워크샵|수업|교육|프로그램|도서관|학교|센터|문화재단|문화원|복지관|청소년|평생학습|기관)/;
   const WORK_RE = /(저서|출간|출판|작품|공저|단독|전자책|에세이|시집|소설|ISBN|《|〈|『|<[^>]+>)/i;
   const DATE_AT_START_RE = /^(?:19|20)\d{2}(?:\s*[.\-/년]\s*\d{1,2})?(?:\s*[.\-/월]\s*\d{1,2})?/;
-  const DATE_ONLY_RE = /^(?:19|20)\d{2}(?:\s*[.\-/년]\s*\d{1,2})?(?:\s*[.\-/월]\s*\d{1,2})?\s*(?:~|～|-|–|—)\s*(?:(?:19|20)?\d{2})?(?:\s*[.\-/년]\s*\d{1,2})?(?:\s*[.\-/월]\s*\d{1,2})?\s*(?:현재)?$/;
+  const DATE_ONLY_RE = /^(?:19|20)\d{2}(?:\s*[.\-/년]\s*\d{1,2})?(?:\s*[.\-/월]\s*\d{1,2})?\s*(?:(?:~|～|-|–|—)\s*(?:(?:19|20)?\d{2})?(?:\s*[.\-/년]\s*\d{1,2})?(?:\s*[.\-/월]\s*\d{1,2})?\s*(?:현재)?)?$/;
   const BULLET_RE = /^\s*(?:(?:[-–—•·▪■□◆◇▶▷✓✔▣▢▰▮▯▌●○❖※*]+)|(?:\d{1,2}|[가-하])[.)])\s*/;
-  const TABLE_NOISE_RE = /^(?:기간|내용|활동|활동\s*내용|기관|주최|주관|진행|비고|연도|날짜|구분|직장\s*경력|대표\s*강연\s*이력|공공기관\s*및\s*교육청|저서\s*목록|경력\s*내용)$/;
+  const TABLE_NOISE_RE = /^(?:기간|내용|목록|활동|활동\s*내용|기관|주최|주관|진행|비고|연도|날짜|구분|직장\s*경력|대표\s*강연\s*이력|공공기관\s*및\s*교육청|학교\s*및\s*도서관|문화체육관광부.*주관|저서\s*목록|경력\s*내용|체험\s*부스.*외부\s*활동|방송\s*및\s*인터뷰|운영\s*가능한\s*강연.*프로그램)$/;
 
   const SECTION_ALIASES = [
     ['name', /^(?:성명|이름|강사명|프로필명)$/i],
@@ -24,7 +24,7 @@
     ['intro', /^(?:소개|소개글|자기소개|강사\s*소개|프로필|profile|about)$/i],
     ['careers', /^(?:경력|직장\s*경력|주요\s*경력|활동\s*경력|이력|약력|프로필\s*이력)$/i],
     ['education', /^(?:학력|전공)$/i],
-    ['certificates', /^(?:자격|자격증|수료|인증)$/i],
+    ['certificates', /^(?:자격|자격증|수료|인증|수상\s*[/·ㆍ]?\s*자격\s*및\s*주요\s*프로젝트)$/i],
     ['works', /^(?:저서|저서\s*목록|저서\s*및\s*작품|저서[·ㆍ]\s*작품|작품|출간|출판|저작)$/i],
     ['lectures', /^(?:출강|대표\s*(?:강연|강의)\s*이력|주요\s*출강(?:\s*이력)?|출강\s*이력|강의\s*경력|강의\s*이력|강연\s*이력|교육\s*이력)$/i],
   ];
@@ -34,7 +34,11 @@
       .replace(/\u00a0/g, ' ').replace(/\r\n?/g, '\n').replace(/[\t ]+/g, ' ')
       .replace(/ *\n */g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   }
-  function plainLine(value){ return String(value || '').replace(BULLET_RE, '').replace(/^[|｜]+|[|｜]+$/g, '').trim(); }
+  function plainLine(value){
+    return String(value || '').replace(BULLET_RE, '')
+      .replace(/^[^0-9A-Za-z가-힣\[【(<《〈『~～–—]+/u, '')
+      .replace(/^[|｜]+|[|｜]+$/g, '').trim();
+  }
   function normalizedHeading(value){
     return plainLine(value).replace(/^[\[\]【】()（）\s]+|[\[\]【】()（）\s:：·ㆍ\-–—_/]+$/g, '').trim();
   }
@@ -50,7 +54,7 @@
   }
   function isNoise(line){
     const s = plainLine(line).replace(/[|｜:：]+/g, ' ').replace(/\s+/g, ' ').trim();
-    if(!s || TABLE_NOISE_RE.test(s) || /^\d+\s*[-–—]\s*$/.test(s)) return true;
+    if(!s || TABLE_NOISE_RE.test(s) || /^\d+\s*[-–—]\s*$/.test(s) || /^\d+[.)]\s*(?:지역서점|행사|문화센터)/.test(s)) return true;
     const words = s.split(' ');
     return words.length <= 6 && words.every(word => TABLE_NOISE_RE.test(word));
   }
@@ -60,6 +64,15 @@
       const k = line.replace(/\s+/g, '').toLowerCase();
       if(!k || seen.has(k)) return false;
       seen.add(k); return true;
+    });
+  }
+  function dedupeAdjacent(lines){
+    let previous = '';
+    return lines.map(plainLine).filter(Boolean).filter(line => {
+      const key = line.replace(/\s+/g, '').toLowerCase();
+      if(key === previous) return false;
+      previous = key;
+      return true;
     });
   }
   function inlineField(line){
@@ -88,7 +101,7 @@
       if(heading){ current = heading; sections[current] ||= []; return; }
       (sections[current] ||= []).push(line);
     });
-    Object.keys(sections).forEach(k => sections[k] = unique(sections[k]));
+    Object.keys(sections).forEach(k => sections[k] = dedupeAdjacent(sections[k]));
     return sections;
   }
   function extractName(lines, explicit){
@@ -108,27 +121,41 @@
     for(const raw of lines.slice(0, 18)){
       const m = String(raw).match(/[\[【]\s*([^\]】]{3,48})\s*[\]】]/);
       if(!m || PRIVATE_LABEL_RE.test(m[1])) continue;
-      const value = m[1].replace(/\s*[/|]\s*/g, ' · ').replace(/\s+/g, ' ').trim();
+      const value = m[1].replace(/\s*[,/|]\s*/g, ' · ').replace(/\s+/g, ' ').trim();
       if(ROLE_RE.test(value)) return value;
     }
     return '';
   }
-  function safeLines(lines){ return unique(lines || []).filter(line => !isPrivate(line) && !isNoise(line)); }
-  function compactEntries(lines, maxTail=2){
+  function safeLines(lines){ return (lines || []).map(plainLine).filter(line => line && !isPrivate(line) && !isNoise(line)); }
+  function compactEntries(lines, maxTail=2, limit=0){
     const source = safeLines(lines);
     const out = [];
     for(let i=0; i<source.length; i++){
       let line = source[i];
       if(DATE_ONLY_RE.test(line)){
+        if(/[~～–—-]\s*$/.test(line) && i+1 < source.length && /^(?:19|20)\d{2}/.test(source[i+1])) line += source[++i];
+        if(i+1 < source.length && /^\s*(?:~|～|-|–|—)\s*(?:현재|(?:19|20)\d{2})/.test(source[i+1])) line += source[++i];
+        if(i+1 < source.length && /^\((?:예정|진행|종료)\)$/.test(source[i+1])) line += ` ${source[++i]}`;
         const tail = [];
-        while(i+1 < source.length && tail.length < maxTail && !DATE_AT_START_RE.test(source[i+1])) tail.push(source[++i]);
-        line = [line, ...tail].join(' · ');
+        while(i+1 < source.length && !DATE_ONLY_RE.test(source[i+1])){
+          const next = source[++i];
+          if(tail.length < maxTail) tail.push(next);
+        }
+        line = tail.length ? `${line} ${tail[0]}${tail.slice(1).map(x => ` · ${x}`).join('')}` : line;
       }
       out.push(line.replace(/\s+/g, ' ').trim());
+      if(limit && out.length >= limit) break;
     }
     return unique(out);
   }
   function joinLines(lines){ return unique(lines).join('\n'); }
+  function recentFirst(lines){
+    return lines.map((line, index) => {
+      const m = line.match(/^(\d{4})(?:\s*[.\-/]\s*(\d{1,2}))?/);
+      return { line, index, key:Number(m?.[1] || 0) * 100 + Number(m?.[2] || 0) };
+    })
+      .sort((a,b) => b.key - a.key || a.index - b.index).map(x => x.line);
+  }
   function takeIntro(sections, loose, identityLines){
     const explicit = safeLines(sections.intro || []);
     if(explicit.length) return explicit.join('\n');
@@ -149,13 +176,13 @@
     const identityLines = all.filter(x => (name && x.includes(name)) || (headline && x.includes(headline)));
     const intro = takeIntro(sections, loose, identityLines);
 
-    const careers = compactEntries(sections.careers || [], 2);
+    const careers = compactEntries(sections.careers || [], 2, 4);
     const education = compactEntries(sections.education || [], 1);
-    const certificates = compactEntries(sections.certificates || [], 1);
+    const certificates = compactEntries(sections.certificates || [], 1, 3);
     if(education.length) careers.unshift(`[학력] ${education.join(' · ')}`);
-    if(certificates.length) careers.push(`[자격·수료] ${certificates.join(' · ')}`);
-    const works = compactEntries(sections.works || [], 1);
-    const lectures = compactEntries(sections.lectures || [], 3);
+    if(certificates.length) careers.push(...certificates.map(x => `[수상·자격] ${x}`));
+    const works = compactEntries(sections.works || [], 1, 7);
+    const lectures = recentFirst(compactEntries(sections.lectures || [], 3, 8));
 
     loose.forEach(line => {
       if(identityLines.includes(line) || intro.split('\n').includes(line) || isPrivate(line) || isNoise(line)) return;

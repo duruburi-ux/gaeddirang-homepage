@@ -194,5 +194,9 @@ const style = document.createElement('style');
 style.textContent = '.profile-import-types{font-size:11.5px;color:var(--muted);margin-top:8px}.profile-import-btn:disabled{opacity:.55;cursor:wait}.profile-import-note{line-height:1.55}';
 document.head.appendChild(style);
 window.addEventListener('DOMContentLoaded', install);
+window.addEventListener('hashchange', () => setTimeout(install, 0));
+document.addEventListener('click', e => {
+  if(e.target.closest('.doc-tab,#kitSeg [data-sub]')) setTimeout(install, 0);
+});
 window.__profileImport = { readOne, importFiles, install };
 })();

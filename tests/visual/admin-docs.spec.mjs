@@ -169,6 +169,14 @@ test('admin docs: uncertain profile import stops without overwriting the form', 
   await expect(page.locator('[data-f="profile.name"]')).toHaveValue(before);
 });
 
+test('admin docs: profile importer is available after entering from another tab', async ({ page }) => {
+  await page.goto('/admin/docs.html?preview#royalty', { waitUntil:'domcontentloaded' });
+  await page.evaluate(() => switchView('kit'));
+  await page.locator('#kitSeg [data-sub="profile"]').click();
+  await expect(page.locator('.profile-import')).toBeVisible();
+  await expect(page.locator('.doc-assist-up')).toHaveText('기존 프로필 파일 올리기');
+});
+
 test('admin docs: every printable form stays on one branded A4 page', async ({ page }) => {
   const cases = [
     ['quote', 'quote'],
