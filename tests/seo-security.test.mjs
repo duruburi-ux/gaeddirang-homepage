@@ -9,6 +9,12 @@ test('homepage declares the production canonical URL', async () => {
   assert.match(html, /<link rel="canonical" href="https:\/\/gaeddirang\.com\/">/);
 });
 
+test('dynamic product schema points to the canonical book page', async () => {
+  const html = await readFile(new URL('index.html', root), 'utf8');
+  assert.match(html, /"url": bookShareUrl\(b\)/);
+  assert.doesNotMatch(html, /"url": `https:\/\/gaeddirang\.com\/\?book=/);
+});
+
 test('sitemap contains only canonical pages and no query variants', async () => {
   const sitemap = await readFile(new URL('sitemap.xml', root), 'utf8');
   assert.ok(!sitemap.includes('?program='));

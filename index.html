@@ -2663,7 +2663,7 @@ const data = {
 "price": String(b.price || ''),
 "priceCurrency": "KRW",
 "availability": "https://schema.org/InStock",
-"url": `https://gaeddirang.com/?book=${encodeURIComponent(b.title)}`,
+"url": bookShareUrl(b),
 "seller": { "@type": "Organization", "name": "개띠랑" }
 }
 };
