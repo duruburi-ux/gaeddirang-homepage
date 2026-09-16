@@ -4,7 +4,7 @@
 
 const MAX_FILE = 20 * 1024 * 1024;
 const MAX_FILES = 6;
-const IMPORTER_VERSION = '2026.09.16.3';
+const IMPORTER_VERSION = '2026.09.16.4';
 const CDN = {
   zip:'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',
   pdf:'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',

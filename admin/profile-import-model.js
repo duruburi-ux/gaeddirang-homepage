@@ -30,7 +30,7 @@
   ];
 
   function cleanText(value){
-    return String(value || '').replace(/^\uFEFF/, '').replace(/[\u0000\u200B\u200C\u200D\u2060]/g, '')
+    return String(value || '').normalize('NFC').replace(/^\uFEFF/, '').replace(/[\u0000\u200B\u200C\u200D\u2060]/g, '')
       .replace(/\u00a0/g, ' ').replace(/\r\n?/g, '\n').replace(/[\t ]+/g, ' ')
       .replace(/ *\n */g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   }
@@ -134,10 +134,10 @@
   }
   function extractNameFromFilenames(filenames){
     for(const raw of Array.isArray(filenames) ? filenames : []){
-      let base = String(raw || '').replace(/\.[^.]+$/, '').replace(/[\[【(（][^\]】)）]*[\]】)）]/g, ' ');
+      let base = String(raw || '').normalize('NFC').replace(/\.[^.]+$/, '').replace(/[\[【(（][^\]】)）]*[\]】)）]/g, ' ');
       base = base.replace(/(?:강사\s*)?프로필|이력서|경력|전체|총정리|최종|사본|복사본/gi, ' ').replace(/[\d_\-]+/g, ' ').replace(/\s+/g, ' ').trim();
       const names = base.match(/[가-힣]{2,8}/g) || [];
-      const candidate = names.find(x => !/^(강사|프로필|이력|경력|전체|총정리|최종|대리림|도서관)$/.test(x));
+      const candidate = names.find(x => !ROLE_RE.test(x) && !/^(강사|프로필|이력|경력|전체|총정리|최종|대리림|도서관)$/.test(x));
       if(candidate) return candidate;
     }
     return '';
