@@ -146,6 +146,11 @@ test('admin docs: existing instructor profile file fills the profile form locall
   await expect(page.locator('[data-f="profile.works"]')).toHaveValue(/마음의 문고리/);
   await expect(page.locator('[data-f="profile.lectures"]')).toHaveValue(/수원시립도서관/);
   await expect(page.locator('.profile-import-note')).toContainText('6개 항목을 정리해 채웠어요');
+  await expect(page.locator('#kitSheet .profile-doc')).toHaveCount(1);
+  await expect(page.locator('#kitSheet .kit-lh-no')).toHaveText(['01','02','03']);
+  await expect(page.locator('#kitSheet .profile-title-kicker')).toContainText('INSTRUCTOR PROFILE');
+  await page.locator('[data-f="profile.works"]').fill('대표 저서 《마음의 문고리》\n공저 《나에게도 빵빵한 하루가 필요해》');
+  await expect(page.locator('#kitSheet .kit-profile-sec').nth(1).locator('.kit-r.no-date-col')).toHaveCount(2);
 });
 
 test('admin docs: uncertain profile import stops without overwriting the form', async ({ page }) => {

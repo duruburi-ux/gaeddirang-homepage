@@ -62,14 +62,28 @@ const CSS = `
 .qdoc table.kit-t td.kit-topic{font-weight:800}
 .qdoc table.kit-t td.kit-empty{text-align:center;color:#b3a99f;padding:18px}
 .qdoc .kit-ul{margin:0 0 4px;padding-left:18px;font-size:12px;line-height:1.55}
-.qdoc .kit-hero{background:#f5f1eb;border:1px solid #e6ddd3;border-radius:6px;padding:14px 18px}
-.qdoc .kit-hero-name{font-size:25px;font-weight:900;letter-spacing:.04em}
-.qdoc .kit-hero-line{font-size:13.5px;font-weight:800;color:var(--accent-deep);margin-top:1px}
-.qdoc .kit-hero-intro{font-size:12.5px;line-height:1.65;margin-top:8px}
-.qdoc .kit-lh{font-size:14px;font-weight:800;margin:14px 0 4px;padding-left:9px;border-left:4px solid var(--accent);line-height:1.25}
-.qdoc .kit-r{display:flex;gap:12px;padding:5px 2px;border-bottom:1px dashed var(--line);font-size:12.5px}
-.qdoc .kit-rd{width:134px;flex:none;color:var(--muted);font-weight:700}
-.qdoc .kit-rt{flex:1;min-width:0}
+.qdoc .kit-hero{background:linear-gradient(135deg,#f6f1ea 0%,#fbf8f4 100%);border:1px solid #e5d9cc;border-radius:9px;padding:17px 20px;position:relative;overflow:hidden}
+.qdoc .kit-hero::after{content:"";position:absolute;right:-34px;top:-46px;width:128px;height:128px;border:1px solid rgba(118,81,58,.12);border-radius:50%}
+.qdoc .kit-hero-kicker{font-size:9.5px;font-weight:850;letter-spacing:.18em;color:var(--accent);margin-bottom:3px}
+.qdoc .kit-hero-name{font-size:31px;font-weight:900;letter-spacing:.015em;line-height:1.15}
+.qdoc .kit-hero-line{font-size:13px;font-weight:800;color:var(--accent-deep);margin-top:5px;letter-spacing:.015em}
+.qdoc .kit-hero-intro{font-size:12.2px;line-height:1.65;margin-top:8px;max-width:86%;color:#4f4740}
+.qdoc.profile-doc .profile-headline{display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+.qdoc.profile-doc .profile-headline h1{font-size:26px;letter-spacing:.11em}
+.qdoc.profile-doc .profile-title-kicker{font-size:9.5px;font-weight:850;letter-spacing:.19em;color:var(--accent);margin-bottom:3px}
+.qdoc.profile-doc .profile-date{font-size:11.5px;color:var(--muted);padding-bottom:2px;white-space:nowrap}
+.qdoc.profile-doc .profile-date b{font-size:12.5px;color:var(--ink);margin-left:7px}
+.qdoc.profile-doc .profile-rule{height:1px;background:linear-gradient(90deg,var(--accent) 0 19%,#dfd4c9 19% 100%);border:0;margin:10px 0 12px}
+.qdoc.profile-doc .kit-profile-sec{margin-top:12px}
+.qdoc.profile-doc .kit-lh{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:850;margin:0 0 4px;line-height:1.2;color:var(--ink)}
+.qdoc.profile-doc .kit-lh::after{content:"";height:1px;background:#ded4ca;flex:1;margin-left:2px}
+.qdoc.profile-doc .kit-lh-no{font-size:9.5px;letter-spacing:.08em;color:#fff;background:var(--accent);border-radius:999px;padding:3px 7px;line-height:1}
+.qdoc.profile-doc .kit-rs{border-top:1px solid #ebe3da}
+.qdoc.profile-doc .kit-r{display:grid;grid-template-columns:122px 1fr;gap:13px;padding:5px 3px;border-bottom:1px solid #ebe3da;font-size:12px;line-height:1.42}
+.qdoc.profile-doc .kit-r.no-date-col{grid-template-columns:1fr}
+.qdoc.profile-doc .kit-rd{color:var(--accent-deep);font-weight:800;font-size:11.2px;letter-spacing:.01em;padding-top:1px}
+.qdoc.profile-doc .kit-rt{min-width:0;color:#3e3731}
+.qdoc.profile-doc .profile-foot{margin-top:14px;padding-top:7px;border-top:1px solid #d8cec4;text-align:center;font-size:10.5px;color:var(--muted);letter-spacing:.005em}
 .qdoc .kit-fill{padding:4px 16px 10px}
 .qdoc .kit-fl{display:flex;align-items:flex-end;gap:10px;padding:9px 0 0;font-size:13px}
 .qdoc .kit-fl .k{color:var(--muted);white-space:nowrap;width:46px;flex:none}
@@ -80,6 +94,12 @@ const CSS = `
 .qdoc.d1 table.kit-t tbody td{padding:5px 8px}
 .qdoc.d1 .kit-r{padding:3px 2px}
 .qdoc.d1 .kit-lh{margin:11px 0 3px}
+.qdoc.profile-doc.d1 .kit-hero{padding:13px 17px}
+.qdoc.profile-doc.d1 .kit-hero-name{font-size:29px}
+.qdoc.profile-doc.d1 .kit-profile-sec{margin-top:9px}
+.qdoc.profile-doc.d1 .kit-lh{margin:0 0 3px}
+.qdoc.profile-doc.d1 .kit-r{padding:3px 3px;font-size:12px;line-height:1.32}
+.qdoc.profile-doc.d1 .profile-foot{margin-top:9px;padding-top:5px}
 .qdoc.d2 table.kit-kv th,.qdoc.d2 table.kit-kv td{padding:4px 10px}
 .qdoc.d2 .kit-sec{padding:5px 12px;margin-top:6px}
 .qdoc.d2 .kit-sec-b{font-size:11.5px;line-height:1.45}
@@ -90,6 +110,18 @@ const CSS = `
 .qdoc.d2 .kit-hero-intro{font-size:11.5px;line-height:1.5;margin-top:5px}
 .qdoc.d2 .kit-lh{margin:8px 0 2px;font-size:13px}
 .qdoc.d2 .kit-r{padding:2px;font-size:11.5px}
+.qdoc.profile-doc.d2 .profile-title-kicker,.qdoc.profile-doc.d2 .kit-hero-kicker{display:none}
+.qdoc.profile-doc.d2 .profile-rule{margin:6px 0 8px}
+.qdoc.profile-doc.d2 .kit-hero{padding:9px 14px}
+.qdoc.profile-doc.d2 .kit-hero-name{font-size:27px}
+.qdoc.profile-doc.d2 .kit-hero-line{font-size:12px;margin-top:2px}
+.qdoc.profile-doc.d2 .kit-profile-sec{margin-top:6px}
+.qdoc.profile-doc.d2 .kit-lh{margin:0 0 2px;font-size:12.2px}
+.qdoc.profile-doc.d2 .kit-lh-no{font-size:8.5px;padding:2px 6px}
+.qdoc.profile-doc.d2 .kit-r{grid-template-columns:112px 1fr;gap:9px;padding:2px 2px;font-size:12px;line-height:1.22}
+.qdoc.profile-doc.d2 .kit-r.no-date-col{grid-template-columns:1fr}
+.qdoc.profile-doc.d2 .kit-rd{font-size:10.3px}
+.qdoc.profile-doc.d2 .profile-foot{margin-top:5px;padding-top:4px;font-size:9.8px}
 .qdoc.d2 .kit-fl{padding-top:6px}
 `;
 
@@ -355,24 +387,25 @@ const DATE_HEAD = /^(\d{4}(?:\s*[.\-/]\s*\d{1,2})?(?:\s*[.\-/]\s*\d{1,2})?\.?(?:
 function listRows(text){
   const rows = lines(text).map(l => { const m = l.match(DATE_HEAD); return m ? { d:m[1], t:m[2].trim() } : { d:'', t:l }; });
   const dated = rows.some(r => r.d);
-  return rows.map(r => `<div class="kit-r">${dated ? `<span class="kit-rd">${esc(r.d)}</span>` : ''}<span class="kit-rt">${esc(r.t)}</span></div>`).join('');
+  return rows.map(r => `<div class="kit-r${dated ? '' : ' no-date-col'}">${dated ? `<span class="kit-rd">${esc(r.d)}</span>` : ''}<span class="kit-rt">${esc(r.t)}</span></div>`).join('');
 }
 function profileHtml(p, dense){
-  const sec = (title, text) => lines(text).length ? `<div class="kit-lh">${title}</div>${listRows(text)}` : '';
-  const body = sec('경력', p.careers) + sec('저서·작품', p.works) + sec('주요 출강 이력', p.lectures);
-  return `<div class="qdoc${dcls(dense)}"><div class="wrap">
-    <div class="head">
-      <div><h1>강사 프로필</h1><div class="subtitle">${esc(SUPPLIER.상호)} · ${esc(SUPPLIER.소개)}</div></div>
-      <div class="head-meta">작성일 <b>${dotDate(p.date)}</b></div>
+  const sec = (no, title, text) => lines(text).length ? `<section class="kit-profile-sec"><div class="kit-lh"><span class="kit-lh-no">${no}</span><span>${title}</span></div><div class="kit-rs">${listRows(text)}</div></section>` : '';
+  const body = sec('01','경력',p.careers) + sec('02','저서·작품',p.works) + sec('03','주요 출강 이력',p.lectures);
+  return `<div class="qdoc profile-doc${dcls(dense)}"><div class="wrap">
+    <div class="profile-headline">
+      <div><div class="profile-title-kicker">INSTRUCTOR PROFILE</div><h1>강사 프로필</h1><div class="subtitle">${esc(SUPPLIER.상호)} · ${esc(SUPPLIER.소개)}</div></div>
+      <div class="profile-date">작성일 <b>${dotDate(p.date)}</b></div>
     </div>
-    <hr class="rule">
+    <hr class="profile-rule">
     <div class="kit-hero">
+      <div class="kit-hero-kicker">INSTRUCTOR</div>
       <div class="kit-hero-name">${esc(p.name) || '&nbsp;'}</div>
       ${p.headline ? `<div class="kit-hero-line">${esc(p.headline)}</div>` : ''}
       ${p.intro.trim() ? `<div class="kit-hero-intro">${rich(p.intro)}</div>` : ''}
     </div>
     ${body || '<div class="kit-lh" style="color:#b3a99f;border-color:#e3ddd4">경력·저서·출강 이력을 넣으면 여기에 표시됩니다</div>'}
-    <div class="foot" style="margin-top:16px">강의 문의 · ${esc(FOOTER())}</div>
+    <div class="profile-foot">강의 문의 · ${esc([SUPPLIER.상호, SUPPLIER.이메일, SUPPLIER.연락처].join(' · '))}</div>
   </div></div>`;
 }
 
