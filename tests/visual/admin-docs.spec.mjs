@@ -174,6 +174,31 @@ test('admin docs: uncertain profile import stops without overwriting the form', 
   await expect(page.locator('[data-f="profile.name"]')).toHaveValue(before);
 });
 
+test('admin docs: confirmed replacement clears optional fields missing from the new file', async ({ page }) => {
+  await page.goto('/admin/docs.html?preview#kit', { waitUntil:'domcontentloaded' });
+  await page.locator('#kitSeg [data-sub="profile"]').click();
+  await page.locator('[data-f="profile.intro"]').fill('이전 파일에서 남은 소개글');
+  page.on('dialog', dialog => dialog.accept());
+  const chooserPromise = page.waitForEvent('filechooser');
+  await page.locator('.profile-import-btn').click();
+  const chooser = await chooserPromise;
+  await chooser.setFiles({
+    name:'김바다_이력서.txt', mimeType:'text/plain', buffer:Buffer.from([
+      '이름: 김바다',
+      '한 줄 소개: 감정 기록 글쓰기 강사',
+      '경력',
+      '2024.01 ~ 현재 마음책방 운영',
+      '저서',
+      '2025.01 <마음 기록의 시작>',
+      '강연 / 모임',
+      '2026.01 별빛도서관 감정 기록 워크숍',
+    ].join('\n')),
+  });
+  await expect(page.locator('.profile-import-note')).toContainText('5개 항목을 정리해 채웠어요');
+  await expect(page.locator('[data-f="profile.intro"]')).toHaveValue('');
+  await expect(page.locator('[data-f="profile.name"]')).toHaveValue('김바다');
+});
+
 test('admin docs: manual real HWP profile fixture can be inspected', async ({ page }) => {
   const fixture = process.env.PROFILE_HWP_FIXTURE;
   test.skip(!fixture, 'Set PROFILE_HWP_FIXTURE only when checking a private real HWP locally.');

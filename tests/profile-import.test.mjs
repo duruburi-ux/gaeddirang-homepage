@@ -297,6 +297,82 @@ test('PDF 강연 표에서 날짜 위아래로 갈라진 프로그램명과 기�
   assert.doesNotMatch(result.lectures, /^감정을 다채롭게 표현하는$/m);
 });
 
+test('실제 이다솜 작가 HWP의 방송작가 경력과 월 단위 강연 날짜를 복원한다', () => {
+  const result = model.parseProfile(`
+▶10년간 예능 방송작가로 활동 (KBS, tvN, MBN...)
+▶現) 독립출판을 비롯한 다양한 콘텐츠를 제작하는 콘텐츠 크리에이터로 활동 중
+ 방송작가 경력
+기간
+활동 내용
+2020.01~2022.01
+KBS<슈퍼맨이 돌아왔다>
+2019.08~2019.10
+MBN<사인히어>
+[이다솜 작가] 이 력 서
+ 저서
+2024.06
+에세이 <나에게도 빵빵한 하루가 필요해!> (개띠랑, 이다솜, 두루 공저)
+ 강연 / 행사 / 모임
+2024.
+6월~10월
+<길 위의 인문학 - 모든 감정 도감> 워크숍
+문화체육관광부
+2024.08
+전주 한옥마을도서관
+<잡았다, 내 감정! - 나만의 감정카드 만들기> 강연
+`, ['[이력서] 이다솜 작가.hwp']);
+  assert.equal(result.blockedReason, '');
+  assert.equal(result.name, '이다솜');
+  assert.equal(result.headline, '방송작가 · 콘텐츠 크리에이터');
+  assert.match(result.intro, /10년간 예능 방송작가/);
+  assert.match(result.careers, /2020\.01~2022\.01 KBS/);
+  assert.match(result.careers, /2019\.08~2019\.10 MBN/);
+  assert.doesNotMatch(result.works, /KBS|MBN/);
+  assert.match(result.works, /개띠랑, 이다솜, 두루 공저/);
+  assert.match(result.lectures, /2024\.06~2024\.10/);
+  assert.match(result.lectures, /2024\.08/);
+});
+
+test('기관명이 앞선 긴 파일명에서도 사람 이름은 오른쪽에서 찾는다', () => {
+  const result = model.parseProfile(`
+감정을 기록하고 표현하는 감정 기록가
+경력
+2024.01~현재 글쓰기 강사
+저서
+2024.06 에세이 <마음 기록>
+강연 / 모임
+2025.08 여름독서교실 감정 기록 워크숍
+`, ['[여름독서교실] 독서연계 논술_이다솜 이력서.hwp']);
+  assert.equal(result.name, '이다솜');
+});
+
+test('예시 양식과 여러 사람 포트폴리오는 기존 입력을 지키도록 차단한다', () => {
+  const example = model.parseProfile(`
+이름: (예시) 김하늘
+한 줄 소개: 감정 기록 강사
+경력
+2024.01 개띠랑 강사
+저서
+2024.01 <예시 책>
+강연
+2024.01 예시 도서관
+`, ['이다솜 강사 이력서 복사본.hwp']);
+  assert.match(example.blockedReason, /예시 문구/);
+
+  const group = model.parseProfile(`
+개띠랑 (이진이)
+경력
+2024.01 콘텐츠 제작
+이다솜
+경력
+2024.01 방송작가
+두루 (장진호)
+경력
+2024.01 글쓰기 강사
+`, ['개띠랑유니버스 전체 이력서 및 포트폴리오.pdf']);
+  assert.match(group.blockedReason, /여러 사람/);
+});
+
 test('분류가 무너지면 자동 채움을 막는다', () => {
   const result = model.parseProfile(`
 장진호 / 필명 : 장두루

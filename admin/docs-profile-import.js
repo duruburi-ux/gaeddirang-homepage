@@ -4,7 +4,7 @@
 
 const MAX_FILE = 20 * 1024 * 1024;
 const MAX_FILES = 6;
-const IMPORTER_VERSION = '2026.09.16.5';
+const IMPORTER_VERSION = '2026.09.16.6';
 const CDN = {
   zip:'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',
   pdf:'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
@@ -173,10 +173,11 @@ function fill(result){
   let count = 0;
   ['name','headline','intro','careers','works','lectures'].forEach(k => {
     const el = document.querySelector(`#view-kit [data-f="profile.${k}"]`);
-    if(!el || !result[k]) return;
-    el.value = result[k];
+    if(!el) return;
+    el.value = result[k] || '';
     el.dispatchEvent(new Event('input',{bubbles:true}));
-    el.dispatchEvent(new Event('change',{bubbles:true})); count++;
+    el.dispatchEvent(new Event('change',{bubbles:true}));
+    if(result[k]) count++;
   });
   return count;
 }
