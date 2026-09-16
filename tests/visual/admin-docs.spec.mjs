@@ -122,8 +122,12 @@ test('admin docs: existing instructor profile file fills the profile form locall
   await page.locator('#kitSeg [data-sub="profile"]').click();
   await expect(page.locator('.profile-import')).toBeVisible();
   await expect(page.locator('.profile-import')).toContainText('HWP·HWPX');
+  await expect(page.locator('.doc-assist-up')).toHaveText('기존 프로필 파일 올리기');
   page.once('dialog', dialog => dialog.accept());
-  await page.locator('.profile-import input[type="file"]').setInputFiles({
+  const chooserPromise = page.waitForEvent('filechooser');
+  await page.locator('.doc-assist-up').click();
+  const chooser = await chooserPromise;
+  await chooser.setFiles({
     name:'기존_강사프로필.txt', mimeType:'text/plain', buffer:Buffer.from([
       '성명: 이진이',
       '한 줄 소개: 그림책과 감정 기록을 잇는 글쓰기 강사',

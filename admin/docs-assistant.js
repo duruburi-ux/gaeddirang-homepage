@@ -7,6 +7,7 @@
 const HIDDEN_RE = /\bhidden\b/;
 let helper = null;
 let fileInput = null;
+let normalUpload = null;
 
 function activeView(){ return document.querySelector('.view:not(.hidden)'); }
 function isShown(el){
@@ -247,15 +248,43 @@ function install(){
     <div class="parse-note doc-assist-note"></div>`;
   fileInput=document.createElement('input'); fileInput.type='file'; fileInput.accept='.md,.txt,text/markdown,text/plain'; fileInput.hidden=true; helper.appendChild(fileInput);
   helper.querySelector('.doc-assist-down').onclick=downloadQuestionnaire;
-  helper.querySelector('.doc-assist-up').onclick=()=>{ fileInput.value=''; fileInput.click(); };
+  normalUpload=()=>{ fileInput.value=''; fileInput.click(); };
+  helper.querySelector('.doc-assist-up').onclick=normalUpload;
   helper.querySelector('.doc-assist-word').onclick=downloadWord;
   fileInput.onchange=()=>readFile(fileInput.files[0]);
   form.prepend(helper);
+}
+function profileImportMode(){
+  const view=activeView();
+  return !!(view && view.id==='view-kit' && view.querySelector('[data-form="profile"]:not(.hidden)'));
+}
+function syncHelperMode(){
+  if(!helper) return;
+  const profile=profileImportMode();
+  const title=helper.querySelector('h3');
+  const hint=helper.querySelector(':scope > p.hint');
+  const up=helper.querySelector('.doc-assist-up');
+  if(profile){
+    title.innerHTML='기존 프로필 불러오기 <span class="hint">파일을 올리면 칸을 자동으로 정리해요</span>';
+    hint.textContent='HWP·HWPX·PDF·Word·이미지·텍스트 파일을 올릴 수 있어요. 원본은 바꾸지 않고 브라우저 안에서만 읽습니다.';
+    up.textContent='기존 프로필 파일 올리기';
+    up.onclick=()=>{
+      const profileButton=document.querySelector('#view-kit .profile-import-btn');
+      if(profileButton) profileButton.click();
+      else note('프로필 파일 불러오기 도구를 준비하지 못했어요. 새로고침해 주세요.',true);
+    };
+  } else {
+    title.innerHTML='작성 도우미 <span class="hint">질문에 답하면 칸이 자동으로 채워져요</span>';
+    hint.textContent='홈페이지에서 바로 써도 되고, 질문지를 받아 편한 곳에서 작성한 뒤 다시 올려도 됩니다. 파일 내용은 서버에 저장하지 않아요.';
+    up.textContent='작성 파일 올리기';
+    up.onclick=normalUpload;
+  }
 }
 function moveHelper(){
   const form=activeView()?.querySelector('.form-col');
   if(!form) return;
   if(!helper) install(); else if(helper.parentElement!==form) form.prepend(helper);
+  syncHelperMode();
   note('');
 }
 document.addEventListener('click', e=>{ if(e.target.closest('.doc-tab,[data-sub]')) setTimeout(moveHelper,0); });
