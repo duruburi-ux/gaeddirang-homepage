@@ -117,6 +117,33 @@ test('admin docs: fee privacy, PDF readiness and save-race guards', async ({ pag
   await expect(page.locator('#kitSheet .sign .seal-wrap img')).toHaveCount(1);
 });
 
+test('admin docs: existing instructor profile file fills the profile form locally', async ({ page }) => {
+  await page.goto('/admin/docs.html?preview#kit', { waitUntil:'domcontentloaded' });
+  await page.locator('#kitSeg [data-sub="profile"]').click();
+  await expect(page.locator('.profile-import')).toBeVisible();
+  await expect(page.locator('.profile-import')).toContainText('HWP·HWPX');
+  page.once('dialog', dialog => dialog.accept());
+  await page.locator('.profile-import input[type="file"]').setInputFiles({
+    name:'기존_강사프로필.txt', mimeType:'text/plain', buffer:Buffer.from([
+      '성명: 이진이',
+      '한 줄 소개: 그림책과 감정 기록을 잇는 글쓰기 강사',
+      '강사 소개',
+      '그림책과 질문으로 자신의 마음을 기록하도록 돕습니다.',
+      '주요 경력',
+      '2024.03 ~ 현재 개띠랑유니버스 대표',
+      '저서·작품',
+      '2025.06 《마음의 문고리》 공저',
+      '주요 출강 이력',
+      '2026.05 수원시립도서관 · 감정 기록 워크숍 (4회)',
+    ].join('\n')),
+  });
+  await expect(page.locator('[data-f="profile.name"]')).toHaveValue('이진이');
+  await expect(page.locator('[data-f="profile.careers"]')).toHaveValue(/개띠랑유니버스 대표/);
+  await expect(page.locator('[data-f="profile.works"]')).toHaveValue(/마음의 문고리/);
+  await expect(page.locator('[data-f="profile.lectures"]')).toHaveValue(/수원시립도서관/);
+  await expect(page.locator('.profile-import-note')).toContainText('6개 항목을 정리해 채웠어요');
+});
+
 test('admin docs: every printable form stays on one branded A4 page', async ({ page }) => {
   const cases = [
     ['quote', 'quote'],
