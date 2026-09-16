@@ -77,9 +77,14 @@ async function readPdf(file){
   }
   return pages.join('\n');
 }
-function findStream(cfb, suffix){
+function cfbEntries(cfb){
   const files = (cfb && cfb.FileIndex) || [];
-  return files.find(x => String(x.name || '').replace(/\\/g,'/').toLowerCase().endsWith(suffix.toLowerCase()));
+  const paths = (cfb && cfb.FullPaths) || [];
+  return files.map((file, index) => ({ file, path:String(paths[index] || file.name || '').replace(/\\/g,'/') }));
+}
+function findStream(cfb, suffix){
+  const wanted = suffix.toLowerCase();
+  return cfbEntries(cfb).find(x => x.path.toLowerCase().endsWith(wanted))?.file;
 }
 function hwpRecordText(bytes){
   const out = []; let pos = 0;
@@ -106,9 +111,11 @@ async function readHwp(file){
   const header = findStream(cfb, 'FileHeader');
   if(!header || !header.content) throw new Error('지원하는 HWP 5.x 문서가 아니에요');
   const head = new Uint8Array(header.content); const compressed = head.length > 36 && !!(head[36] & 1);
-  const sections = (cfb.FileIndex || []).filter(x => /BodyText[\\/]Section\d+$/i.test(String(x.name || ''))).sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
+  const sections = cfbEntries(cfb)
+    .filter(x => /BodyText[\/]Section\d+$/i.test(x.path))
+    .sort((a,b) => a.path.localeCompare(b.path, undefined, {numeric:true}));
   const parts = sections.map(s => {
-    let data = new Uint8Array(s.content || []);
+    let data = new Uint8Array(s.file.content || []);
     if(compressed) data = window.pako.inflateRaw(data);
     return hwpRecordText(data);
   }).filter(Boolean);

@@ -4,9 +4,16 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const source = fs.readFileSync(new URL('../admin/profile-import-model.js', import.meta.url), 'utf8');
+const browserImporterSource = fs.readFileSync(new URL('../admin/docs-profile-import.js', import.meta.url), 'utf8');
 const sandbox = { globalThis:{} };
 vm.runInNewContext(source, sandbox);
 const model = sandbox.globalThis.ProfileImportModel;
+
+test('HWP CFB의 전체 경로에서 BodyText 섹션을 찾는다', () => {
+  assert.match(browserImporterSource, /cfb\.FullPaths/);
+  assert.match(browserImporterSource, /BodyText\[\\\/\]Section/);
+  assert.match(browserImporterSource, /s\.file\.content/);
+});
 
 test('강사 프로필의 명시된 항목을 양식 필드로 나눈다', () => {
   const result = model.parseProfile(`
