@@ -29,6 +29,17 @@ const CSS = `
 .kit-dlg .btns{justify-content:flex-end}
 .kit-sess .item-top .s-no{width:92px;flex:none}
 .kit-sess textarea{margin-bottom:6px}
+.kit-profile-builder{display:flex;flex-direction:column;gap:9px;margin-top:10px}
+.kit-profile-edit{border:1px solid var(--line);background:#fffdfb;border-radius:13px;padding:11px 12px}
+.kit-profile-edit-head{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.kit-profile-edit-head .in{margin:0;min-width:0;font-weight:800}
+.kit-profile-edit-head .kit-profile-title{flex:1}
+.kit-profile-edit-head button{width:32px;height:32px;padding:0;border:1px solid var(--line);background:#fff;border-radius:9px;color:var(--muted);font-weight:900}
+.kit-profile-edit-head button:hover{border-color:var(--accent);color:var(--accent-deep)}
+.kit-profile-edit textarea{margin:0;min-height:92px;resize:vertical}
+.kit-profile-edit .hint{margin:6px 2px 0}
+.kit-profile-adds{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.kit-profile-empty{padding:15px;border:1px dashed var(--line);border-radius:11px;color:var(--muted);font-size:13px;text-align:center}
 .kit-ck-head{display:flex;align-items:baseline;gap:10px;margin:2px 2px 10px;font-size:14px}
 .kit-ck-head span{font-size:13px;color:var(--muted)}
 .kit-ck{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:11px 14px;margin-bottom:8px;display:flex;gap:11px;align-items:flex-start}
@@ -88,13 +99,16 @@ const CSS = `
 .qdoc.profile-doc .profile-cont-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
 .qdoc.profile-doc .profile-cont-title{font-size:21px;font-weight:900;letter-spacing:.025em}
 .qdoc.profile-doc .profile-cont-sub{font-size:11.5px;color:var(--muted);margin-top:3px}
-.qdoc.profile-doc .profile-foot{margin-top:14px;padding-top:7px;border-top:1px solid #d8cec4;text-align:center;font-size:10.5px;color:var(--muted);letter-spacing:.005em}
+.qdoc.profile-doc .profile-inquiry{margin-top:auto;padding:10px 12px 0;border-top:1px solid #d8cec4;text-align:center;font-size:10.5px;color:var(--muted);letter-spacing:.005em}
+.qdoc.profile-doc .profile-inquiry b{color:var(--accent-deep);font-size:11px;margin-right:4px}
 .sheet.multi-sheet{background:transparent;border:0;box-shadow:none;display:flex;flex-direction:column;gap:18px}
 .sheet.multi-sheet .profile-page{height:1046px;box-sizing:border-box;background:#fff;border:1px solid #e4ddd5;box-shadow:0 7px 24px rgba(56,38,25,.14);overflow:hidden}
+.sheet>.profile-page.profile-fitted{height:1046px;box-sizing:border-box;overflow:hidden}
+.profile-page.profile-fitted .wrap{min-height:100%;box-sizing:border-box;display:flex;flex-direction:column}
 .profile-pages>.profile-page{break-after:page;page-break-after:always}
 .profile-pages>.profile-page:last-child{break-after:auto;page-break-after:auto}
 .profile-pages>.profile-page .wrap{min-height:100%;box-sizing:border-box;display:flex;flex-direction:column}
-.profile-pages>.profile-page .profile-foot{margin-top:auto}
+.profile-pages>.profile-page .profile-inquiry{margin-top:auto}
 .qdoc .kit-fill{padding:4px 16px 10px}
 .qdoc .kit-fl{display:flex;align-items:flex-end;gap:10px;padding:9px 0 0;font-size:13px}
 .qdoc .kit-fl .k{color:var(--muted);white-space:nowrap;width:46px;flex:none}
@@ -110,7 +124,7 @@ const CSS = `
 .qdoc.profile-doc.d1 .kit-profile-sec{margin-top:9px}
 .qdoc.profile-doc.d1 .kit-lh{margin:0 0 3px}
 .qdoc.profile-doc.d1 .kit-r{padding:3px 3px;font-size:12px;line-height:1.32}
-.qdoc.profile-doc.d1 .profile-foot{margin-top:9px;padding-top:5px}
+.qdoc.profile-doc.d1 .profile-inquiry{padding-top:7px}
 .qdoc.d2 table.kit-kv th,.qdoc.d2 table.kit-kv td{padding:4px 10px}
 .qdoc.d2 .kit-sec{padding:5px 12px;margin-top:6px}
 .qdoc.d2 .kit-sec-b{font-size:11.5px;line-height:1.45}
@@ -132,9 +146,10 @@ const CSS = `
 .qdoc.profile-doc.d2 .kit-r{grid-template-columns:112px 1fr;gap:9px;padding:2px 2px;font-size:12px;line-height:1.22}
 .qdoc.profile-doc.d2 .kit-r.no-date-col{grid-template-columns:1fr}
 .qdoc.profile-doc.d2 .kit-rd{font-size:10.3px}
-.qdoc.profile-doc.d2 .profile-foot{margin-top:5px;padding-top:4px;font-size:9.8px}
+.qdoc.profile-doc.d2 .profile-inquiry{padding-top:5px;font-size:9.8px}
 .qdoc.d2 .kit-fl{padding-top:6px}
 @media print{
+  .profile-page.profile-fitted{height:277mm;box-sizing:border-box;overflow:hidden}
   .profile-pages>.profile-page{height:277mm;box-sizing:border-box;overflow:hidden}
 }
 `;
@@ -198,10 +213,13 @@ const HTML = `
         <label class="f">소개글</label>
         <textarea class="in" rows="4" data-f="profile.intro" placeholder="어떤 수업을 하는 사람인지 서너 문장으로 적어 주세요."></textarea>
       </div>
-      <div class="card"><h3>② 이력 <span class="hint">(한 줄에 하나 · 앞에 「2025.06」처럼 날짜를 쓰면 왼쪽 칸에 따로 나와요)</span></h3>
-        <label class="f">경력</label><textarea class="in" rows="4" data-f="profile.careers" placeholder="예: 2024.03 ~ 현재  개띠랑 감정 기록 강사"></textarea>
-        <label class="f">저서·작품</label><textarea class="in" rows="3" data-f="profile.works" placeholder="예: 2025.06  《책 제목》 (에세이)"></textarea>
-        <label class="f">주요 출강 이력</label><textarea class="in" rows="5" data-f="profile.lectures" placeholder="예: 2026.05  ○○도서관 · 감정 기록 워크숍 (3회)"></textarea>
+      <div class="card"><h3>② 이력 구성 <span class="hint">(항목 이름·순서를 자유롭게 바꿀 수 있어요)</span></h3>
+        <p class="hint">한 줄이 이력 한 건으로 들어가요. 앞에 「2025.06」처럼 날짜를 쓰면 날짜 칸이 따로 생깁니다.</p>
+        <div class="kit-profile-builder" id="kitProfileSections"></div>
+        <div class="kit-profile-adds">
+          <button type="button" class="btn-sm" id="kitProfileAdd">+ 내 항목 만들기</button>
+          <button type="button" class="btn-link" id="kitProfileDefaults">기본 항목 다시 넣기</button>
+        </div>
       </div>
       <p class="hint" style="margin:0 4px 12px">사진은 넣지 않아요. 생년월일·개인 연락처처럼 꼭 필요하지 않은 정보는 적지 않는 게 좋아요.</p>
     </div>
@@ -303,9 +321,22 @@ const K = {
   saving: false,
 };
 const blankSession = n => ({ no: n+'회', topic:'', content:'', materials:'' });
+const PROFILE_DEFAULTS = [
+  { key:'careers', title:'경력', kind:'careers' },
+  { key:'works', title:'저서·작품', kind:'works' },
+  { key:'lectures', title:'주요 출강 이력', kind:'lectures' },
+  { key:'education', title:'학력·교육', kind:'education' },
+  { key:'awards', title:'수상·선정·자격', kind:'awards' },
+  { key:'programs', title:'운영 프로그램', kind:'programs' },
+];
+const newProfileSection = (base, text='') => ({
+  id: `${base.key || 'custom'}_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
+  key:base.key || '', title:base.title || '새 항목', kind:base.kind || 'custom', text:S(text),
+});
+const defaultProfileSections = () => PROFILE_DEFAULTS.map(x => newProfileSection(x));
 const blankPlan = () => ({ id:null, _updatedAt:null, title:'', target:'', headcount:'', duration:'', goal:'', overview:'', materials:'', instructor:'', note:'',
   sessions:[blankSession(1)], org:'', period:'', place:'', date: today() });
-const blankProfile = () => ({ id:null, _updatedAt:null, name:'', headline:'', intro:'', careers:'', works:'', lectures:'', sort:0, date: today() });
+const blankProfile = () => ({ id:null, _updatedAt:null, name:'', headline:'', intro:'', careers:'', works:'', lectures:'', sections:defaultProfileSections(), sort:0, date: today() });
 const blankConfirm = () => ({ instructor:'', org:'', title:'', dates:'', place:'', headcount:'', date: today() });
 
 function planFromRow(r){
@@ -321,7 +352,25 @@ function profileFromRow(r){
   const p = blankProfile();
   p.id = r.id; p._updatedAt = r.updated_at || null; p.name = r.name||''; p.headline = r.headline||''; p.intro = r.intro||''; p.sort = r.sort||0;
   ['careers','works','lectures'].forEach(k => p[k] = (Array.isArray(r[k]) ? r[k] : []).join('\n'));
+  p.sections = normalizeProfileSections(r.sections, p);
   return p;
+}
+
+function normalizeProfileSections(value, legacy){
+  const src = Array.isArray(value) ? value : [];
+  const cleaned = src.filter(x => x && typeof x==='object').map((x,i) => ({
+    id:S(x.id) || `section_${Date.now()}_${i}`,
+    key:S(x.key), title:S(x.title).trim() || '이력', kind:S(x.kind) || S(x.key) || 'custom', text:S(x.text),
+  }));
+  if(cleaned.length) return cleaned;
+  const old = legacy || {};
+  return PROFILE_DEFAULTS.map(x => newProfileSection(x, old[x.key] || ''));
+}
+function syncProfileLegacy(p){
+  ['careers','works','lectures'].forEach(key => {
+    const sec = (p.sections || []).find(x => x.key===key);
+    p[key] = sec ? S(sec.text) : '';
+  });
 }
 
 // 미리보기 모드 확인용 예시 (실제 사람·기관 아님)
@@ -340,11 +389,13 @@ function samplePlan(){
     note:'회차별 내용은 참여자 연령과 반응에 맞춰 조정할 수 있어요.' };
 }
 function sampleProfile(){
-  return { ...blankProfile(), name:'(예시) 김하늘', headline:'감정 기록 글쓰기 강사',
+  const p = { ...blankProfile(), name:'(예시) 김하늘', headline:'감정 기록 글쓰기 강사',
     intro:'감정 카드와 짧은 글쓰기로 내 마음을 알아차리고 표현하는 수업을 합니다. 어린이부터 성인까지 대상에 맞춰 1회 강연부터 연속 워크숍까지 운영합니다.',
     careers:'2024.03 ~ 현재  개띠랑 감정 기록 강사\n2021.01 ~ 2023.12  (예시) 어린이 글쓰기 교실 운영\n(예시) 시민강사 인증',
     works:'2025.06  《(예시) 마음 날씨 일기》 워크북\n2023.10  《(예시) 오늘의 감정 사전》 에세이',
     lectures:'2026.05  (예시) 햇살마을도서관 · 마음 날씨 기록 워크숍 (3회)\n2026.03  (예시) 푸른숲초등학교 · 감정 카드 만들기 (4학년 전체)\n2025.11  (예시) 별빛청소년센터 · 불편한 감정 다루기 강연\n2025.09  (예시) 바람골작은도서관 · 여름 감정 글쓰기 교실 (6회)', date: today() };
+  p.sections = normalizeProfileSections(null, p);
+  return p;
 }
 function sampleConfirm(){
   return { instructor:'(예시) 김하늘', org:'(예시) 햇살마을도서관', title:'(예시) 마음 날씨 기록 워크숍',
@@ -413,16 +464,15 @@ function listRows(rows){
   return rows.map(r => `<div class="kit-r${dated ? '' : ' no-date-col'}">${dated ? `<span class="kit-rd">${esc(r.d)}</span>` : ''}<span class="kit-rt">${profileRich(r.t,r.kind)}</span></div>`).join('');
 }
 function profileSections(p){
-  return [
-    { no:'01', title:'경력', kind:'careers', rows:profileRows(p.careers,'careers') },
-    { no:'02', title:'저서·작품', kind:'works', rows:profileRows(p.works,'works') },
-    { no:'03', title:'주요 출강 이력', kind:'lectures', rows:profileRows(p.lectures,'lectures') },
-  ].filter(s => s.rows.length);
+  const sections = normalizeProfileSections(p.sections, p);
+  return sections.map(s => ({
+    id:s.id, title:s.title, kind:s.kind || s.key || 'custom', rows:profileRows(s.text,s.kind || s.key || 'custom')
+  })).filter(s => s.rows.length).map((s,i) => ({ ...s, no:String(i+1).padStart(2,'0') }));
 }
 function profileSectionHtml(section, continued){
   return `<section class="kit-profile-sec"><div class="kit-lh"><span class="kit-lh-no">${section.no}</span><span>${section.title}${continued ? ' <small>(계속)</small>' : ''}</span></div><div class="kit-rs">${listRows(section.rows)}</div></section>`;
 }
-function profilePageHtml(p, sections, dense, pageNo, totalPages, first){
+function profilePageHtml(p, sections, dense, pageNo, totalPages, first, last=true){
   const pageMark = totalPages>1 ? `<div class="profile-page-mark">${pageNo} / ${totalPages}</div>` : '';
   const head = first ? `<div class="profile-headline">
       <div><div class="profile-title-kicker">INSTRUCTOR PROFILE</div><h1>강사 프로필</h1><div class="subtitle">${esc(SUPPLIER.상호)} · ${esc(SUPPLIER.소개)}</div></div>
@@ -441,7 +491,7 @@ function profilePageHtml(p, sections, dense, pageNo, totalPages, first){
   const body = sections.map(s => profileSectionHtml(s, !!s.continued)).join('');
   return `<div class="qdoc profile-doc profile-page${dcls(dense)}"><div class="wrap">${head}
     ${body || '<div class="kit-lh" style="color:#b3a99f;border-color:#e3ddd4">경력·저서·출강 이력을 넣으면 여기에 표시됩니다</div>'}
-    <div class="profile-foot">강의 문의 · ${esc([SUPPLIER.상호, SUPPLIER.이메일, SUPPLIER.연락처].join(' · '))}</div>
+    ${last ? `<div class="profile-inquiry"><b>강의 및 프로그램 문의</b> · ${esc([SUPPLIER.상호, SUPPLIER.이메일, SUPPLIER.연락처].join(' · '))}</div>` : ''}
   </div></div>`;
 }
 function profileHtml(p, dense){
@@ -503,7 +553,14 @@ function normPlan(o){
 function normFlat(o, blank){
   const p = blank();
   if(!o || typeof o!=='object') return p;
-  Object.keys(p).forEach(k => { if(k==='id') p.id = o.id || null; else if(k==='_updatedAt') p._updatedAt = o._updatedAt || null; else if(k==='sort') p.sort = parseInt(o.sort,10)||0; else if(o[k]!=null) p[k] = S(o[k]); });
+  Object.keys(p).forEach(k => {
+    if(k==='id') p.id = o.id || null;
+    else if(k==='_updatedAt') p._updatedAt = o._updatedAt || null;
+    else if(k==='sort') p.sort = parseInt(o.sort,10)||0;
+    else if(k==='sections') p.sections = normalizeProfileSections(o.sections, o);
+    else if(o[k]!=null) p[k] = S(o[k]);
+  });
+  if(Array.isArray(p.sections)) syncProfileLegacy(p);
   return p;
 }
 /* ---------- 저장 안 한 수정 알아채기 ---------- */
@@ -516,8 +573,10 @@ function planRow(cur){
   return row;
 }
 function profileRow(cur){
+  syncProfileLegacy(cur);
   return { name: S(cur.name).trim(), headline: S(cur.headline).trim(), intro: S(cur.intro).trim(),
-    careers: lines(cur.careers), works: lines(cur.works), lectures: lines(cur.lectures) };
+    careers: lines(cur.careers), works: lines(cur.works), lectures: lines(cur.lectures),
+    sections:(cur.sections || []).map(s => ({ id:S(s.id), key:S(s.key), title:S(s.title).trim() || '이력', kind:S(s.kind)||'custom', text:S(s.text).trim() })) };
 }
 const CF_KEYS = ['instructor','org','title','dates','place','headcount'];
 function snapOf(doc, o){
@@ -548,10 +607,65 @@ function saveDraft(doc){
 }
 const fld = key => q(`[data-f="${key}"]`);
 function focusField(key){ const el = fld(key); if(el){ el.focus(); el.scrollIntoView({ block:'center' }); } }
+function renderProfileEditor(){
+  const host = q('#kitProfileSections');
+  if(!host || !K.profile) return;
+  K.profile.sections = normalizeProfileSections(K.profile.sections, K.profile);
+  host.innerHTML = '';
+  if(!K.profile.sections.length){
+    host.innerHTML = '<div class="kit-profile-empty">아직 이력 항목이 없어요. 아래에서 직접 만들어 주세요.</div>';
+    return;
+  }
+  K.profile.sections.forEach((s,i) => {
+    const box = document.createElement('div');
+    box.className = 'kit-profile-edit';
+    const dataField = ['careers','works','lectures'].includes(s.key) ? ` data-f="profile.${esc(s.key)}"` : '';
+    box.innerHTML = `<div class="kit-profile-edit-head">
+      <input class="in kit-profile-title" value="${esc(s.title)}" aria-label="항목 이름" placeholder="항목 이름">
+      <button type="button" class="kit-profile-up" title="위로" aria-label="위로"${i===0?' disabled':''}>↑</button>
+      <button type="button" class="kit-profile-down" title="아래로" aria-label="아래로"${i===K.profile.sections.length-1?' disabled':''}>↓</button>
+      <button type="button" class="kit-profile-remove" title="항목 삭제" aria-label="항목 삭제">×</button>
+    </div>
+    <textarea class="in kit-profile-text" rows="4"${dataField} placeholder="한 줄에 하나씩 적어 주세요">${esc(s.text)}</textarea>
+    <p class="hint">항목 안의 순서는 줄 순서대로 나와요.</p>`;
+    box.querySelector('.kit-profile-title').addEventListener('input', e => { s.title=e.target.value; changed('profile'); });
+    box.querySelector('.kit-profile-text').addEventListener('input', e => { s.text=e.target.value; syncProfileLegacy(K.profile); changed('profile'); });
+    box.querySelector('.kit-profile-up').onclick = () => moveProfileSection(i,-1);
+    box.querySelector('.kit-profile-down').onclick = () => moveProfileSection(i,1);
+    box.querySelector('.kit-profile-remove').onclick = () => removeProfileSection(i);
+    host.appendChild(box);
+  });
+}
+function moveProfileSection(index, delta){
+  const to = index + delta;
+  if(to<0 || to>=K.profile.sections.length) return;
+  const [item] = K.profile.sections.splice(index,1); K.profile.sections.splice(to,0,item);
+  syncProfileLegacy(K.profile); renderProfileEditor(); changed('profile');
+}
+function removeProfileSection(index){
+  const s = K.profile.sections[index];
+  if(S(s.text).trim() && !confirm(`「${s.title || '이력'}」 항목과 내용을 뺄까요?`)) return;
+  K.profile.sections.splice(index,1); syncProfileLegacy(K.profile); renderProfileEditor(); changed('profile');
+}
+function addProfileSection(base){
+  const section = newProfileSection(base || { title:'새 항목', kind:'custom' });
+  K.profile.sections.push(section); renderProfileEditor(); changed('profile');
+  const titles = q('#kitProfileSections').querySelectorAll('.kit-profile-title');
+  if(titles.length){ const el=titles[titles.length-1]; el.focus(); el.select(); el.scrollIntoView({block:'center'}); }
+}
+function restoreProfileDefaults(){
+  const have = new Set(K.profile.sections.map(s => s.key).filter(Boolean));
+  const missing = PROFILE_DEFAULTS.filter(x => !have.has(x.key));
+  if(!missing.length){ toast('기본 항목이 모두 들어 있어요'); return; }
+  missing.forEach(x => K.profile.sections.push(newProfileSection(x)));
+  renderProfileEditor(); changed('profile');
+  toast(`기본 항목 ${missing.length}개를 다시 넣었어요`);
+}
 function fillForm(doc){
+  if(doc==='profile') renderProfileEditor();
   document.querySelectorAll(`#view-kit [data-f^="${doc}."]`).forEach(el => {
     const k = el.dataset.f.split('.')[1];
-    el.value = S(K[doc][k]);
+    if(doc!=='profile' || !['careers','works','lectures'].includes(k)) el.value = S(K[doc][k]);
   });
   if(doc==='plan') renderSessions();
   if(doc==='confirm') markNeeds();
@@ -642,7 +756,7 @@ function renderSessions(){
 /* ---------- 미리보기 · 인쇄 ---------- */
 function profilePagesHtml(p, pages, dense){
   const total = pages.length;
-  return `<div class="profile-pages">${pages.map((sections,i) => profilePageHtml(p,sections,dense,i+1,total,i===0)).join('')}</div>`;
+  return `<div class="profile-pages">${pages.map((sections,i) => profilePageHtml(p,sections,dense,i+1,total,i===0,i===total-1)).join('')}</div>`;
 }
 function profilePageHeight(sheet, p, sections, pageNo){
   sheet.classList.remove('multi-sheet');
@@ -699,6 +813,11 @@ function renderProfileSheet(sheet, box){
     sheet.classList.toggle('multi-sheet', pages>1);
     height = sheet.scrollHeight;
     over = paged.unsplittable;
+  } else {
+    const page = sheet.firstElementChild;
+    if(page) page.classList.add('profile-fitted');
+    html = sheet.innerHTML;
+    height = sheet.scrollHeight;
   }
   const scale = Math.max(0.2, Math.min(1, (box.clientWidth - 32) / 688));
   sheet.style.transform = `scale(${scale})`;
@@ -858,8 +977,7 @@ async function saveRow(doc){
       .map((s,i) => ({ no: s.no.trim() || (i+1)+'회', topic: s.topic.trim(), content: s.content.trim(), materials: s.materials.trim() }));
   } else {
     if(!cur.name.trim()){ toast('이름을 먼저 적어 주세요'); return; }
-    row = { name: cur.name.trim(), headline: cur.headline.trim(), intro: cur.intro.trim(),
-      careers: lines(cur.careers), works: lines(cur.works), lectures: lines(cur.lectures) };
+    row = profileRow(cur);
   }
   const insertRow = () => {
     const ins = { ...row };
@@ -1086,6 +1204,8 @@ registerDocView('kit', {
       renderSessions(); changed('plan');
       const t = sec.querySelectorAll('#kitSess .s-topic'); if(t.length) t[t.length-1].focus();
     };
+    q('#kitProfileAdd').onclick = () => addProfileSection();
+    q('#kitProfileDefaults').onclick = restoreProfileDefaults;
     q('#kitNew').onclick = resetDoc;
     q('#kitSave').onclick = () => saveRow(K.sub);
     q('#kitPrint').onclick = printDoc;

@@ -145,6 +145,8 @@ function currentValues(){
   return Object.fromEntries(keys.map(k => [k, document.querySelector(`#view-kit [data-f="profile.${k}"]`)?.value.trim() || '']));
 }
 function fill(result){
+  const missingDefault = ['careers','works','lectures'].some(k => result[k] && !document.querySelector(`#view-kit [data-f="profile.${k}"]`));
+  if(missingDefault) document.querySelector('#view-kit #kitProfileDefaults')?.click();
   const existing = currentValues();
   if(Object.values(existing).some(Boolean) && !confirm('지금 강사 프로필 칸에 적힌 내용이 있어요. 올린 자료의 정리 결과로 바꿀까요?')) return false;
   let count = 0;

@@ -203,6 +203,34 @@ test('admin docs: long instructor profile splits by whole rows and repeats its i
   expect(pdfPages).toBe(pages);
 });
 
+test('admin docs: instructor profile supports DIY sections and keeps inquiry at the final A4 bottom', async ({ page }) => {
+  await page.goto('/admin/docs.html?preview#kit', { waitUntil:'domcontentloaded' });
+  await page.locator('#kitSeg [data-sub="profile"]').click();
+  await page.locator('#kitProfileAdd').click();
+  const custom = page.locator('#kitProfileSections .kit-profile-edit').last();
+  await custom.locator('.kit-profile-title').fill('전시·프로젝트');
+  await custom.locator('.kit-profile-text').fill('2026.08 마음 기록 전시 기획\n2025.12 지역 기록 프로젝트 운영');
+  await expect(page.locator('#kitSheet .kit-lh')).toContainText(['경력','저서·작품','주요 출강 이력','전시·프로젝트']);
+
+  const first = page.locator('#kitProfileSections .kit-profile-edit').first();
+  await first.locator('.kit-profile-title').fill('주요 활동 경력');
+  await expect(page.locator('#kitSheet .kit-lh').first()).toContainText('주요 활동 경력');
+  await custom.locator('.kit-profile-up').click();
+  await expect(page.locator('#kitProfileSections .kit-profile-title').nth(5)).toHaveValue('전시·프로젝트');
+
+  const pages = page.locator('#kitSheet .profile-page');
+  const count = await pages.count();
+  await expect(page.locator('#kitSheet .profile-inquiry')).toHaveCount(1);
+  await expect(pages.last().locator('.profile-inquiry')).toContainText('강의 및 프로그램 문의');
+  const gap = await pages.last().evaluate(el => {
+    const inquiry = el.querySelector('.profile-inquiry');
+    const pageBox = el.getBoundingClientRect(), inquiryBox = inquiry.getBoundingClientRect();
+    return Math.round(pageBox.bottom - inquiryBox.bottom);
+  });
+  expect(gap).toBeLessThan(55);
+  if(count > 1) await expect(pages.first().locator('.profile-inquiry')).toHaveCount(0);
+});
+
 test('admin docs: profile importer is available after entering from another tab', async ({ page }) => {
   await page.goto('/admin/docs.html?preview#royalty', { waitUntil:'domcontentloaded' });
   await page.evaluate(() => switchView('kit'));
