@@ -65,3 +65,52 @@ test('학력과 자격은 경력 칸에 알아보기 쉬운 말머리로 합친�
   assert.match(result.careers, /\[자격·수료\]/);
   assert.match(result.careers, /마음책방 운영/);
 });
+
+test('실제 HWP처럼 표가 풀려도 필명·경력·저서·강연을 나누고 개인정보를 버린다', () => {
+  const result = model.parseProfile(`
+장진호 / 필명 : 장두루
+[ 감정 기록 글쓰기 / 창작 ] 장두루 (장진호)
+두루 잘 살고 싶은 사람 ‘두루’라는 필명으로 활동하며,
+마음 기록과 글쓰기 중심으로 창작 활동을 이어가고 있습니다.
+학력
+금오공과대학교 전자공학부 졸업 (2009~2017 년도)
+연락처 : 010-4004-8396
+인스타그램 https://www.instagram.com/from.duru
+■ 직장 경력
+기간 내용
+2017.12~2023.05
+삼성전자
+연구원
+■ 저서
+2025.10 (공저) 에세이 <가족이어서 할 수 없는 이야기> - 가가77 페이지 출판사
+2025.05 (단독) 에세이 <불안과 밤 산책> - 개띠랑 출판사
+■ 대표 강연 이력
+공공기관 및 교육청
+기간 활동 내용 주최 주관 진행
+2026.05~10
+경기도화재단 경기상상캠퍼스 숲숲학교 숲인문학 프로그램 진행
+`, ['장두루_강사프로필.hwp']);
+  assert.equal(result.blockedReason, '');
+  assert.equal(result.name, '장두루');
+  assert.equal(result.headline, '감정 기록 글쓰기 · 창작');
+  assert.match(result.intro, /마음 기록과 글쓰기/);
+  assert.match(result.careers, /2017\.12~2023\.05 · 삼성전자 · 연구원/);
+  assert.match(result.works, /가족이어서 할 수 없는 이야기/);
+  assert.match(result.lectures, /경기상상캠퍼스/);
+  assert.doesNotMatch(`${result.careers}\n${result.works}\n${result.lectures}`, /\[학력\].*\[학력\]/s);
+  assert.doesNotMatch(JSON.stringify(result), /010-4004|instagram\.com/);
+  assert.doesNotMatch(result.careers, /에세이/);
+  assert.doesNotMatch(result.works, /\[학력\]/);
+  assert.doesNotMatch(result.lectures, /기간 활동 내용/);
+});
+
+test('분류가 무너지면 자동 채움을 막는다', () => {
+  const result = model.parseProfile(`
+장진호 / 필명 : 장두루
+학력
+연락처 010-4004-8396
+저서
+대표 강연 이력
+`);
+  assert.match(result.blockedReason, /저서·작품|강연·출강|항목/);
+});

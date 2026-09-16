@@ -148,6 +148,27 @@ test('admin docs: existing instructor profile file fills the profile form locall
   await expect(page.locator('.profile-import-note')).toContainText('6개 항목을 정리해 채웠어요');
 });
 
+test('admin docs: uncertain profile import stops without overwriting the form', async ({ page }) => {
+  await page.goto('/admin/docs.html?preview#kit', { waitUntil:'domcontentloaded' });
+  await page.locator('#kitSeg [data-sub="profile"]').click();
+  const before = await page.locator('[data-f="profile.name"]').inputValue();
+  const chooserPromise = page.waitForEvent('filechooser');
+  await page.locator('.profile-import-btn').click();
+  const chooser = await chooserPromise;
+  await chooser.setFiles({
+    name:'깨진_프로필.txt', mimeType:'text/plain', buffer:Buffer.from([
+      '장진호 / 필명 : 장두루',
+      '학력',
+      '연락처 010-4004-8396',
+      '저서',
+      '대표 강연 이력',
+    ].join('\n')),
+  });
+  await expect(page.locator('.profile-import-note')).toContainText('자동 정리를 멈췄어요');
+  await expect(page.locator('.profile-import-note')).toContainText('기존 내용은 그대로예요');
+  await expect(page.locator('[data-f="profile.name"]')).toHaveValue(before);
+});
+
 test('admin docs: every printable form stays on one branded A4 page', async ({ page }) => {
   const cases = [
     ['quote', 'quote'],
