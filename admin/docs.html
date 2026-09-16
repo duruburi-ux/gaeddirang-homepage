@@ -877,6 +877,7 @@ function statementHtml(s, dense){
 
 // 미리보기에 그리고, A4 한 장을 넘으면 간격을 줄여 다시 그린다
 function renderSheet(sheet, box, build, startDense){
+  sheet.classList.remove('multi-sheet');
   let dense = startDense||0, html = '', height = 0;
   for(;;){
     html = build(dense); sheet.innerHTML = html; height = sheet.scrollHeight;
@@ -889,7 +890,9 @@ function renderSheet(sheet, box, build, startDense){
   return { html, dense, over: height > A4_CONTENT_HEIGHT };
 }
 function setFit(el, r){
-  el.textContent = r.over ? 'A4 한 장을 넘습니다 · 설명이나 안내 문구를 줄여 주세요' : `A4 한 장${r.dense?' (간격 줄임)':''}`;
+  el.textContent = r.over ? '한 항목이 너무 길어요 · 해당 문장을 나눠 주세요'
+    : r.pages>1 ? `A4 ${r.pages}장 · 항목 단위 자동 분할`
+    : `A4 한 장${r.dense?' (간격 줄임)':''}`;
   el.classList.toggle('warn', r.over);
 }
 function printHtml(html, fileTitle){

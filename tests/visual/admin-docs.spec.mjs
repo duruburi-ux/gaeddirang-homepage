@@ -174,6 +174,35 @@ test('admin docs: uncertain profile import stops without overwriting the form', 
   await expect(page.locator('[data-f="profile.name"]')).toHaveValue(before);
 });
 
+test('admin docs: long instructor profile splits by whole rows and repeats its identity', async ({ page }) => {
+  await page.goto('/admin/docs.html?preview#kit', { waitUntil:'domcontentloaded' });
+  await page.locator('#kitSeg [data-sub="profile"]').click();
+  await page.locator('[data-f="profile.name"]').fill('장두루');
+  await page.locator('[data-f="profile.headline"]').fill('감정 기록 · 글쓰기 · 창작');
+  await page.locator('[data-f="profile.intro"]').fill('질문과 기록으로 자신의 마음을 표현하도록 돕는 강사입니다.');
+  const careers = Array.from({length:12},(_,i) => `202${i%7}.0${i%9+1} ○○기관 ${i+1}기 · 감정 기록 강사`);
+  const works = Array.from({length:9},(_,i) => `202${i%7}.0${i%9+1} 《마음을 기록하는 책 ${i+1}》 · 개띠랑 출판사`);
+  const lectures = Array.from({length:20},(_,i) => `2026.${String(i%12+1).padStart(2,'0')} ○○도서관 ${i+1} · 감정 기록 워크숍 (${i%4+1}회)`);
+  await page.locator('[data-f="profile.careers"]').fill(careers.join('\n'));
+  await page.locator('[data-f="profile.works"]').fill(works.join('\n'));
+  await page.locator('[data-f="profile.lectures"]').fill(lectures.join('\n'));
+  await expect(page.locator('#kitFit')).toContainText(/A4 [2-9][0-9]*장 · 항목 단위 자동 분할/);
+  const pages = await page.locator('#kitSheet .profile-page').count();
+  expect(pages).toBeGreaterThan(1);
+  await expect(page.locator('#kitSheet .profile-cont-head')).toHaveCount(pages-1);
+  await expect(page.locator('#kitSheet .kit-r')).toHaveCount(careers.length+works.length+lectures.length);
+  expect(await page.locator('#kitSheet .profile-key').count()).toBeGreaterThan(20);
+  for(let i=0;i<pages;i++){
+    expect(await page.locator('#kitSheet .profile-page').nth(i).locator('.kit-r').count()).toBeGreaterThan(0);
+  }
+  await page.evaluate(() => { window.print = () => {}; });
+  await page.locator('#kitPrint').click();
+  await expect(page.locator('#printArea .profile-page')).toHaveCount(pages);
+  const pdf = await page.pdf({ format:'A4', printBackground:true, preferCSSPageSize:true });
+  const pdfPages = (pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) || []).length;
+  expect(pdfPages).toBe(pages);
+});
+
 test('admin docs: profile importer is available after entering from another tab', async ({ page }) => {
   await page.goto('/admin/docs.html?preview#royalty', { waitUntil:'domcontentloaded' });
   await page.evaluate(() => switchView('kit'));

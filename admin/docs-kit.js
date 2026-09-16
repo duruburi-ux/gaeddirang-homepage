@@ -83,7 +83,18 @@ const CSS = `
 .qdoc.profile-doc .kit-r.no-date-col{grid-template-columns:1fr}
 .qdoc.profile-doc .kit-rd{color:var(--accent-deep);font-weight:800;font-size:11.2px;letter-spacing:.01em;padding-top:1px}
 .qdoc.profile-doc .kit-rt{min-width:0;color:#3e3731}
+.qdoc.profile-doc .profile-key{font-weight:850;color:var(--accent-deep)}
+.qdoc.profile-doc .profile-page-mark{font-size:10.5px;color:var(--muted);font-weight:750;letter-spacing:.04em;margin-top:3px}
+.qdoc.profile-doc .profile-cont-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+.qdoc.profile-doc .profile-cont-title{font-size:21px;font-weight:900;letter-spacing:.025em}
+.qdoc.profile-doc .profile-cont-sub{font-size:11.5px;color:var(--muted);margin-top:3px}
 .qdoc.profile-doc .profile-foot{margin-top:14px;padding-top:7px;border-top:1px solid #d8cec4;text-align:center;font-size:10.5px;color:var(--muted);letter-spacing:.005em}
+.sheet.multi-sheet{background:transparent;border:0;box-shadow:none;display:flex;flex-direction:column;gap:18px}
+.sheet.multi-sheet .profile-page{height:1046px;box-sizing:border-box;background:#fff;border:1px solid #e4ddd5;box-shadow:0 7px 24px rgba(56,38,25,.14);overflow:hidden}
+.profile-pages>.profile-page{break-after:page;page-break-after:always}
+.profile-pages>.profile-page:last-child{break-after:auto;page-break-after:auto}
+.profile-pages>.profile-page .wrap{min-height:100%;box-sizing:border-box;display:flex;flex-direction:column}
+.profile-pages>.profile-page .profile-foot{margin-top:auto}
 .qdoc .kit-fill{padding:4px 16px 10px}
 .qdoc .kit-fl{display:flex;align-items:flex-end;gap:10px;padding:9px 0 0;font-size:13px}
 .qdoc .kit-fl .k{color:var(--muted);white-space:nowrap;width:46px;flex:none}
@@ -123,6 +134,9 @@ const CSS = `
 .qdoc.profile-doc.d2 .kit-rd{font-size:10.3px}
 .qdoc.profile-doc.d2 .profile-foot{margin-top:5px;padding-top:4px;font-size:9.8px}
 .qdoc.d2 .kit-fl{padding-top:6px}
+@media print{
+  .profile-pages>.profile-page{height:277mm;box-sizing:border-box;overflow:hidden}
+}
 `;
 
 /* ---------- 탭 화면 ---------- */
@@ -384,18 +398,35 @@ function planHtml(p, dense){
 
 /* ---------- 문서: 강사 프로필 ---------- */
 const DATE_HEAD = /^(\d{4}(?:\s*[.\-/]\s*\d{1,2})?(?:\s*[.\-/]\s*\d{1,2})?\.?(?:\s*~\s*(?:현재|\d{4}(?:\s*[.\-/]\s*\d{1,2})?|\d{1,2}))?)\s+(\S.*)$/;
-function listRows(text){
-  const rows = lines(text).map(l => { const m = l.match(DATE_HEAD); return m ? { d:m[1], t:m[2].trim() } : { d:'', t:l }; });
-  const dated = rows.some(r => r.d);
-  return rows.map(r => `<div class="kit-r${dated ? '' : ' no-date-col'}">${dated ? `<span class="kit-rd">${esc(r.d)}</span>` : ''}<span class="kit-rt">${esc(r.t)}</span></div>`).join('');
+function profileRich(text, kind){
+  let out = esc(text);
+  out = out.replace(/(《[^》]{1,80}》|〈[^〉]{1,80}〉)/g, '<strong class="profile-key">$1</strong>');
+  out = out.replace(/^(\[[^\]]{1,30}\])/, '<strong class="profile-key">$1</strong>');
+  if(kind==='careers' || kind==='lectures') out = out.replace(/^([^·]{2,45})(\s*·\s*)/, '<strong class="profile-key">$1</strong>$2');
+  return out;
 }
-function profileHtml(p, dense){
-  const sec = (no, title, text) => lines(text).length ? `<section class="kit-profile-sec"><div class="kit-lh"><span class="kit-lh-no">${no}</span><span>${title}</span></div><div class="kit-rs">${listRows(text)}</div></section>` : '';
-  const body = sec('01','경력',p.careers) + sec('02','저서·작품',p.works) + sec('03','주요 출강 이력',p.lectures);
-  return `<div class="qdoc profile-doc${dcls(dense)}"><div class="wrap">
-    <div class="profile-headline">
+function profileRows(text, kind){
+  return lines(text).map(l => { const m = l.match(DATE_HEAD); return { d:m ? m[1] : '', t:m ? m[2].trim() : l, kind }; });
+}
+function listRows(rows){
+  const dated = rows.some(r => r.d);
+  return rows.map(r => `<div class="kit-r${dated ? '' : ' no-date-col'}">${dated ? `<span class="kit-rd">${esc(r.d)}</span>` : ''}<span class="kit-rt">${profileRich(r.t,r.kind)}</span></div>`).join('');
+}
+function profileSections(p){
+  return [
+    { no:'01', title:'경력', kind:'careers', rows:profileRows(p.careers,'careers') },
+    { no:'02', title:'저서·작품', kind:'works', rows:profileRows(p.works,'works') },
+    { no:'03', title:'주요 출강 이력', kind:'lectures', rows:profileRows(p.lectures,'lectures') },
+  ].filter(s => s.rows.length);
+}
+function profileSectionHtml(section, continued){
+  return `<section class="kit-profile-sec"><div class="kit-lh"><span class="kit-lh-no">${section.no}</span><span>${section.title}${continued ? ' <small>(계속)</small>' : ''}</span></div><div class="kit-rs">${listRows(section.rows)}</div></section>`;
+}
+function profilePageHtml(p, sections, dense, pageNo, totalPages, first){
+  const pageMark = totalPages>1 ? `<div class="profile-page-mark">${pageNo} / ${totalPages}</div>` : '';
+  const head = first ? `<div class="profile-headline">
       <div><div class="profile-title-kicker">INSTRUCTOR PROFILE</div><h1>강사 프로필</h1><div class="subtitle">${esc(SUPPLIER.상호)} · ${esc(SUPPLIER.소개)}</div></div>
-      <div class="profile-date">작성일 <b>${dotDate(p.date)}</b></div>
+      <div class="profile-date">작성일 <b>${dotDate(p.date)}</b>${pageMark}</div>
     </div>
     <hr class="profile-rule">
     <div class="kit-hero">
@@ -403,10 +434,18 @@ function profileHtml(p, dense){
       <div class="kit-hero-name">${esc(p.name) || '&nbsp;'}</div>
       ${p.headline ? `<div class="kit-hero-line">${esc(p.headline)}</div>` : ''}
       ${p.intro.trim() ? `<div class="kit-hero-intro">${rich(p.intro)}</div>` : ''}
-    </div>
+    </div>` : `<div class="profile-cont-head">
+      <div><div class="profile-title-kicker">INSTRUCTOR PROFILE</div><div class="profile-cont-title">강사 프로필 · ${esc(p.name)}</div><div class="profile-cont-sub">경력·저서·출강 이력 이어보기</div></div>
+      ${pageMark}
+    </div><hr class="profile-rule">`;
+  const body = sections.map(s => profileSectionHtml(s, !!s.continued)).join('');
+  return `<div class="qdoc profile-doc profile-page${dcls(dense)}"><div class="wrap">${head}
     ${body || '<div class="kit-lh" style="color:#b3a99f;border-color:#e3ddd4">경력·저서·출강 이력을 넣으면 여기에 표시됩니다</div>'}
     <div class="profile-foot">강의 문의 · ${esc([SUPPLIER.상호, SUPPLIER.이메일, SUPPLIER.연락처].join(' · '))}</div>
   </div></div>`;
+}
+function profileHtml(p, dense){
+  return profilePageHtml(p, profileSections(p), dense, 1, 1, true);
 }
 
 /* ---------- 문서: 출강확인서 ---------- */
@@ -601,12 +640,79 @@ function renderSessions(){
 }
 
 /* ---------- 미리보기 · 인쇄 ---------- */
+function profilePagesHtml(p, pages, dense){
+  const total = pages.length;
+  return `<div class="profile-pages">${pages.map((sections,i) => profilePageHtml(p,sections,dense,i+1,total,i===0)).join('')}</div>`;
+}
+function profilePageHeight(sheet, p, sections, pageNo){
+  sheet.classList.remove('multi-sheet');
+  sheet.innerHTML = profilePageHtml(p,sections,0,pageNo,99,pageNo===1);
+  return sheet.firstElementChild ? sheet.firstElementChild.scrollHeight : 0;
+}
+function paginateProfile(sheet, p){
+  const pages = [];
+  let current = [];
+  let unsplittable = false;
+  const clone = items => items.map(s => ({ ...s, rows:s.rows.slice() }));
+  const count = items => items.reduce((n,s) => n+s.rows.length, 0);
+  profileSections(p).forEach(section => {
+    section.rows.forEach((row,rowIndex) => {
+      const candidate = clone(current);
+      let part = candidate.find(s => s.no===section.no);
+      if(!part){
+        part = { ...section, rows:[], continued:rowIndex>0 };
+        candidate.push(part);
+      }
+      part.rows.push(row);
+      if(profilePageHeight(sheet,p,candidate,pages.length+1) <= A4_CONTENT_HEIGHT || count(current)===0){
+        current = candidate;
+        if(profilePageHeight(sheet,p,current,pages.length+1) > A4_CONTENT_HEIGHT) unsplittable = true;
+      } else {
+        pages.push(current);
+        current = [{ ...section, rows:[row], continued:rowIndex>0 }];
+        if(profilePageHeight(sheet,p,current,pages.length+1) > A4_CONTENT_HEIGHT) unsplittable = true;
+      }
+    });
+  });
+  if(current.length || !pages.length) pages.push(current);
+  return { pages, unsplittable };
+}
+function renderProfileSheet(sheet, box){
+  sheet.classList.remove('multi-sheet');
+  let dense = 0;
+  let html = profileHtml(K.profile,dense);
+  sheet.innerHTML = html;
+  let height = sheet.scrollHeight;
+  if(height > A4_CONTENT_HEIGHT){
+    dense = 1;
+    html = profileHtml(K.profile,dense);
+    sheet.innerHTML = html;
+    height = sheet.scrollHeight;
+  }
+  let pages = 1, over = false;
+  if(height > A4_CONTENT_HEIGHT){
+    dense = 0;
+    const paged = paginateProfile(sheet,K.profile);
+    pages = paged.pages.length;
+    html = profilePagesHtml(K.profile,paged.pages,dense);
+    sheet.innerHTML = html;
+    sheet.classList.toggle('multi-sheet', pages>1);
+    height = sheet.scrollHeight;
+    over = paged.unsplittable;
+  }
+  const scale = Math.max(0.2, Math.min(1, (box.clientWidth - 32) / 688));
+  sheet.style.transform = `scale(${scale})`;
+  box.style.height = (height*scale + 32) + 'px';
+  return { html, dense, over, pages };
+}
 function renderDoc(){
   if(!K.started || K.sub==='checklist') return null;
   const build = K.sub==='plan' ? d => planHtml(K.plan, d)
     : K.sub==='profile' ? d => profileHtml(K.profile, d)
     : d => confirmHtml(K.confirm, d);
-  const r = renderSheet(q('#kitSheet'), q('#kitBox'), build, (K.sub==='plan' && K.plan.sessions.length > 4) ? 1 : 0);
+  const r = K.sub==='profile'
+    ? renderProfileSheet(q('#kitSheet'),q('#kitBox'))
+    : renderSheet(q('#kitSheet'), q('#kitBox'), build, (K.sub==='plan' && K.plan.sessions.length > 4) ? 1 : 0);
   setFit(q('#kitFit'), r);
   return r;
 }
