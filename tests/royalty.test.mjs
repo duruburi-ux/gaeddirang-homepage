@@ -58,3 +58,21 @@ test('작가·도서별 인세와 외부위탁 판매·샘플·재고를 분리�
   assert.equal(moon.operations.find(r=>r.label==='책방 샘플 제공').qty,7);
   assert.equal(moon.operations.find(r=>r.label==='서평용 제공').qty,9);
 });
+
+test('가상 저자의 증정본 수량은 조건부 출력 데이터로 전달한다',()=>{
+  const out=buildRoyalty({
+    ledger:range([
+      ['작가','도서','채널','판매권수','인세액'],
+      ['가상작가','가상도서','가상채널','3','9,000'],
+    ]),
+    dashboard:range([]),
+    scmStatus:range([]),
+    basis:range([
+      ['작가','도서','관리 구분','정가','작가율','증정본 약정 수량','증정본 제공 수량','증정본 잔여 수량'],
+      ['가상작가','가상도서','자체출판 저자 인세','15,000','20%','12','5','7'],
+    ]),
+    inventory:range([['일자','작가','도서','구분','입고','판매/유출']]),
+    settlements:range([['작가','도서','지급상태']]),
+  });
+  assert.deepEqual(out.books[0].giftCopies,{agreed:12,provided:5,remaining:7});
+});

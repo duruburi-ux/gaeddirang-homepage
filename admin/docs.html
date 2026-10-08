@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
 <title>개띠랑 서류실</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
@@ -72,6 +73,8 @@
   .in.sm{padding:6px 8px;font-size:13px;width:auto}
   textarea.in{resize:vertical}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  @media (max-width:560px){.row3{grid-template-columns:1fr}}
   .chk{display:flex;align-items:center;gap:7px;font-size:13px;margin-top:10px;color:var(--ink)}
   .btns{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
   .btn-primary{background:var(--orange);color:#fff;border:none;padding:10px 16px;border-radius:7px;font-size:14px;font-weight:750;text-decoration:none;display:inline-block;box-shadow:0 2px 5px rgba(71,45,29,.14)}
@@ -261,29 +264,54 @@
   .qdoc.d2 .notes ol{font-size:11.5px;line-height:1.45}
   .qdoc.d2 .sign{margin-top:5px;padding-top:4px}
   .qdoc.d2 .foot{margin-top:5px;padding-top:4px}
-  .qdoc.settlement-doc h1{letter-spacing:.08em;padding-left:.08em}
-  .qdoc.settlement-doc .settlement-summary{font-size:12.5px;color:var(--muted);margin-top:4px}
-  .qdoc.settlement-doc .settlement-summary b{color:var(--ink)}
-  .qdoc.settlement-doc .statement-brand{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:6px;font-size:12px;color:var(--muted)}
-  .qdoc.settlement-doc .statement-brand b{font-size:14px;color:var(--ink)}
-  .qdoc.settlement-doc .statement-title{text-align:center;margin:2px 0 14px}
-  .qdoc.settlement-doc .statement-title h1{font-size:25px;letter-spacing:.08em;padding-left:.08em}
-  .qdoc.settlement-doc .statement-title .subtitle{margin-top:3px}
-  .qdoc.settlement-doc .statement-meta{width:100%;border-top:2px solid var(--accent);border-bottom:1px solid var(--line);margin-bottom:13px;font-size:12.5px}
-  .qdoc.settlement-doc .statement-meta th{width:12%;padding:6px 8px;background:var(--wash);color:var(--accent-deep);text-align:center;white-space:nowrap}
-  .qdoc.settlement-doc .statement-meta td{padding:6px 10px;border-bottom:1px solid var(--line);font-weight:700}
-  .qdoc.settlement-doc .statement-meta tr:last-child th,.qdoc.settlement-doc .statement-meta tr:last-child td{border-bottom:none}
-  .qdoc.settlement-doc .section-title{display:flex;align-items:baseline;gap:9px;margin:13px 0 7px;font-size:14px;font-weight:850}
-  .qdoc.settlement-doc .section-title .n{color:var(--accent);font-size:12px;letter-spacing:.06em}
-  .qdoc.settlement-doc .formula-box{border:1px solid var(--line);background:#faf8f5;border-radius:5px;padding:8px 12px;font-size:13px;text-align:center;font-weight:800}
-  .qdoc.settlement-doc table{font-size:12px}
-  .qdoc.settlement-doc tbody td,.qdoc.settlement-doc tfoot td{padding:8px 6px}
-  .qdoc.settlement-doc .basis-copy{white-space:pre-wrap;line-height:1.55}
-  .qdoc.settlement-doc .gross-note{font-size:11.5px;color:var(--muted);margin-top:5px}
-  .qdoc.settlement-doc.d2 table{font-size:11.5px}
+  .qdoc.settlement-doc{--ink:#202421;--muted:#5e645f;--line:#cbd0cc;--accent:#244c3a;--accent-deep:#244c3a;--wash:#f2f4f1;--dark:#244c3a;
+    font-family:"Noto Sans CJK KR","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;line-height:1.42}
+  .qdoc.settlement-doc .wrap{max-width:none;padding:5.3mm 4mm 3mm}
+  .qdoc.settlement-doc .wrap::before{display:none}
+  .qdoc.settlement-doc h1{letter-spacing:0;padding-left:0}
+  .qdoc.settlement-doc .statement-top{height:14.5mm;border-bottom:1.25pt solid var(--accent);display:flex;justify-content:space-between;align-items:flex-start}
+  .qdoc.settlement-doc .statement-issuer{display:flex;align-items:center;gap:3.8mm;padding-left:3.2mm}
+  .qdoc.settlement-doc .statement-issuer img{width:13mm;height:13mm;object-fit:contain}
+  .qdoc.settlement-doc .statement-issuer b{font-size:10.5pt;color:var(--accent);font-weight:700}
+  .qdoc.settlement-doc .statement-top-meta{font-size:8pt;color:var(--muted);text-align:right;line-height:1.65;padding-top:2.3mm}
+  .qdoc.settlement-doc .statement-title{text-align:center;margin:8px 0 10px}
+  .qdoc.settlement-doc .statement-title h1{font-size:20pt;font-weight:700;letter-spacing:0;padding-left:0}
+  .qdoc.settlement-doc .statement-title .subtitle{font-size:9.5pt;margin-top:2px;color:var(--muted)}
+  .qdoc.settlement-doc .statement-meta{width:100%;margin-bottom:10px;font-size:10pt;border:.75pt solid var(--line)}
+  .qdoc.settlement-doc .statement-meta th{width:12%;padding:5px 7px;background:var(--wash);color:var(--ink);text-align:center;white-space:nowrap;border:.75pt solid var(--line);font-size:9.5pt;font-weight:700}
+  .qdoc.settlement-doc .statement-meta td{padding:5px 8px;border:.75pt solid var(--line);font-weight:500;color:var(--ink)}
+  .qdoc.settlement-doc .section-title{display:flex;align-items:center;gap:7px;margin:12pt 0 5pt;font-size:11pt;line-height:13.5pt;font-weight:700}
+  .qdoc.settlement-doc .section-title::after{content:"";height:1pt;background:var(--accent);flex:1;margin-left:4pt}
+  .qdoc.settlement-doc .section-title .n{color:var(--accent);font-size:9.5pt;letter-spacing:.04em}
+  .qdoc.settlement-doc table{font-size:10pt;border-collapse:collapse}
+  .qdoc.settlement-doc thead th{background:var(--dark);color:#fff;border:.75pt solid var(--line);padding:7.25pt 7pt;font-size:9.5pt;line-height:13.5pt;font-weight:700}
+  .qdoc.settlement-doc thead th:first-child{padding-left:7px}
+  .qdoc.settlement-doc tbody td{padding:7.25pt 7pt;border:.75pt solid var(--line);font-size:10pt;line-height:13.5pt}
+  .qdoc.settlement-doc tbody td.item-c{padding-left:7px}
+  .qdoc.settlement-doc tbody td:last-child{font-size:10pt;color:var(--ink);font-weight:700}
+  .qdoc.settlement-doc tfoot td{padding:7.25pt 7pt;border-top:1pt solid var(--accent);border-right:.75pt solid var(--line);border-bottom:1pt solid var(--accent);border-left:.75pt solid var(--line);background:var(--wash);font-size:10pt;line-height:13.5pt}
+  .qdoc.settlement-doc tfoot td:first-child{border-left:1pt solid var(--accent)}
+  .qdoc.settlement-doc tfoot td:last-child{border-right:1pt solid var(--accent);color:var(--accent);font-weight:700}
+  .qdoc.settlement-doc .basis-copy{white-space:pre-wrap;line-height:1.48}
+  .qdoc.settlement-doc .money{text-align:right}
+  .qdoc.settlement-doc .gross-total{margin-top:-.75pt}
+  .qdoc.settlement-doc .gross-total th{width:110mm;background:var(--wash);color:var(--ink);text-align:left;border:1pt solid var(--accent);padding:7.25pt 7pt;font-size:10pt;line-height:13.5pt}
+  .qdoc.settlement-doc .gross-total td{width:64mm;background:#fff;color:var(--accent);text-align:right;border:1pt solid var(--accent);padding:7.25pt 7pt;font-size:17pt;line-height:18pt;font-weight:700}
+  .qdoc.settlement-doc .gross-note{font-size:9pt;color:#555e59;line-height:1.15;padding-top:6pt;margin:0}
+  .qdoc.settlement-doc .channel-table th:nth-child(odd),.qdoc.settlement-doc .channel-table td:nth-child(odd){text-align:left}
+  .qdoc.settlement-doc .channel-table th:nth-child(even),.qdoc.settlement-doc .channel-table td:nth-child(even){text-align:center}
+  .qdoc.settlement-doc .event-note{font-size:9pt;color:#555e59;line-height:1.15;margin:6pt 0 0}
+  .qdoc.settlement-doc .formula-table th{width:26mm;background:var(--wash);color:var(--ink);text-align:center;border:.75pt solid var(--line);padding:7.25pt 7pt;font-size:9.5pt;line-height:13.5pt}
+  .qdoc.settlement-doc .formula-table td{width:148mm;text-align:left;font-size:10pt;font-weight:400}
+  .qdoc.settlement-doc .notes{border:.75pt solid var(--line);border-radius:0;border-left:1pt solid var(--accent);padding:6px 10px;margin-top:8px}
+  .qdoc.settlement-doc .notes .h{font-size:9.5pt;margin-bottom:4px}
+  .qdoc.settlement-doc .notes ol{font-size:9pt;line-height:1.45}
+  .qdoc.settlement-doc .sign{font-size:10pt;line-height:15pt;margin-top:14pt;padding-top:0;border-top:0;text-align:center}
+  .qdoc.settlement-doc .sign-issuer{font-size:10.5pt;font-weight:700;color:var(--accent);text-align:right;margin-top:8pt}
+  .qdoc.settlement-doc.d1 .wrap,.qdoc.settlement-doc.d2 .wrap{padding:5.3mm 4mm 3mm}
+  .qdoc.settlement-doc.d1 .wrap::before,.qdoc.settlement-doc.d2 .wrap::before{display:none}
+  .qdoc.settlement-doc.d2 table{font-size:9.5pt}
   .qdoc.settlement-doc.d2 tbody td,.qdoc.settlement-doc.d2 tfoot td{padding:4px 5px}
-  .qdoc.settlement-doc.d2 .wrap{padding-top:16px}
-  .qdoc.settlement-doc.d2 .wrap::before{height:17px;margin-bottom:3px}
 
   /* ---- 인쇄: 인쇄용 칸만 A4로 ---- */
   #printArea{display:none}
@@ -468,7 +496,7 @@
             <div><label class="f" for="ryIssue">발행일</label><input class="in" id="ryIssue" type="date"></div>
           </div>
           <div class="row2">
-            <div><label class="f" for="ryDocNo">문서번호 <span class="hint">(선택)</span></label><input class="in" id="ryDocNo" placeholder="예: GDR-ROY-2026Q3-01"></div>
+            <div><label class="f" for="ryDocNo">문서번호</label><input class="in" id="ryDocNo" placeholder="예: GDR-ROY-2026Q3-01"></div>
             <div><label class="f" for="ryIssuer">발행처</label><input class="in" id="ryIssuer"></div>
           </div>
           <div class="btns"><button class="btn-sm" id="ryThisQ">이번 분기</button><button class="btn-sm" id="ryPrevQ">지난 분기</button>
@@ -493,6 +521,14 @@
           <p class="hint">기간에 맞춰 기본 문구가 만들어집니다. 실제 계약·채널 기준이 다르면 이 문구만 고쳐 쓰세요.</p>
           <div id="ryExemptField"><label class="f" for="ryExempt">판매 외 목적 인세 제외 누계 <span class="hint">(해당하는 저자 인세만)</span></label>
           <input class="in" id="ryExempt" inputmode="numeric" placeholder="예: 2"></div>
+          <div id="ryGiftField">
+            <label class="f">저자 증정본 제공 내역 <span class="hint">(값이 있을 때만 출력)</span></label>
+            <div class="row3">
+              <div><label class="f" for="ryGiftAgreed">약정 수량</label><input class="in" id="ryGiftAgreed" inputmode="numeric"></div>
+              <div><label class="f" for="ryGiftProvided">제공 수량</label><input class="in" id="ryGiftProvided" inputmode="numeric"></div>
+              <div><label class="f" for="ryGiftRemaining">잔여 수량</label><input class="in" id="ryGiftRemaining" inputmode="numeric"></div>
+            </div>
+          </div>
           <label class="f" for="ryMemo">추가 안내 <span class="hint">(한 줄에 하나)</span></label>
           <textarea class="in" id="ryMemo" rows="2"></textarea>
           <div class="btns"><button class="btn-sm" id="rySaveDraftBtn">초안 저장</button><button class="btn-sm" id="ryResetBtn">새로 쓰기</button><span class="hint" id="ryDraftNote">원장은 수정하지 않고 이 기기의 관리자 브라우저에만 보관합니다.</span></div>
@@ -1524,9 +1560,13 @@ function buildRoyalty(){
   const start = $('#ryStart').value, end = $('#ryEnd').value;
   const calculation = RY_MODEL.calculate(BOOK, RY_ROWS);
   const exempt = parseCount($('#ryExempt').value);
+  const giftAgreed=parseCount($('#ryGiftAgreed').value),giftProvided=parseCount($('#ryGiftProvided').value);
+  let giftRemaining=parseCount($('#ryGiftRemaining').value);
+  if(giftRemaining==null&&giftAgreed!=null&&giftProvided!=null)giftRemaining=Math.max(0,giftAgreed-giftProvided);
+  const gift=[giftAgreed,giftProvided,giftRemaining].some(v=>v!=null)?{agreed:giftAgreed,provided:giftProvided,remaining:giftRemaining}:null;
   const excludedEventQty = RY_ROWS.filter(r=>r.period===true&&!r.include&&RY_MODEL.sameBook(BOOK,r)&&RY_MODEL.classifyLine(r)==='event').reduce((sum,r)=>sum+(Number(r.qty)||0),0);
   return { ...calculation, start, end, pay: $('#ryPay').value, issue: $('#ryIssue').value || today(),
-    docNo:$('#ryDocNo').value.trim(),issuer:$('#ryIssuer').value.trim(),exempt, excludedEventQty,
+    docNo:$('#ryDocNo').value.trim(),issuer:$('#ryIssuer').value.trim(),exempt,gift,excludedEventQty,
     nonSaleRows: RY_NONSALE.filter(r=>Number.isFinite(r.qty) && r.qty >= 0),
     basis: $('#ryBasis').value.trim() || RY_MODEL.defaultBasis(BOOK,end),
     memo: $('#ryMemo').value.split('\n').map(x=>x.trim()).filter(Boolean) };
@@ -1535,65 +1575,45 @@ function royaltyHtml(s, dense){
   const ratePct = Math.round(BOOK.rate*1000)/10;
   const amountName = BOOK.isRoyalty ? '인세' : '판매대금';
   const docName = BOOK.isRoyalty ? '저자 인세 정산서' : '위탁도서 판매대금 정산서';
-  const rows = s.groups.length ? s.groups.map(g=>`<tr>
-      <td class="item-c">${esc(g.channel)}</td>
-      <td class="num">${g.kind==='event'?'인세 적용 이벤트':'확정 판매'}</td>
-      <td class="num">${won(g.qty)}권</td>
-      <td class="num">${won(g.price)}원</td>
-      <td class="num">${Math.round(g.rate*1000)/10}%</td>
-      <td class="num">${won(g.amount)}원</td></tr>`).join('')
-    : `<tr><td colspan="6" style="text-align:center;color:#b3a99f;padding:18px">정산 기간의 확정 판매 기록이 없습니다</td></tr>`;
-  const notes = BOOK.isRoyalty ? [
-    s.basis,
-    `공제 전 인세는 각 채널의 정가 × 정산 대상 부수 × 적용률 ${ratePct}%를 원 단위로 반올림해 합산했습니다.`,
-    '판매 외 제공분과 파손분, 저자 본인 구입분은 별도의 인세 적용 근거가 없으면 정산 대상에서 제외합니다.',
-  ] : [
-    s.basis,
-    `공제 전 판매대금은 각 채널의 정가 × 실제 판매 부수 × 적용률 ${ratePct}%를 원 단위로 반올림해 합산했습니다.`,
-    '위탁 입고·출고·이동·반품·현재고는 판매로 합산하지 않습니다.',
-  ];
-  if(BOOK.isRoyalty && s.eventQty>0) notes.push(`인세 적용 근거가 확인된 홍보 이벤트 등 ${won(s.eventQty)}권을 판매분과 구분해 정산 대상에 포함했습니다.`);
-  if(BOOK.isRoyalty && s.excludedEventQty>0) notes.push(`인세 적용 근거가 확인되지 않은 이벤트 ${won(s.excludedEventQty)}권은 정산 대상에서 제외했습니다.`);
-  if(BOOK.isRoyalty && s.exempt != null && BOOK.exemptLimit) notes.push(`판매 외 목적 인세 제외 누계는 ${won(s.exempt)}권이며, 계약상 한도 ${won(BOOK.exemptLimit)}권과 별도로 확인합니다.`);
-  notes.push('실제 지급액은 기지급 내역과 공제 사항 확인 후 확정됩니다.');
-  s.memo.forEach(m => notes.push(m));
-  const qtySummary = BOOK.isRoyalty && s.eventQty>0
-    ? `확정 판매 <b>${won(s.salesQty)}권</b> + 인세 적용 이벤트 <b>${won(s.eventQty)}권</b> = 정산 대상 <b>${won(s.totalQty)}권</b>`
-    : `확정 판매 <b>${won(s.salesQty)}권</b>`;
+  const channelPairs=[];
+  for(let i=0;i<s.groups.length;i+=2){
+    const left=s.groups[i],right=s.groups[i+1];
+    channelPairs.push(`<tr><td>${esc(left.channel)}</td><td>${won(left.qty)}권</td>${right?`<td>${esc(right.channel)}</td><td>${won(right.qty)}권</td>`:`<td>합계</td><td>${won(s.totalQty)}권</td>`}</tr>`);
+  }
+  const channelRows=channelPairs.length?channelPairs.join(''):`<tr><td colspan="4" style="text-align:center;color:#5e645f">정산 기간의 확정 판매 기록이 없습니다</td></tr>`;
+  const eventNotes=[];
+  if(BOOK.isRoyalty&&s.eventQty>0){
+    eventNotes.push(`판매 ${won(s.salesQty)}권과 인세 적용 이벤트 제공 ${won(s.eventQty)}권을 합한 ${won(s.totalQty)}권에 인세를 적용했습니다.`);
+    eventNotes.push(`이벤트 제공분에도 판매분과 동일한 권당 인세 ${won(Math.round(BOOK.price*BOOK.rate))}원을 반영했습니다.`);
+  }
+  if(BOOK.isRoyalty&&s.excludedEventQty>0)eventNotes.push(`인세 적용 근거가 확인되지 않은 이벤트 ${won(s.excludedEventQty)}권은 정산 대상에서 제외했습니다.`);
+  if(BOOK.isRoyalty&&s.exempt!=null&&BOOK.exemptLimit)eventNotes.push(`판매 외 목적 인세 제외 누계는 ${won(s.exempt)}권이며, 계약상 한도 ${won(BOOK.exemptLimit)}권과 별도로 확인합니다.`);
+  s.memo.forEach(m=>eventNotes.push(m));
   const perCopy=Math.round(BOOK.price*BOOK.rate);
   const formula=`${won(BOOK.price)}원 × ${won(s.totalQty)}권 × ${ratePct}% = ${won(s.grossAmount)}원`;
   return `<div class="qdoc settlement-doc${dense>=1?' d1':''}${dense>=2?' d2':''}"><div class="wrap">
-    <div class="statement-brand"><b>${esc(s.issuer||SUPPLIER.상호)}</b><span>${s.docNo?`문서번호 <b>${esc(s.docNo)}</b><br>`:''}발행처 <b>${esc(s.issuer||SUPPLIER.상호)}</b></span></div>
+    <div class="statement-top"><div class="statement-issuer"><img src="../assets/images/brand/gd-universe-logomark.png" alt=""><b>${esc(s.issuer||SUPPLIER.상호)}</b></div><div class="statement-top-meta">${s.docNo?`문서번호 ${esc(s.docNo)}<br>`:''}발행처 ${esc(s.issuer||SUPPLIER.상호)}</div></div>
     <div class="statement-title"><h1>${docName}</h1><div class="subtitle">${esc(quarterLabel(s.start))}</div></div>
-    <table class="statement-meta"><tbody>
+    <table class="statement-meta"><colgroup><col style="width:23mm"><col style="width:64mm"><col style="width:23mm"><col style="width:64mm"></colgroup><tbody>
       <tr><th>수신</th><td>${esc(BOOK.author)} 작가님</td><th>발행일</th><td>${esc(longKoDate(s.issue))}</td></tr>
       <tr><th>정산 구분</th><td>${BOOK.isRoyalty?'저자 인세':'위탁도서 판매대금'}</td><th>지급예정일</th><td>${esc(longKoDate(s.pay))}</td></tr>
-      <tr><th>정산 기간</th><td colspan="3">${dotDate(s.start)} ~ ${dotDate(s.end)}</td></tr>
       <tr><th>정산 기준</th><td colspan="3" class="basis-copy">${esc(s.basis)}</td></tr>
     </tbody></table>
     <div class="section-title"><span class="n">01</span><span>정산 내역</span></div>
     <table>
-      <colgroup><col style="width:31%"><col style="width:15%"><col style="width:13%"><col style="width:13%"><col style="width:14%"><col style="width:14%"></colgroup>
+      <colgroup><col style="width:50mm"><col style="width:21mm"><col style="width:20mm"><col style="width:22mm"><col style="width:30mm"><col style="width:31mm"></colgroup>
       <thead><tr><th>도서명</th><th>정가</th><th>정산수량</th><th>${BOOK.isRoyalty?'인세율':'작가 정산율'}</th><th>권당 정산액</th><th>정산액</th></tr></thead>
-      <tbody><tr><td class="item-c"><span class="name">《${esc(BOOK.title)}》</span>${BOOK.isbn?`<div class="sub">ISBN ${esc(BOOK.isbn)}</div>`:''}</td><td class="num">${won(BOOK.price)}원</td><td class="num">${won(s.totalQty)}권</td><td class="num">${ratePct}%</td><td class="num">${won(perCopy)}원</td><td class="num">${won(s.grossAmount)}원</td></tr></tbody>
+      <tbody><tr><td class="item-c"><span class="name">《${esc(BOOK.title)}》</span></td><td class="num money">${won(BOOK.price)}원</td><td class="num">${won(s.totalQty)}권</td><td class="num">${ratePct}%</td><td class="num money">${won(perCopy)}원</td><td class="num money">${won(s.grossAmount)}원</td></tr></tbody>
     </table>
-    <div class="total-bar">
-      <div class="trow"><span>공제 전 ${amountName}</span><span class="amt">${won(s.grossAmount)}원</span></div>
-      <div class="settlement-summary">${qtySummary}</div>
-      <div class="gross-note">실제 지급액은 기지급 내역과 공제 사항 확인 후 확정됩니다.</div>
-    </div>
+    <table class="gross-total"><colgroup><col style="width:110mm"><col style="width:64mm"></colgroup><tbody><tr><th>공제 전 ${amountName}</th><td>${won(s.grossAmount)}원</td></tr></tbody></table>
+    <p class="gross-note">실제 지급액은 기지급 내역과 공제 사항 확인 후 확정됩니다.</p>
     <div class="section-title"><span class="n">02</span><span>채널별 정산 수량</span></div>
-    <table>
-      <colgroup><col style="width:25%"><col style="width:18%"><col style="width:13%"><col style="width:15%"><col style="width:11%"><col style="width:18%"></colgroup>
-      <thead><tr><th>채널</th><th>구분</th><th>확정 부수</th><th>정가</th><th>적용률</th><th>공제 전 정산액</th></tr></thead>
-      <tbody>${rows}</tbody>
-      <tfoot><tr><td>합계</td><td></td><td>${won(s.totalQty)}권</td><td></td><td></td><td>${won(s.grossAmount)}원</td></tr></tfoot>
-    </table>
+    <table class="channel-table"><colgroup><col style="width:26mm"><col style="width:57mm"><col style="width:26mm"><col style="width:65mm"></colgroup><thead><tr><th>채널</th><th>수량</th><th>채널</th><th>수량</th></tr></thead><tbody>${channelRows}</tbody></table>
+    ${eventNotes.map(n=>`<p class="event-note">${esc(n)}</p>`).join('')}
     <div class="section-title"><span class="n">03</span><span>정산 산식</span></div>
-    <div class="formula-box">${esc(formula)}</div>
-    <div class="notes"><div class="h">· 정산 기준과 안내</div><ol>${notes.map(n=>`<li class="basis-copy">${esc(n)}</li>`).join('')}</ol></div>
-    <div class="sign">${BOOK.isRoyalty?'위와 같이 저자 인세 정산 내역을 안내드립니다.':'위와 같이 위탁도서 판매대금 정산 내역을 안내드립니다.'}<br>${esc(longKoDate(s.issue))}<br><span class="name">${esc(s.issuer||SUPPLIER.상호)} ${sealMark()}</span></div>
-    <div class="foot">${esc(FOOTER())}</div>
+    <table class="formula-table"><colgroup><col style="width:26mm"><col style="width:148mm"></colgroup><tbody><tr><th>산식</th><td>${esc(formula)}</td></tr></tbody></table>
+    ${BOOK.isRoyalty&&s.gift?`<div class="section-title"><span class="n">04</span><span>저자 증정본 제공 내역</span></div><table class="gift-table"><colgroup><col style="width:54mm"><col style="width:40mm"><col style="width:40mm"><col style="width:40mm"></colgroup><thead><tr><th>구분</th><th>약정 수량</th><th>제공 수량</th><th>잔여 수량</th></tr></thead><tbody><tr><td>저자 증정본</td><td class="num">${s.gift.agreed==null?'-':won(s.gift.agreed)+'권'}</td><td class="num">${s.gift.provided==null?'-':won(s.gift.provided)+'권'}</td><td class="num">${s.gift.remaining==null?'-':won(s.gift.remaining)+'권'}</td></tr></tbody></table>`:''}
+    <div class="sign">${BOOK.isRoyalty?'위와 같이 저자 인세 정산 내역을 안내드립니다.':'위와 같이 위탁도서 판매대금 정산 내역을 안내드립니다.'}<br>${esc(longKoDate(s.issue))}</div><div class="sign-issuer">${esc(s.issuer||SUPPLIER.상호)}</div>
   </div></div>`;
 }
 function renderRoyaltyRows(){
@@ -1626,7 +1646,8 @@ function royaltyDraftData(){
   return {
     version:1,
     identity:RY_MODEL.identity(BOOK),
-    fields:{ start:$('#ryStart').value,end:$('#ryEnd').value,pay:$('#ryPay').value,issue:$('#ryIssue').value,docNo:$('#ryDocNo').value,issuer:$('#ryIssuer').value,basis:$('#ryBasis').value,memo:$('#ryMemo').value,exempt:$('#ryExempt').value },
+    fields:{ start:$('#ryStart').value,end:$('#ryEnd').value,pay:$('#ryPay').value,issue:$('#ryIssue').value,docNo:$('#ryDocNo').value,issuer:$('#ryIssuer').value,basis:$('#ryBasis').value,memo:$('#ryMemo').value,exempt:$('#ryExempt').value,
+      giftAgreed:$('#ryGiftAgreed').value,giftProvided:$('#ryGiftProvided').value,giftRemaining:$('#ryGiftRemaining').value },
     rows:RY_ROWS.map(r=>({ rowKey:r.rowKey,include:!!r.include,manualInclude:!!r.manualInclude })),
     savedAt:new Date().toISOString(),
   };
@@ -1646,7 +1667,7 @@ function restoreRoyaltyDraft(){
   const draft=store(RY_MODEL.draftKey(BOOK));
   if(!draft||draft.version!==1||draft.identity!==RY_MODEL.identity(BOOK))return false;
   const f=draft.fields||{};
-  [['#ryStart','start'],['#ryEnd','end'],['#ryPay','pay'],['#ryIssue','issue'],['#ryDocNo','docNo'],['#ryIssuer','issuer'],['#ryBasis','basis'],['#ryMemo','memo'],['#ryExempt','exempt']].forEach(([selector,key])=>{if(f[key]!=null)$(selector).value=f[key];});
+  [['#ryStart','start'],['#ryEnd','end'],['#ryPay','pay'],['#ryIssue','issue'],['#ryDocNo','docNo'],['#ryIssuer','issuer'],['#ryBasis','basis'],['#ryMemo','memo'],['#ryExempt','exempt'],['#ryGiftAgreed','giftAgreed'],['#ryGiftProvided','giftProvided'],['#ryGiftRemaining','giftRemaining']].forEach(([selector,key])=>{if(f[key]!=null)$(selector).value=f[key];});
   $('#ryBasis').dataset.touched=f.basis?'1':'';
   const saved=new Map((draft.rows||[]).map(r=>[r.rowKey,r]));
   RY_ROWS.forEach(r=>{const hit=saved.get(r.rowKey);if(hit){r.include=!!hit.include;r.manualInclude=!!hit.manualInclude;}});
@@ -1657,6 +1678,7 @@ function resetRoyaltyDraft(){
   if(!BOOK.key)return;
   store(RY_MODEL.draftKey(BOOK),null);
   $('#ryMemo').value='';$('#ryDocNo').value='';$('#ryIssuer').value=BOOK.isRoyalty?'개띠랑 출판사':'개띠랑 책공방';$('#ryBasis').dataset.touched='';$('#ryExempt').dataset.touched='';
+  const gift=BOOK.giftCopies||{};$('#ryGiftAgreed').value=gift.agreed??'';$('#ryGiftProvided').value=gift.provided??'';$('#ryGiftRemaining').value=gift.remaining??'';
   const q=quarterRange(today()<=quarterRange(-1).pay?-1:0);
   $('#ryStart').value=q.start;$('#ryEnd').value=q.end;$('#ryPay').value=BOOK.nextPay||q.pay;$('#ryIssue').value=today();
   $('#ryBasis').value=RY_MODEL.defaultBasis(BOOK,q.end);
@@ -1681,15 +1703,17 @@ function selectRoyaltyBook(key, keepDates=true){
   const picked=RY_BOOKS.find(b=>b.key===key);if(!picked)return;
   BOOK={...picked,rate:Number(picked.rate)||0,price:Number(picked.price)||0,isbn:picked.isbn||''};
   RY_ROWS=(picked.sales||[]).map((r,index)=>{const row={...r,bookKey:picked.key,price:Number(r.price)||BOOK.price,qty:Number(r.qty)||0,sheetRoyalty:r.sheetRoyalty==null?null:Number(r.sheetRoyalty)};return {...row,rowKey:RY_MODEL.lineKey(row,index)};});
-  RY_NONSALE=(picked.operations||[]).map(r=>({label:String(r.label||r.purpose||''),qty:Number(r.qty),note:String(r.note||'')}));
+  RY_NONSALE=(picked.operations||[]).map(r=>({...r,label:String(r.label||r.purpose||''),qty:Number(r.qty),note:String(r.note||'')}));
   const sel=$('#ryBook');if(sel.value!==key)sel.value=key;
   $('#ryExemptField').classList.toggle('hidden',!BOOK.exemptLimit);
+  $('#ryGiftField').classList.toggle('hidden',!BOOK.isRoyalty);
   const ex=$('#ryExempt');if(BOOK.exemptUsed!=null&&!ex.dataset.touched)ex.value=BOOK.exemptUsed;else if(!BOOK.exemptLimit)ex.value='';
   $('#ryCycleHint').textContent=[BOOK.settlementCycle,BOOK.nextPay&&`다음 정산일 ${BOOK.nextPay}`].filter(Boolean).join(' · ')||'정산 주기는 기준정보 확인이 필요합니다.';
   if(BOOK.nextPay)$('#ryPay').value=BOOK.nextPay;
   $('#ryPrintTip').textContent=`정가 × 확정 부수 × 적용률 ${Math.round(BOOK.rate*1000)/10}%로 공제 전 정산액을 다시 계산합니다. PDF 저장 시 「머리글과 바닥글」을 꺼 주세요.`;
   $('#ryBasis').dataset.touched='';$('#ryBasis').value=RY_MODEL.defaultBasis(BOOK,$('#ryEnd').value);$('#ryMemo').value='';
   $('#ryDocNo').value='';$('#ryIssuer').value=BOOK.isRoyalty?'개띠랑 출판사':'개띠랑 책공방';
+  const gift=BOOK.giftCopies||{};$('#ryGiftAgreed').value=BOOK.isRoyalty?(gift.agreed??''):'';$('#ryGiftProvided').value=BOOK.isRoyalty?(gift.provided??''):'';$('#ryGiftRemaining').value=BOOK.isRoyalty?(gift.remaining??''):'';
   $('#ryDraftNote').textContent='원장은 수정하지 않고 이 기기의 관리자 브라우저에만 보관합니다.';
   if(keepDates)reapplyPeriod();
   restoreRoyaltyDraft();
@@ -1735,7 +1759,7 @@ async function loadRoyaltyFromSheet(){
     if(Array.isArray(d.books)&&d.books.length) populateRoyaltyBooks(d.books);
     else {
       RY_ROWS = parseLedgerCells([d.header, ...(d.rows||[])]);
-      RY_NONSALE = Array.isArray(d.nonSaleRows) ? d.nonSaleRows.map(r=>({label:String(r.purpose||'').trim(),qty:Number(r.qty),note:String(r.note||'').trim()})).filter(r=>r.label&&Number.isFinite(r.qty)&&r.qty>0) : [];
+      RY_NONSALE = Array.isArray(d.nonSaleRows) ? d.nonSaleRows.map(r=>({...r,label:String(r.purpose||'').trim(),qty:Number(r.qty),note:String(r.note||'').trim()})).filter(r=>r.label&&Number.isFinite(r.qty)&&r.qty>0) : [];
       reapplyPeriod();
     }
     const ex = $('#ryExempt');if(d.exemptUsed != null && !ex.dataset.touched && BOOK.exemptLimit) ex.value = d.exemptUsed;
@@ -1772,6 +1796,8 @@ async function printRoyalty(){
   if(!s.start||!s.end||s.start>s.end){ toast('정산 시작일과 종료일을 확인해 주세요', true);return; }
   if(!s.pay){ toast('지급 예정일을 입력해 주세요', true);$('#ryPay').focus();return; }
   if(!s.issue){ toast('발행일을 입력해 주세요', true);$('#ryIssue').focus();return; }
+  if(!s.docNo){ toast('문서번호를 입력해 주세요', true);$('#ryDocNo').focus();return; }
+  if(!s.issuer){ toast('발행처를 입력해 주세요', true);$('#ryIssuer').focus();return; }
   if(!s.basis){ toast('정산 기준 문구를 입력해 주세요', true);$('#ryBasis').focus();return; }
   const bad = s.lines.filter(l => l.sheetRoyalty != null && !Number.isNaN(l.sheetRoyalty) && l.sheetRoyalty !== l.amount);
   if(bad.length && !confirm(`원장 정산액과 계산이 다른 줄이 ${bad.length}개 있어요 (목록의 빨간 표시).\n정산시트를 확인했나요? 그대로 PDF를 만들까요?`)) return;
@@ -1788,7 +1814,7 @@ $('#ryPrevQ').onclick = () => setQuarter(-1);
 ['#ryPay','#ryIssue'].forEach(sel => $(sel).addEventListener('change',()=>{renderRoyalty();scheduleRoyaltyDraft();}));
 ['#ryDocNo','#ryIssuer'].forEach(sel => $(sel).addEventListener('input',()=>{renderRoyalty();scheduleRoyaltyDraft();}));
 $('#ryBasis').addEventListener('input',e=>{e.target.dataset.touched='1';renderRoyalty();scheduleRoyaltyDraft();});
-['#ryExempt','#ryMemo'].forEach(sel => $(sel).addEventListener('input',()=>{renderRoyalty();scheduleRoyaltyDraft();}));
+['#ryExempt','#ryMemo','#ryGiftAgreed','#ryGiftProvided','#ryGiftRemaining'].forEach(sel => $(sel).addEventListener('input',()=>{renderRoyalty();scheduleRoyaltyDraft();}));
 $('#rySaveDraftBtn').onclick=()=>saveRoyaltyDraft(false);
 $('#ryResetBtn').onclick=()=>{if(confirm('이 작가·도서의 브라우저 초안을 비우고 새로 쓸까요?'))resetRoyaltyDraft();};
 $('#ryPrintBtn').onclick = printRoyalty;
@@ -2272,6 +2298,7 @@ async function boot(){
       const sampleTitle=printTest==='royalty:long'?'아주 긴 도서명도 한 페이지 안에서 또렷하게 읽히는지 확인하기 위한 가상 도서 제목':'마음의 지도';
       populateRoyaltyBooks([{key:`가상작가 가::${sampleTitle}`,author:'가상작가 가',title:sampleTitle,type:'저자 인세',isRoyalty:true,isbn:'000-00-0000000-0',price:20000,rate:.25,sales:[],operations:[]}]);
       $('#ryStart').value='2026-07-01'; $('#ryEnd').value='2026-09-30'; $('#ryPay').value='2026-10-10'; $('#ryIssue').value='2026-10-05';
+      $('#ryDocNo').value='GDR-QA-ROY-2026Q3-01';
       $('#ryBasis').value=RY_MODEL.defaultBasis(BOOK,$('#ryEnd').value);$('#ryBasis').dataset.touched='';
       applyRoyaltyPaste(['정산월\t판매일\t채널\t거래처\t정가\t판매권수\t공급률\t인세율\t인세액\t팀 순몫\t지급상태\t비고',
         '2026-07\t2026-07-12\t가상 온라인몰\t가상 판매처\t20000\t9\t\t25%\t45000\t\t\t구매확정 예시',
@@ -2289,6 +2316,7 @@ async function boot(){
         {label:'누적 입고',qty:20,note:'위탁재고 입고 기록 합계'},{label:'샘플 제공',qty:1,note:'판매용 재고와 별도'},{label:'현재 재고',qty:7,note:'2026-09-11 확인'}]}];
       populateRoyaltyBooks(RY_BOOKS);
       $('#ryStart').value='2026-07-01';$('#ryEnd').value='2026-09-30';$('#ryPay').value='2026-10-10';$('#ryIssue').value='2026-10-05';
+      $('#ryDocNo').value='GDR-QA-CON-2026Q3-01';
       $('#ryBasis').value=RY_MODEL.defaultBasis(BOOK,$('#ryEnd').value);$('#ryBasis').dataset.touched='';
       reapplyPeriod();$('#printArea').innerHTML=renderRoyalty().html;
     }

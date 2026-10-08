@@ -2,7 +2,7 @@
 export const RANGES={
   ledger:"'인세 원장(DB)'!A:M",
   dashboard:"'대시보드'!A1:F60",
-  basis:"'기준정보'!A1:N200",
+  basis:"'기준정보'!A1:Q200",
   inventory:"'위탁재고'!A1:K1000",
   settlements:"'작가정산'!A1:M500",
 };
@@ -132,6 +132,12 @@ export function buildRoyalty(raw){
     }
     b.sales=b.isRoyalty?ledgerSales(ledger,b):consignmentSales(inventory,b);
     b.operations=b.isRoyalty?legacy.nonSaleRows.map(x=>({label:x.purpose,qty:x.qty,note:x.note})):consignmentOperations(inventory,b);
+    const giftCopies={
+      agreed:number(basis.get(r,'증정본 약정 수량')),
+      provided:number(basis.get(r,'증정본 제공 수량')),
+      remaining:number(basis.get(r,'증정본 잔여 수량')),
+    };
+    if(b.isRoyalty&&Object.values(giftCopies).some(v=>v!=null))b.giftCopies=giftCopies;
     b.exemptLimit=b.isRoyalty&&b.title==='문고리'?200:null;
     b.exemptUsed=b.exemptLimit?legacy.exemptUsed:null;
     b.payoutStatus=payoutStatus(settlements,b);

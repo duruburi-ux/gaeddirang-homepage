@@ -312,20 +312,46 @@ test('admin docs: standard settlement form separates sales, event royalties and 
 
   const sheet=page.locator('#rySheet');
   await expect(sheet).toContainText('저자 인세 정산서');
-  await expect(sheet).toContainText('확정 판매 31권 + 인세 적용 이벤트 1권 = 정산 대상 32권');
+  await expect(sheet).toContainText('판매 31권과 인세 적용 이벤트 제공 1권을 합한 32권에 인세를 적용했습니다.');
   await expect(sheet).toContainText('128,000원');
   await expect(sheet).toContainText('GDR-QA-2026Q3-01');
   await expect(sheet).toContainText('가상 출판사');
   await expect(sheet.locator('.section-title').nth(0)).toContainText('정산 내역');
   await expect(sheet.locator('.section-title').nth(1)).toContainText('채널별 정산 수량');
   await expect(sheet.locator('.section-title').nth(2)).toContainText('정산 산식');
+  await expect(sheet.locator('.statement-issuer img')).toHaveAttribute('src', '../assets/images/brand/gd-universe-logomark.png');
+  await expect(sheet.locator('.channel-table thead th')).toHaveCount(4);
+  await expect(sheet.locator('.channel-table thead th').first()).toHaveCSS('background-color', 'rgb(36, 76, 58)');
   await expect(sheet).toContainText('실제 지급액은 기지급 내역과 공제 사항 확인 후 확정됩니다.');
+  await expect(sheet.getByText('실제 지급액은 기지급 내역과 공제 사항 확인 후 확정됩니다.', { exact:true })).toHaveCount(1);
+  await expect(sheet.getByText('온라인 판매는 구매확정일 기준, 그 외 채널은 9월30일까지 결제·출고 완료분을 기준으로 합니다.', { exact:true })).toHaveCount(1);
+  await expect(sheet.locator('.section-title', { hasText:'저자 증정본 제공 내역' })).toHaveCount(0);
   await expect(sheet).not.toContainText('정가 환산액');
   await expect(sheet).not.toContainText('원천징수 3.3%');
+  await expect(sheet).not.toContainText('ISBN');
+  await expect(sheet).not.toContainText('사업자등록번호');
+  await expect(sheet).not.toContainText('gaeddirang085@naver.com');
+  await expect(sheet).not.toContainText('(인)');
+
+  await page.evaluate(() => {
+    document.querySelector('#ryGiftAgreed').value='10';
+    document.querySelector('#ryGiftProvided').value='4';
+    document.querySelector('#ryGiftRemaining').value='6';
+    renderRoyalty();
+  });
+  await expect(sheet.locator('.section-title', { hasText:'저자 증정본 제공 내역' })).toHaveCount(1);
+  await expect(sheet.locator('.gift-table')).toContainText('10권');
+  await expect(sheet.locator('.gift-table')).toContainText('4권');
+  await expect(sheet.locator('.gift-table')).toContainText('6권');
+  await page.evaluate(() => {
+    ['#ryGiftAgreed','#ryGiftProvided','#ryGiftRemaining'].forEach(selector=>document.querySelector(selector).value='');
+    renderRoyalty();
+  });
 
   await page.locator('#ryRows label', { hasText:'홍보 이벤트' }).locator('input').uncheck();
-  await expect(sheet).toContainText('확정 판매 31권');
-  await expect(sheet).toContainText('124,000원');
+  await expect(sheet.locator('.channel-table')).toContainText('20권');
+  await expect(sheet.locator('.channel-table')).toContainText('11권');
+  await expect(sheet.locator('.gross-total')).toContainText('124,000원');
   await expect(sheet).toContainText('이벤트 1권은 정산 대상에서 제외했습니다.');
 
   await page.locator('#ryBasis').fill('가상 검증용 맞춤 기준 문구');
@@ -372,7 +398,8 @@ test('admin docs: every printable form stays on one branded A4 page', async ({ p
   for (const [name, value] of cases) {
     await page.goto(`/admin/docs.html?preview&sample&printtest=${encodeURIComponent(value)}`, { waitUntil:'networkidle' });
     await expect(page.locator('#printArea .qdoc'), name).toHaveCount(1);
-    await expect(page.locator('#printArea .qdoc .wrap'), name).toHaveCSS('max-width', '760px');
+    await expect(page.locator('#printArea .qdoc .wrap'), name).toHaveCSS('max-width', name.startsWith('royalty')?'none':'760px');
+    if(name.startsWith('royalty'))await expect(page.locator('#printArea .statement-top-meta'),name).toContainText('문서번호 GDR-QA-');
     const pdf = await page.pdf({ format:'A4', printBackground:true, preferCSSPageSize:true });
     const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) || []).length;
     expect(pages, `${name} PDF pages`).toBe(1);
