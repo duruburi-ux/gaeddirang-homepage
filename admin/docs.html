@@ -261,6 +261,15 @@
   .qdoc.d2 .notes ol{font-size:11.5px;line-height:1.45}
   .qdoc.d2 .sign{margin-top:5px;padding-top:4px}
   .qdoc.d2 .foot{margin-top:5px;padding-top:4px}
+  .qdoc.settlement-doc h1{letter-spacing:.08em;padding-left:.08em}
+  .qdoc.settlement-doc .settlement-summary{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .qdoc.settlement-doc .settlement-summary b{color:var(--ink)}
+  .qdoc.settlement-doc table{font-size:12px}
+  .qdoc.settlement-doc tbody td,.qdoc.settlement-doc tfoot td{padding:8px 6px}
+  .qdoc.settlement-doc .basis-copy{white-space:pre-wrap;line-height:1.55}
+  .qdoc.settlement-doc .gross-note{font-size:11.5px;color:var(--muted);margin-top:5px}
+  .qdoc.settlement-doc.d2 table{font-size:11.5px}
+  .qdoc.settlement-doc.d2 tbody td,.qdoc.settlement-doc.d2 tfoot td{padding:4px 5px}
 
   /* ---- 인쇄: 인쇄용 칸만 A4로 ---- */
   #printArea{display:none}
@@ -460,18 +469,15 @@
           </details>
         </div>
         <div class="card">
-          <h3>③ 원천징수 · 기타</h3>
-          <label class="f" for="ryTax">원천징수 <span class="hint">(꼭 골라 주세요 · 세무 확인 사항)</span></label>
-          <select class="in" id="ryTax">
-            <option value="">— 선택 —</option>
-            <option value="none">원천징수 없음 (인세 전액 지급)</option>
-            <option value="biz">사업소득 3.3%</option>
-            <option value="etc">기타소득 8.8% (필요경비 60% 공제)</option>
-          </select>
-          <div id="ryExemptField"><label class="f" for="ryExempt">판매 외 목적 인세 면제 200부 중 누적 사용 부수</label>
-          <input class="in" id="ryExempt" inputmode="numeric" placeholder="예: 2 (인세시트 대시보드 참고)"></div>
+          <h3>③ 정산 기준·안내</h3>
+          <label class="f" for="ryBasis">정산 기준 문구</label>
+          <textarea class="in" id="ryBasis" rows="3" placeholder="예: 온라인은 구매확정일, 그 외 채널은 정산 종료일까지 결제·출고 완료분"></textarea>
+          <p class="hint">기간에 맞춰 기본 문구가 만들어집니다. 실제 계약·채널 기준이 다르면 이 문구만 고쳐 쓰세요.</p>
+          <div id="ryExemptField"><label class="f" for="ryExempt">판매 외 목적 인세 제외 누계 <span class="hint">(해당하는 저자 인세만)</span></label>
+          <input class="in" id="ryExempt" inputmode="numeric" placeholder="예: 2"></div>
           <label class="f" for="ryMemo">추가 안내 <span class="hint">(한 줄에 하나)</span></label>
           <textarea class="in" id="ryMemo" rows="2"></textarea>
+          <div class="btns"><button class="btn-sm" id="rySaveDraftBtn">초안 저장</button><button class="btn-sm" id="ryResetBtn">새로 쓰기</button><span class="hint" id="ryDraftNote">원장은 수정하지 않고 이 기기의 관리자 브라우저에만 보관합니다.</span></div>
         </div>
       </div>
       <div class="preview-col">
@@ -481,7 +487,7 @@
           <button class="btn-primary" id="ryPrintBtn">PDF 저장</button>
         </div>
         <div class="preview-box" id="ryBox"><div class="sheet" id="rySheet"></div></div>
-        <p class="print-tip" id="ryPrintTip">선택한 도서의 정가·작가율과 판매 부수로 다시 계산합니다. PDF로 저장할 때는 「머리글과 바닥글」을 꺼 주세요.</p>
+        <p class="print-tip" id="ryPrintTip">선택한 도서의 정가·적용률과 확정 부수로 공제 전 정산액을 다시 계산합니다. PDF로 저장할 때는 「머리글과 바닥글」을 꺼 주세요.</p>
       </div>
     </div>
   </section>
@@ -536,6 +542,7 @@
 <div id="printArea"></div>
 <div class="toast" id="toast"></div>
 
+<script src="settlement-statement-model.js?v=20261008-1"></script>
 <script>
 const SUPABASE_URL = 'https://zrmljsyxeozcnfqmyumw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybWxqc3l4ZW96Y25mcW15dW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzkwNTAsImV4cCI6MjA5OTA1NTA1MH0.G31yEksYsiR43t2pWPwTdCrpBHcxLkZ4mYSvk5urZxQ';
@@ -1427,12 +1434,28 @@ async function printStatement(){
 }
 
 /* ============ 작가 정산서 ============ */
-let BOOK = { key:'신태림::문고리', author:'신태림', title:'문고리', type:'자체출판 저자 인세', isRoyalty:true, isbn:'979-11-992715-2-4', price:17000, rate:0.30, exemptLimit:200 };
+// 사례비 지급명세 탭에서만 쓰는 기존 세액 계산기. 작가 정산서는 공제 전 금액만 표시한다.
+function withholding(amount, mode){
+  if(mode === 'biz'){
+    const tax = Math.floor(amount*0.03/10)*10, local = Math.floor(tax*0.1/10)*10;
+    return { tax, local, label:'사업소득 3.3%' };
+  }
+  if(mode === 'etc'){
+    const income = Math.floor(amount*0.4);
+    if(income <= 50000) return { tax:0, local:0, label:'기타소득 (과세최저한 이하)' };
+    const tax = Math.floor(income*0.2/10)*10, local = Math.floor(tax*0.1/10)*10;
+    return { tax, local, label:'기타소득 8.8%' };
+  }
+  return { tax:0, local:0, label:'원천징수 없음' };
+}
+const RY_MODEL = window.SettlementStatement;
+let BOOK = { key:'', author:'', title:'', type:'저자 인세', isRoyalty:true, isbn:'', price:0, rate:0, exemptLimit:null };
 const LEDGER_COLS = ['정산월','판매일','채널','거래처','정가','판매권수','공급률','인세율','인세액','팀 순몫','지급상태','비고','transaction_id'];
 let RY_ROWS = [];
 let RY_NONSALE = [];
 let RY_BOOKS = [];
 let RY_READY = false;
+let RY_DRAFT_TIMER = null;
 
 function quarterRange(offset){
   const now = new Date();
@@ -1458,7 +1481,8 @@ function parseLedgerCells(table){
     month: get(r,'정산월'), date: get(r,'판매일'), channel: get(r,'채널'), partner: get(r,'거래처'),
     price: parseWon(get(r,'정가')) || BOOK.price, qty: parseCount(get(r,'판매권수')) || 0,
     sheetRoyalty: parseWon(get(r,'인세액')), status: get(r,'지급상태'), memo: get(r,'비고'),
-  })).filter(r => r.qty > 0 && r.channel);
+    settlementKind: get(r,'정산 구분'), bookKey: BOOK.key,
+  })).filter(r => r.qty > 0 && r.channel).map((r,index)=>({ ...r, rowKey:RY_MODEL.lineKey(r,index) }));
 }
 function inPeriod(r, start, end){
   const s = (r.date||'').trim() || (r.month||'').trim();
@@ -1468,93 +1492,54 @@ function inPeriod(r, start, end){
 }
 function reapplyPeriod(){
   const start = $('#ryStart').value, end = $('#ryEnd').value;
-  RY_ROWS.forEach(r => { r.period = inPeriod(r, start, end); r.include = r.period === true; });
-}
-function withholding(amount, mode){
-  if(mode === 'biz'){
-    const tax = Math.floor(amount*0.03/10)*10, local = Math.floor(tax*0.1/10)*10;
-    return { tax, local, label:'사업소득 3.3%' };
-  }
-  if(mode === 'etc'){
-    const income = Math.floor(amount*0.4);            // 필요경비 60% 공제 후 기타소득금액
-    if(income <= 50000) return { tax:0, local:0, label:'기타소득 (과세최저한 이하)' };
-    const tax = Math.floor(income*0.2/10)*10, local = Math.floor(tax*0.1/10)*10;
-    return { tax, local, label:'기타소득 8.8%' };
-  }
-  return { tax:0, local:0, label:'원천징수 없음' };
-}
-function royaltyChannelGroup(channel){
-  const c = String(channel||'').trim();
-  if(/스마트스토어/.test(c)) return '스마트스토어';
-  if(/책방매입/.test(c)) return '책방 매입';
-  if(/책방|서점|도매|인디펍/.test(c)) return '책방·유통 위탁';
-  if(/직거래|직판|행사/.test(c)) return '직거래·직판';
-  return c || '기타';
+  RY_ROWS.forEach(r => {
+    r.period = inPeriod(r, start, end);
+    r.include = RY_MODEL.defaultInclude(BOOK, r);
+    r.manualInclude = false;
+  });
 }
 function buildRoyalty(){
   const start = $('#ryStart').value, end = $('#ryEnd').value;
-  const per = Math.round(BOOK.price*BOOK.rate);
-  const lines = RY_ROWS.filter(r=>r.include).map(r=>({ ...r, per: Math.round(r.price*BOOK.rate), royalty: Math.round(r.price*r.qty*BOOK.rate) }));
-  const qty = lines.reduce((a,l)=>a+l.qty,0), royalty = lines.reduce((a,l)=>a+l.royalty,0);
-  const grouped = new Map();
-  lines.forEach(l=>{
-    const name = royaltyChannelGroup(l.channel), prev = grouped.get(name) || { name, qty:0, royalty:0 };
-    prev.qty += l.qty; prev.royalty += l.royalty; grouped.set(name, prev);
-  });
-  const salesGroups = [...grouped.values()];
-  const mode = $('#ryTax').value;
-  const wh = mode ? withholding(royalty, mode) : null;
+  const calculation = RY_MODEL.calculate(BOOK, RY_ROWS);
   const exempt = parseCount($('#ryExempt').value);
-  return { start, end, pay: $('#ryPay').value, issue: $('#ryIssue').value || today(), per, lines, salesGroups, qty, royalty, mode, wh,
-    net: wh ? royalty - wh.tax - wh.local : null, exempt,
+  const excludedEventQty = RY_ROWS.filter(r=>r.period===true&&!r.include&&RY_MODEL.sameBook(BOOK,r)&&RY_MODEL.classifyLine(r)==='event').reduce((sum,r)=>sum+(Number(r.qty)||0),0);
+  return { ...calculation, start, end, pay: $('#ryPay').value, issue: $('#ryIssue').value || today(), exempt, excludedEventQty,
     nonSaleRows: RY_NONSALE.filter(r=>Number.isFinite(r.qty) && r.qty >= 0),
+    basis: $('#ryBasis').value.trim() || RY_MODEL.defaultBasis(BOOK,end),
     memo: $('#ryMemo').value.split('\n').map(x=>x.trim()).filter(Boolean) };
 }
 function royaltyHtml(s, dense){
   const ratePct = Math.round(BOOK.rate*1000)/10;
-  const amountName = BOOK.isRoyalty ? '인세' : '작가 정산액';
-  const docName = BOOK.isRoyalty ? '인세 정산서' : '위탁도서 정산서';
-  const rows = s.salesGroups.length ? s.salesGroups.map(g=>`<tr>
-      <td class="item-c">${esc(g.name)}</td>
+  const amountName = BOOK.isRoyalty ? '인세' : '판매대금';
+  const docName = BOOK.isRoyalty ? '저자 인세 정산서' : '위탁도서 판매대금 정산서';
+  const rows = s.groups.length ? s.groups.map(g=>`<tr>
+      <td class="item-c">${esc(g.channel)}</td>
+      <td class="num">${g.kind==='event'?'인세 적용 이벤트':'확정 판매'}</td>
       <td class="num">${won(g.qty)}권</td>
-      <td class="num">${won(s.per)}원</td>
-      <td class="num">${won(g.royalty)}원</td></tr>`).join('')
-    : `<tr><td colspan="4" style="text-align:center;color:#b3a99f;padding:18px">정산 기간의 판매 기록이 없습니다</td></tr>`;
-  const nonSaleRows = s.nonSaleRows.length ? s.nonSaleRows.map(r=>`<tr>
-      <td class="item-c">${esc(r.label||r.purpose)}</td>
-      <td class="num">${won(r.qty)}권</td>
-      <td style="white-space:normal">${esc(r.note||'')}</td></tr>`).join('')
-    : `<tr><td class="item-c">운영 기록</td><td class="num">-</td><td>등록된 입고·샘플·재고 기록이 없습니다.</td></tr>`;
-  const taxText = !s.mode ? '<b>원천징수 방식을 골라 주세요.</b>'
-    : s.mode==='none' ? `원천징수 없이 ${amountName} 전액을 지급합니다.`
-    : s.mode==='biz' ? '사업소득 원천징수 3.3%(소득세 3% + 지방소득세 0.3%)를 차감하고 지급합니다.'
-    : '기타소득 원천징수(필요경비 60% 공제 후 소득세 20% + 지방소득세 2%)를 차감하고 지급합니다.';
+      <td class="num">${won(g.price)}원</td>
+      <td class="num">${Math.round(g.rate*1000)/10}%</td>
+      <td class="num">${won(g.amount)}원</td></tr>`).join('')
+    : `<tr><td colspan="6" style="text-align:center;color:#b3a99f;padding:18px">정산 기간의 확정 판매 기록이 없습니다</td></tr>`;
   const notes = BOOK.isRoyalty ? [
-    `인세는 정가(${won(BOOK.price)}원)의 ${ratePct}%, 권당 ${won(s.per)}원이며 1쇄부터 적용합니다. (계약 13조)`,
-    '판매일 기준으로 집계했습니다. 판매 외 목적(납본·증정·홍보 등) 부수와 파손분, 저자 본인 구입분은 인세 대상에서 제외합니다. (계약 12조·13조)',
-    '개별 판매일·거래처 등 세부 판매 내역은 요청 시 제공합니다.',
+    s.basis,
+    `공제 전 인세는 각 채널의 정가 × 정산 대상 부수 × 적용률 ${ratePct}%를 원 단위로 반올림해 합산했습니다.`,
+    '판매 외 제공분과 파손분, 저자 본인 구입분은 별도의 인세 적용 근거가 없으면 정산 대상에서 제외합니다.',
   ] : [
-    `작가 정산액은 정가(${won(BOOK.price)}원) × 판매 부수 × 작가율 ${ratePct}%로 계산했습니다.`,
-    '입고·판매·샘플·현재 재고는 통합 인세시트의 확인된 기록을 기준으로 표시했습니다.',
-    '개별 판매일·판매처 등 세부 판매 내역은 요청 시 제공합니다.',
+    s.basis,
+    `공제 전 판매대금은 각 채널의 정가 × 실제 판매 부수 × 적용률 ${ratePct}%를 원 단위로 반올림해 합산했습니다.`,
+    '위탁 입고·출고·이동·반품·현재고는 판매로 합산하지 않습니다.',
   ];
-  if(BOOK.isRoyalty && s.exempt != null && BOOK.exemptLimit) notes.push(`계약에 따라 판매 외 제공분은 최대 ${BOOK.exemptLimit}부까지 인세 대상에서 제외됩니다. 현재 ${won(s.exempt)}부가 제공되었으며, 잔여 범위는 ${won(Math.max(0, BOOK.exemptLimit - s.exempt))}부입니다.`);
-  if(BOOK.isRoyalty && BOOK.title==='문고리') notes.push('계약금 500,000원은 판매 인세와 별도로 지급한 금액이며 인세에서 차감하지 않습니다. (계약 15조)');
-  notes.push(taxText);
-  s.memo.forEach(m => notes.push(esc(m)));
-  const whTable = s.wh && s.mode !== 'none' ? `
-    <table style="margin-top:10px">
-      <colgroup><col style="width:70%"><col style="width:30%"></colgroup>
-      <tbody>
-        <tr><td class="item-c">${amountName} 합계</td><td class="num">${won(s.royalty)}원</td></tr>
-        <tr><td class="item-c">원천징수 소득세</td><td class="num">− ${won(s.wh.tax)}원</td></tr>
-        <tr><td class="item-c">원천징수 지방소득세</td><td class="num">− ${won(s.wh.local)}원</td></tr>
-      </tbody>
-      <tfoot><tr><td>실지급액</td><td>${won(s.net)}원</td></tr></tfoot>
-    </table>` : '';
-  return `<div class="qdoc${dense>=1?' d1':''}${dense>=2?' d2':''}"><div class="wrap">
+  if(BOOK.isRoyalty && s.eventQty>0) notes.push(`인세 적용 근거가 확인된 홍보 이벤트 등 ${won(s.eventQty)}권을 판매분과 구분해 정산 대상에 포함했습니다.`);
+  if(BOOK.isRoyalty && s.excludedEventQty>0) notes.push(`인세 적용 근거가 확인되지 않은 이벤트 ${won(s.excludedEventQty)}권은 정산 대상에서 제외했습니다.`);
+  if(BOOK.isRoyalty && s.exempt != null && BOOK.exemptLimit) notes.push(`판매 외 목적 인세 제외 누계는 ${won(s.exempt)}권이며, 계약상 한도 ${won(BOOK.exemptLimit)}권과 별도로 확인합니다.`);
+  notes.push('실제 지급액은 기지급 내역과 공제 사항 확인 후 확정됩니다.');
+  s.memo.forEach(m => notes.push(m));
+  const qtySummary = BOOK.isRoyalty && s.eventQty>0
+    ? `확정 판매 <b>${won(s.salesQty)}권</b> + 인세 적용 이벤트 <b>${won(s.eventQty)}권</b> = 정산 대상 <b>${won(s.totalQty)}권</b>`
+    : `확정 판매 <b>${won(s.salesQty)}권</b>`;
+  return `<div class="qdoc settlement-doc${dense>=1?' d1':''}${dense>=2?' d2':''}"><div class="wrap">
     <div class="head">
-      <div><h1>${docName}</h1><div class="subtitle">${esc(BOOK.author)} 《${esc(BOOK.title)}》 · ${esc(BOOK.type)} · ${esc(quarterLabel(s.start))}</div></div>
+      <div><h1>${docName}</h1><div class="subtitle">${esc(BOOK.author)} · 《${esc(BOOK.title)}》 · ${esc(quarterLabel(s.start))}</div></div>
       <div class="head-meta">정산기간 <b>${dotDate(s.start)} ~ ${dotDate(s.end)}</b><br>지급예정일 <b>${dotDate(s.pay)}</b><br>발행일 <b>${dotDate(s.issue)}</b></div>
     </div>
     <hr class="rule">
@@ -1564,31 +1549,24 @@ function royaltyHtml(s, dense){
         <div class="row"><span class="k">도서</span><span class="v">《${esc(BOOK.title)}》</span></div>
         ${BOOK.isbn?`<div class="row"><span class="k">ISBN</span><span class="v">${esc(BOOK.isbn)}</span></div>`:''}
         <div class="row"><span class="k">정가</span><span class="v">${won(BOOK.price)}원</span></div>
-        <div class="row"><span class="k">정산 방식</span><span class="v">정가의 ${ratePct}%</span></div>
+        <div class="row"><span class="k">적용률</span><span class="v">${ratePct}%</span></div>
       </div></div>
-      <div class="box"><div class="box-head">판매·정산 담당</div><div class="box-body">${supplierRows(['상호','사업자번호','대표자','연락처'])}</div></div>
+      <div class="box"><div class="box-head">발행 주체</div><div class="box-body">${supplierRows(['상호','사업자번호','대표자','연락처'])}</div></div>
     </div>
     <div class="total-bar">
-      <div class="trow"><span>이번 ${amountName} (정가 ${ratePct}% · ${won(s.qty)}권)</span><span class="amt">${won(s.royalty)}원</span></div>
-      ${s.wh && s.mode!=='none' ? `<div class="trow" style="margin-top:6px"><span>${esc(s.wh.label)} 원천징수 ${won(s.wh.tax + s.wh.local)}원 차감</span><span style="font-weight:900">실지급액 ${won(s.net)}원</span></div>` : ''}
+      <div class="trow"><span>공제 전 ${amountName}</span><span class="amt">${won(s.grossAmount)}원</span></div>
+      <div class="settlement-summary">${qtySummary}</div>
+      <div class="gross-note">실제 지급액은 기지급 내역과 공제 사항 확인 후 확정됩니다.</div>
     </div>
-    <h2>판매 경로별 정산</h2>
+    <h2>채널별 확정 내역</h2>
     <table>
-      <colgroup><col style="width:40%"><col style="width:18%"><col style="width:20%"><col style="width:22%"></colgroup>
-      <thead><tr><th>판매 구분</th><th>판매 부수</th><th>권당 정산액</th><th>${amountName}</th></tr></thead>
+      <colgroup><col style="width:25%"><col style="width:18%"><col style="width:13%"><col style="width:15%"><col style="width:11%"><col style="width:18%"></colgroup>
+      <thead><tr><th>채널</th><th>구분</th><th>확정 부수</th><th>정가</th><th>적용률</th><th>공제 전 정산액</th></tr></thead>
       <tbody>${rows}</tbody>
-      <tfoot><tr><td>합계</td><td>${won(s.qty)}권</td><td></td><td>${won(s.royalty)}원</td></tr></tfoot>
+      <tfoot><tr><td>합계</td><td></td><td>${won(s.totalQty)}권</td><td></td><td></td><td>${won(s.grossAmount)}원</td></tr></tfoot>
     </table>
-    <h2>판매 외 제공 내역 <span style="font-size:10px;font-weight:600;color:#8d8178">누적 기준</span></h2>
-    <table>
-      <colgroup><col style="width:34%"><col style="width:18%"><col style="width:48%"></colgroup>
-      <thead><tr><th>구분</th><th>부수</th><th>제공 목적</th></tr></thead>
-      <tbody>${nonSaleRows}</tbody>
-      ${!BOOK.isRoyalty||s.exempt==null||!BOOK.exemptLimit?'':`<tfoot><tr><td>판매 외 제공 합계</td><td>${won(s.exempt)}권</td><td>계약상 한도 ${won(BOOK.exemptLimit)}권 중 잔여 ${won(Math.max(0, BOOK.exemptLimit-s.exempt))}권</td></tr></tfoot>`}
-    </table>
-    ${whTable}
-    <div class="notes"><div class="h">· 정산 기준</div><ol>${notes.map(n=>`<li>${n}</li>`).join('')}</ol></div>
-    <div class="sign">${BOOK.isRoyalty?'위와 같이 인세를 정산합니다.':'위와 같이 작가 정산액을 정산합니다.'} ${dotDate(s.issue)}<br><span class="name">${esc(SUPPLIER.상호)} 대표 ${esc(SUPPLIER.대표자)} ${sealMark()}</span></div>
+    <div class="notes"><div class="h">· 정산 기준과 안내</div><ol>${notes.map(n=>`<li class="basis-copy">${esc(n)}</li>`).join('')}</ol></div>
+    <div class="sign">${BOOK.isRoyalty?'위와 같이 저자 인세를 정산합니다.':'위와 같이 위탁도서 판매대금을 정산합니다.'} ${dotDate(s.issue)}<br><span class="name">${esc(SUPPLIER.상호)} 대표 ${esc(SUPPLIER.대표자)} ${sealMark()}</span></div>
     <div class="foot">${esc(FOOTER())}</div>
   </div></div>`;
 }
@@ -1596,25 +1574,69 @@ function renderRoyaltyRows(){
   const host = $('#ryRows'); host.innerHTML = '';
   RY_ROWS.forEach(r=>{
     const calc = Math.round(r.price*r.qty*BOOK.rate);
+    const kind = RY_MODEL.classifyLine(r);
     const flags = [];
     if(r.period === false) flags.push('기간 밖');
     if(r.period === null) flags.push('판매일 없음');
-    if(r.sheetRoyalty != null && !Number.isNaN(r.sheetRoyalty) && r.sheetRoyalty !== calc) flags.push(`원장 인세액 ${won(r.sheetRoyalty)}원과 다름`);
+    if(r.sheetRoyalty != null && !Number.isNaN(r.sheetRoyalty) && r.sheetRoyalty !== calc) flags.push(`원장 정산액 ${won(r.sheetRoyalty)}원과 다름`);
+    if(kind==='event') flags.push(r.include?'이벤트 인세 포함':'이벤트 인세 제외');
     const lab = document.createElement('label');
-    lab.innerHTML = `<input type="checkbox" ${r.include?'checked':''}> <span>${esc(r.date||r.month||'날짜 없음')} · ${esc(r.channel)}${r.partner?' · '+esc(r.partner):''} · ${won(r.qty)}권 · 정산 ${won(calc)}원${r.status?' · '+esc(r.status):''}${flags.length?` <b style="color:#d9583c">(${esc(flags.join(', '))})</b>`:''}</span>`;
-    lab.querySelector('input').onchange = e => { r.include = e.target.checked; renderRoyalty(); };
+    lab.innerHTML = `<input type="checkbox" ${r.include?'checked':''} ${!BOOK.isRoyalty&&kind==='event'?'disabled':''}> <span>${esc(r.date||r.month||'날짜 없음')} · ${esc(r.channel)}${r.partner?' · '+esc(r.partner):''} · ${kind==='event'?'인세 적용 이벤트':'확정 판매'} ${won(r.qty)}권 · 공제 전 ${won(calc)}원${flags.length?` <b style="color:#d9583c">(${esc(flags.join(', '))})</b>`:''}</span>`;
+    lab.querySelector('input').onchange = e => { r.include = e.target.checked; r.manualInclude = true; renderRoyalty(); scheduleRoyaltyDraft(); };
     host.appendChild(lab);
   });
 }
 function renderRoyalty(){
   const s = buildRoyalty();
-  const r = renderSheet($('#rySheet'), $('#ryBox'), dense => royaltyHtml(s, dense), s.salesGroups.length + s.nonSaleRows.length > 8 ? 1 : 0);
+  const r = renderSheet($('#rySheet'), $('#ryBox'), dense => royaltyHtml(s, dense), s.groups.length > 6 || s.memo.length > 2 ? 1 : 0);
   setFit($('#ryFit'), r);
   const link = LINKS.find(l => /인세/.test(l.title) && /docs\.google\.com/.test(l.url));
   const a = $('#ryLedgerLink');
   if(link){ a.href = link.url; a.classList.remove('hidden'); } else a.classList.add('hidden');
   s.html = r.html;
   return s;
+}
+function royaltyDraftData(){
+  return {
+    version:1,
+    identity:RY_MODEL.identity(BOOK),
+    fields:{ start:$('#ryStart').value,end:$('#ryEnd').value,pay:$('#ryPay').value,issue:$('#ryIssue').value,basis:$('#ryBasis').value,memo:$('#ryMemo').value,exempt:$('#ryExempt').value },
+    rows:RY_ROWS.map(r=>({ rowKey:r.rowKey,include:!!r.include,manualInclude:!!r.manualInclude })),
+    savedAt:new Date().toISOString(),
+  };
+}
+function saveRoyaltyDraft(quiet=false){
+  if(!BOOK.key)return;
+  store(RY_MODEL.draftKey(BOOK),royaltyDraftData());
+  const note=$('#ryDraftNote');
+  if(note)note.textContent=quiet?'이 기기에 자동 보관됨':`초안 저장됨 · ${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}`;
+}
+function scheduleRoyaltyDraft(){
+  if(!BOOK.key)return;
+  clearTimeout(RY_DRAFT_TIMER);RY_DRAFT_TIMER=setTimeout(()=>saveRoyaltyDraft(true),250);
+}
+function restoreRoyaltyDraft(){
+  if(!BOOK.key)return false;
+  const draft=store(RY_MODEL.draftKey(BOOK));
+  if(!draft||draft.version!==1||draft.identity!==RY_MODEL.identity(BOOK))return false;
+  const f=draft.fields||{};
+  [['#ryStart','start'],['#ryEnd','end'],['#ryPay','pay'],['#ryIssue','issue'],['#ryBasis','basis'],['#ryMemo','memo'],['#ryExempt','exempt']].forEach(([selector,key])=>{if(f[key]!=null)$(selector).value=f[key];});
+  $('#ryBasis').dataset.touched=f.basis?'1':'';
+  const saved=new Map((draft.rows||[]).map(r=>[r.rowKey,r]));
+  RY_ROWS.forEach(r=>{const hit=saved.get(r.rowKey);if(hit){r.include=!!hit.include;r.manualInclude=!!hit.manualInclude;}});
+  $('#ryDraftNote').textContent='이 기기에 저장된 초안을 복원했습니다.';
+  return true;
+}
+function resetRoyaltyDraft(){
+  if(!BOOK.key)return;
+  store(RY_MODEL.draftKey(BOOK),null);
+  $('#ryMemo').value='';$('#ryBasis').dataset.touched='';$('#ryExempt').dataset.touched='';
+  const q=quarterRange(today()<=quarterRange(-1).pay?-1:0);
+  $('#ryStart').value=q.start;$('#ryEnd').value=q.end;$('#ryPay').value=BOOK.nextPay||q.pay;$('#ryIssue').value=today();
+  $('#ryBasis').value=RY_MODEL.defaultBasis(BOOK,q.end);
+  $('#ryExempt').value=BOOK.exemptUsed!=null?BOOK.exemptUsed:'';
+  reapplyPeriod();renderRoyaltyRows();renderRoyalty();
+  $('#ryDraftNote').textContent='새 초안입니다. 원장은 수정하지 않습니다.';
 }
 function applyRoyaltyPaste(text){
   RY_ROWS = parseLedger(text);
@@ -1631,30 +1653,34 @@ function applyRoyaltyPaste(text){
 }
 function selectRoyaltyBook(key, keepDates=true){
   const picked=RY_BOOKS.find(b=>b.key===key);if(!picked)return;
-  BOOK={...picked,rate:Number(picked.rate)||0,price:Number(picked.price)||0,isbn:picked.isbn||(picked.title==='문고리'?'979-11-992715-2-4':'')};
-  RY_ROWS=(picked.sales||[]).map(r=>({...r,price:Number(r.price)||BOOK.price,qty:Number(r.qty)||0,sheetRoyalty:r.sheetRoyalty==null?null:Number(r.sheetRoyalty)}));
+  BOOK={...picked,rate:Number(picked.rate)||0,price:Number(picked.price)||0,isbn:picked.isbn||''};
+  RY_ROWS=(picked.sales||[]).map((r,index)=>{const row={...r,bookKey:picked.key,price:Number(r.price)||BOOK.price,qty:Number(r.qty)||0,sheetRoyalty:r.sheetRoyalty==null?null:Number(r.sheetRoyalty)};return {...row,rowKey:RY_MODEL.lineKey(row,index)};});
   RY_NONSALE=(picked.operations||[]).map(r=>({label:String(r.label||r.purpose||''),qty:Number(r.qty),note:String(r.note||'')}));
   const sel=$('#ryBook');if(sel.value!==key)sel.value=key;
   $('#ryExemptField').classList.toggle('hidden',!BOOK.exemptLimit);
   const ex=$('#ryExempt');if(BOOK.exemptUsed!=null&&!ex.dataset.touched)ex.value=BOOK.exemptUsed;else if(!BOOK.exemptLimit)ex.value='';
   $('#ryCycleHint').textContent=[BOOK.settlementCycle,BOOK.nextPay&&`다음 정산일 ${BOOK.nextPay}`].filter(Boolean).join(' · ')||'정산 주기는 기준정보 확인이 필요합니다.';
   if(BOOK.nextPay)$('#ryPay').value=BOOK.nextPay;
-  $('#ryPrintTip').textContent=`정가 × 판매 부수 × 작가율 ${Math.round(BOOK.rate*1000)/10}%로 다시 계산합니다. PDF 저장 시 「머리글과 바닥글」을 꺼 주세요.`;
+  $('#ryPrintTip').textContent=`정가 × 확정 부수 × 적용률 ${Math.round(BOOK.rate*1000)/10}%로 공제 전 정산액을 다시 계산합니다. PDF 저장 시 「머리글과 바닥글」을 꺼 주세요.`;
+  $('#ryBasis').dataset.touched='';$('#ryBasis').value=RY_MODEL.defaultBasis(BOOK,$('#ryEnd').value);$('#ryMemo').value='';
+  $('#ryDraftNote').textContent='원장은 수정하지 않고 이 기기의 관리자 브라우저에만 보관합니다.';
   if(keepDates)reapplyPeriod();
+  restoreRoyaltyDraft();
   renderRoyaltyRows();renderRoyalty();
 }
 function populateRoyaltyBooks(books){
   RY_BOOKS=books;
   const sel=$('#ryBook'),wanted=sel.value||BOOK.key;
   sel.innerHTML=books.map(b=>`<option value="${esc(b.key)}">${esc(b.author)} · ${esc(b.title)} · ${esc(b.isRoyalty?'인세':'외부위탁')}</option>`).join('');
-  const key=books.some(b=>b.key===wanted)?wanted:(books.find(b=>b.key==='신태림::문고리')||books[0]).key;
+  const key=books.some(b=>b.key===wanted)?wanted:books[0].key;
   selectRoyaltyBook(key);
 }
 function setQuarter(offset){
   const q = quarterRange(offset);
   $('#ryStart').value = q.start; $('#ryEnd').value = q.end; $('#ryPay').value = q.pay;
+  if(!$('#ryBasis').dataset.touched)$('#ryBasis').value=RY_MODEL.defaultBasis(BOOK,q.end);
   if(RY_ROWS.length){ reapplyPeriod(); renderRoyaltyRows(); }
-  renderRoyalty();
+  renderRoyalty();scheduleRoyaltyDraft();
 }
 // 인세시트 자동 불러오기: royalty-read 함수(읽기 전용)가 시트를 읽어 준다
 const RY_ERRORS = {
@@ -1709,29 +1735,34 @@ function initRoyalty(){
   $('#ryIssue').value = today();
   // 분기가 끝나고 지급일(다음 달 10일)까지는 지난 분기를 정산하는 때라 지난 분기를 기본으로
   setQuarter(today() <= quarterRange(-1).pay ? -1 : 0);
-  const tax = store('docs_ry_tax');
-  if(tax) $('#ryTax').value = tax;
   if(MODE==='db') loadRoyaltyFromSheet();
   else $('#ryPasteWrap').open = true;
 }
 async function printRoyalty(){
   const s = renderRoyalty();
-  if(!BOOK.key){ toast('작가·도서를 먼저 골라 주세요', true); return; }
-  if(!s.mode){ toast('원천징수 방식을 먼저 골라 주세요'); $('#ryTax').focus(); return; }
-  const bad = s.lines.filter(l => l.sheetRoyalty != null && !Number.isNaN(l.sheetRoyalty) && l.sheetRoyalty !== l.royalty);
-  if(bad.length && !confirm(`원장 인세액과 계산이 다른 줄이 ${bad.length}개 있어요 (목록의 빨간 표시).\n인세시트를 확인했나요? 그대로 PDF를 만들까요?`)) return;
+  if(!BOOK.key||!BOOK.author||!BOOK.title){ toast('작가·도서를 먼저 골라 주세요', true); return; }
+  if(!BOOK.price||!BOOK.rate){ toast('정가와 적용률을 확인해 주세요', true); return; }
+  if(!s.start||!s.end||s.start>s.end){ toast('정산 시작일과 종료일을 확인해 주세요', true);return; }
+  if(!s.pay){ toast('지급 예정일을 입력해 주세요', true);$('#ryPay').focus();return; }
+  if(!s.issue){ toast('발행일을 입력해 주세요', true);$('#ryIssue').focus();return; }
+  if(!s.basis){ toast('정산 기준 문구를 입력해 주세요', true);$('#ryBasis').focus();return; }
+  const bad = s.lines.filter(l => l.sheetRoyalty != null && !Number.isNaN(l.sheetRoyalty) && l.sheetRoyalty !== l.amount);
+  if(bad.length && !confirm(`원장 정산액과 계산이 다른 줄이 ${bad.length}개 있어요 (목록의 빨간 표시).\n정산시트를 확인했나요? 그대로 PDF를 만들까요?`)) return;
+  saveRoyaltyDraft(true);
   printHtml(s.html, `${BOOK.author}_${BOOK.title}_${BOOK.isRoyalty?'인세':'위탁'}정산서_${s.start}_${s.end}`);
 }
 $('#ryParseBtn').onclick = () => applyRoyaltyPaste($('#ryPaste').value);
 $('#rySyncBtn').onclick = () => loadRoyaltyFromSheet();
-$('#ryBook').addEventListener('change', e=>selectRoyaltyBook(e.target.value));
+$('#ryBook').addEventListener('change', e=>{saveRoyaltyDraft(true);selectRoyaltyBook(e.target.value);});
 $('#ryExempt').addEventListener('input', e => { e.target.dataset.touched = '1'; });
 $('#ryThisQ').onclick = () => setQuarter(0);
 $('#ryPrevQ').onclick = () => setQuarter(-1);
-['#ryStart','#ryEnd'].forEach(sel => $(sel).addEventListener('change', () => { if(RY_ROWS.length){ reapplyPeriod(); renderRoyaltyRows(); } renderRoyalty(); }));
-['#ryPay','#ryIssue','#ryTax'].forEach(sel => $(sel).addEventListener('change', renderRoyalty));
-$('#ryTax').addEventListener('change', e => store('docs_ry_tax', e.target.value || null));
-['#ryExempt','#ryMemo'].forEach(sel => $(sel).addEventListener('input', renderRoyalty));
+['#ryStart','#ryEnd'].forEach(sel => $(sel).addEventListener('change', () => { if(sel==='#ryEnd'&&!$('#ryBasis').dataset.touched)$('#ryBasis').value=RY_MODEL.defaultBasis(BOOK,$('#ryEnd').value);if(RY_ROWS.length){ reapplyPeriod(); renderRoyaltyRows(); } renderRoyalty();scheduleRoyaltyDraft(); }));
+['#ryPay','#ryIssue'].forEach(sel => $(sel).addEventListener('change',()=>{renderRoyalty();scheduleRoyaltyDraft();}));
+$('#ryBasis').addEventListener('input',e=>{e.target.dataset.touched='1';renderRoyalty();scheduleRoyaltyDraft();});
+['#ryExempt','#ryMemo'].forEach(sel => $(sel).addEventListener('input',()=>{renderRoyalty();scheduleRoyaltyDraft();}));
+$('#rySaveDraftBtn').onclick=()=>saveRoyaltyDraft(false);
+$('#ryResetBtn').onclick=()=>{if(confirm('이 작가·도서의 브라우저 초안을 비우고 새로 쓸까요?'))resetRoyaltyDraft();};
 $('#ryPrintBtn').onclick = printRoyalty;
 
 /* ============ B2B 진행 (기관 문의 → 견적 → 보냄 → 수주 → 입금 → 계산서) ============ */
@@ -2208,25 +2239,30 @@ async function boot(){
     const printTest = params.get('printtest');
     if(printTest==='quote'){ switchView('quote'); $('#printArea').innerHTML = update().html; }
     if(printTest==='statement'){ switchView('statement'); selectStatementSource('current'); $('#printArea').innerHTML = renderStatement().html; }
-    if(printTest==='royalty'){  // 확인용 가짜 원장 (실제 거래처 아님)
+    if(printTest==='royalty'||printTest==='royalty:long'){  // 확인용 가상 원장 (실제 인물·거래 아님)
       switchView('royalty');
+      const sampleTitle=printTest==='royalty:long'?'아주 긴 도서명도 한 페이지 안에서 또렷하게 읽히는지 확인하기 위한 가상 도서 제목':'마음의 지도';
+      populateRoyaltyBooks([{key:`가상작가 가::${sampleTitle}`,author:'가상작가 가',title:sampleTitle,type:'저자 인세',isRoyalty:true,isbn:'000-00-0000000-0',price:20000,rate:.25,sales:[],operations:[]}]);
       $('#ryStart').value='2026-07-01'; $('#ryEnd').value='2026-09-30'; $('#ryPay').value='2026-10-10'; $('#ryIssue').value='2026-10-05';
+      $('#ryBasis').value=RY_MODEL.defaultBasis(BOOK,$('#ryEnd').value);$('#ryBasis').dataset.touched='';
       applyRoyaltyPaste(['정산월\t판매일\t채널\t거래처\t정가\t판매권수\t공급률\t인세율\t인세액\t팀 순몫\t지급상태\t비고',
-        '2026-07\t2026-07\t스마트스토어\t자사몰\t17000\t10\t수수료차감\t30%\t51000\t\t진행중\t예시',
-        '2026-08\t2026-08-20\t책방위탁\t예시책방\t17000\t3\t70%\t30%\t15300\t\t미지급\t예시',
-        '2026-10\t2026-10-02\t직판\t예시\t17000\t1\t100%\t30%\t5100\t\t미지급\t기간 밖 예시'].join('\n'));
-      $('#ryTax').value='biz'; $('#ryExempt').value='2';
+        '2026-07\t2026-07-12\t가상 온라인몰\t가상 판매처\t20000\t9\t\t25%\t45000\t\t\t구매확정 예시',
+        '2026-08\t2026-08-20\t가상 독립책방 위탁판매\t가상 책방\t20000\t4\t\t25%\t20000\t\t\t결제·출고 완료',
+        '2026-09\t2026-09-18\t홍보 이벤트\t가상 행사\t20000\t1\t\t25%\t5000\t\t\t인세 적용',
+        '2026-10\t2026-10-02\t가상 직판\t가상 행사\t20000\t1\t\t25%\t5000\t\t\t기간 밖 예시'].join('\n'));
+      $('#ryExempt').value='2';
       $('#printArea').innerHTML = renderRoyalty().html;
     }
     if(printTest==='royalty:consignment'){
       switchView('royalty');
-      RY_BOOKS=[{key:'안영애::예시 위탁도서',author:'안영애',title:'예시 위탁도서',type:'외부위탁',isRoyalty:false,price:15000,rate:.70,checkedAt:'2026-09-11',currentStock:7,sales:[
-        {date:'2026-08-12',channel:'스마트스토어',price:15000,qty:5,status:'지급예정'},
-        {date:'2026-09-03',channel:'오프라인',price:15000,qty:8,status:'지급예정'}],operations:[
+      RY_BOOKS=[{key:'가상작가 나::가상 위탁도서',author:'가상작가 나',title:'가상 위탁도서',type:'외부위탁',isRoyalty:false,price:14000,rate:.65,checkedAt:'2026-09-11',currentStock:7,sales:[
+        {date:'2026-08-12',channel:'가상 온라인몰',price:14000,qty:5},
+        {date:'2026-09-03',channel:'가상 독립책방 위탁판매',price:14000,qty:8}],operations:[
         {label:'누적 입고',qty:20,note:'위탁재고 입고 기록 합계'},{label:'샘플 제공',qty:1,note:'판매용 재고와 별도'},{label:'현재 재고',qty:7,note:'2026-09-11 확인'}]}];
       populateRoyaltyBooks(RY_BOOKS);
       $('#ryStart').value='2026-07-01';$('#ryEnd').value='2026-09-30';$('#ryPay').value='2026-10-10';$('#ryIssue').value='2026-10-05';
-      reapplyPeriod();$('#ryTax').value='biz';$('#printArea').innerHTML=renderRoyalty().html;
+      $('#ryBasis').value=RY_MODEL.defaultBasis(BOOK,$('#ryEnd').value);$('#ryBasis').dataset.touched='';
+      reapplyPeriod();$('#printArea').innerHTML=renderRoyalty().html;
     }
     const [extName, extSub] = (printTest||'').split(':');
     if(EXT[extName] && EXT[extName].printTest){ switchView(extName); $('#printArea').innerHTML = EXT[extName].printTest(extSub, params); }

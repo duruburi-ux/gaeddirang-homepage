@@ -287,11 +287,68 @@ test('admin docs: profile importer is available after entering from another tab'
   await expect(page.locator('.doc-assist-up')).toHaveText('기존 프로필 파일 올리기');
 });
 
+test('admin docs: standard settlement form separates sales, event royalties and gross amount', async ({ page }) => {
+  await page.goto('/admin/docs.html?preview#royalty', { waitUntil:'domcontentloaded' });
+  await page.evaluate(() => {
+    populateRoyaltyBooks([
+      { key:'가상A::가상 인세도서',author:'가상A',title:'가상 인세도서',type:'저자 인세',isRoyalty:true,price:16000,rate:.25,sales:[
+        {date:'2026-07-10',channel:'가상 온라인몰',price:16000,qty:20,sheetRoyalty:80000},
+        {date:'2026-08-20',channel:'가상 독립책방 위탁판매',price:16000,qty:11,sheetRoyalty:44000},
+        {date:'2026-09-18',channel:'홍보 이벤트',memo:'인세 적용',price:16000,qty:1,sheetRoyalty:4000},
+      ],operations:[] },
+      { key:'가상B::가상 위탁도서',author:'가상B',title:'가상 위탁도서',type:'외부위탁',isRoyalty:false,price:14000,rate:.65,sales:[
+        {date:'2026-09-01',channel:'가상 오프라인 판매',price:14000,qty:3},
+      ],operations:[{label:'누적 입고',qty:16,note:'판매 아님'}] },
+    ]);
+    document.querySelector('#ryStart').value='2026-07-01';
+    document.querySelector('#ryEnd').value='2026-09-30';
+    document.querySelector('#ryPay').value='2026-10-10';
+    document.querySelector('#ryIssue').value='2026-10-05';
+    document.querySelector('#ryBasis').value=RY_MODEL.defaultBasis(BOOK,'2026-09-30');
+    reapplyPeriod();renderRoyaltyRows();renderRoyalty();
+  });
+
+  const sheet=page.locator('#rySheet');
+  await expect(sheet).toContainText('저자 인세 정산서');
+  await expect(sheet).toContainText('확정 판매 31권 + 인세 적용 이벤트 1권 = 정산 대상 32권');
+  await expect(sheet).toContainText('128,000원');
+  await expect(sheet).toContainText('실제 지급액은 기지급 내역과 공제 사항 확인 후 확정됩니다.');
+  await expect(sheet).not.toContainText('정가 환산액');
+  await expect(sheet).not.toContainText('원천징수 3.3%');
+
+  await page.locator('#ryRows label', { hasText:'홍보 이벤트' }).locator('input').uncheck();
+  await expect(sheet).toContainText('확정 판매 31권');
+  await expect(sheet).toContainText('124,000원');
+  await expect(sheet).toContainText('이벤트 1권은 정산 대상에서 제외했습니다.');
+
+  await page.locator('#ryBasis').fill('가상 검증용 맞춤 기준 문구');
+  await page.locator('#ryMemo').fill('가상A 전용 메모');
+  await page.locator('#rySaveDraftBtn').click();
+  await page.locator('#ryBook').selectOption('가상B::가상 위탁도서');
+  await expect(sheet).toContainText('위탁도서 판매대금 정산서');
+  await expect(sheet).toContainText('가상B');
+  await expect(sheet).not.toContainText('가상A 전용 메모');
+  await expect(sheet).not.toContainText('누적 입고');
+  await page.locator('#ryBook').selectOption('가상A::가상 인세도서');
+  await expect(page.locator('#ryBasis')).toHaveValue('가상 검증용 맞춤 기준 문구');
+  await expect(sheet).toContainText('가상A 전용 메모');
+
+  await page.evaluate(() => { window.__printed=0;window.print=()=>{window.__printed+=1;}; });
+  await page.locator('#ryPay').fill('');
+  await page.locator('#ryPrintBtn').click();
+  await expect.poll(() => page.evaluate(() => window.__printed)).toBe(0);
+  await page.locator('#ryPay').fill('2026-10-10');
+  await page.locator('#ryPrintBtn').click();
+  await expect.poll(() => page.evaluate(() => window.__printed)).toBe(1);
+  await expect(page.locator('#printArea')).toContainText('가상 검증용 맞춤 기준 문구');
+});
+
 test('admin docs: every printable form stays on one branded A4 page', async ({ page }) => {
   const cases = [
     ['quote', 'quote'],
     ['statement', 'statement'],
     ['royalty', 'royalty'],
+    ['royalty-long-title', 'royalty:long'],
     ['royalty-consignment', 'royalty:consignment'],
     ['kit-plan', 'kit:plan'],
     ['kit-profile', 'kit:profile'],

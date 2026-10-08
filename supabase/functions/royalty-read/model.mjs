@@ -121,6 +121,7 @@ export function buildRoyalty(raw){
       author:basis.get(r,'작가'),title:basis.get(r,'도서'),type:basis.get(r,'관리 구분')||'작가 정산',
       price:number(basis.get(r,'정가'))??0,rate:ratio(basis.get(r,'작가율'))??0,
       isbn:basis.get(r,'ISBN'),settlementCycle:basis.get(r,'정산 주기'),nextPay:basis.get(r,'다음 정산일'),
+      basisText:basis.get(r,'정산 기준 문구')||basis.get(r,'정산 기준'),
       baseline:number(basis.get(r,'기준재고')),currentStock:number(basis.get(r,'현재고')),
       checkedAt:basis.get(r,'확인일'),note:basis.get(r,'근거·주의사항'),
     };
