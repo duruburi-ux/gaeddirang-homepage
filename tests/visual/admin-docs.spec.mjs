@@ -304,6 +304,8 @@ test('admin docs: standard settlement form separates sales, event royalties and 
     document.querySelector('#ryEnd').value='2026-09-30';
     document.querySelector('#ryPay').value='2026-10-10';
     document.querySelector('#ryIssue').value='2026-10-05';
+    document.querySelector('#ryDocNo').value='GDR-QA-2026Q3-01';
+    document.querySelector('#ryIssuer').value='가상 출판사';
     document.querySelector('#ryBasis').value=RY_MODEL.defaultBasis(BOOK,'2026-09-30');
     reapplyPeriod();renderRoyaltyRows();renderRoyalty();
   });
@@ -312,6 +314,11 @@ test('admin docs: standard settlement form separates sales, event royalties and 
   await expect(sheet).toContainText('저자 인세 정산서');
   await expect(sheet).toContainText('확정 판매 31권 + 인세 적용 이벤트 1권 = 정산 대상 32권');
   await expect(sheet).toContainText('128,000원');
+  await expect(sheet).toContainText('GDR-QA-2026Q3-01');
+  await expect(sheet).toContainText('가상 출판사');
+  await expect(sheet.locator('.section-title').nth(0)).toContainText('정산 내역');
+  await expect(sheet.locator('.section-title').nth(1)).toContainText('채널별 정산 수량');
+  await expect(sheet.locator('.section-title').nth(2)).toContainText('정산 산식');
   await expect(sheet).toContainText('실제 지급액은 기지급 내역과 공제 사항 확인 후 확정됩니다.');
   await expect(sheet).not.toContainText('정가 환산액');
   await expect(sheet).not.toContainText('원천징수 3.3%');
@@ -327,10 +334,14 @@ test('admin docs: standard settlement form separates sales, event royalties and 
   await page.locator('#ryBook').selectOption('가상B::가상 위탁도서');
   await expect(sheet).toContainText('위탁도서 판매대금 정산서');
   await expect(sheet).toContainText('가상B');
+  await expect(page.locator('#ryIssuer')).toHaveValue('개띠랑 책공방');
+  await expect(sheet).not.toContainText('GDR-QA-2026Q3-01');
   await expect(sheet).not.toContainText('가상A 전용 메모');
   await expect(sheet).not.toContainText('누적 입고');
   await page.locator('#ryBook').selectOption('가상A::가상 인세도서');
   await expect(page.locator('#ryBasis')).toHaveValue('가상 검증용 맞춤 기준 문구');
+  await expect(page.locator('#ryDocNo')).toHaveValue('GDR-QA-2026Q3-01');
+  await expect(page.locator('#ryIssuer')).toHaveValue('가상 출판사');
   await expect(sheet).toContainText('가상A 전용 메모');
 
   await page.evaluate(() => { window.__printed=0;window.print=()=>{window.__printed+=1;}; });
