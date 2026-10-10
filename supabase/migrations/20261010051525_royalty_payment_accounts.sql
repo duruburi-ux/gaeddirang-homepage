@@ -42,6 +42,29 @@ create table public.royalty_payment_account_events (
 create index royalty_payment_account_events_account_time_idx
   on public.royalty_payment_account_events (account_id, happened_at desc);
 
+create or replace function public.is_royalty_account_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select auth.uid() is not null
+    and lower(coalesce(auth.jwt() ->> 'email', '')) <> ''
+    and public.is_admin()
+    and exists (
+      select 1
+      from auth.users u
+      where u.id = auth.uid()
+        and not coalesce(u.is_anonymous, false)
+        and u.email_confirmed_at is not null
+        and lower(coalesce(u.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+    );
+$$;
+
+revoke all on function public.is_royalty_account_admin() from public, anon, authenticated;
+grant execute on function public.is_royalty_account_admin() to authenticated;
+
 create or replace function private.require_royalty_account_admin()
 returns text
 language plpgsql
@@ -50,20 +73,9 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_user_id uuid := auth.uid();
   v_email text := lower(coalesce(auth.jwt() ->> 'email', ''));
 begin
-  if v_user_id is null
-     or v_email = ''
-     or not (select public.is_admin())
-     or not exists (
-       select 1
-       from auth.users u
-       where u.id = v_user_id
-         and not coalesce(u.is_anonymous, false)
-         and u.email_confirmed_at is not null
-         and lower(coalesce(u.email, '')) = v_email
-     ) then
+  if not (select public.is_royalty_account_admin()) then
     raise exception 'ADMIN_REQUIRED' using errcode = '42501';
   end if;
   return v_email;
@@ -83,12 +95,12 @@ grant select on table public.royalty_payment_accounts, public.royalty_payment_ac
 create policy royalty_payment_accounts_admin_select
   on public.royalty_payment_accounts
   for select to authenticated
-  using ((select public.is_admin()));
+  using ((select public.is_royalty_account_admin()));
 
 create policy royalty_payment_account_events_admin_select
   on public.royalty_payment_account_events
   for select to authenticated
-  using ((select public.is_admin()));
+  using ((select public.is_royalty_account_admin()));
 
 create or replace function public.list_royalty_payment_accounts(p_author_name text default null)
 returns table (

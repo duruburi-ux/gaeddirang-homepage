@@ -1,5 +1,5 @@
 begin;
-select plan(28);
+select plan(30);
 
 select ok(exists(select 1 from storage.buckets where id='settlement-documents' and public=false), 'settlement bucket is private');
 select has_table('public', 'settlement_documents', 'settlement document metadata table exists');
@@ -13,6 +13,8 @@ select ok(not has_table_privilege('anon','public.settlement_document_events','se
 select ok(not has_table_privilege('authenticated','public.settlement_document_events','select'), 'authenticated has no direct audit grant');
 select ok(not has_function_privilege('anon','public.list_settlement_documents()','execute'), 'anon cannot list document metadata');
 select ok(has_function_privilege('authenticated','public.list_settlement_documents()','execute'), 'authenticated reaches the strict list authorization check');
+select ok(not has_function_privilege('anon','public.is_settlement_document_admin()','execute'), 'anon cannot call strict archive admin predicate');
+select ok(has_function_privilege('authenticated','public.is_settlement_document_admin()','execute'), 'authenticated users can be evaluated by the strict archive admin predicate');
 select ok(not has_function_privilege('anon','public.register_settlement_document(text,text,text,date,date,text,text,text,text,bigint,text,text,uuid)','execute'), 'anon cannot register documents');
 select ok(has_function_privilege('authenticated','public.register_settlement_document(text,text,text,date,date,text,text,text,text,bigint,text,text,uuid)','execute'), 'authenticated reaches the strict register authorization check');
 select ok(not has_function_privilege('anon','public.set_settlement_document_status(uuid,text)','execute'), 'anon cannot change document status');

@@ -43,7 +43,7 @@ test('미리보기는 실명·실금액 없이 세 구분과 세 상태를 보�
 
 test('자료실 코드는 브라우저 저장소·공개 URL·서비스 키를 사용하지 않는다',()=>{
   const ui=readFileSync(new URL('../admin/docs-settlement-archive.js',import.meta.url),'utf8');
-  const sql=readFileSync(new URL('../supabase/drafts/settlement_document_archive.sql',import.meta.url),'utf8');
+  const sql=readFileSync(new URL('../supabase/migrations/20261010064138_settlement_document_archive.sql',import.meta.url),'utf8');
   assert.equal(/localStorage\.(?:setItem|getItem)/.test(ui),false);
   assert.equal(ui.includes('getPublicUrl'),false);
   assert.equal(ui.includes('service_role'),false);

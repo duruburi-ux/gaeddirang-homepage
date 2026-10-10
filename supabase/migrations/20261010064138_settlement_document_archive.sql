@@ -1,5 +1,5 @@
--- DRAFT ONLY: 격리된 Supabase 환경에서 검증한 뒤 `supabase migration new`로
--- 정식 마이그레이션을 생성한다. 운영 프로젝트에는 직접 실행하지 않는다.
+-- 정산 자료실 전용 private Storage와 관리자 전용 메타데이터/RPC.
+-- 운영 반영 전에는 반드시 로컬 RLS·Storage 보안 테스트를 통과해야 한다.
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
@@ -73,6 +73,29 @@ alter table public.settlement_document_events enable row level security;
 revoke all privileges on table public.settlement_documents, public.settlement_document_events
   from public, anon, authenticated;
 
+create or replace function public.is_settlement_document_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select auth.uid() is not null
+    and lower(coalesce(auth.jwt() ->> 'email', '')) <> ''
+    and public.is_admin()
+    and exists (
+      select 1
+      from auth.users u
+      where u.id = auth.uid()
+        and not coalesce(u.is_anonymous, false)
+        and u.email_confirmed_at is not null
+        and lower(coalesce(u.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+    );
+$$;
+
+revoke all on function public.is_settlement_document_admin() from public, anon, authenticated;
+grant execute on function public.is_settlement_document_admin() to authenticated;
+
 create or replace function private.require_settlement_document_admin()
 returns text
 language plpgsql
@@ -81,20 +104,9 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_user_id uuid := auth.uid();
   v_email text := lower(coalesce(auth.jwt() ->> 'email', ''));
 begin
-  if v_user_id is null
-     or v_email = ''
-     or not (select public.is_admin())
-     or not exists (
-       select 1
-       from auth.users u
-       where u.id = v_user_id
-         and not coalesce(u.is_anonymous, false)
-         and u.email_confirmed_at is not null
-         and lower(coalesce(u.email, '')) = v_email
-     ) then
+  if not (select public.is_settlement_document_admin()) then
     raise exception 'ADMIN_REQUIRED' using errcode = '42501';
   end if;
   return v_email;
@@ -314,13 +326,13 @@ grant execute on function public.can_remove_unregistered_settlement_object(text)
 
 create policy settlement_documents_admin_read
 on storage.objects for select to authenticated
-using (bucket_id = 'settlement-documents' and (select public.is_admin()));
+using (bucket_id = 'settlement-documents' and (select public.is_settlement_document_admin()));
 
 create policy settlement_documents_admin_upload
 on storage.objects for insert to authenticated
 with check (
   bucket_id = 'settlement-documents'
-  and (select public.is_admin())
+  and (select public.is_settlement_document_admin())
   and (storage.foldername(name))[1] = (select auth.uid())::text
 );
 

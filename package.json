@@ -8,6 +8,7 @@
     "qa:production": "QA_BASE_URL=https://gaeddirang.com playwright test -c playwright.config.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "1.63.0"
+    "@playwright/test": "1.63.0",
+    "supabase": "2.120.0"
   }
 }
