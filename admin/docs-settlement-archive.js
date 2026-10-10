@@ -54,7 +54,7 @@
       <label class="f" for="archiveSubject">대상</label><input class="in" id="archiveSubject" placeholder="예: 가상작가 또는 내부 팀">
       <label class="f" for="archiveTitle">문서 제목</label><input class="in" id="archiveTitle" placeholder="예: 3분기 인세 정산서">
       <label class="f" for="archiveSupersedes">이전 버전 연결</label><select class="in" id="archiveSupersedes">${replacementOptions()}</select>
-      <label class="f" for="archiveFile">파일</label><input class="in" id="archiveFile" type="file" accept=".pdf,.docx,.xlsx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+      <label class="f" for="archiveFile">파일</label><input class="in" id="archiveFile" type="file" accept=".pdf,.docx,.xlsx,.json,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/json,text/markdown">
       <label class="f" for="archiveNotes">메모 <span class="hint">(계좌번호 등 개인정보 입력 금지)</span></label><textarea class="in" id="archiveNotes" rows="2"></textarea>
       <div class="btns"><button class="btn-primary" id="archiveUpload">비공개 업로드</button><button class="btn-sm" id="archiveCancel">취소</button></div><div class="parse-note" id="archiveNote"></div>
     </div>`;

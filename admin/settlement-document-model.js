@@ -13,6 +13,8 @@
     pdf:'application/pdf',
     docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    json:'application/json',
+    md:'text/markdown',
   };
   const MAX_FILE_BYTES=20*1024*1024;
 
@@ -58,10 +60,10 @@
     if(!draft.periodLabel)errors.push('기간 표시를 입력해 주세요.');
     if((draft.periodStart&&!/^\d{4}-\d{2}-\d{2}$/.test(draft.periodStart))||(draft.periodEnd&&!/^\d{4}-\d{2}-\d{2}$/.test(draft.periodEnd)))errors.push('기간 날짜 형식을 확인해 주세요.');
     if(draft.periodStart&&draft.periodEnd&&draft.periodStart>draft.periodEnd)errors.push('기간 종료일은 시작일보다 빠를 수 없습니다.');
-    if(!file)errors.push('보관할 PDF·DOCX·XLSX 파일을 선택해 주세요.');
+    if(!file)errors.push('보관할 PDF·DOCX·XLSX·JSON·MD 파일을 선택해 주세요.');
     else {
       const ext=fileExtension(file.name);
-      if(!MIME_BY_EXT[ext])errors.push('PDF·DOCX·XLSX 파일만 보관할 수 있습니다.');
+      if(!MIME_BY_EXT[ext])errors.push('PDF·DOCX·XLSX·JSON·MD 파일만 보관할 수 있습니다.');
       if(!Number(file.size)||file.size>MAX_FILE_BYTES)errors.push('파일은 20MB 이하인지 확인해 주세요.');
       draft.fileName=safeFileName(file.name);
       draft.mimeType=MIME_BY_EXT[ext]||String(file.type||'application/octet-stream');

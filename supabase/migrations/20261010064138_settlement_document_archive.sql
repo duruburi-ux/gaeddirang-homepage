@@ -10,7 +10,9 @@ values (
   array[
     'application/pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/json',
+    'text/markdown'
   ]
 )
 on conflict (id) do update set
@@ -34,7 +36,9 @@ create table public.settlement_documents (
   mime_type text not null check (mime_type in (
     'application/pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/json',
+    'text/markdown'
   )),
   size_bytes bigint not null check (size_bytes between 1 and 20971520),
   sha256 text not null check (sha256 ~ '^[0-9a-f]{64}$'),
@@ -193,7 +197,9 @@ begin
   if p_mime_type not in (
     'application/pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/json',
+    'text/markdown'
   ) then raise exception 'DOCUMENT_MIME_INVALID'; end if;
   if p_size_bytes not between 1 and 20971520 then raise exception 'DOCUMENT_SIZE_INVALID'; end if;
   if lower(coalesce(p_sha256, '')) !~ '^[0-9a-f]{64}$' then raise exception 'DOCUMENT_HASH_INVALID'; end if;

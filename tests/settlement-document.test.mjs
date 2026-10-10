@@ -25,6 +25,15 @@ test('허용되지 않은 형식과 20MB 초과 파일을 차단한다',()=>{
   assert.equal(M.validateDraft(base,{name:'가상정산.pdf',type:'application/pdf',size:M.MAX_FILE_BYTES+1}).ok,false);
 });
 
+test('계산 JSON과 무결성 Markdown을 검토자료로 보관할 수 있다',()=>{
+  const json=M.validateDraft(base,{name:'가상_계산결과.json',type:'application/json',size:2048});
+  const markdown=M.validateDraft(base,{name:'가상_무결성목록.md',type:'text/markdown',size:1024});
+  assert.equal(json.ok,true);
+  assert.equal(json.draft.mimeType,'application/json');
+  assert.equal(markdown.ok,true);
+  assert.equal(markdown.draft.mimeType,'text/markdown');
+});
+
 test('이전 버전은 같은 구분·대상·기간·제목에만 연결한다',()=>{
   const previous={category:'internal_team',subject:'가상팀',title:'8·9월 정산 상세',period_label:'2026년 8~9월'};
   assert.equal(M.canReplace(previous,M.validateDraft(base,fakeFile).draft),true);
@@ -55,5 +64,7 @@ test('자료실 코드는 브라우저 저장소·공개 URL·서비스 키를 �
   assert.match(sql,/status = 'superseded'/);
   assert.match(sql,/unique index settlement_documents_sha256_key/);
   assert.match(sql,/DOCUMENT_DUPLICATE_FILE/);
+  assert.match(sql,/'application\/json'/);
+  assert.match(sql,/'text\/markdown'/);
   assert.doesNotMatch(sql,/libfile_|2026Q3_/);
 });
