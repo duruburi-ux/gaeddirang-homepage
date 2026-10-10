@@ -10,8 +10,11 @@ let fileInput = null;
 let normalUpload = null;
 
 function activeView(){ return document.querySelector('.view:not(.hidden)'); }
+function isPrivate(el){
+  return el?.type==='password'||el?.hasAttribute('data-private-value')||!!el?.closest('[data-private-no-print]');
+}
 function isShown(el){
-  if(!el || el.disabled || el.readOnly || el.type==='file' || el.type==='button' || el.type==='submit') return false;
+  if(!el || isPrivate(el) || el.disabled || el.readOnly || el.type==='file' || el.type==='button' || el.type==='submit') return false;
   for(let p=el; p && p!==document.body; p=p.parentElement){
     if(HIDDEN_RE.test(p.className||'') || p.hidden) return false;
   }

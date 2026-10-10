@@ -21,6 +21,9 @@ for (const viewport of [
 ]) {
   test(`${viewport.name}: layout and core interactions`, async ({ page }) => {
     await page.setViewportSize(viewport);
+    // 모집 수를 검증하는 시나리오는 고정된 모집 기간 안에서 실행한다. 실행 당일에
+    // 따라 테스트가 깨지는 대신 아래의 별도 만료 테스트가 종료일 규칙을 검증한다.
+    await page.clock.setFixedTime(new Date('2026-09-08T03:00:00Z'));
     const consoleErrors = await prepare(page);
 
     await expect(page.locator('.prog-card')).toHaveCount(4);

@@ -163,9 +163,9 @@ test('admin docs: uncertain profile import stops without overwriting the form', 
   const chooser = await chooserPromise;
   await chooser.setFiles({
     name:'깨진_프로필.txt', mimeType:'text/plain', buffer:Buffer.from([
-      '장진호 / 필명 : 장두루',
+      '김가상 / 필명 : 글봄',
       '학력',
-      '연락처 010-4004-8396',
+      '연락처 010-0000-0000',
       '저서',
       '대표 강연 이력',
     ].join('\n')),
@@ -432,7 +432,16 @@ test('admin docs: royalty payment accounts stay masked, explicit and outside the
 
   await account.locator('#ryAccountEdit').click();
   await expect(account.locator('#ryAccountNumber')).toHaveValue('000000000000');
-  await account.locator('#ryAccountHolderConfirmed').uncheck();
+  const questionnaire=await page.evaluate(()=>window.__docsAssistant.makeQuestionnaire());
+  expect(questionnaire).not.toContain('ryAccountNumber');
+  expect(questionnaire).not.toContain('000000000000');
+  expect(questionnaire).not.toContain('가상예금주');
+  await account.locator('#ryAccountNumber').fill('000000000001');
+  await expect(account.locator('#ryAccountSourceClear')).not.toBeChecked();
+  await expect(account.locator('#ryAccountHolderConfirmed')).not.toBeChecked();
+  await expect(account.locator('#ryAccountVerified')).not.toBeChecked();
+  await expect(account.locator('#ryAccountNote')).toContainText('확인 상태를 해제');
+  await account.locator('#ryAccountVerified').check();
   await account.locator('#ryAccountSave').click();
   await expect(account.locator('#ryAccountNote')).toContainText('확인 완료');
   expect(await page.evaluate(()=>Object.values(localStorage).some(v=>String(v).includes('000000000000')))).toBe(false);

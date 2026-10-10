@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="robots" content="noindex, nofollow" />
 <title>개띠랑 서류실</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <style>
   :root{
     --orange:#76513a; --orange-d:#573725; --ink:#2d241e; --muted:#7f746b;
@@ -740,7 +741,13 @@ function parseWon(text){
   if(!m || !(m[1]||m[2]||m[3])) return NaN;
   return Math.round(parseFloat(m[1]||0)*10000 + parseInt(m[2]||0,10)*1000 + parseInt(m[3]||0,10));
 }
-function parseCount(text){ const d=String(text==null?'':text).replace(/[^\d]/g,''); return d?parseInt(d,10):null; }
+function parseCount(text){
+  const raw=String(text==null?'':text).trim();
+  if(!raw)return null;
+  if(/^\s*-/.test(raw))return NaN;
+  const cleaned=raw.replace(/[,\s]/g,'').replace(/(?:권|개|명|건)$/,'');
+  return /^\+?\d+$/.test(cleaned)?parseInt(cleaned,10):NaN;
+}
 
 // 1400000 → "일백사십만"
 function koreanAmount(n){
@@ -2324,6 +2331,20 @@ function startEditor(userLabel, bannerText){
   if(draft && draft.items && draft.items.some(it=>it.name)){ CURRENT_INQUIRY = draft.inquiry || null; DRAFT_INFO = { date: draft.date }; loadData(draft); }
   else resetForm();
 }
+function lockExpiredEditor(){
+  if(MODE==='preview'||MODE==='locked')return;
+  MODE='locked';CURRENT=null;CURRENT_INQUIRY=null;ITEMS=[];QUOTES=[];INQUIRIES=[];LINKS=[];SEAL=null;
+  window.RoyaltyAccountUI?.selectAuthor('');
+  const app=$('#appView');
+  app.classList.add('hidden');
+  app.querySelectorAll('input,textarea').forEach(el=>{if(el.type==='checkbox'||el.type==='radio')el.checked=false;else el.value='';});
+  app.querySelectorAll('[data-private-value]').forEach(el=>{el.textContent='';el.value='';});
+  $('#printArea').replaceChildren();$('#headUser').textContent='';
+  $('#gateMsg').textContent='로그인이 만료되어 서류와 지급정보를 화면에서 지웠어요. 관리실에서 다시 로그인해 주세요.';
+  $('#gateView a').textContent='관리실에서 다시 로그인';$('#gateView').classList.remove('hidden');
+  const next='docs.html'+location.search+location.hash;
+  location.replace('./?next='+encodeURIComponent(next));
+}
 async function boot(){
   const params = new URLSearchParams(location.search);
   const isLocal = ['localhost','127.0.0.1'].includes(location.hostname);
@@ -2379,6 +2400,9 @@ async function boot(){
     if(EXT[extName] && EXT[extName].printTest){ switchView(extName); $('#printArea').innerHTML = EXT[extName].printTest(extSub, params); }
     return;
   }
+  sb.auth.onAuthStateChange((event, nextSession)=>{
+    if(event!=='INITIAL_SESSION'&&!nextSession)lockExpiredEditor();
+  });
   const { data:{ session } } = await sb.auth.getSession();
   // 로그인하고 나면 이 주소로 다시 오게 (관리실이 next를 받아 돌려보냄)
   $('#gateView a').href = './?next=' + encodeURIComponent('docs.html' + location.search + location.hash);

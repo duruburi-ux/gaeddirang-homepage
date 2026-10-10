@@ -312,7 +312,12 @@
     const blockers = [];
     if(!result.name || !/^[가-힣A-Za-z][가-힣A-Za-z\s]{1,19}$/.test(result.name) || /[/|:：]/.test(result.name)) blockers.push('이름을 확실히 구분하지 못했어요');
     if(/\(예시\)|예시\)/.test(cleaned)) blockers.push('예시 문구가 들어 있는 빈 양식 파일이에요');
-    const profileHeaders = all.filter(line => /^(?:개띠랑\s*(?:\(이진이\))?|이다솜|두루\s*\(장진호\))$/.test(line));
+    // 여러 사람의 포트폴리오를 특정 실명 목록으로 판별하지 않는다. 이름처럼 보이는
+    // 짧은 머리말 뒤에 프로필 섹션이 이어지는지를 보아 합성/신규 자료도 차단한다.
+    const profileHeaders = all.filter((line, index) => {
+      const looksLikePerson = /^(?:[가-힣]{2,4}|[가-힣]{1,8}\s*\([가-힣]{2,4}\))$/.test(line);
+      return looksLikePerson && Boolean(keyForHeading(all[index + 1] || ''));
+    });
     if(new Set(profileHeaders).size >= 2) blockers.push('여러 사람의 프로필이 한 파일에 들어 있어요');
     if(isPrivate(output)) blockers.push('연락처나 주소 같은 개인정보가 결과에 섞여 있어요');
     const careerLines = result.careers.split('\n').filter(Boolean);

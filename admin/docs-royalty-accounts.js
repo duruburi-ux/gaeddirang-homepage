@@ -39,7 +39,10 @@
 
   function scheduleHide(){
     if(S.timer)clearTimeout(S.timer);
-    S.timer=setTimeout(()=>{S.showForm=false;clearFull();render();},30000);
+    S.timer=setTimeout(()=>{
+      if(S.showForm&&host.querySelector('.ry-account-form')?.contains(document.activeElement)){scheduleHide();return;}
+      S.showForm=false;clearFull();render();toast('보안을 위해 지급계좌 전체값을 다시 가렸어요.');
+    },30000);
   }
 
   function sourceOptions(selected){
@@ -91,6 +94,13 @@
     host.querySelector('#ryAccountEdit')?.addEventListener('click',editAccount);
     host.querySelector('#ryAccountCancel')?.addEventListener('click',()=>{S.showForm=false;clearFull();render();});
     host.querySelector('#ryAccountSave')?.addEventListener('click',save);
+    const form=host.querySelector('.ry-account-form');
+    form?.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',scheduleHide));
+    const invalidate=()=>{
+      for(const id of ['ryAccountSourceClear','ryAccountHolderConfirmed','ryAccountVerified']){const input=host.querySelector('#'+id);if(input)input.checked=false;}
+      const note=host.querySelector('#ryAccountNote');if(note){note.className='parse-note warn';note.textContent='계좌 핵심값이 바뀌어 확인 상태를 해제했습니다. 원본과 예금주를 다시 확인해 주세요.';}
+    };
+    for(const id of ['ryAccountBank','ryAccountNumber','ryAccountHolder','ryAccountSource','ryAccountSourceDate'])host.querySelector('#'+id)?.addEventListener('input',invalidate,{once:true});
   }
 
   async function reload(){

@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="./integration.css?v=20260906-3" />
 <link rel="stylesheet" href="./dashboard.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
+<script src="./admin-core-model.js?v=20261010-1"></script>
 <style>
   :root{
     --orange:#F26D4F; --orange-d:#d9583c; --ink:#2b2622; --muted:#8a817a;
@@ -21,7 +22,9 @@
   body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
     background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
   button{font-family:inherit;cursor:pointer}
+  button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid rgba(242,109,79,.35);outline-offset:2px}
   .hidden{display:none!important}
+  .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
   /* ---- 로그인 ---- */
   #loginView{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -59,7 +62,7 @@
 
   /* ---- 카드/표 ---- */
   .list{display:flex;flex-direction:column;gap:9px}
-  .row{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 15px;display:flex;align-items:center;gap:12px;transition:.12s;cursor:pointer}
+  .row{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 15px;display:flex;align-items:center;gap:12px;transition:.12s;cursor:pointer;width:100%;text-align:left;color:inherit;font:inherit}
   .row:hover{border-color:#e6cbb8;box-shadow:0 3px 12px rgba(210,150,110,.08)}
   .row .main{flex:1;min-width:0}
   .row .name{font-weight:700;font-size:15px}
@@ -115,6 +118,7 @@
   .field .v{font-size:14px;white-space:pre-wrap;word-break:break-word}
   .field .v.copy{cursor:pointer}
   .field .v.copy:hover{color:var(--orange-d)}
+  .field button.v{border:0;background:none;padding:0;width:100%;text-align:left;font:inherit;color:inherit}
   .actions{margin-top:16px;display:flex;flex-direction:column;gap:8px}
   .toggle{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:14px;font-weight:600}
   .sw{width:44px;height:26px;border-radius:999px;background:#e3d8cd;position:relative;transition:.18s;border:none;flex-shrink:0}
@@ -134,6 +138,14 @@
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:13.5px;z-index:60;opacity:0;transition:.2s}
   .toast.show{opacity:1}
   .alert-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:13.5px;line-height:1.9;white-space:pre-wrap;word-break:break-all;max-height:340px;overflow-y:auto}
+  .core-banner{display:flex;align-items:center;gap:12px;background:#fff6e8;border:1px solid #edc98c;border-radius:12px;padding:11px 13px;margin-bottom:14px;color:#6d4b18;font-size:13px}
+  .core-banner span{flex:1}.core-banner button{border:1px solid #d9af68;background:#fff;border-radius:8px;padding:7px 10px;color:inherit;font-weight:700}
+  .save-note{font-size:12.5px;color:var(--muted);min-height:19px}.save-note.bad{color:var(--orange-d)}
+  @media(max-width:640px){
+    .head-in{flex-wrap:wrap;gap:8px}.head-user{order:3;width:100%;margin-left:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.logo{margin-right:auto}
+    main{padding:14px 12px}.filters>*{min-width:0}.filters input,.filters select{flex:1 1 140px}.filters .btn-add{flex:1 1 100%}
+    .panel{padding:18px 14px}.row{align-items:flex-start}.row .amt{max-width:32%}
+  }
 </style>
 </head>
 <body>
@@ -143,10 +155,10 @@
   <div class="login-card">
     <h1>🐾 개띠랑 관리실</h1>
     <p>주문 · 신청 · 재고 · 팀 업무를 한곳에서</p>
-    <input id="email" type="email" placeholder="이메일" autocomplete="username" />
-    <input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password" />
+    <label class="sr-only" for="email">관리자 이메일</label><input id="email" type="email" placeholder="이메일" autocomplete="username" />
+    <label class="sr-only" for="pw">비밀번호</label><input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password" />
     <button class="btn-primary" id="loginBtn">로그인</button>
-    <div class="login-msg" id="loginMsg"></div>
+    <div class="login-msg" id="loginMsg" role="status" aria-live="polite"></div>
     <button class="login-link" id="resetLink">비밀번호가 기억나지 않아요</button>
   </div>
 </div>
@@ -160,8 +172,8 @@
       <button class="btn-ghost" id="reloadBtn">새로고침</button>
       <button class="btn-ghost" id="logoutBtn">로그아웃</button>
     </div>
-    <div class="tabs" id="tabBar">
-      <button class="tab active" data-tab="home">대시보드</button>
+    <div class="tabs" id="tabBar" role="tablist" aria-label="관리실 메뉴">
+      <button class="tab active" role="tab" aria-selected="true" data-tab="home">대시보드</button>
       <button class="tab" data-tab="work">진행 업무<span class="badge hidden" id="bWork"></span></button>
       <button class="tab" data-tab="integration">연결 현황<span class="badge hidden" id="bIntegration"></span></button>
       <button class="tab" data-tab="operations">업무 찾기</button>
@@ -176,6 +188,7 @@
     </div>
   </header>
   <main>
+    <div id="coreBanner" class="core-banner hidden" role="alert"><span id="coreBannerText"></span><button id="coreRetry" type="button">다시 불러오기</button></div>
     <section id="tab-work" class="work hidden" aria-label="노션 진행 업무">
       <div class="work-head"><div><p class="work-eyebrow">NOTION / READ ONLY</p><h1>지금 하는 일, 한곳에서</h1><p>업무 영역·실행 업무·프로젝트·결정할 일을 최신 순서로 모아 봅니다.</p></div><button id="work-refresh" class="work-btn">지금 확인</button></div>
       <div id="work-status" class="work-notice" role="status" aria-live="polite">관리자 확인 후 최신 업무를 불러옵니다.</div>
@@ -285,9 +298,9 @@
     <!-- 주문 -->
     <section id="tab-orders" class="hidden">
       <div class="filters">
-        <select id="oChannel"><option value="">전체 채널</option></select>
-        <select id="oStatus"><option value="">전체 상태</option></select>
-        <input id="oSearch" placeholder="이름·연락처·책 검색" />
+        <label class="sr-only" for="oChannel">주문 채널</label><select id="oChannel"><option value="">전체 채널</option></select>
+        <label class="sr-only" for="oStatus">주문 상태</label><select id="oStatus"><option value="">전체 상태</option></select>
+        <label class="sr-only" for="oSearch">주문 검색</label><input id="oSearch" type="search" placeholder="이름·연락처·책 검색" />
         <button class="btn-add" id="oAddBtn">+ 주문 직접 추가</button>
         <span class="count-note" id="ordersCount"></span>
       </div>
@@ -301,7 +314,7 @@
         <select id="fProgram"><option value="">전체 프로그램</option></select>
         <select id="fCohort"><option value="">전체 기수</option></select>
         <select id="fStatus"><option value="">전체 상태</option></select>
-        <input id="fSearch" placeholder="이름·연락처 검색" />
+        <label class="sr-only" for="fSearch">신청자 검색</label><input id="fSearch" type="search" placeholder="이름·연락처·이메일 검색" />
         <button class="btn-add" id="aAddBtn">+ 예약·신청 직접 추가</button>
         <span class="count-note" id="appsCount"></span>
       </div>
@@ -311,7 +324,7 @@
     <!-- 명부 -->
     <section id="tab-members" class="hidden">
       <div class="filters">
-        <input id="mSearch" placeholder="이름·연락처 검색" />
+        <label class="sr-only" for="mSearch">고객 검색</label><input id="mSearch" type="search" placeholder="이름·연락처·이메일 검색" />
         <span class="count-note" id="memCount"></span>
       </div>
       <div class="list" id="memList"><div class="loading">불러오는 중…</div></div>
@@ -326,7 +339,7 @@
     <section id="tab-inquiries" class="hidden">
       <div class="filters">
         <select id="iStatus"><option value="">전체 상태</option></select>
-        <input id="iSearch" placeholder="기관·담당자·연락처 검색" />
+        <label class="sr-only" for="iSearch">문의 검색</label><input id="iSearch" type="search" placeholder="기관·담당자·연락처 검색" />
         <span class="count-note" id="inqCount"></span>
       </div>
       <div class="list" id="inqList"><div class="loading">불러오는 중…</div></div>
@@ -335,7 +348,7 @@
     <!-- 출간알림 -->
     <section id="tab-alerts" class="hidden">
       <div class="filters">
-        <input id="alSearch" placeholder="이메일·책 검색" />
+        <label class="sr-only" for="alSearch">출간알림 검색</label><input id="alSearch" type="search" placeholder="이메일·책 검색" />
         <button class="btn-sm" id="alCopy">이메일 전체 복사</button>
         <span class="count-note" id="alCount"></span>
       </div>
@@ -345,7 +358,7 @@
 </div>
 
 <div id="panelHost"></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 const SUPABASE_URL = 'https://zrmljsyxeozcnfqmyumw.supabase.co';
@@ -359,7 +372,10 @@ const ORDER_CHANNELS = ['홈페이지','스마트스토어','기타'];
 const APP_CHANNELS = ['홈페이지','네이버플레이스','기타'];
 function chChip(ch){ const c=ch||'홈페이지'; const k=c==='스마트스토어'?'store':c==='네이버플레이스'?'place':c==='홈페이지'?'':'etc'; return `<span class="chip ch ${k}">${esc(c)}</span>`; }
 
-let APPS=[], COHORTS=[], ORDERS=[], OITEMS={}, INQ=[], ALERTS=[], CORE_SYNC={ok:null,at:null,failed:[]};
+const Core=window.AdminCoreModel;
+let APPS=[], COHORTS=[], ORDERS=[], OITEMS={}, INQ=[], ALERTS=[];
+let CORE_DATA={applications:[],cohorts:[],orders:[],orderItems:[],inquiries:[],alerts:[]};
+let CORE_SYNC={ok:null,at:null,failed:[],succeeded:[]},CORE_LOAD=null;
 
 const $ = s => document.querySelector(s);
 const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
@@ -371,6 +387,32 @@ const isToday = s => { if(!s)return false; const d=new Date(s),n=new Date(); ret
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800);}
 function copyText(txt,label){ navigator.clipboard.writeText(txt).then(()=>toast((label||'복사')+' 완료')).catch(()=>toast('복사 실패')); }
 function setBadge(id,n){ const b=$('#'+id); if(!b)return; if(n>0){ b.textContent=n; b.classList.remove('hidden'); } else b.classList.add('hidden'); }
+function clearCoreData(){APPS=[];COHORTS=[];ORDERS=[];OITEMS={};INQ=[];ALERTS=[];CORE_DATA={applications:[],cohorts:[],orders:[],orderItems:[],inquiries:[],alerts:[]};$('#panelHost').replaceChildren();}
+function showCoreBanner(){
+  const banner=$('#coreBanner');
+  if(CORE_SYNC.ok!==false){banner.classList.add('hidden');return;}
+  const kept=CORE_SYNC.failed.some(x=>x.keptPrevious);
+  $('#coreBannerText').textContent=`${CORE_SYNC.failed.map(x=>x.label).join('·')} 자료를 불러오지 못했습니다. ${kept?'마지막 정상 값을 유지합니다.':'해당 숫자를 0건으로 판단하지 마세요.'}`;
+  banner.classList.remove('hidden');
+}
+function authFailure(error){if(!Core?.isAuthError(error))return false;showLogin('로그인 시간이 끝났어요. 다시 로그인해 주세요.');return true;}
+const SAVE_BUSY=new Set();
+async function saveRecord(table,id,patch){
+  const key=`${table}:${id}`;if(SAVE_BUSY.has(key)){toast('앞선 저장이 끝난 뒤 다시 눌러 주세요');return null;}SAVE_BUSY.add(key);
+  try{const {data,error}=await sb.from(table).update(patch).eq('id',id).select('*').single();if(error){if(!authFailure(error))toast('저장하지 못했습니다. 다시 시도해 주세요');return null;}return data;}
+  finally{SAVE_BUSY.delete(key)}
+}
+let panelReturnFocus=null;
+function mountPanel(markup){
+  const host=$('#panelHost');panelReturnFocus=document.activeElement;host.innerHTML=markup;
+  const panel=host.querySelector('.panel'),backdrop=host.querySelector('.backdrop'),closeButton=host.querySelector('.p-close');
+  panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('tabindex','-1');panel.setAttribute('aria-label',panel.querySelector('h2')?.textContent?.trim()||'상세 정보');
+  closeButton?.setAttribute('aria-label','닫기');
+  const close=()=>{host.replaceChildren();if(panelReturnFocus?.isConnected)panelReturnFocus.focus();panelReturnFocus=null;};
+  closeButton.onclick=close;backdrop.onclick=e=>{if(e.target===backdrop)close();};
+  panel.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();close();return;}if(e.key!=='Tab')return;const focusable=[...panel.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')];if(!focusable.length)return;const first=focusable[0],last=focusable[focusable.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}};
+  requestAnimationFrame(()=>panel.focus());return {host,panel,close};
+}
 
 /* ---------- 인증 ---------- */
 async function checkAdmin(){
@@ -383,13 +425,13 @@ async function boot(){
   if(session && await checkAdmin()){ enterApp(session); }
   else { if(session) await sb.auth.signOut(); showLogin(); }
 }
-function showLogin(){ window.SCM?.clear(); window.Work?.clear(); window.Integration?.clear(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); }
+function showLogin(message=''){ window.SCM?.clear(); window.Work?.clear(); window.Integration?.clear(); clearCoreData(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); $('#loginMsg').style.color='var(--orange-d)'; $('#loginMsg').textContent=message; }
 async function enterApp(session){
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#headUser').textContent = session.user.email;
   await loadAll();
   const requestedTab=location.hash.slice(1);
-  if(TABS.includes(requestedTab))switchTab(requestedTab);
+  switchTab(TABS.includes(requestedTab)?requestedTab:'home','replace');
 }
 $('#loginBtn').onclick = async () => {
   const btn=$('#loginBtn'), msg=$('#loginMsg');
@@ -410,25 +452,32 @@ $('#resetLink').onclick = async () => {
   $('#loginMsg').textContent = error ? ('메일 발송 실패: '+error.message) : '재설정 메일을 보냈어요. 메일함을 확인해 주세요.';
 };
 $('#logoutBtn').onclick = async () => { await sb.auth.signOut(); location.reload(); };
-$('#reloadBtn').onclick = async () => { $('#reloadBtn').textContent='...'; await loadAll(); $('#reloadBtn').textContent='새로고침'; toast('새로고침 완료'); };
+$('#reloadBtn').onclick = async () => { const ok=await loadAll(); toast(ok?'최신 자료를 확인했어요':'일부 자료를 불러오지 못했습니다'); };
+$('#coreRetry').onclick=()=>loadAll();
+sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'&&!$('#appView').classList.contains('hidden'))showLogin('로그인 시간이 끝났어요. 다시 로그인해 주세요.');});
 
 /* ---------- 데이터 로드 ---------- */
 async function loadAll(){
-  const [ap, co, od, oi, iq, al] = await Promise.all([
-    sb.from('applications').select('*').order('created_at',{ascending:false}),
-    sb.from('cohorts').select('*').order('sort'),
-    sb.from('orders').select('*').order('created_at',{ascending:false}),
-    sb.from('order_items').select('*'),
-    sb.from('inquiries').select('*').order('created_at',{ascending:false}),
-    sb.from('book_alerts').select('*').order('created_at',{ascending:false}),
-  ]);
-  const sources=[['신청',ap],['프로그램',co],['주문',od],['주문항목',oi],['문의',iq],['출간알림',al]];
-  CORE_SYNC={ok:sources.every(([,r])=>!r.error),at:new Date(),failed:sources.filter(([,r])=>r.error).map(([name])=>name)};
-  APPS=ap.data||[]; COHORTS=co.data||[]; ORDERS=od.data||[]; INQ=iq.data||[]; ALERTS=al.data||[];
-  OITEMS={}; (oi.data||[]).forEach(it=>{ (OITEMS[it.order_id]=OITEMS[it.order_id]||[]).push(it); });
-  buildFilters();
-  renderHome(); renderOrders(); renderApps(); renderMembers(); renderCohorts(); renderInquiries(); renderAlerts();
-  refreshBadges(); window.SCM?.refresh(); window.Work?.refresh(); window.Integration?.refresh();
+  if(CORE_LOAD)return CORE_LOAD;
+  const button=$('#reloadBtn'),oldText=button.textContent;button.disabled=true;button.textContent='확인 중…';
+  CORE_LOAD=(async()=>{
+    const [applications,cohorts,orders,orderItems,inquiries,alerts]=await Promise.all([
+      sb.from('applications').select('*').order('created_at',{ascending:false}),
+      sb.from('cohorts').select('*').order('sort'),
+      sb.from('orders').select('*').order('created_at',{ascending:false}),
+      sb.from('order_items').select('*'),
+      sb.from('inquiries').select('*').order('created_at',{ascending:false}),
+      sb.from('book_alerts').select('*').order('created_at',{ascending:false}),
+    ]);
+    const results={applications,cohorts,orders,orderItems,inquiries,alerts};
+    const denied=Object.values(results).find(r=>r.error&&Core?.isAuthError(r.error));if(denied){authFailure(denied.error);return false;}
+    const merged=Core.mergeCoreResults(CORE_DATA,results,new Date());CORE_DATA=merged.data;CORE_SYNC=merged.sync;
+    APPS=CORE_DATA.applications;COHORTS=CORE_DATA.cohorts;ORDERS=CORE_DATA.orders;INQ=CORE_DATA.inquiries;ALERTS=CORE_DATA.alerts;
+    OITEMS={};CORE_DATA.orderItems.forEach(it=>{(OITEMS[it.order_id]=OITEMS[it.order_id]||[]).push(it);});
+    buildFilters();renderHome();renderOrders();renderApps();renderMembers();renderCohorts();renderInquiries();renderAlerts();refreshBadges();showCoreBanner();
+    window.SCM?.refresh();window.Work?.refresh();window.Integration?.refresh();return CORE_SYNC.ok;
+  })().catch(error=>{if(!authFailure(error)){CORE_SYNC={ok:false,at:new Date(),failed:Object.entries(Core.SOURCES).map(([key,label])=>({key,label,error,keptPrevious:true})),succeeded:[]};showCoreBanner();}return false;}).finally(()=>{button.disabled=false;button.textContent=oldText;CORE_LOAD=null;});
+  return CORE_LOAD;
 }
 function refreshBadges(){
   setBadge('bOrders', ORDERS.filter(o=>(o.status||'신규')==='신규').length);
@@ -438,34 +487,31 @@ function refreshBadges(){
 
 /* ---------- 홈(요약) ---------- */
 function renderHome(){
-  const newOrders = ORDERS.filter(o=>(o.status||'신규')==='신규');
-  const toShip = ORDERS.filter(o=>o.status==='발송준비'||o.status==='입금확인');
-  const newApps = APPS.filter(a=>(a.status||'신규')==='신규');
-  const unpaidApps = APPS.filter(a=>!a.refund_confirmed && ['신규','입금대기'].includes(a.status||'신규'));
-  const newInq = INQ.filter(i=>!i.status||i.status==='신규');
+  const priorities=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});
+  const {newOrders,toShip,newApplications:newApps,paymentWaiting,newInquiries:newInq}=priorities;
   const paidRevenue = ORDERS.filter(o=>['입금확인','발송준비','발송완료'].includes(o.status)).reduce((s,o)=>s+(o.total_amount||0),0);
 
   $('#homeHd').textContent = new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})+' 기준';
 
   const todos = [
-    {n:newOrders.length, l:'입금 확인할 주문', tab:'orders', hot:newOrders.length>0},
-    {n:toShip.length, l:'발송할 주문', tab:'orders', hot:toShip.length>0},
-    {n:newInq.length, l:'답할 기관 문의', tab:'inquiries', hot:newInq.length>0},
-    {n:newApps.length, l:'확인할 새 신청', tab:'apps', hot:newApps.length>0},
-    {n:unpaidApps.length, l:'입금 대기 신청', tab:'apps', hot:false},
+    {n:newOrders.length,l:'입금 확인할 주문',tab:'orders',filter:'new',hot:newOrders.length>0},
+    {n:toShip.length,l:'발송할 주문',tab:'orders',filter:'ship',hot:toShip.length>0},
+    {n:newInq.length,l:'답할 기관 문의',tab:'inquiries',filter:'new',hot:newInq.length>0},
+    {n:newApps.length,l:'확인할 새 신청',tab:'apps',filter:'new',hot:newApps.length>0},
+    {n:paymentWaiting.length,l:'입금 대기 신청',tab:'apps',filter:'payment',hot:paymentWaiting.length>0},
   ];
-  const priorityCount=todos.reduce((sum,t)=>sum+t.n,0);
+  const priorityCount=priorities.total;
   $('#priorityTotal').textContent=priorityCount?`${priorityCount}건 확인 필요`:'바로 처리할 일 없음';
   const tg=$('#todoGrid'); tg.innerHTML='';
   todos.forEach(t=>{
     const b=el('button','todo todo'+(t.n>0?(t.hot?' hot':''):' zero'),
       `<div class="n">${t.n}</div><div class="l">${t.l}</div><div class="go">${t.n?'확인하기':'현재 없음'} →</div>`);
-    b.onclick=()=>switchTab(t.tab);
+    b.onclick=()=>openPriority(t);
     tg.appendChild(b);
   });
 
   const stats = [
-    {n:won(paidRevenue), l:'확인된 주문 매출', tab:'orders'},
+    {n:won(paidRevenue), l:'장부상 주문 누계', tab:'orders'},
     {n:ORDERS.length+'건', l:'전체 주문', tab:'orders'},
     {n:buildMembers().length+'명', l:'고객 명부', tab:'members'},
     {n:APPS.length+'건', l:'수업 신청', tab:'apps'},
@@ -475,8 +521,14 @@ function renderHome(){
   const sr=$('#statRow'); sr.innerHTML='';
   stats.forEach(s=>{const b=el('button','stat',`<div class="n">${s.n}</div><div class="l">${s.l}</div>`);b.onclick=()=>switchTab(s.tab);sr.appendChild(b)});
   const dataStatus=$('#dashDataStatus');
-  dataStatus.textContent=CORE_SYNC.ok?`연결됨 · ${CORE_SYNC.at.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}`:`일부 확인 필요 · ${CORE_SYNC.failed.join('·')}`;
+  dataStatus.textContent=CORE_SYNC.ok?`연결됨 · ${CORE_SYNC.at.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}`:`일부 확인 필요 · ${CORE_SYNC.failed.map(x=>x.label).join('·')}`;
   dataStatus.classList.toggle('bad',!CORE_SYNC.ok);
+}
+function openPriority(item){
+  if(item.tab==='orders'){$('#oStatus').value=item.filter==='ship'?'__ship__':'신규';renderOrders();}
+  if(item.tab==='apps'){$('#fStatus').value=item.filter==='payment'?'입금대기':'신규';renderApps();}
+  if(item.tab==='inquiries'){$('#iStatus').value='신규';renderInquiries();}
+  switchTab(item.tab);
 }
 
 $('#dashSearchForm').onsubmit=e=>{e.preventDefault();const q=$('#dashSearch').value.trim();switchTab('operations');window.Operations?.setQuery(q);};
@@ -488,7 +540,8 @@ window.addEventListener('integration:summary',e=>{const d=e.detail||{},needs=(d.
 /* ---------- 주문 탭 ---------- */
 function orderItemsText(id){ return (OITEMS[id]||[]).map(i=>`${i.book_title}×${i.quantity}`).join(', '); }
 function orderDot(st){ if(st==='발송완료')return'g'; if(st==='취소')return'r'; if(st==='입금확인'||st==='발송준비')return'b'; return'y'; }
-$('#oStatus').innerHTML='<option value="">전체 상태</option>'+ORDER_STATUSES.map(s=>`<option>${s}</option>`).join('');
+function matchesQuery(values,q){if(!q)return true;const text=values.filter(Boolean).join(' ').toLowerCase();if(text.includes(q))return true;const digits=q.replace(/[^0-9]/g,'');return digits.length>=3&&text.replace(/[^0-9]/g,'').includes(digits)}
+$('#oStatus').innerHTML='<option value="">전체 상태</option><option value="__ship__">발송할 주문</option>'+ORDER_STATUSES.map(s=>`<option>${s}</option>`).join('');
 ['oStatus','oChannel'].forEach(id=>$('#'+id).addEventListener('change',renderOrders));
 $('#oSearch').addEventListener('input',renderOrders);
 $('#oAddBtn').onclick=openAddOrder;
@@ -497,7 +550,7 @@ function renderOrders(){
   let rows=ORDERS.filter(o=>{
     const st=o.status||'신규';
     const items=orderItemsText(o.id).toLowerCase();
-    return (!fs||st===fs) && (!fc||(o.channel||'홈페이지')===fc) && (!q || (o.buyer_name||'').toLowerCase().includes(q) || (o.contact||'').toLowerCase().includes(q) || items.includes(q));
+    return (!fs||st===fs||(fs==='__ship__'&&['입금확인','발송준비'].includes(st))) && (!fc||(o.channel||'홈페이지')===fc) && matchesQuery([o.buyer_name,o.contact,items],q);
   });
   $('#ordersCount').textContent=`${rows.length}건`;
   const list=$('#ordersList'); list.innerHTML='';
@@ -505,7 +558,7 @@ function renderOrders(){
   rows.forEach(o=>{
     const st=o.status||'신규';
     const items=orderItemsText(o.id)||'(항목 없음)';
-    const r=el('div','row');
+    const r=el('button','row');r.type='button';
     r.innerHTML=`<div class="main">
       <div class="name"><span class="dot ${orderDot(st)}"></span>${esc(o.buyer_name)||'(이름없음)'} <span style="color:var(--muted);font-weight:400;font-size:12px">${esc(o.contact)||''}</span></div>
       <div class="sub" style="margin-top:3px">${esc(items)}</div>
@@ -522,62 +575,56 @@ function openOrder(id){
   const itemsHtml = items.length
     ? items.map(i=>`<div class="item-row"><span>${esc(i.book_title)}</span><span class="q">${i.quantity}개 · ${won((i.unit_price||0)*i.quantity)}</span></div>`).join('')
     : '<div class="v" style="color:var(--muted)">주문 항목 정보가 없어요.</div>';
-  const host=$('#panelHost');
-  host.innerHTML=`<div class="backdrop"><div class="panel">
+  const {host}=mountPanel(`<div class="backdrop"><div class="panel">
     <button class="p-close">&times;</button>
     <h2>${esc(o.buyer_name)||'(이름없음)'} ${chChip(o.channel)}</h2>
     <div class="p-contact">${esc(o.contact)||''} ${o.email?'· '+esc(o.email):''}</div>
     <div class="field"><div class="k">주문 책 (합계 ${won(o.total_amount)})</div>${itemsHtml}</div>
-    <div class="field"><div class="k">배송지 (탭하면 복사)</div><div class="v copy" id="copyAddr">${esc(o.shipping_address)||'-'}</div></div>
+    <div class="field"><div class="k">배송지</div><button type="button" class="v copy" id="copyAddr"${o.shipping_address?'':' disabled'}>${esc(o.shipping_address)||'저장된 배송지 없음'}</button></div>
     ${o.message?`<div class="field"><div class="k">요청사항</div><div class="v">${esc(o.message)}</div></div>`:''}
     <div class="field"><div class="k">주문일시</div><div class="v">${fmtDT(o.created_at)}</div></div>
     <div class="actions">
       <div class="st-row"><span>상태</span>
         <select id="oStatusSel">${ORDER_STATUSES.map(s=>`<option ${s===st?'selected':''}>${s}</option>`).join('')}</select></div>
     </div>
-  </div></div>`;
-  const close=()=>host.innerHTML='';
-  host.querySelector('.p-close').onclick=close;
-  host.querySelector('.backdrop').onclick=e=>{ if(e.target.classList.contains('backdrop')) close(); };
+  </div></div>`);
   const addr=host.querySelector('#copyAddr'); if(addr&&o.shipping_address) addr.onclick=()=>copyText(o.shipping_address,'배송지');
   host.querySelector('#oStatusSel').onchange=async e=>{
-    const nv=e.target.value;
-    const { error } = await sb.from('orders').update({status:nv}).eq('id',id);
-    if(error){ toast('저장 실패: '+error.message); return; }
-    o.status=nv; renderOrders(); renderHome(); refreshBadges(); toast('상태 저장됨');
+    const nv=e.target.value,before=o.status||'신규';e.target.disabled=true;
+    const saved=await saveRecord('orders',id,{status:nv});
+    if(!saved)e.target.value=before;else{Object.assign(o,saved);renderOrders();renderHome();refreshBadges();toast('상태를 저장하고 다시 확인했어요');}
+    e.target.disabled=false;
   };
 }
 function openAddOrder(){
-  const host=$('#panelHost');
-  host.innerHTML=`<div class="backdrop"><div class="panel">
+  const {host,close}=mountPanel(`<div class="backdrop"><div class="panel">
     <button class="p-close">&times;</button>
     <h2>주문 직접 추가</h2>
     <div class="p-contact">스토어 등 다른 채널 주문을 장부에 기록해요</div>
     <div class="field"><div class="k">채널</div><select class="f-sel" id="naChannel">${ORDER_CHANNELS.map(c=>`<option ${c==='스마트스토어'?'selected':''}>${c}</option>`).join('')}</select></div>
     <div class="field"><div class="k">주문자 이름</div><input class="f-in" id="naName" placeholder="예: 홍길동"></div>
     <div class="field"><div class="k">연락처</div><input class="f-in" id="naContact" placeholder="010-0000-0000"></div>
-    <div class="field"><div class="k">품목 (책 이름)</div><input class="f-in" id="naItem" placeholder="예: 문고리"></div>
+    <div class="field"><div class="k">품목 (책 이름)</div><input class="f-in" id="naItem" placeholder="필수"></div>
     <div class="field"><div class="k">수량 / 금액(합계)</div>
-      <div style="display:flex;gap:8px"><input class="f-in" id="naQty" type="number" value="1" style="max-width:90px"><input class="f-in" id="naAmt" type="number" placeholder="합계 금액(원)"></div></div>
-    <div class="field"><div class="k">상태</div><select class="f-sel" id="naStatus">${ORDER_STATUSES.map(s=>`<option ${s==='입금확인'?'selected':''}>${s}</option>`).join('')}</select></div>
-    <div class="field"><div class="k">메모(선택)</div><input class="f-in" id="naMemo" placeholder="배송지·특이사항 등"></div>
-    <div class="actions"><button class="btn-primary" id="naSave">장부에 추가</button></div>
-  </div></div>`;
-  const close=()=>host.innerHTML='';
-  host.querySelector('.p-close').onclick=close;
-  host.querySelector('.backdrop').onclick=e=>{ if(e.target.classList.contains('backdrop')) close(); };
+      <div style="display:flex;gap:8px"><input class="f-in" id="naQty" type="number" min="1" value="1" style="max-width:90px"><input class="f-in" id="naAmt" type="number" min="0" placeholder="합계 금액(원)"></div></div>
+    <div class="field"><div class="k">상태</div><select class="f-sel" id="naStatus">${ORDER_STATUSES.map(s=>`<option ${s==='신규'?'selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="field"><div class="k">배송지(선택)</div><input class="f-in" id="naAddress" autocomplete="street-address" placeholder="상세에서 바로 복사할 주소"></div>
+    <div class="field"><div class="k">메모(선택)</div><input class="f-in" id="naMemo" placeholder="주문 특이사항"></div>
+    <div class="actions"><button class="btn-primary" id="naSave">장부에 추가</button><p class="save-note" id="naNote" role="status"></p></div>
+  </div></div>`);
+  let savedOrderId=null;
   host.querySelector('#naSave').onclick=async(ev)=>{
     const btn=ev.target;
     const name=$('#naName').value.trim(), contact=$('#naContact').value.trim();
-    const item=$('#naItem').value.trim(), qty=parseInt($('#naQty').value)||1, amt=parseInt($('#naAmt').value)||0;
-    const channel=$('#naChannel').value, status=$('#naStatus').value, memo=$('#naMemo').value.trim();
-    if(!name){ toast('주문자 이름을 입력해 주세요'); return; }
+    const item=$('#naItem').value.trim(),qty=Number($('#naQty').value),amt=Number($('#naAmt').value);
+    const channel=$('#naChannel').value,status=$('#naStatus').value,address=$('#naAddress').value.trim(),memo=$('#naMemo').value.trim(),note=$('#naNote');
+    if(!name||!item){toast('주문자 이름과 품목을 입력해 주세요');return;}if(!Number.isInteger(qty)||qty<1||!Number.isFinite(amt)||amt<0){toast('수량과 금액을 확인해 주세요');return;}
     btn.disabled=true; btn.textContent='추가 중…';
-    const id=crypto.randomUUID();
-    const { error } = await sb.from('orders').insert({ id, buyer_name:name, contact, total_amount:amt, status, channel, message:memo||null });
-    if(error){ toast('추가 실패: '+error.message); btn.disabled=false; btn.textContent='장부에 추가'; return; }
-    if(item){ await sb.from('order_items').insert({ order_id:id, book_title:item, quantity:qty, unit_price: qty?Math.round(amt/qty):amt }); }
-    close(); await loadAll(); switchTab('orders'); toast('주문이 장부에 추가됨');
+    const id=savedOrderId||crypto.randomUUID();
+    if(!savedOrderId){const {error}=await sb.from('orders').insert({id,buyer_name:name,contact,total_amount:amt,status,channel,shipping_address:address||null,message:memo||null});if(error){if(!authFailure(error)){note.textContent='주문을 저장하지 못했습니다. 다시 시도해 주세요.';note.classList.add('bad');}btn.disabled=false;btn.textContent='장부에 추가';return;}savedOrderId=id;}
+    const {error:itemError}=await sb.from('order_items').insert({order_id:id,book_title:item,quantity:qty,unit_price:qty?Math.round(amt/qty):amt});
+    if(itemError){if(!authFailure(itemError)){note.textContent='주문 기본정보는 저장됐지만 품목 저장을 확인하지 못했습니다. 다시 누르면 품목만 재시도합니다.';note.classList.add('bad');btn.disabled=false;btn.textContent='품목 저장 다시 시도';}return;}
+    close();const ok=await loadAll();switchTab('orders');toast(ok?'주문과 품목을 저장하고 다시 확인했어요':'주문은 저장됐지만 목록 새로고침을 확인해 주세요');
   };
 }
 
@@ -585,12 +632,13 @@ function openAddOrder(){
 function buildFilters(){
   const progs=[...new Set(APPS.map(a=>a.program_name).filter(Boolean))];
   const cohs=[...new Set(APPS.map(a=>a.cohort_name).filter(Boolean))];
-  $('#fProgram').innerHTML='<option value="">전체 프로그램</option>'+progs.map(p=>`<option>${esc(p)}</option>`).join('');
-  $('#fCohort').innerHTML='<option value="">전체 기수</option>'+cohs.map(c=>`<option>${esc(c)}</option>`).join('');
-  $('#fStatus').innerHTML='<option value="">전체 상태</option>'+APP_STATUSES.map(s=>`<option>${s}</option>`).join('');
-  $('#iStatus').innerHTML='<option value="">전체 상태</option>'+INQ_STATUSES.map(s=>`<option>${s}</option>`).join('');
-  $('#fChannel').innerHTML='<option value="">전체 채널</option>'+APP_CHANNELS.map(c=>`<option>${c}</option>`).join('');
-  $('#oChannel').innerHTML='<option value="">전체 채널</option>'+ORDER_CHANNELS.map(c=>`<option>${c}</option>`).join('');
+  const set=(id,html)=>{const node=$('#'+id),selected=node.value;node.innerHTML=html;if([...node.options].some(o=>o.value===selected))node.value=selected;};
+  set('fProgram','<option value="">전체 프로그램</option>'+progs.map(p=>`<option>${esc(p)}</option>`).join(''));
+  set('fCohort','<option value="">전체 기수</option>'+cohs.map(c=>`<option>${esc(c)}</option>`).join(''));
+  set('fStatus','<option value="">전체 상태</option>'+APP_STATUSES.map(s=>`<option>${s}</option>`).join(''));
+  set('iStatus','<option value="">전체 상태</option>'+INQ_STATUSES.map(s=>`<option>${s}</option>`).join(''));
+  set('fChannel','<option value="">전체 채널</option>'+APP_CHANNELS.map(c=>`<option>${c}</option>`).join(''));
+  set('oChannel','<option value="">전체 채널</option>'+ORDER_CHANNELS.map(c=>`<option>${c}</option>`).join(''));
 }
 ['fProgram','fCohort','fStatus','fChannel'].forEach(id=>$('#'+id).addEventListener('change',renderApps));
 $('#fSearch').addEventListener('input',renderApps);
@@ -600,14 +648,14 @@ function renderApps(){
   const fp=$('#fProgram').value, fc=$('#fCohort').value, fs=$('#fStatus').value, fch=$('#fChannel').value, q=$('#fSearch').value.trim().toLowerCase();
   let rows=APPS.filter(a=>
     (!fp||a.program_name===fp)&&(!fc||a.cohort_name===fc)&&(!fs||(a.status||'신규')===fs)&&(!fch||(a.channel||'홈페이지')===fch)&&
-    (!q|| (a.applicant_name||'').toLowerCase().includes(q) || (a.contact||'').toLowerCase().includes(q))
+    matchesQuery([a.applicant_name,a.contact,a.email],q)
   );
   $('#appsCount').textContent=`${rows.length}건`;
   const list=$('#appsList'); list.innerHTML='';
   if(!rows.length){ list.appendChild(el('div','empty','조건에 맞는 신청이 없어요.')); return; }
   rows.forEach(a=>{
     const st=a.status||'신규';
-    const r=el('div','row');
+    const r=el('button','row');r.type='button';
     r.innerHTML=`<div class="main">
       <div class="name"><span class="dot ${statusDot(st)}"></span>${esc(a.applicant_name)||'(이름없음)'} <span style="color:var(--muted);font-weight:400;font-size:12px">${esc(a.contact)||''}</span></div>
       <div class="chips" style="margin-top:5px">
@@ -625,9 +673,8 @@ function renderApps(){
 }
 function openDetail(id){
   const a=APPS.find(x=>x.id===id); if(!a)return;
-  const host=$('#panelHost');
   const st=a.status||'신규';
-  host.innerHTML=`<div class="backdrop"><div class="panel">
+  const {host}=mountPanel(`<div class="backdrop"><div class="panel">
     <button class="p-close">&times;</button>
     <h2>${esc(a.applicant_name)||'(이름없음)'} ${chChip(a.channel)}</h2>
     <div class="p-contact">${esc(a.contact)||''} ${a.email?'· '+esc(a.email):''}</div>
@@ -639,35 +686,30 @@ function openDetail(id){
     <div class="actions">
       <div class="st-row"><span>상태</span>
         <select id="dStatus">${APP_STATUSES.map(s=>`<option ${s===st?'selected':''}>${s}</option>`).join('')}</select></div>
-      <div class="toggle">입금 확인 <button class="sw ${a.refund_confirmed?'on':''}" data-f="refund_confirmed"></button></div>
-      <div class="toggle">출석 <button class="sw ${a.attended?'on':''}" data-f="attended"></button></div>
-      <div class="toggle">후기 요청 <button class="sw ${a.review_requested?'on':''}" data-f="review_requested"></button></div>
+      <div class="field"><div class="k">신청 동의</div><div class="v">현장 기록·촬영 ${a.photo_consent?'동의':'미확인'} · 환불 규정 ${a.refund_confirmed?'확인':'미확인'}</div></div>
+      <div class="toggle">출석 <button class="sw ${a.attended?'on':''}" data-f="attended" aria-label="출석" aria-pressed="${!!a.attended}"></button></div>
+      <div class="toggle">후기 요청 <button class="sw ${a.review_requested?'on':''}" data-f="review_requested" aria-label="후기 요청" aria-pressed="${!!a.review_requested}"></button></div>
     </div>
-  </div></div>`;
-  const close=()=>host.innerHTML='';
-  host.querySelector('.p-close').onclick=close;
-  host.querySelector('.backdrop').onclick=e=>{ if(e.target.classList.contains('backdrop')) close(); };
-  host.querySelector('#dStatus').onchange=e=>updateApp(id,{status:e.target.value},'상태');
+  </div></div>`);
+  host.querySelector('#dStatus').onchange=async e=>{const before=st,nv=e.target.value;e.target.disabled=true;const ok=await updateApp(id,{status:nv},'상태');if(!ok)e.target.value=before;e.target.disabled=false;};
   host.querySelectorAll('.sw').forEach(btn=>{
     btn.onclick=async()=>{
-      const f=btn.dataset.f, nv=!btn.classList.contains('on');
+      const f=btn.dataset.f,nv=!btn.classList.contains('on');btn.disabled=true;
       const ok=await updateApp(id,{[f]:nv}, btn.parentElement.textContent.trim());
-      if(ok) btn.classList.toggle('on',nv);
+      if(ok){btn.classList.toggle('on',nv);btn.setAttribute('aria-pressed',String(nv));}btn.disabled=false;
     };
   });
 }
 async function updateApp(id, patch, label){
-  const { error } = await sb.from('applications').update(patch).eq('id',id);
-  if(error){ toast('저장 실패: '+error.message); return false; }
-  Object.assign(APPS.find(x=>x.id===id), patch);
+  const saved=await saveRecord('applications',id,patch);if(!saved)return false;
+  Object.assign(APPS.find(x=>x.id===id),saved);
   renderApps(); renderMembers(); renderHome(); refreshBadges();
-  toast(`${label} 저장됨`);
+  toast(`${label}을 저장하고 다시 확인했어요`);
   return true;
 }
 function openAddApp(){
-  const host=$('#panelHost');
   const progs=[...new Set(APPS.map(a=>a.program_name).filter(Boolean))];
-  host.innerHTML=`<div class="backdrop"><div class="panel">
+  const {host,close}=mountPanel(`<div class="backdrop"><div class="panel">
     <button class="p-close">&times;</button>
     <h2>예약·신청 직접 추가</h2>
     <div class="p-contact">플레이스 예약 등 다른 채널 건을 장부에 기록해요</div>
@@ -677,34 +719,30 @@ function openAddApp(){
     <div class="field"><div class="k">프로그램 / 워크숍</div><input class="f-in" id="paProgram" list="paProgList" placeholder="예: 그림책 워크숍"><datalist id="paProgList">${progs.map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div>
     <div class="field"><div class="k">기수(선택)</div><input class="f-in" id="paCohort" placeholder="예: 1기"></div>
     <div class="field"><div class="k">인원 / 상태</div>
-      <div style="display:flex;gap:8px"><input class="f-in" id="paCount" type="number" value="1" style="max-width:90px"><select class="f-sel" id="paStatus">${APP_STATUSES.map(s=>`<option ${s==='확정'?'selected':''}>${s}</option>`).join('')}</select></div></div>
+      <div style="display:flex;gap:8px"><input class="f-in" id="paCount" type="number" min="1" value="1" style="max-width:90px"><select class="f-sel" id="paStatus">${APP_STATUSES.map(s=>`<option ${s==='신규'?'selected':''}>${s}</option>`).join('')}</select></div></div>
     <div class="field"><div class="k">메모(선택)</div><input class="f-in" id="paMemo" placeholder="특이사항 등"></div>
     <div class="actions"><button class="btn-primary" id="paSave">장부에 추가</button></div>
-  </div></div>`;
-  const close=()=>host.innerHTML='';
-  host.querySelector('.p-close').onclick=close;
-  host.querySelector('.backdrop').onclick=e=>{ if(e.target.classList.contains('backdrop')) close(); };
+  </div></div>`);
   host.querySelector('#paSave').onclick=async(ev)=>{
     const btn=ev.target;
-    const name=$('#paName').value.trim();
-    if(!name){ toast('이름을 입력해 주세요'); return; }
+    const name=$('#paName').value.trim(),program=$('#paProgram').value.trim(),count=Number($('#paCount').value);
+    if(!name||!program){toast('이름과 프로그램을 입력해 주세요');return;}if(!Number.isInteger(count)||count<1){toast('신청 인원을 확인해 주세요');return;}
     btn.disabled=true; btn.textContent='추가 중…';
     const row={ id:crypto.randomUUID(), applicant_name:name, contact:$('#paContact').value.trim(),
-      program_name:$('#paProgram').value.trim()||null, cohort_name:$('#paCohort').value.trim()||null,
-      participant_count:$('#paCount').value||null, status:$('#paStatus').value, channel:$('#paChannel').value,
-      message:$('#paMemo').value.trim()||null };
+      program_name:program,cohort_name:$('#paCohort').value.trim()||null,
+      participant_count:String(count),status:$('#paStatus').value,channel:$('#paChannel').value,
+      photo_consent:false,refund_confirmed:false,message:$('#paMemo').value.trim()||null };
     const { error } = await sb.from('applications').insert(row);
     if(error){ toast('추가 실패: '+error.message); btn.disabled=false; btn.textContent='장부에 추가'; return; }
-    close(); await loadAll(); switchTab('apps'); toast('예약·신청이 장부에 추가됨');
+    close();const ok=await loadAll();switchTab('apps');toast(ok?'신청을 저장하고 다시 확인했어요':'신청은 저장됐지만 목록 새로고침을 확인해 주세요');
   };
 }
 
 /* ---------- 명부(회원) 탭 ---------- */
-function memberKey(a){ return (a.contact||'').replace(/[^0-9]/g,'') || ('name:'+(a.applicant_name||'익명')); }
 function buildMembers(){
   const map=new Map();
-  APPS.forEach(a=>{
-    const k=memberKey(a);
+  APPS.forEach((a,index)=>{
+    const k=Core.customerKey(a,index);
     if(!map.has(k)) map.set(k,{name:a.applicant_name,contact:a.contact,email:a.email,apps:[]});
     const m=map.get(k); m.apps.push(a);
     if(a.applicant_name) m.name=a.applicant_name;
@@ -715,21 +753,21 @@ function buildMembers(){
 $('#mSearch').addEventListener('input',renderMembers);
 function renderMembers(){
   const q=$('#mSearch').value.trim().toLowerCase();
-  let mem=buildMembers().filter(m=> !q || (m.name||'').toLowerCase().includes(q) || (m.contact||'').toLowerCase().includes(q));
+  let mem=buildMembers().filter(m=>matchesQuery([m.name,m.contact,m.email],q));
   $('#memCount').textContent=`${mem.length}명`;
   const list=$('#memList'); list.innerHTML='';
   if(!mem.length){ list.appendChild(el('div','empty','아직 신청자가 없어요.')); return; }
   mem.forEach(m=>{
     const progs=[...new Set(m.apps.map(a=>a.program_name).filter(Boolean))];
-    const paid=m.apps.filter(a=>a.refund_confirmed).length, att=m.apps.filter(a=>a.attended).length;
-    const r=el('div','row');
+    const policy=m.apps.filter(a=>a.refund_confirmed).length,att=m.apps.filter(a=>a.attended).length;
+    const r=el('button','row');r.type='button';
     r.innerHTML=`<div class="main">
       <div class="name">${esc(m.name)||'(이름없음)'} <span style="color:var(--muted);font-weight:400;font-size:12px">${esc(m.contact)||''}</span>
         ${m.apps.length>1?`<span class="chip prog" style="margin-left:4px">재신청 ${m.apps.length}회</span>`:''}</div>
       <div class="sub">${progs.map(esc).join(' · ')||'프로그램 미상'}</div>
       <div class="chips" style="margin-top:5px">
         <span class="chip st">신청 ${m.apps.length}건</span>
-        <span class="chip ${paid?'on':'off'}">입금 ${paid}</span>
+        <span class="chip ${policy?'on':'off'}">환불규정 확인 ${policy}</span>
         <span class="chip ${att?'on':'off'}">출석 ${att}</span>
       </div></div>
       <div class="amt">최근<br>${fmtDate(m.apps[0].created_at)}</div>`;
@@ -738,20 +776,16 @@ function renderMembers(){
   });
 }
 function openMember(m){
-  const host=$('#panelHost');
-  host.innerHTML=`<div class="backdrop"><div class="panel">
+  const {host}=mountPanel(`<div class="backdrop"><div class="panel">
     <button class="p-close">&times;</button>
     <h2>${esc(m.name)||'(이름없음)'}</h2>
     <div class="p-contact">${esc(m.contact)||''} ${m.email?'· '+esc(m.email):''}</div>
-    <div class="field"><div class="k">신청 이력</div><div class="v">${m.apps.length}건 · 입금확인 ${m.apps.filter(a=>a.refund_confirmed).length} · 출석 ${m.apps.filter(a=>a.attended).length}</div></div>
-    ${m.apps.map(a=>`<div class="mini-app" data-id="${a.id}" style="cursor:pointer">
+    <div class="field"><div class="k">신청 이력</div><div class="v">${m.apps.length}건 · 환불규정 확인 ${m.apps.filter(a=>a.refund_confirmed).length} · 출석 ${m.apps.filter(a=>a.attended).length}</div></div>
+    ${m.apps.map(a=>`<button type="button" class="mini-app" data-id="${a.id}">
       <div class="t">${esc(a.program_name)||'-'} ${a.cohort_name?'· '+esc(a.cohort_name):''}</div>
-      <div class="d">${fmtDate(a.created_at)} · ${esc(a.status||'신규')} ${a.refund_confirmed?'· 입금✓':''} ${a.attended?'· 출석✓':''}</div>
-    </div>`).join('')}
-  </div></div>`;
-  const close=()=>host.innerHTML='';
-  host.querySelector('.p-close').onclick=close;
-  host.querySelector('.backdrop').onclick=e=>{ if(e.target.classList.contains('backdrop')) close(); };
+      <div class="d">${fmtDate(a.created_at)} · ${esc(a.status||'신규')} ${a.refund_confirmed?'· 환불규정 확인':''} ${a.attended?'· 출석✓':''}</div>
+    </button>`).join('')}
+  </div></div>`);
   host.querySelectorAll('.mini-app').forEach(d=> d.onclick=()=>openDetail(d.dataset.id));
 }
 
@@ -760,7 +794,7 @@ function renderCohorts(){
   const list=$('#cohortList'); list.innerHTML='';
   if(!COHORTS.length){ list.appendChild(el('div','empty','등록된 기수가 없어요.')); return; }
   COHORTS.forEach(c=>{
-    const applied=APPS.filter(a=>a.cohort_id===c.id || a.cohort_name===c.cohort_name).length;
+    const applied=Core.cohortApplicationCount(c,APPS);
     const cap=c.capacity||0, left=c.seats_left||0, filled=cap?Math.min(100,Math.round((cap-left)/cap*100)):0;
     const r=el('div','row'); r.style.cursor='default';
     r.style.display='block';
@@ -783,14 +817,14 @@ function renderInquiries(){
   const fs=$('#iStatus').value, q=$('#iSearch').value.trim().toLowerCase();
   let rows=INQ.filter(i=>{
     const st=i.status||'신규';
-    return (!fs||st===fs) && (!q || (i.org_name||'').toLowerCase().includes(q) || (i.manager_name||'').toLowerCase().includes(q) || (i.contact||'').toLowerCase().includes(q));
+    return (!fs||st===fs) && matchesQuery([i.org_name,i.manager_name,i.contact,i.email],q);
   });
   $('#inqCount').textContent=`${rows.length}건`;
   const list=$('#inqList'); list.innerHTML='';
   if(!rows.length){ list.appendChild(el('div','empty','기관 문의가 없어요.')); return; }
   rows.forEach(i=>{
     const st=i.status||'신규';
-    const r=el('div','row');
+    const r=el('button','row');r.type='button';
     r.innerHTML=`<div class="main">
       <div class="name"><span class="dot ${inqDot(st)}"></span>${esc(i.org_name)||'(기관명 없음)'} <span style="color:var(--muted);font-weight:400;font-size:12px">${esc(i.manager_name)||''}</span></div>
       <div class="sub" style="margin-top:3px">${esc(i.inquiry_type||'')} ${i.program_wanted?'· '+esc(i.program_wanted):''} ${i.headcount?'· '+esc(i.headcount)+'명':''}</div>
@@ -803,8 +837,7 @@ function renderInquiries(){
 function openInquiry(id){
   const i=INQ.find(x=>x.id===id); if(!i)return;
   const st=i.status||'신규';
-  const host=$('#panelHost');
-  host.innerHTML=`<div class="backdrop"><div class="panel">
+  const {host}=mountPanel(`<div class="backdrop"><div class="panel">
     <button class="p-close">&times;</button>
     <h2>${esc(i.org_name)||'(기관명 없음)'}</h2>
     <div class="p-contact">${esc(i.manager_name)||''} ${i.contact?'· '+esc(i.contact):''} ${i.email?'· '+esc(i.email):''}</div>
@@ -817,15 +850,12 @@ function openInquiry(id){
       <div class="st-row"><span>상태</span>
         <select id="iStatusSel">${INQ_STATUSES.map(s=>`<option ${s===st?'selected':''}>${s}</option>`).join('')}</select></div>
     </div>
-  </div></div>`;
-  const close=()=>host.innerHTML='';
-  host.querySelector('.p-close').onclick=close;
-  host.querySelector('.backdrop').onclick=e=>{ if(e.target.classList.contains('backdrop')) close(); };
+  </div></div>`);
   host.querySelector('#iStatusSel').onchange=async e=>{
-    const nv=e.target.value;
-    const { error } = await sb.from('inquiries').update({status:nv}).eq('id',id);
-    if(error){ toast('저장 실패: '+error.message); return; }
-    i.status=nv; renderInquiries(); refreshBadges(); toast('상태 저장됨');
+    const nv=e.target.value,before=i.status||'신규';e.target.disabled=true;
+    const saved=await saveRecord('inquiries',id,{status:nv});
+    if(!saved)e.target.value=before;else{Object.assign(i,saved);renderInquiries();refreshBadges();toast('상태를 저장하고 다시 확인했어요');}
+    e.target.disabled=false;
   };
 }
 
@@ -844,7 +874,7 @@ function renderAlerts(){
   const list=$('#alList'); list.innerHTML='';
   if(!rows.length){ list.appendChild(el('div','empty','출간알림 신청이 없어요.')); return; }
   rows.forEach(a=>{
-    const r=el('div','row'); r.style.cursor='pointer';
+    const r=el('button','row');r.type='button';r.style.cursor='pointer';
     r.innerHTML=`<div class="main">
       <div class="name">${esc(a.email)||'(이메일 없음)'}</div>
       <div class="sub" style="margin-top:3px">${esc(a.book_title||'')}</div></div>
@@ -856,17 +886,19 @@ function renderAlerts(){
 
 /* ---------- 탭 전환 ---------- */
 const TABS=['home','work','integration','operations','scm','orders','apps','members','cohorts','inquiries','alerts'];
-function switchTab(name){
+function switchTab(name,historyMode='push'){
   if(!TABS.includes(name))return;
-  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x.dataset.tab===name));
+  document.querySelectorAll('.tab').forEach(x=>{const active=x.dataset.tab===name;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active));});
   TABS.forEach(t=>$('#tab-'+t).classList.toggle('hidden', t!==name));
   if(name==='scm')window.SCM?.refresh();
   if(name==='work')window.Work?.refresh();
   if(name==='integration')window.Integration?.refresh();
-  history.replaceState(null,'','#'+name);
+  if(historyMode==='replace')history.replaceState({tab:name},'','#'+name);
+  else if(historyMode==='push'&&location.hash!==`#${name}`)history.pushState({tab:name},'','#'+name);
   window.scrollTo(0,0);
 }
-document.querySelectorAll('.tab').forEach(t=> t.onclick=()=>switchTab(t.dataset.tab));
+document.querySelectorAll('.tab').forEach(t=>{t.setAttribute('role','tab');t.onclick=()=>switchTab(t.dataset.tab);});
+window.addEventListener('popstate',()=>switchTab(TABS.includes(location.hash.slice(1))?location.hash.slice(1):'home','none'));
 
 </script>
 <script src="./scm.js"></script>

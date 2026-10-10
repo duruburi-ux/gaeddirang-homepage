@@ -73,69 +73,69 @@ test('학력과 자격은 경력 칸에 알아보기 쉬운 말머리로 합친�
   assert.match(result.careers, /마음책방 운영/);
 });
 
-test('실제 HWP처럼 표가 풀려도 필명·경력·저서·강연을 나누고 개인정보를 버린다', () => {
+test('합성 HWP처럼 표가 풀려도 필명·경력·저서·강연을 나누고 개인정보를 버린다', () => {
   const result = model.parseProfile(`
-장진호 / 필명 : 장두루
-[ 감정 기록 글쓰기 / 창작 ] 장두루 (장진호)
-두루 잘 살고 싶은 사람 ‘두루’라는 필명으로 활동하며,
+김가상 / 필명 : 글봄
+[ 감정 기록 글쓰기 / 창작 ] 글봄 (김가상)
+가상 소개 문구 ‘글봄’이라는 필명으로 활동하며,
 마음 기록과 글쓰기 중심으로 창작 활동을 이어가고 있습니다.
 학력
-금오공과대학교 전자공학부 졸업 (2009~2017 년도)
-연락처 : 010-4004-8396
-인스타그램 https://www.instagram.com/from.duru
+가상대학교 기록학부 졸업 (2009~2017 년도)
+연락처 : 010-0000-0000
+인스타그램 https://example.invalid/sample.writer
 ■ 직장 경력
 기간 내용
 2017.12~2023.05
-삼성전자
+가상전자
 연구원
 ■ 저서
-2025.10 (공저) 에세이 <가족이어서 할 수 없는 이야기> - 가가77 페이지 출판사
-2025.05 (단독) 에세이 <불안과 밤 산책> - 개띠랑 출판사
+2025.10 (공저) 에세이 <가상 가족 이야기> - 가상 출판사
+2025.05 (단독) 에세이 <가상 밤 산책> - 가상 출판사
 ■ 대표 강연 이력
 공공기관 및 교육청
 기간 활동 내용 주최 주관 진행
 2026.05~10
-경기도화재단 경기상상캠퍼스 숲숲학교 숲인문학 프로그램 진행
-`, ['장두루_강사프로필.hwp']);
+가상문화재단 가상캠퍼스 기록학교 프로그램 진행
+`, ['글봄_강사프로필.hwp']);
   assert.equal(result.blockedReason, '');
-  assert.equal(result.name, '장두루');
+  assert.equal(result.name, '글봄');
   assert.equal(result.headline, '감정 기록 글쓰기 · 창작');
   assert.match(result.intro, /마음 기록과 글쓰기/);
-  assert.match(result.careers, /2017\.12~2023\.05 삼성전자 · 연구원/);
-  assert.match(result.works, /가족이어서 할 수 없는 이야기/);
-  assert.match(result.lectures, /경기상상캠퍼스/);
+  assert.match(result.careers, /2017\.12~2023\.05 가상전자 · 연구원/);
+  assert.match(result.works, /가상 가족 이야기/);
+  assert.match(result.lectures, /가상캠퍼스/);
   assert.doesNotMatch(`${result.careers}\n${result.works}\n${result.lectures}`, /\[학력\].*\[학력\]/s);
-  assert.doesNotMatch(JSON.stringify(result), /010-4004|instagram\.com/);
+  assert.doesNotMatch(JSON.stringify(result), /010-0000|example\.invalid/);
   assert.doesNotMatch(result.careers, /에세이/);
   assert.doesNotMatch(result.works, /\[학력\]/);
   assert.doesNotMatch(result.lectures, /기간 활동 내용/);
 });
 
-test('한글 HWP 전용 체크표시와 반복 날짜가 있는 실제 이력서 구조를 정리한다', () => {
+test('한글 HWP 전용 체크표시와 반복 날짜가 있는 합성 이력서 구조를 정리한다', () => {
   const result = model.parseProfile(`
-捤獥 汤捯 湰灧 [감정 기록, 글쓰기, 창작] 장두루 (장진호)
-두루 잘 살고 싶은 사람 ‘두루’라는 필명으로 활동하며,
+捤獥 汤捯 湰灧 [감정 기록, 글쓰기, 창작] 글봄 (김가상)
+가상 소개 문구 ‘글봄’이라는 필명으로 활동하며,
 마음 기록과 글쓰기 중심으로 창작 활동을 이어가고 있습니다.
-▶ 이름: 장진호 / 필명: 장두루
-▶ 학력 : 금오공과대학교 전자공학부 졸업 (2009~2017년도)
-▶ 연락처 : 010-4004-8396
-▶ 인스타그램 https://www.instagram.com/from.duru
+▶ 이름: 김가상 / 필명: 글봄
+▶ 학력 : 가상대학교 기록학부 졸업 (2009~2017년도)
+▶ 연락처 : 010-0000-0000
+▶ 인스타그램 https://example.invalid/sample.writer
  직장 경력
 기간
 내용
 2017.12~2023.05
-■ 삼성전자
+■ 가상전자
 ▶ 연구원
  저서
 2025.10
-(공저) 에세이 <가족이어서 할 수 없는 이야기> - 가가77페이지 출판사
+(공저) 에세이 <가상 가족 이야기> - 가상 출판사
 2025.05
-(단독) 에세이 <불안과 밤 산책> - 개띠랑 출판사
+(단독) 에세이 <가상 밤 산책> - 가상 출판사
  수상 / 자격 및 주요 프로젝트
 2026.02
-화성시민강사 취득
+가상시민강사 취득
 2025.12
-기회소득 예술인 수기공모전 우수상
+가상 예술인 공모전 우수상
 2025.12
 심리분석사 2급
  대표 강연 이력
@@ -146,21 +146,21 @@ test('한글 HWP 전용 체크표시와 반복 날짜가 있는 실제 이력서
 주관
 진행
 2026.05~10
-경기문화재단 경기상상캠퍼스 숲숲학교 숲인문학 프로그램 진행
+가상문화재단 가상캠퍼스 기록학교 프로그램 진행
 <숲의 문장들, 봄>
-경기문화재단 경기상상캠퍼스
+가상문화재단 가상캠퍼스
 2026.06
 (예정)
 마음을 글로 표현하는 감정 기록 워크숍
-화성 송린이음터도서관
+가상도서관
 `);
   assert.equal(result.blockedReason, '');
-  assert.equal(result.name, '장두루');
+  assert.equal(result.name, '글봄');
   assert.equal(result.headline, '감정 기록 · 글쓰기 · 창작');
   assert.match(result.works, /2025\.10 \(공저\) 에세이/);
   assert.equal((result.careers.match(/2025\.12/g) || []).length, 2);
   assert.match(result.lectures, /2026\.06 \(예정\) 마음을 글로 표현하는 감정 기록 워크숍/);
-  assert.doesNotMatch(JSON.stringify(result), /010-4004|instagram\.com|捤獥/);
+  assert.doesNotMatch(JSON.stringify(result), /010-0000|example\.invalid|捤獥/);
 });
 
 test('PDF 표의 강연·행사·모임과 기타 자격 머리말을 구분한다', () => {
@@ -360,24 +360,24 @@ test('예시 양식과 여러 사람 포트폴리오는 기존 입력을 지키�
   assert.match(example.blockedReason, /예시 문구/);
 
   const group = model.parseProfile(`
-개띠랑 (이진이)
+가상팀 (김하늘)
 경력
 2024.01 콘텐츠 제작
-이다솜
+박누리
 경력
 2024.01 방송작가
-두루 (장진호)
+글봄 (최보라)
 경력
 2024.01 글쓰기 강사
-`, ['개띠랑유니버스 전체 이력서 및 포트폴리오.pdf']);
+`, ['가상팀 전체 이력서 및 포트폴리오.pdf']);
   assert.match(group.blockedReason, /여러 사람/);
 });
 
 test('분류가 무너지면 자동 채움을 막는다', () => {
   const result = model.parseProfile(`
-장진호 / 필명 : 장두루
+김가상 / 필명 : 글봄
 학력
-연락처 010-4004-8396
+연락처 010-0000-0000
 저서
 대표 강연 이력
 `);

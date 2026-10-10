@@ -25,7 +25,7 @@ test('sitemap contains only canonical pages and no query variants', async () => 
 });
 
 test('public CDN dependency is version-pinned and blank-target links are isolated', async () => {
-  for (const file of ['index.html', 'admin/index.html', 'preview/index.html']) {
+  for (const file of ['index.html', 'admin/index.html', 'admin/docs.html', 'preview/index.html']) {
     const html = await readFile(new URL(file, root), 'utf8');
     assert.ok(!html.includes('@supabase/supabase-js@2/'));
     assert.match(html, /<meta name="referrer" content="strict-origin-when-cross-origin"\s*\/?>/);
@@ -34,4 +34,16 @@ test('public CDN dependency is version-pinned and blank-target links are isolate
   const blankLinks = [...html.matchAll(/<a\b[^>]*target="_blank"[^>]*>/g)].map((match) => match[0]);
   assert.ok(blankLinks.length > 0);
   assert.ok(blankLinks.every((tag) => /rel="[^"]*noopener[^"]*"/.test(tag)));
+});
+
+test('admin surfaces clear or lock private UI when the session expires', async () => {
+  const [admin, docs] = await Promise.all([
+    readFile(new URL('admin/index.html', root), 'utf8'),
+    readFile(new URL('admin/docs.html', root), 'utf8'),
+  ]);
+  assert.match(admin, /onAuthStateChange/);
+  assert.match(admin, /APPS=\[\];COHORTS=\[\];ORDERS=\[\]/);
+  assert.match(docs, /onAuthStateChange/);
+  assert.match(docs, /lockExpiredEditor/);
+  assert.match(docs, /\[data-private-value\]/);
 });
