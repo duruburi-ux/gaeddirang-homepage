@@ -34,6 +34,13 @@ test('계산 JSON과 무결성 Markdown을 검토자료로 보관할 수 있다'
   assert.equal(markdown.draft.mimeType,'text/markdown');
 });
 
+test('한글 표시 파일명은 유지하고 Storage 객체 키만 ASCII로 만든다',()=>{
+  const checked=M.validateDraft(base,fakeFile);
+  assert.equal(checked.draft.fileName,'가상팀_8·9월_정산.pdf');
+  assert.equal(M.storageObjectName(checked.draft.fileName),'document.pdf');
+  assert.equal(/^[\x20-\x7e]+$/.test(M.storageObjectName(checked.draft.fileName)),true);
+});
+
 test('이전 버전은 같은 구분·대상·기간·제목에만 연결한다',()=>{
   const previous={category:'internal_team',subject:'가상팀',title:'8·9월 정산 상세',period_label:'2026년 8~9월'};
   assert.equal(M.canReplace(previous,M.validateDraft(base,fakeFile).draft),true);

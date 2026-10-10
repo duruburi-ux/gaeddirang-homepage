@@ -126,7 +126,7 @@
     const {data:{session}}=await sb.auth.getSession();
     if(!session?.user?.id){note.className='parse-note warn';note.textContent='로그인이 만료됐어요. 다시 로그인해 주세요.';return;}
     S.uploading=true;host.querySelector('#archiveUpload').disabled=true;note.className='parse-note';note.textContent='파일 무결성을 계산하는 중…';
-    const path=`${session.user.id}/${crypto.randomUUID()}/${M.safeFileName(d.fileName)}`;
+    const path=`${session.user.id}/${crypto.randomUUID()}/${M.storageObjectName(d.fileName)}`;
     try{
       const hash=await sha256(file);
       note.textContent='비공개 저장소에 올리는 중…';

@@ -26,6 +26,10 @@
     const hit=safeFileName(value).toLowerCase().match(/\.([a-z0-9]+)$/);
     return hit?hit[1]:'';
   }
+  function storageObjectName(value){
+    const ext=fileExtension(value);
+    return ext?`document.${ext}`:'document';
+  }
   function formatBytes(value){
     const bytes=Number(value)||0;
     if(bytes<1024)return `${bytes} B`;
@@ -94,5 +98,5 @@
     ];
   }
 
-  return {CATEGORIES,STATUSES,MIME_BY_EXT,MAX_FILE_BYTES,safeFileName,fileExtension,formatBytes,normalizeRow,validateDraft,canReplace,groupRows,previewRows};
+  return {CATEGORIES,STATUSES,MIME_BY_EXT,MAX_FILE_BYTES,safeFileName,fileExtension,storageObjectName,formatBytes,normalizeRow,validateDraft,canReplace,groupRows,previewRows};
 });
