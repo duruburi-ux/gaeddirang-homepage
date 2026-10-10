@@ -51,6 +51,13 @@ test('계좌 UI는 브라우저 저장·로그·정산서 출력 경로와 분�
   assert.ok(!printer.includes('ryAccount'));
 });
 
+test('계좌번호 입력은 저장된 로그인 비밀번호 자동완성 대상으로 취급되지 않는다',()=>{
+  const ui=readFileSync(new URL('../admin/docs-royalty-accounts.js',import.meta.url),'utf8');
+  assert.match(ui,/id="ryAccountBank"[^>]+autocomplete="off"/);
+  assert.match(ui,/id="ryAccountNumber"[^>]+autocomplete="new-password"/);
+  assert.match(ui,/id="ryAccountHolder"[^>]+autocomplete="off"/);
+});
+
 test('마이그레이션은 Vault·RLS·관리자 전용 RPC와 무내용 감사기록을 함께 둔다',()=>{
   const sql=readFileSync(new URL('../supabase/migrations/20261010051525_royalty_payment_accounts.sql',import.meta.url),'utf8');
   for(const token of ['vault.create_secret','vault.update_secret','vault.decrypted_secrets','enable row level security','private.require_royalty_account_admin','revoke all on function','ACCOUNT_NOT_VERIFIED'])assert.ok(sql.includes(token));

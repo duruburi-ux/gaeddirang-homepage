@@ -68,7 +68,7 @@
     const r=S.row||{},f=S.full||{};
     return `<div class="ry-account-form">
       <label class="f" for="ryAccountBank">은행</label><input class="in" id="ryAccountBank" autocomplete="off" value="${e(f.bank_name||r.bank_name||'')}">
-      <label class="f" for="ryAccountNumber">계좌번호</label><input class="in" id="ryAccountNumber" data-private-value type="password" inputmode="numeric" autocomplete="off" placeholder="숫자와 하이픈만" value="${e(f.account_number||'')}">
+      <label class="f" for="ryAccountNumber">계좌번호</label><input class="in" id="ryAccountNumber" data-private-value type="password" inputmode="numeric" autocomplete="new-password" placeholder="숫자와 하이픈만" value="${e(f.account_number||'')}">
       <label class="f" for="ryAccountHolder">예금주</label><input class="in" id="ryAccountHolder" data-private-value autocomplete="off" value="${e(f.holder_name||'')}">
       <div class="row2">
         <div><label class="f" for="ryAccountSource">정보 출처</label><select class="in" id="ryAccountSource">${sourceOptions(r.source_type||'original_image')}</select></div>
