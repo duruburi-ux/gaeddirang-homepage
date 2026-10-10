@@ -390,6 +390,54 @@ test('admin docs: standard settlement form separates sales, event royalties and 
   await expect(page.locator('#printArea')).toContainText('가상 검증용 맞춤 기준 문구');
 });
 
+test('admin docs: royalty payment accounts stay masked, explicit and outside the PDF', async ({ page }) => {
+  await page.goto('/admin/docs.html?preview#royalty', { waitUntil:'domcontentloaded' });
+  await page.evaluate(() => {
+    MODE='db';
+    window.confirm=()=>true;
+    window.__accountCalls=[];
+    window.__clipboard='';
+    Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async value=>{window.__clipboard=value;}}});
+    sb.rpc=async(name,args)=>{
+      window.__accountCalls.push({name,args});
+      if(name==='list_royalty_payment_accounts')return {data:[{
+        id:'00000000-0000-0000-0000-000000000001',author_name:'가상작가',bank_name:'가상은행',
+        masked_account:'•••• 0000',masked_holder:'가***주',verification_status:'verified',
+        holder_confirmed:true,source_clear:true,source_type:'original_image',source_checked_on:'2026-10-10',
+        updated_at:'2026-10-10T01:00:00Z',updated_by:'admin@example.test',last_access_at:null,last_access_action:null,
+      }],error:null};
+      if(name==='reveal_royalty_payment_account')return {data:[{
+        id:args.p_id,author_name:'가상작가',bank_name:'가상은행',account_number:'000000000000',
+        holder_name:'가상예금주',verification_status:'verified',
+      }],error:null};
+      if(name==='save_royalty_payment_account')return {data:[{id:args.p_id}],error:null};
+      return {data:null,error:{message:'UNEXPECTED_RPC'}};
+    };
+    populateRoyaltyBooks([{key:'가상작가::가상도서',author:'가상작가',title:'가상도서',type:'저자 인세',isRoyalty:true,price:10000,rate:.2,sales:[],operations:[]}]);
+    RoyaltyAccountUI.selectAuthor('가상작가');
+  });
+
+  const account=page.locator('#ryAccountHost');
+  await expect(account).toContainText('가상은행 · •••• 0000 · 예금주 가***주');
+  await expect(account).toContainText('확인 완료');
+  await expect(account).not.toContainText('000000000000');
+  await expect(page.locator('#rySheet')).not.toContainText('지급계좌');
+  await expect(page.locator('#rySheet')).not.toContainText('가상은행');
+
+  await account.locator('#ryAccountCopy').click();
+  await expect.poll(()=>page.evaluate(()=>window.__clipboard)).toBe('가상은행 000000000000 가상예금주');
+  const copyCall=await page.evaluate(()=>window.__accountCalls.find(c=>c.name==='reveal_royalty_payment_account'&&c.args.p_action==='copy'));
+  expect(copyCall.args.p_id).toBe('00000000-0000-0000-0000-000000000001');
+
+  await account.locator('#ryAccountEdit').click();
+  await expect(account.locator('#ryAccountNumber')).toHaveValue('000000000000');
+  await account.locator('#ryAccountHolderConfirmed').uncheck();
+  await account.locator('#ryAccountSave').click();
+  await expect(account.locator('#ryAccountNote')).toContainText('확인 완료');
+  expect(await page.evaluate(()=>Object.values(localStorage).some(v=>String(v).includes('000000000000')))).toBe(false);
+  await expect(page.locator('#rySheet')).not.toContainText('000000000000');
+});
+
 test('admin docs: every printable form stays on one branded A4 page', async ({ page }) => {
   const cases = [
     ['quote', 'quote'],
