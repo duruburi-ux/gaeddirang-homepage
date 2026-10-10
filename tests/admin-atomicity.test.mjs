@@ -27,6 +27,8 @@ test('cutover closes split browser writes only after both clients use the RPC',(
   }
   assert.match(adminHtml,/rpc\('create_admin_order_v1'/);
   assert.match(adminHtml,/id="naEmail" type="email"/);
+  assert.match(adminHtml,/이메일\(선택\)/);
+  assert.match(adminHtml,/const needsAddress=channel!==['"]기타['"]/);
   assert.match(cutover,/drop policy if exists "누구나 주문 제출 가능"/);
   assert.match(cutover,/revoke insert, delete on table public\.orders from anon, authenticated/);
   assert.match(cutover,/revoke insert, update, delete on table public\.order_items from anon, authenticated/);

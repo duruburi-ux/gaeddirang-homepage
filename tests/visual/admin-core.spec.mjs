@@ -109,12 +109,14 @@ test('admin core: session expiration clears private UI and returns to login',asy
   expect(await page.evaluate(()=>({apps:APPS.length,orders:ORDERS.length,panel:document.querySelector('#panelHost').childElementCount}))).toEqual({apps:0,orders:0,panel:0});
 });
 
-test('admin core: direct order saves one atomic order with a required email and unit price',async({page})=>{
+test('admin core: direct order requires delivery address but allows minimal in-person data',async({page})=>{
   await openAdmin(page,{width:1200,height:900});await page.getByRole('tab',{name:/주문/}).click();await page.locator('#oAddBtn').click();
   await page.waitForTimeout(250);await page.screenshot({path:'test-results/admin-core-direct-order.png',fullPage:true});
-  await page.locator('#naName').fill('가상 직접 주문자');await page.locator('#naContact').fill('010-0000-0003');await page.locator('#naEmail').fill('direct@example.test');
-  await page.locator('#naItem').fill('가상 도서 C');await page.locator('#naQty').fill('2');await page.locator('#naAmt').fill('7000');await page.locator('#naAddress').fill('가상시 안전로 3');
+  await expect(page.locator('#naAddressLabel')).toHaveText('배송지(필수)');await expect(page.locator('#naAddress')).toHaveAttribute('aria-required','true');
+  await page.locator('#naChannel').selectOption('기타');await expect(page.locator('#naAddressLabel')).toHaveText('배송지(선택)');await expect(page.locator('#naAddress')).toHaveAttribute('aria-required','false');await page.screenshot({path:'test-results/admin-core-direct-order-in-person.png',fullPage:true});
+  await page.locator('#naName').fill('가상 직접 주문자');await page.locator('#naContact').fill('010-0000-0003');
+  await page.locator('#naItem').fill('가상 도서 C');await page.locator('#naQty').fill('2');await page.locator('#naAmt').fill('7000');
   await page.locator('#naSave').click();await expect(page.locator('#toast')).toContainText('주문과 품목을 저장');await expect(page.locator('#ordersCount')).toHaveText('3건');
   const state=await page.evaluate(()=>({calls:window.__adminOrderRpcCalls,orders:window.__db.orders.filter(x=>x.id.startsWith('order-direct-')),items:window.__db.order_items.filter(x=>x.order_id.startsWith('order-direct-'))}));
-  expect(state.calls).toBe(1);expect(state.orders).toHaveLength(1);expect(state.orders[0].total_amount).toBe(14000);expect(state.items).toHaveLength(1);expect(state.items[0].unit_price).toBe(7000);
+  expect(state.calls).toBe(1);expect(state.orders).toHaveLength(1);expect(state.orders[0]).toMatchObject({total_amount:14000,email:'',shipping_address:'',channel:'기타'});expect(state.items).toHaveLength(1);expect(state.items[0].unit_price).toBe(7000);
 });

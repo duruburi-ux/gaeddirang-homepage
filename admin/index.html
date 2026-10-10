@@ -604,23 +604,32 @@ function openAddOrder(){
     <div class="field"><div class="k">채널</div><select class="f-sel" id="naChannel">${ORDER_CHANNELS.map(c=>`<option ${c==='스마트스토어'?'selected':''}>${c}</option>`).join('')}</select></div>
     <div class="field"><div class="k">주문자 이름</div><input class="f-in" id="naName" placeholder="예: 홍길동"></div>
     <div class="field"><div class="k">연락처</div><input class="f-in" id="naContact" placeholder="010-0000-0000"></div>
-    <div class="field"><div class="k">이메일</div><input class="f-in" id="naEmail" type="email" autocomplete="email" placeholder="필수"></div>
+    <div class="field"><div class="k">이메일(선택)</div><input class="f-in" id="naEmail" type="email" autocomplete="email" placeholder="있는 경우만 입력"></div>
     <div class="field"><div class="k">품목 (책 이름)</div><input class="f-in" id="naItem" placeholder="필수"></div>
     <div class="field"><div class="k">수량 / 개당 금액</div>
       <div style="display:flex;gap:8px"><input class="f-in" id="naQty" type="number" min="1" value="1" style="max-width:90px"><input class="f-in" id="naAmt" type="number" min="0" placeholder="개당 금액(원)"></div></div>
     <div class="field"><div class="k">상태</div><select class="f-sel" id="naStatus">${ORDER_STATUSES.map(s=>`<option ${s==='신규'?'selected':''}>${s}</option>`).join('')}</select></div>
-    <div class="field"><div class="k">배송지</div><input class="f-in" id="naAddress" autocomplete="street-address" placeholder="필수 · 상세에서 바로 복사할 주소"></div>
+    <div class="field"><div class="k" id="naAddressLabel">배송지</div><input class="f-in" id="naAddress" autocomplete="street-address"></div>
     <div class="field"><div class="k">메모(선택)</div><input class="f-in" id="naMemo" placeholder="주문 특이사항"></div>
     <div class="actions"><button class="btn-primary" id="naSave">장부에 추가</button><p class="save-note" id="naNote" role="status"></p></div>
   </div></div>`);
   let requestId='',requestPayload='';
+  const channelEl=host.querySelector('#naChannel'),addressEl=host.querySelector('#naAddress'),addressLabel=host.querySelector('#naAddressLabel');
+  function syncDirectOrderRequirements(){
+    const needsAddress=channelEl.value!=='기타';
+    addressEl.placeholder=needsAddress?'필수 · 상세에서 바로 복사할 주소':'선택 · 현장 수령이면 비워 두세요';
+    addressEl.setAttribute('aria-required',String(needsAddress));
+    addressLabel.textContent=needsAddress?'배송지(필수)':'배송지(선택)';
+  }
+  channelEl.addEventListener('change',syncDirectOrderRequirements);syncDirectOrderRequirements();
   host.querySelector('#naSave').onclick=async(ev)=>{
     const btn=ev.target;
     const name=$('#naName').value.trim(),contact=$('#naContact').value.trim(),email=$('#naEmail').value.trim(),address=$('#naAddress').value.trim();
     const item=$('#naItem').value.trim(),qty=Number($('#naQty').value),unitPrice=Number($('#naAmt').value);
     const channel=$('#naChannel').value,status=$('#naStatus').value,memo=$('#naMemo').value.trim(),note=$('#naNote');
-    if(!name||!contact||!email||!address||!item){toast('이름·연락처·이메일·배송지·품목을 입력해 주세요');return;}
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('이메일 형식을 확인해 주세요');return;}
+    const needsAddress=channel!=='기타';
+    if(!name||!contact||!item||(needsAddress&&!address)){toast(needsAddress?'이름·연락처·배송지·품목을 입력해 주세요':'이름·연락처·품목을 입력해 주세요');return;}
+    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('이메일 형식을 확인해 주세요');return;}
     if(!Number.isInteger(qty)||qty<1||!Number.isSafeInteger(unitPrice)||unitPrice<0){toast('수량과 개당 금액을 확인해 주세요');return;}
     const payload=JSON.stringify({name,contact,email,address,item,qty,unitPrice,channel,status,memo});
     if(payload!==requestPayload){requestPayload=payload;requestId=crypto.randomUUID();}

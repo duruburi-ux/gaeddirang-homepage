@@ -112,11 +112,17 @@ begin
   if p_request_id is null then raise exception 'ORDER_REQUEST_ID_REQUIRED'; end if;
   if char_length(v_buyer) not between 1 and 100 then raise exception 'ORDER_BUYER_INVALID'; end if;
   if char_length(v_contact) not between 3 and 50 then raise exception 'ORDER_CONTACT_INVALID'; end if;
-  if char_length(v_email) not between 3 and 254
-     or v_email !~ '^[^[:space:]@]+@[^[:space:]@]+[.][^[:space:]@]+$' then
+  if (p_validate_catalog or v_email <> '')
+     and (char_length(v_email) not between 3 and 254
+       or v_email !~ '^[^[:space:]@]+@[^[:space:]@]+[.][^[:space:]@]+$') then
     raise exception 'ORDER_EMAIL_INVALID';
   end if;
-  if char_length(v_address) not between 1 and 500 then raise exception 'ORDER_ADDRESS_INVALID'; end if;
+  if (p_validate_catalog or p_channel in ('홈페이지', '스마트스토어'))
+     and char_length(v_address) not between 1 and 500 then
+    raise exception 'ORDER_ADDRESS_INVALID';
+  elsif char_length(v_address) > 500 then
+    raise exception 'ORDER_ADDRESS_INVALID';
+  end if;
   if char_length(coalesce(v_message, '')) > 1000 then raise exception 'ORDER_MESSAGE_TOO_LONG'; end if;
   if p_channel is null or p_channel not in ('홈페이지', '스마트스토어', '기타') then raise exception 'ORDER_CHANNEL_INVALID'; end if;
   if p_status is null or p_status not in ('신규', '입금확인', '발송준비', '발송완료', '취소') then raise exception 'ORDER_STATUS_INVALID'; end if;
@@ -398,7 +404,7 @@ begin
         applied_at=null, updated_at=now(), last_error_code=null
       where r.connector_code='payhere' and r.external_event_id=v_event_id;
     else
-      raise exception 'IMPORT_IN_PROGRESS' using errcode = '55P03';
+      raise exception 'IMPORT_IN_PROGRESS' using errcode = '23505';
     end if;
   end loop;
 
@@ -439,7 +445,7 @@ begin
     and r.status in ('reserved','google_written_pending_control')
     and r.external_event_id in (select jsonb_array_elements_text(p_event_ids));
   get diagnostics v_updated = row_count;
-  if v_updated <> v_expected then raise exception 'IMPORT_RESERVATION_LOST' using errcode='55P03'; end if;
+  if v_updated <> v_expected then raise exception 'IMPORT_RESERVATION_LOST' using errcode='23505'; end if;
   return v_updated;
 end;
 $$;
@@ -496,7 +502,7 @@ begin
     for update;
     if not found or v_res.request_id <> p_request_id
        or v_res.status not in ('google_written_pending_control','applied') then
-      raise exception 'IMPORT_RESERVATION_LOST' using errcode='55P03';
+      raise exception 'IMPORT_RESERVATION_LOST' using errcode='23505';
     end if;
     if v_res.canonical_sku <> v_sku or v_res.quantity <> v_quantity
        or v_res.unit_amount <> v_unit_amount or v_res.occurred_at <> v_occurred_at then

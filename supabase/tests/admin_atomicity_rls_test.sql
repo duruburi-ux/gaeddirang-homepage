@@ -1,5 +1,5 @@
 begin;
-select plan(26);
+select plan(29);
 
 select has_column('public','orders','client_request_id','orders has a nullable idempotency key');
 select has_column('public','orders','client_request_hash','orders has an idempotency payload hash');
@@ -47,6 +47,18 @@ select throws_ok(
   $$select public.create_admin_order_v1('60606060-6060-4060-8060-606060606060','바뀐 가상 주문자','010-0000-0000','buyer@example.test','가상시 안전로 1',null,'기타','신규','[{"book_title":"가상 도서","quantity":2,"unit_price":7000}]'::jsonb)$$,
   '23505','IDEMPOTENCY_KEY_REUSED','same request id with changed payload is rejected'
 );
+select results_eq(
+  $$select (public.create_admin_order_v1('61616161-6161-4161-8161-616161616161','가상 현장 주문자','010-0000-0000','','',null,'기타','신규','[{"book_title":"가상 현장 도서","quantity":1,"unit_price":5000}]'::jsonb)->>'total_amount')::integer$$,
+  $$values (5000)$$,'admin can record an in-person order without collecting email or shipping address'
+);
+select results_eq(
+  $$select email, shipping_address from public.orders where client_request_id='61616161-6161-4161-8161-616161616161'$$,
+  $$values (''::text, ''::text)$$,'optional in-person contact fields stay empty instead of synthetic personal data'
+);
+select throws_ok(
+  $$select public.create_admin_order_v1('62626262-6262-4262-8262-626262626262','가상 배송 주문자','010-0000-0000','','',null,'스마트스토어','신규','[{"book_title":"가상 배송 도서","quantity":1,"unit_price":5000}]'::jsonb)$$,
+  'P0001','ORDER_ADDRESS_INVALID','delivery channels still require a shipping address'
+);
 
 reset role;
 create or replace function private.reject_synthetic_order_item()
@@ -79,13 +91,14 @@ select throws_ok(
 
 reset role;
 insert into public.books(title,author,category,img_path,description,price)
-values ('원자성 가상 도서','가상 작가','테스트','synthetic.webp','합성 회귀용이며 롤백된다.',7000);
+values ('원자성 가상 도서','가상 작가','book','synthetic.webp','합성 회귀용이며 롤백된다.',7000);
 set local role anon;
 select set_config('request.jwt.claims','{"role":"anon"}',true);
 select results_eq(
   $$select (public.create_public_order_v1('90909090-9090-4090-8090-909090909090','가상 공개 주문자','010-0000-0000','public@example.test','가상시 안전로 2',null,'[{"book_title":"원자성 가상 도서","quantity":2,"unit_price":7000}]'::jsonb)->>'total_amount')::integer$$,
   $$values (14000)$$,'public RPC validates catalog data and calculates total'
 );
+reset role;
 select results_eq($$select count(*)::bigint from public.orders where client_request_id='90909090-9090-4090-8090-909090909090'$$,$$values (1::bigint)$$,'public RPC creates one order');
 select results_eq($$select count(*)::bigint from public.order_items where order_id=(select id from public.orders where client_request_id='90909090-9090-4090-8090-909090909090')$$,$$values (1::bigint)$$,'public RPC creates one matching item');
 

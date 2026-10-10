@@ -23,7 +23,7 @@
 | 구분 | 대상 | 내용 |
 | --- | --- | --- |
 | 추가 | `public.integration_sales_import_reservations` | Payhere 이벤트별 선점과 복구 상태. `connector_code`, `external_event_id`를 PK로 두고 `report_hash`, `request_id`, `canonical_sku`, 수량·단가·거래시각, `status`, 시각, `reserved_by`, 오류 코드만 저장한다. 파일 내용·계좌·이메일은 저장하지 않는다. |
-| 추가 | `public.reserve_payhere_sales_import(text, uuid, jsonb)` | 관리자 세션을 다시 확인한 뒤 요청의 모든 이벤트를 한 트랜잭션에서 예약한다. 한 건이라도 다른 요청이 `reserved/google_written_pending_control`이면 전체 요청을 쓰기 전에 `IMPORT_IN_PROGRESS`로 끝낸다. `applied`는 중복으로 반환한다. |
+| 추가 | `public.reserve_payhere_sales_import(text, uuid, jsonb)` | 관리자 세션을 다시 확인한 뒤 요청의 모든 이벤트를 한 트랜잭션에서 예약한다. 한 건이라도 다른 요청이 `reserved/google_written_pending_control`이면 전체 요청을 쓰기 전에 HTTP 409 `IMPORT_IN_PROGRESS`로 끝낸다. `applied`는 중복으로 반환한다. |
 | 추가 | `public.mark_payhere_google_written(uuid, jsonb)` | 현재 요청이 예약한 이벤트만 `google_written_pending_control`로 전환한다. Google 성공 전에는 호출하지 않는다. |
 | 추가 | `public.finalize_payhere_sales_import(uuid, jsonb)` | 고정 connector/location/movement 규칙을 다시 검사하고 `integration_inventory_movements` insert와 예약 상태 `applied` 전환을 한 DB 트랜잭션으로 처리한다. 같은 이벤트·같은 내용의 재호출은 성공으로 응답하고 다른 내용이면 차단한다. |
 | 추가 | `public.fail_payhere_sales_import(uuid, text)` | Google 쓰기 전 실패만 `failed_before_google`로 바꾼다. `google_written_pending_control`은 실패로 내리지 못한다. |
@@ -67,9 +67,9 @@
 | 추가 | `public.orders.client_request_hash text` | nullable 64자리 hash. 같은 request ID에 다른 주문 내용을 보내는 오용을 차단한다. |
 | 추가 | `orders_client_request_id_uidx` | `client_request_id is not null`인 행만 unique인 partial index. |
 | 추가 | `public.create_public_order_v1(uuid, text, text, text, text, text, jsonb)` | anon/authenticated 공개 주문용. `user_id`는 입력받지 않고 `auth.uid()`에서 정한다. 필수 연락처·주소, 1~20 품목, 수량·가격 범위와 합계를 서버에서 검증·계산하고 주문과 품목을 한 트랜잭션에 저장한다. 응답은 주문 ID·상태·합계만 돌려준다. |
-| 추가 | `public.create_admin_order_v1(uuid, text, text, text, text, text, text, text, jsonb)` | authenticated 관리자 전용. 살아 있는 세션·확인된 비익명 사용자·allowlist를 재검사하고 허용 channel/status만 받는다. 운영 스키마에 맞춰 이메일과 주소를 필수로 받는다. |
+| 추가 | `public.create_admin_order_v1(uuid, text, text, text, text, text, text, text, jsonb)` | authenticated 관리자 전용. 살아 있는 세션·확인된 비익명 사용자·allowlist를 재검사하고 허용 channel/status만 받는다. 공개·배송 주문은 주소를 요구하지만 `기타` 현장 주문은 이메일·배송지를 비워 최소 정보만 기록할 수 있다. 운영 열은 `NOT NULL`이므로 미수집 값은 가짜 정보 대신 빈 문자열로 저장한다. |
 | 변경 | `index.html`, `preview/index.html` | 공개 주문의 두 insert와 delete 보상을 단일 RPC로 교체한다. 입력 hash와 UUID만 `sessionStorage`에 보관해 실패·새로고침 재시도에서 같은 UUID를 쓰고, 성공 또는 내용 변경 때 새 UUID를 만든다. 개인정보 원문은 보관하지 않는다. |
-| 변경 | `admin/index.html` | 직접 주문을 관리자 RPC로 교체한다. 1차는 현재처럼 한 품목만 받되 RPC payload는 배열로 보내 추후 다품목을 호환한다. 입력은 `합계`가 아니라 `개당 금액`으로 명확히 하고 합계는 서버 계산값을 표시한다. |
+| 변경 | `admin/index.html` | 직접 주문을 관리자 RPC로 교체한다. 1차는 현재처럼 한 품목만 받되 RPC payload는 배열로 보내 추후 다품목을 호환한다. 입력은 `합계`가 아니라 `개당 금액`으로 명확히 하고 합계는 서버 계산값을 표시한다. 이메일은 선택 입력이며, 채널이 `기타`일 때 배송지도 선택 입력으로 바뀐다. |
 | 변경(2단계) | `orders`, `order_items` grant/policy | 두 클라이언트 전환과 관찰이 끝난 뒤에만 anon/authenticated의 직접 INSERT와 공개 DELETE를 회수한다. 관리자 상태 UPDATE와 본인 주문 SELECT는 유지한다. |
 | 삭제 | 없음 | 기존 주문·품목을 삭제하거나 자동 복구하지 않는다. |
 
@@ -131,6 +131,7 @@ RPC는 같은 `client_request_id`와 같은 hash면 기존 성공 결과를 반�
 - 정책 변경이 필요한 경우 정책별 역마이그레이션을 같은 PR에 둔다. `disable row level security`, broad `to public using(true)`, service-role 키의 브라우저 사용은 롤백 수단으로 금지한다.
 - pgTAP 역할은 anon, 일반 authenticated, 허용 관리자, anonymous auth, 이메일 미확인 관리자, allowlist에서 제거된 관리자로 구성한다.
 - 각 역할에서 SELECT/INSERT/UPDATE/DELETE/RPC를 허용·거부 표대로 검사하고 공개 주문·관리자 주문·Payhere RPC 회귀를 함께 돌린다.
+- 2026-10-10 전용 로컬 Supabase에서 기존 정산 pgTAP 60개와 신규 원자성 29개, 합계 89개가 통과했다. 실제 localhost HTTP/RPC에서도 일반 사용자 거부, 현재 관리자 허용, 로그아웃 세션 거부, 주문 멱등성·부분 실패 롤백, Payhere 예약 충돌·완료 재호출을 확인했다. 운영 데이터와 외부 Google/Payhere 쓰기는 사용하지 않았다.
 
 ## 운영 변경 없이 진행한 저위험 후속
 
