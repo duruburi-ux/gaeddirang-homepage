@@ -28,9 +28,13 @@ insert into auth.users(id, email, email_confirmed_at, is_anonymous)
 values ('22222222-2222-2222-2222-222222222222', 'vault-admin@example.test', now(), false);
 insert into auth.users(id, email, email_confirmed_at, is_anonymous)
 values ('11111111-1111-1111-1111-111111111111', 'ordinary@example.test', now(), false);
+insert into auth.sessions(id, user_id, created_at, updated_at)
+values
+  ('55555555-5555-4555-8555-555555555555', '22222222-2222-2222-2222-222222222222', now(), now()),
+  ('66666666-6666-4666-8666-666666666666', '11111111-1111-1111-1111-111111111111', now(), now());
 
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","email":"ordinary@example.test","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","email":"ordinary@example.test","role":"authenticated","session_id":"66666666-6666-4666-8666-666666666666"}', true);
 
 select results_eq(
   $$select count(*)::bigint from public.royalty_payment_accounts$$,
@@ -62,9 +66,13 @@ insert into auth.users(id, email, email_confirmed_at, is_anonymous)
 values
   ('33333333-3333-3333-3333-333333333333', 'anonymous-admin@example.test', now(), true),
   ('44444444-4444-4444-4444-444444444444', 'unconfirmed-admin@example.test', null, false);
+insert into auth.sessions(id, user_id, created_at, updated_at)
+values
+  ('77777777-7777-4777-8777-777777777777', '33333333-3333-3333-3333-333333333333', now(), now()),
+  ('88888888-8888-4888-8888-888888888888', '44444444-4444-4444-4444-444444444444', now(), now());
 
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"33333333-3333-3333-3333-333333333333","email":"anonymous-admin@example.test","role":"authenticated","is_anonymous":true}', true);
+select set_config('request.jwt.claims', '{"sub":"33333333-3333-3333-3333-333333333333","email":"anonymous-admin@example.test","role":"authenticated","is_anonymous":true,"session_id":"77777777-7777-4777-8777-777777777777"}', true);
 select throws_ok(
   $$select * from public.list_royalty_payment_accounts(null)$$,
   '42501', 'ADMIN_REQUIRED',
@@ -76,7 +84,7 @@ select results_eq(
   'allowlisted anonymous auth user sees no account rows through RLS'
 );
 
-select set_config('request.jwt.claims', '{"sub":"44444444-4444-4444-4444-444444444444","email":"unconfirmed-admin@example.test","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"44444444-4444-4444-4444-444444444444","email":"unconfirmed-admin@example.test","role":"authenticated","session_id":"88888888-8888-4888-8888-888888888888"}', true);
 select throws_ok(
   $$select * from public.list_royalty_payment_accounts(null)$$,
   '42501', 'ADMIN_REQUIRED',
@@ -88,7 +96,7 @@ select results_eq(
   'allowlisted unconfirmed auth user sees no account rows through RLS'
 );
 
-select set_config('request.jwt.claims', '{"sub":"22222222-2222-2222-2222-222222222222","email":"vault-admin@example.test","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"22222222-2222-2222-2222-222222222222","email":"vault-admin@example.test","role":"authenticated","session_id":"55555555-5555-4555-8555-555555555555"}', true);
 
 select results_eq(
   $$select verification_status from public.save_royalty_payment_account(null, '가상작가', '가상은행', '0000-0000-0000', '', 'original_image', date '2026-10-10', false, false, false)$$,

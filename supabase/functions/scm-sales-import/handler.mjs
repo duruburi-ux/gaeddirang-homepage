@@ -1,4 +1,4 @@
-import {googleRows,movementRows,parseSheetData,reconcileRows,validatePayload} from './model.mjs';
+import {finalizeRows,googleRows,parseSheetData,reconcileRows,reservationRows,validatePayload} from './model.mjs';
 
 const SHEET='1ZeH4pa5s1QS8BlC_gbHWLLp0dhezISXfYTXXxiE0NKw';
 const RANGES=["'상품SKU마스터'!A:M","'입출고원장'!A:L"];
@@ -46,9 +46,10 @@ export function makeHandler({env,fetcher=fetch,now=()=>Date.now(),cryptoImpl=cry
     const range=encodeURIComponent("'입출고원장'!A:L"),url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
     const res=await request(url,{method:'POST',headers:{Authorization:'Bearer '+access,'Content-Type':'application/json'},body:JSON.stringify({majorDimension:'ROWS',values})});if(!res.ok)throw Error(res.status===403?'SOURCE_WRITE_DENIED':'SOURCE_WRITE_FAILED');
   }
-  async function appendControl(base,h,values){
-    if(!values.length)return;
-    const res=await request(base+'/rest/v1/integration_inventory_movements',{method:'POST',headers:{...h,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(values)});if(!res.ok)throw Error('PARTIAL_CONTROL_LEDGER');
+  async function rpc(base,h,name,body){
+    const res=await request(base+'/rest/v1/rpc/'+name,{method:'POST',headers:{...h,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!res.ok){const data=await res.json().catch(()=>({}));throw Error(data.message||data.code||'CONTROL_RPC_FAILED')}
+    return res.status===204?null:res.json();
   }
   async function recordRun(base,h,payload,received,applied,rejected,status){
     const row={connector_code:'payhere',external_run_id:payload.report.hash,status,records_received:received,records_applied:applied,records_rejected:rejected,completed_at:new Date(now()).toISOString(),metadata:{file_name:payload.report.fileName,period:payload.report.period,dry_run:false}};
@@ -67,11 +68,23 @@ export function makeHandler({env,fetcher=fetch,now=()=>Date.now(),cryptoImpl=cry
       const blocked=results.filter(x=>x.status==='blocked'),applicable=results.filter(x=>x.status==='applicable'),duplicates=results.filter(x=>x.status==='duplicate'),repairs=duplicates.filter(x=>x.repairControl);
       if(payload.dryRun)return send({dryRun:true,canApply:blocked.length===0&&(applicable.length>0||repairs.length>0),results,received:results.length,applicable:applicable.length,duplicates:duplicates.length,repairs:repairs.length,blocked:blocked.length});
       if(blocked.length)return send({error:'REVIEW_REQUIRED',results},409);
-      await appendGoogle(access,googleRows(applicable,payload.report));
       const controlRows=[...applicable,...repairs];
-      try{await appendControl(base,h,movementRows(controlRows,payload.report))}catch(error){await recordRun(base,h,payload,results.length,applicable.length,blocked.length,'partial');throw error}
-      await recordRun(base,h,payload,results.length,applicable.length,blocked.length,'success');
-      return send({dryRun:false,canApply:false,results:results.map(x=>x.status==='applicable'?{...x,status:'applied',message:'SCM 원장과 통합 기록 반영 완료'}:x),received:results.length,applied:applicable.length,repaired:repairs.length,duplicates:duplicates.length,blocked:0});
-    }catch(error){const code=error.message||'IMPORT_FAILED',status=code==='INVALID_PAYLOAD'?400:code==='LOGIN_REQUIRED'?401:code==='ADMIN_REQUIRED'||code==='ORIGIN_NOT_ALLOWED'?403:code==='REVIEW_REQUIRED'?409:503;return send({error:code,fields:error.fields||undefined},status)}
+      if(!controlRows.length)return send({dryRun:false,canApply:false,results,received:results.length,applied:0,repaired:0,duplicates:duplicates.length,blocked:0});
+      const reservations=await rpc(base,h,'reserve_payhere_sales_import',{p_report_hash:payload.report.hash,p_request_id:payload.requestId,p_events:reservationRows(controlRows)});
+      const reservationByEvent=new Map((reservations||[]).map(row=>[row.external_event_id,row]));
+      const activeRows=controlRows.filter(row=>reservationByEvent.get(row.externalEventId)?.status!=='applied');
+      if(activeRows.some(row=>reservationByEvent.get(row.externalEventId)?.owned!==true))throw Error('IMPORT_IN_PROGRESS');
+      const appendRows=activeRows.filter(row=>!row.repairControl&&reservationByEvent.get(row.externalEventId)?.status==='reserved');
+      await appendGoogle(access,googleRows(appendRows,payload.report));
+      try{
+        if(activeRows.length){
+          await rpc(base,h,'mark_payhere_google_written',{p_request_id:payload.requestId,p_event_ids:activeRows.map(row=>row.externalEventId)});
+          await rpc(base,h,'finalize_payhere_sales_import',{p_request_id:payload.requestId,p_rows:finalizeRows(activeRows)});
+        }
+      }catch(error){await recordRun(base,h,payload,results.length,appendRows.length,blocked.length,'partial');throw Error('CONTROL_REPAIR_REQUIRED')}
+      await recordRun(base,h,payload,results.length,appendRows.length,blocked.length,'success');
+      const activeIds=new Set(activeRows.map(row=>row.externalEventId));
+      return send({dryRun:false,canApply:false,results:results.map(x=>x.status==='applicable'?(activeIds.has(x.externalEventId)?{...x,status:'applied',message:'SCM 원장과 통합 기록 반영 완료'}:{...x,status:'duplicate',message:'다른 요청에서 이미 반영 완료'}):x),received:results.length,applied:appendRows.length,repaired:activeRows.filter(x=>x.repairControl).length,duplicates:duplicates.length+applicable.filter(x=>!activeIds.has(x.externalEventId)).length,blocked:0});
+    }catch(error){const code=error.message||'IMPORT_FAILED',status=code==='INVALID_PAYLOAD'?400:code==='LOGIN_REQUIRED'?401:code==='ADMIN_REQUIRED'||code==='ORIGIN_NOT_ALLOWED'?403:['REVIEW_REQUIRED','IMPORT_IN_PROGRESS','IMPORT_EVENT_PAYLOAD_MISMATCH'].includes(code)?409:503;return send({error:code,fields:error.fields||undefined},status)}
   };
 }

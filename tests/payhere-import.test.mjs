@@ -48,6 +48,7 @@ test('server model detects duplicates and unsafe stock',()=>{
 
 test('server model rejects a tampered event id or product mapping',()=>{
   assert.throws(()=>validatePayload({...payload,rows:[{...payload.rows[0],externalEventId:'forged'}]}),/INVALID_PAYLOAD/);
+  assert.throws(()=>validatePayload({...payload,rows:[null]}),/INVALID_PAYLOAD/);
   const valid=validatePayload(payload),catalog=new Map([['GDR-B-0027',{price:15000,stock:4}]]);
   const result=reconcileRows(valid.rows,{catalog,ledgerEvents:new Set(),dbEvents:new Set(),productMappings:new Map([['불편한거야불편한건','GDR-B-9999']])});
   assert.equal(result[0].status,'blocked');assert.match(result[0].message,/서버 상품 연결표/);

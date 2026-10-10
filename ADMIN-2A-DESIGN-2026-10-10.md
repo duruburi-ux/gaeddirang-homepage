@@ -1,13 +1,14 @@
 # 관리실 2A 설계·승인 범위
 
-이 문서는 운영 커밋 `29b50ba` 뒤의 다음 단계 설계다. 아래 DB·RLS·Edge 변경은 아직 만들거나 적용하지 않았다. 운영 행 데이터 조회·수정, 과거 주문 백필, 권한 변경도 하지 않았다.
+이 문서는 운영 커밋 `29b50ba` 뒤의 2A 설계와 로컬 구현 상태다. 읽기 전용 2A-0 결과는 `ADMIN-RLS-BASELINE-2026-10-10.md`에 기록했다. DB·RLS·Edge/UI 변경과 회귀 테스트는 작업 브랜치에 준비했지만 운영에는 적용·배포하지 않았다. 운영 행 데이터 조회·수정, 과거 주문 백필, 권한 변경도 하지 않았다.
 
 ## 결론
 
 한 번의 승인으로 바로 운영 정책을 교체하지 않는다. 권장 범위는 다음 두 단계다.
 
-1. **2A-0 읽기 전용 기준선**: 운영의 schema·grant·RLS·함수 보안 속성만 추출해 저장소 기준선과 차이 보고를 만든다. 행 값, 관리자 이메일, 고객 정보, Storage object 이름은 읽지 않는다.
-2. **2A-1 추가형 원자성 변경**: 차이 보고 승인 뒤 Payhere 예약 테이블/RPC와 주문 생성 RPC를 추가한다. 기존 행은 수정하지 않으며 기존 3관리자 판정은 유지한다. 새 경로가 검증될 때까지 기존 브라우저 경로와 권한은 제거하지 않는다.
+1. **2A-0 읽기 전용 기준선 — 완료**: 운영의 schema·grant·RLS·함수 보안 속성만 추출했다. 행 값, 관리자 이메일, 고객 정보, Storage object 이름은 읽지 않았다.
+2. **2A-1 추가형 원자성 변경 — 로컬 구현/검증 완료, 미적용**: Payhere 예약 테이블/RPC와 주문 생성 RPC, 살아 있는 세션을 확인하는 관리자 판정을 준비했다. 기존 행은 수정하지 않는다.
+3. **2A-2 cutover — 로컬 초안/검증 완료, 미적용**: SQL은 자동 적용되지 않도록 `supabase/migration-plans/`에 둔다. UI/Edge 전환이 먼저 배포·관찰된 뒤 주문 직접 쓰기 권한과 과도한 공개 접수 정책을 회수한다.
 
 ## 1. Payhere 중복 반영 방지
 
@@ -21,14 +22,14 @@
 
 | 구분 | 대상 | 내용 |
 | --- | --- | --- |
-| 추가 | `public.integration_sales_import_reservations` | Payhere 이벤트별 선점과 복구 상태. `connector_code`, `external_event_id`를 PK로 두고 `report_hash`, `request_id`, `status`, `reserved_at`, `google_written_at`, `applied_at`, `updated_at`, `actor_user_id`, `last_error_code`만 저장한다. 파일 내용과 상품명·금액·계좌·이메일은 저장하지 않는다. |
+| 추가 | `public.integration_sales_import_reservations` | Payhere 이벤트별 선점과 복구 상태. `connector_code`, `external_event_id`를 PK로 두고 `report_hash`, `request_id`, `canonical_sku`, 수량·단가·거래시각, `status`, 시각, `reserved_by`, 오류 코드만 저장한다. 파일 내용·계좌·이메일은 저장하지 않는다. |
 | 추가 | `public.reserve_payhere_sales_import(text, uuid, jsonb)` | 관리자 세션을 다시 확인한 뒤 요청의 모든 이벤트를 한 트랜잭션에서 예약한다. 한 건이라도 다른 요청이 `reserved/google_written_pending_control`이면 전체 요청을 쓰기 전에 `IMPORT_IN_PROGRESS`로 끝낸다. `applied`는 중복으로 반환한다. |
 | 추가 | `public.mark_payhere_google_written(uuid, jsonb)` | 현재 요청이 예약한 이벤트만 `google_written_pending_control`로 전환한다. Google 성공 전에는 호출하지 않는다. |
 | 추가 | `public.finalize_payhere_sales_import(uuid, jsonb)` | 고정 connector/location/movement 규칙을 다시 검사하고 `integration_inventory_movements` insert와 예약 상태 `applied` 전환을 한 DB 트랜잭션으로 처리한다. 같은 이벤트·같은 내용의 재호출은 성공으로 응답하고 다른 내용이면 차단한다. |
 | 추가 | `public.fail_payhere_sales_import(uuid, text)` | Google 쓰기 전 실패만 `failed_before_google`로 바꾼다. `google_written_pending_control`은 실패로 내리지 못한다. |
 | 추가 | RLS·grant | 예약 테이블은 RLS를 켜고 `public/anon/authenticated`의 직접 권한을 모두 회수한다. 테이블 직접 정책은 만들지 않는다. RPC는 `authenticated`만 실행 가능하고 `security definer`, `search_path=''`, 현재 로그인·이메일 확인·`public.is_admin()`을 모두 재검사한다. |
-| 변경 | `supabase/functions/scm-sales-import/handler.mjs` | apply 요청에 `request_id`를 요구하고 `reserve → Google 재조회 → append 또는 복구 → mark → finalize` 순서로 바꾼다. stale 예약도 Google 원장을 먼저 확인하기 전에는 재사용하지 않는다. |
-| 변경 | `admin/integration.js` | 한 파일 검토 세대마다 UUID를 고정해 dry-run과 apply에 같은 `request_id`를 보낸다. `IMPORT_IN_PROGRESS`, `CONTROL_REPAIR_REQUIRED`를 명확히 표시한다. |
+| 변경 | `supabase/functions/scm-sales-import/handler.mjs` | apply 요청에 `request_id`를 요구하고 `Google/control 조회 → reserve → 예약 결과상 필요한 Google append → mark → finalize` 순서로 바꾼다. `applied` 또는 `google_written_pending_control` 예약은 다시 append하지 않는다. |
+| 변경 | `admin/integration.js` | 한 파일 hash마다 UUID를 `sessionStorage`에 고정해 apply 재시도와 새로고침 복구에 재사용한다. 원본 파일 내용은 저장하지 않는다. `IMPORT_IN_PROGRESS`, `CONTROL_REPAIR_REQUIRED`를 명확히 표시한다. |
 | 변경 | 테스트·README | 두 동시 요청, 응답 유실, Google 성공 뒤 DB 실패, 권한 회수, 서로 다른 payload의 동일 이벤트를 추가한다. |
 | 삭제 | 없음 | 기존 movement, sync run, mapping, Google 행을 삭제하지 않는다. |
 
@@ -64,10 +65,10 @@
 | --- | --- | --- |
 | 추가 | `public.orders.client_request_id uuid` | nullable. 새 주문의 멱등키다. 기존 행은 `null` 유지한다. |
 | 추가 | `public.orders.client_request_hash text` | nullable 64자리 hash. 같은 request ID에 다른 주문 내용을 보내는 오용을 차단한다. |
-| 추가 | `orders_client_request_id_key` | `client_request_id is not null`인 행만 unique인 partial index. |
+| 추가 | `orders_client_request_id_uidx` | `client_request_id is not null`인 행만 unique인 partial index. |
 | 추가 | `public.create_public_order_v1(uuid, text, text, text, text, text, jsonb)` | anon/authenticated 공개 주문용. `user_id`는 입력받지 않고 `auth.uid()`에서 정한다. 필수 연락처·주소, 1~20 품목, 수량·가격 범위와 합계를 서버에서 검증·계산하고 주문과 품목을 한 트랜잭션에 저장한다. 응답은 주문 ID·상태·합계만 돌려준다. |
-| 추가 | `public.create_admin_order_v1(uuid, text, text, text, text, text, text, jsonb)` | authenticated 관리자 전용. `public.is_admin()`과 확인된 현재 사용자를 재검사하고 허용 channel/status만 받는다. 주소는 선택 가능하다. |
-| 변경 | `index.html`, `preview/index.html` | 공개 주문의 두 insert와 delete 보상을 단일 RPC로 교체한다. 버튼 반복 클릭 시 같은 UUID를 재사용하고, 성공 또는 사용자가 내용을 바꿀 때만 새 UUID를 만든다. |
+| 추가 | `public.create_admin_order_v1(uuid, text, text, text, text, text, text, text, jsonb)` | authenticated 관리자 전용. 살아 있는 세션·확인된 비익명 사용자·allowlist를 재검사하고 허용 channel/status만 받는다. 운영 스키마에 맞춰 이메일과 주소를 필수로 받는다. |
+| 변경 | `index.html`, `preview/index.html` | 공개 주문의 두 insert와 delete 보상을 단일 RPC로 교체한다. 입력 hash와 UUID만 `sessionStorage`에 보관해 실패·새로고침 재시도에서 같은 UUID를 쓰고, 성공 또는 내용 변경 때 새 UUID를 만든다. 개인정보 원문은 보관하지 않는다. |
 | 변경 | `admin/index.html` | 직접 주문을 관리자 RPC로 교체한다. 1차는 현재처럼 한 품목만 받되 RPC payload는 배열로 보내 추후 다품목을 호환한다. 입력은 `합계`가 아니라 `개당 금액`으로 명확히 하고 합계는 서버 계산값을 표시한다. |
 | 변경(2단계) | `orders`, `order_items` grant/policy | 두 클라이언트 전환과 관찰이 끝난 뒤에만 anon/authenticated의 직접 INSERT와 공개 DELETE를 회수한다. 관리자 상태 UPDATE와 본인 주문 SELECT는 유지한다. |
 | 삭제 | 없음 | 기존 주문·품목을 삭제하거나 자동 복구하지 않는다. |
@@ -92,7 +93,7 @@ RPC는 같은 `client_request_id`와 같은 hash면 기존 성공 결과를 반�
 
 ## 3. 핵심 테이블 RLS 기준선
 
-### 2A-0에서 읽을 정확한 대상
+### 2A-0에서 읽은 정확한 대상
 
 행 데이터를 읽는 것이 아니라 아래 객체의 정의만 읽는다.
 
@@ -106,15 +107,17 @@ RPC는 같은 `client_request_id`와 같은 hash면 기존 성공 결과를 반�
 
 추출 필드는 `pg_class.relrowsecurity/relforcerowsecurity`, `information_schema.role_table_grants`, `pg_policies`, `pg_proc.prosecdef/proconfig/proacl`, trigger 정의, FK/unique/check와 Storage bucket의 public·크기·MIME 설정뿐이다. `select *`, 이메일 목록, 고객 행, 계좌, 문서 경로, JWT, secret은 추출하지 않는다.
 
+상세 결과와 Advisor 판정은 `ADMIN-RLS-BASELINE-2026-10-10.md`에 있다.
+
 ### 추가·변경·삭제 구분
 
 | 단계 | 추가 | 변경 | 삭제 |
 | --- | --- | --- | --- |
-| 2A-0 | 저장소의 익명화된 RLS manifest, 권한 매트릭스, `core_rls_test.sql` | 없음 | 없음 |
-| 차이 보고 | 발견별 최소 remediation migration 초안 | 아직 운영에는 적용하지 않음 | 없음 |
-| 별도 승인 후 | 누락된 정책/REVOKE/GRANT만 항목별 적용 | 과도한 기존 정책은 이름·영향·롤백을 명시해 변경 | 정책 삭제는 동일 기능의 대체 정책이 먼저 검증된 경우에만 수행 |
+| 2A-0 | 익명화된 권한 기준선 보고 | 없음 | 없음 |
+| 로컬 초안 | 주문/Payhere 원자성, 엄격한 관리자 세션, 공개 접수 제한 migration과 회귀 | 아직 운영에는 적용하지 않음 | 없음 |
+| 별도 승인 후 | 추가형 migration부터 적용 | UI/Edge 전환·관찰 뒤 cutover | 대체 RPC 검증 뒤 직접 쓰기 정책만 회수 |
 
-첫 승인 범위에 운영 RLS 변경은 포함하지 않는다. 기대 경계는 테스트로 먼저 고정한다.
+현재 승인 범위에는 운영 RLS 변경이 포함되지 않는다. 기대 경계는 테스트로 먼저 고정했다.
 
 - anon: 공개 카탈로그의 의도된 열 조회와 공개 접수 RPC/INSERT만 가능, 고객·주문·문의·관리 문서 조회 불가
 - 일반 authenticated: 본인 cart와 본인 주문 조회만 가능, 관리자 장부·연동·문서 접근 불가

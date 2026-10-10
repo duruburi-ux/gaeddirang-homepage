@@ -6,14 +6,16 @@ const eventId=row=>`${row.occurredAt}::${normalizeName(row.payhereName)}::${row.
 export function validatePayload(body){
   const errors=[];
   if(typeof body?.dryRun!=='boolean')errors.push('dryRun');
+  const requestId=text(body?.requestId);
+  if(!body?.dryRun&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId))errors.push('requestId');
   if(!/^[a-f0-9]{64}$/.test(text(body?.report?.hash)))errors.push('report.hash');
   if(!Array.isArray(body?.rows)||body.rows.length<1||body.rows.length>100)errors.push('rows');
   const seen=new Set(),rows=[];
   for(const [index,row] of (body?.rows||[]).entries()){
     const x={
-      canonicalSku:text(row.canonicalSku),productName:text(row.productName),payhereName:text(row.payhereName),
-      quantity:number(row.quantity),unitAmount:number(row.unitAmount),grossAmount:number(row.grossAmount),
-      occurredAt:text(row.occurredAt),externalEventId:text(row.externalEventId)
+      canonicalSku:text(row?.canonicalSku),productName:text(row?.productName),payhereName:text(row?.payhereName),
+      quantity:number(row?.quantity),unitAmount:number(row?.unitAmount),grossAmount:number(row?.grossAmount),
+      occurredAt:text(row?.occurredAt),externalEventId:text(row?.externalEventId)
     };
     if(!/^GDR-[A-Z]+-\d{4}$/.test(x.canonicalSku))errors.push(`rows.${index}.canonicalSku`);
     if(!x.productName||x.productName.length>180)errors.push(`rows.${index}.productName`);
@@ -26,7 +28,29 @@ export function validatePayload(body){
     seen.add(x.externalEventId);rows.push(x);
   }
   if(errors.length)throw Object.assign(Error('INVALID_PAYLOAD'),{fields:[...new Set(errors)]});
-  return {dryRun:body.dryRun,report:{hash:text(body.report.hash),fileName:text(body.report.fileName).slice(0,180),period:body.report.period||{},gross:number(body.report.gross),net:number(body.report.net)},rows};
+  return {dryRun:body.dryRun,requestId:requestId||null,report:{hash:text(body.report.hash),fileName:text(body.report.fileName).slice(0,180),period:body.report.period||{},gross:number(body.report.gross),net:number(body.report.net)},rows};
+}
+
+export function reservationRows(rows){
+  return rows.map(row=>({
+    external_event_id:row.externalEventId,
+    canonical_sku:row.canonicalSku,
+    quantity:row.quantity,
+    unit_amount:row.unitAmount,
+    occurred_at:row.occurredAt,
+    google_seen:!!row.repairControl
+  }));
+}
+
+export function finalizeRows(rows){
+  return rows.map(row=>({
+    external_event_id:row.externalEventId,
+    canonical_sku:row.canonicalSku,
+    quantity:row.quantity,
+    unit_amount:row.unitAmount,
+    occurred_at:row.occurredAt,
+    payhere_name:row.payhereName
+  }));
 }
 
 export function parseSheetData(valueRanges){

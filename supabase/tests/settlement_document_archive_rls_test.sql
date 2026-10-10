@@ -30,6 +30,8 @@ select hasnt_column('public','settlement_document_events','details','audit has n
 insert into public.admin_emails(email,name) values ('archive-admin@example.test','Archive test admin');
 insert into auth.users(id,email,email_confirmed_at,is_anonymous)
 values ('33333333-3333-3333-3333-333333333333','archive-admin@example.test',now(),false);
+insert into auth.sessions(id,user_id,created_at,updated_at)
+values ('99999999-9999-4999-8999-999999999999','33333333-3333-3333-3333-333333333333',now(),now());
 
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"44444444-4444-4444-4444-444444444444","email":"ordinary@example.test","role":"authenticated"}',true);
@@ -45,7 +47,7 @@ select throws_ok(
   'non-admin cannot register a file'
 );
 
-select set_config('request.jwt.claims','{"sub":"33333333-3333-3333-3333-333333333333","email":"archive-admin@example.test","role":"authenticated"}',true);
+select set_config('request.jwt.claims','{"sub":"33333333-3333-3333-3333-333333333333","email":"archive-admin@example.test","role":"authenticated","session_id":"99999999-9999-4999-8999-999999999999"}',true);
 select results_eq(
   $$select count(*)::bigint from public.list_settlement_documents()$$,
   $$values (0::bigint)$$,

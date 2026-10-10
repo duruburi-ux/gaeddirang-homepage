@@ -22,7 +22,7 @@ async function installVirtualAdmin(page){
       integration_connectors:[{id:'connector-1',name:'가상 연결',purpose:'검증용',status:'connected',sync_mode:'scheduled',data_direction:'inbound',sort_order:1,next_action:'없음',admin_url:'https://example.test/admin'}],
       integration_product_mappings:[{id:'map-1'}],integration_inventory_movements:[{id:'move-1'}],integration_reconciliation_issues:[],integration_settlement_entries:[],
     };
-    window.__failTable='';window.__authCallbacks=[];
+    window.__failTable='';window.__authCallbacks=[];window.__orderRequests=new Map();window.__adminOrderRpcCalls=0;
     class Query{
       constructor(table){this.table=table;this.op='select';this.filters=[];this.options={};this.patch=null;this.payload=null;this.returning=false;}
       select(_columns,options={}){if(this.op==='update')this.returning=true;else this.op='select';this.options={...this.options,...options};return this;}
@@ -51,7 +51,20 @@ async function installVirtualAdmin(page){
       signOut:async()=>{window.__authCallbacks.forEach(cb=>cb('SIGNED_OUT',null));return {error:null};},
       resetPasswordForEmail:async()=>({error:null}),onAuthStateChange:cb=>{window.__authCallbacks.push(cb);return {data:{subscription:{unsubscribe(){}}}};},
     };
-    window.supabase={createClient:()=>({auth,from:table=>new Query(table),rpc:async name=>name==='is_admin'?{data:true,error:null}:{data:null,error:{message:'unsupported rpc'}}})};
+    const rpc=async(name,args)=>{
+      if(name==='is_admin')return {data:true,error:null};
+      if(name==='create_admin_order_v1'){
+        window.__adminOrderRpcCalls++;
+        const fingerprint=JSON.stringify(args),prior=window.__orderRequests.get(args.p_request_id);
+        if(prior){return prior.fingerprint===fingerprint?{data:clone(prior.result),error:null}:{data:null,error:{message:'IDEMPOTENCY_KEY_REUSED'}}}
+        const id=`order-direct-${window.__orderRequests.size+1}`,total=args.p_items.reduce((sum,item)=>sum+item.quantity*item.unit_price,0);
+        const order={id,buyer_name:args.p_buyer_name,contact:args.p_contact,email:args.p_email,shipping_address:args.p_shipping_address,message:args.p_message,total_amount:total,status:args.p_status,channel:args.p_channel,created_at:'2026-10-10T03:00:00Z'};
+        const items=args.p_items.map((item,index)=>({id:`direct-item-${index+1}`,order_id:id,book_title:item.book_title,quantity:item.quantity,unit_price:item.unit_price}));
+        window.__db.orders.push(order);window.__db.order_items.push(...items);const result={id,status:order.status,total_amount:total};window.__orderRequests.set(args.p_request_id,{fingerprint,result});return {data:clone(result),error:null};
+      }
+      return {data:null,error:{message:'unsupported rpc'}};
+    };
+    window.supabase={createClient:()=>({auth,from:table=>new Query(table),rpc})};
   });
   await page.route('**/supabase.min.js',route=>route.fulfill({contentType:'application/javascript',body:''}));
   await page.route('**/xlsx.full.min.js',route=>route.fulfill({contentType:'application/javascript',body:'window.XLSX={};'}));
@@ -94,4 +107,14 @@ test('admin core: session expiration clears private UI and returns to login',asy
   await page.evaluate(()=>window.__authCallbacks.forEach(cb=>cb('SIGNED_OUT',null)));
   await expect(page.locator('#loginView')).toBeVisible();await expect(page.locator('#appView')).toBeHidden();await expect(page.locator('#loginMsg')).toContainText('다시 로그인');
   expect(await page.evaluate(()=>({apps:APPS.length,orders:ORDERS.length,panel:document.querySelector('#panelHost').childElementCount}))).toEqual({apps:0,orders:0,panel:0});
+});
+
+test('admin core: direct order saves one atomic order with a required email and unit price',async({page})=>{
+  await openAdmin(page,{width:1200,height:900});await page.getByRole('tab',{name:/주문/}).click();await page.locator('#oAddBtn').click();
+  await page.waitForTimeout(250);await page.screenshot({path:'test-results/admin-core-direct-order.png',fullPage:true});
+  await page.locator('#naName').fill('가상 직접 주문자');await page.locator('#naContact').fill('010-0000-0003');await page.locator('#naEmail').fill('direct@example.test');
+  await page.locator('#naItem').fill('가상 도서 C');await page.locator('#naQty').fill('2');await page.locator('#naAmt').fill('7000');await page.locator('#naAddress').fill('가상시 안전로 3');
+  await page.locator('#naSave').click();await expect(page.locator('#toast')).toContainText('주문과 품목을 저장');await expect(page.locator('#ordersCount')).toHaveText('3건');
+  const state=await page.evaluate(()=>({calls:window.__adminOrderRpcCalls,orders:window.__db.orders.filter(x=>x.id.startsWith('order-direct-')),items:window.__db.order_items.filter(x=>x.order_id.startsWith('order-direct-'))}));
+  expect(state.calls).toBe(1);expect(state.orders).toHaveLength(1);expect(state.orders[0].total_amount).toBe(14000);expect(state.items).toHaveLength(1);expect(state.items[0].unit_price).toBe(7000);
 });

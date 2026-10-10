@@ -109,3 +109,23 @@ test('expired program dates stop being counted as open', async ({ page }) => {
   await page.getByRole('button', { name: /함께하는 프로그램/ }).click();
   await expect(page.locator('.prog-card').first()).toContainText('일정 종료');
 });
+
+test('checkout retry reuses one opaque request id and completes without split table writes', async ({ page }) => {
+  await prepare(page);
+  await page.evaluate(() => {
+    window.__checkoutCalls = [];
+    let attempt = 0;
+    supabaseClient.rpc = async (name, args) => {
+      window.__checkoutCalls.push({ name, args });attempt++;
+      return attempt === 1 ? { data:null,error:{message:'synthetic outage'} } : { data:{id:'virtual-order-1',status:'신규',total_amount:14000},error:null };
+    };
+    saveCart([{title:'가상 도서',price:7000,img:'',qty:2}]);openCheckoutForm();
+  });
+  await page.locator('#coName').fill('가상 주문자');await page.locator('#coContact').fill('010-0000-0000');await page.locator('#coEmail').fill('buyer@example.test');
+  await page.locator('#coAddress').fill('가상시 안전로 1');await page.locator('#coConsent').check();
+  page.once('dialog',dialog=>dialog.accept());await page.locator('#coSubmitBtn').click();await expect(page.locator('#coSubmitBtn')).toBeEnabled();
+  await page.locator('#coSubmitBtn').click();await expect(page.locator('#coResult')).toHaveClass(/active/);
+  const calls=await page.evaluate(()=>window.__checkoutCalls);
+  expect(calls).toHaveLength(2);expect(calls.every(call=>call.name==='create_public_order_v1')).toBe(true);
+  expect(calls[0].args.p_request_id).toBe(calls[1].args.p_request_id);expect(calls[1].args.p_items).toEqual([{book_title:'가상 도서',unit_price:7000,quantity:2}]);
+});

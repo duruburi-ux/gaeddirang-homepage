@@ -7,8 +7,9 @@
   const modes={realtime:'실시간',scheduled:'주기 확인',manual:'사람이 입력',reference_only:'참고용'};
   const directions={inbound:'가져오기',outbound:'보내기',two_way:'양방향',reference_only:'참고만'};
   const rowLabels={ready:'반영 후보',excluded:'재고 제외',unmapped:'상품 연결 필요',ambiguous:'거래 연결 필요',price_mismatch:'가격 확인 필요',duplicate:'이미 반영',applicable:'반영 가능',blocked:'확인 필요',applied:'반영 완료'};
+  const importRequestStorageKey='gaeddirang.payhere.import-request.v1';
   let config,client,onDenied,connectors=[],mappings=[],inventory=[],loaded=false,loading=false,generation=0,fileGeneration=0,stats={mappings:null,movements:null,issues:null,settlements:null};
-  let importFile=null,importHash='',importPlan=null,dryResult=null,importBusy=false;
+  let importFile=null,importHash='',importPlan=null,dryResult=null,importBusy=false,importRequestId='';
 
   function counts(){return connectors.reduce((a,x)=>{a[x.status]=(a[x.status]||0)+1;return a},{connected:0,manual:0,setup_required:0,attention:0,disabled:0})}
   function emit(ok=true){const c=counts();window.dispatchEvent(new CustomEvent('integration:summary',{detail:{ok,connected:c.connected,manual:c.manual,setup:c.setup_required,attention:c.attention,fetchedAt:new Date().toISOString()}}))}
@@ -76,12 +77,16 @@
 
   async function chooseFile(file){
     const run=++fileGeneration;
-    importFile=file;importPlan=null;dryResult=null;importHash='';$('#payhere-confirm').checked=false;renderImport();
+    importFile=file;importPlan=null;dryResult=null;importHash='';importRequestId='';$('#payhere-confirm').checked=false;renderImport();
     if(!file)return importStatus('파일을 선택하면 화면 안에서 먼저 검사합니다.');
     importStatus('엑셀을 읽고 상품을 연결하고 있어요.');
     try{
       const model=window.PayhereImportModel;if(!model)throw Error('IMPORT_READER_MISSING');
-      const [report,hash]=await Promise.all([model.parseWorkbook(file),model.fileHash(file)]);if(run!==fileGeneration)return;importHash=hash;importPlan=model.planImport(report,{mappings,inventory});
+      const [report,hash]=await Promise.all([model.parseWorkbook(file),model.fileHash(file)]);if(run!==fileGeneration)return;importHash=hash;
+      let saved=null;try{saved=JSON.parse(sessionStorage.getItem(importRequestStorageKey)||'null')}catch{}
+      importRequestId=saved?.hash===hash&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(saved?.id||'')?saved.id:crypto.randomUUID();
+      try{sessionStorage.setItem(importRequestStorageKey,JSON.stringify({hash,id:importRequestId}))}catch{}
+      importPlan=model.planImport(report,{mappings,inventory});
       renderImport();
       const bad=importPlan.blocked.length>0;importStatus(bad?'상품 연결이나 거래일시를 확인해야 합니다. 아직 재고는 바뀌지 않았습니다.':'1차 검사가 끝났습니다. 중복까지 최종 검사해 주세요.',bad,!bad);
     }catch(error){if(run!==fileGeneration)return;console.error(error);importStatus(error.message==='PAYHERE_SHEETS_MISSING'?'페이히어 매출내역 엑셀이 아닙니다. ‘매출 내역’과 ‘상품별’ 시트가 필요해요.':'파일을 읽지 못했습니다. 페이히어에서 새로 받은 .xlsx 파일인지 확인해 주세요.',true)}
@@ -94,17 +99,17 @@
     try{
       const {data,error}=await client.auth.getSession();if(error||!data.session){onDenied?.();return}
       const rows=plan.ready.map(row=>({canonicalSku:row.mapped.sku,productName:row.mapped.title||row.name,payhereName:row.name,quantity:row.quantity,unitAmount:row.unitPrice,grossAmount:row.gross,occurredAt:row.occurredAt,externalEventId:row.externalEventId}));
-      const res=await fetch(config.url+'/functions/v1/scm-sales-import',{method:'POST',headers:{Authorization:'Bearer '+data.session.access_token,apikey:config.key,'Content-Type':'application/json'},body:JSON.stringify({dryRun,report:{hash,fileName:file.name,period:plan.period,gross:plan.gross,net:plan.net},rows})});
+      const res=await fetch(config.url+'/functions/v1/scm-sales-import',{method:'POST',headers:{Authorization:'Bearer '+data.session.access_token,apikey:config.key,'Content-Type':'application/json'},body:JSON.stringify({dryRun,requestId:importRequestId,report:{hash,fileName:file.name,period:plan.period,gross:plan.gross,net:plan.net},rows})});
       if(run!==fileGeneration)return;
       const result=await res.json();if(res.status===401||res.status===403){onDenied?.();return}if(!res.ok)throw Error(result.error||'IMPORT_FAILED');
       dryResult=result;renderImport();
       if(dryRun){const n=result.results.filter(x=>x.status==='applicable').length,repairs=result.results.filter(x=>x.repairControl).length;importStatus(n?`${n}개 상품을 반영할 수 있습니다. 표를 확인하고 마지막 체크를 해 주세요.`:repairs?`재고는 이미 반영됐고, 빠진 통합 기록 ${repairs}개만 복구할 수 있습니다.`:'새로 반영할 판매가 없습니다. 이미 처리된 내역은 다시 차감하지 않습니다.',false,true)}
-      else{importStatus(`${result.applied}개 상품 반영 완료 · 중복 ${result.duplicates}개 건너뜀${result.repaired?` · 기록 ${result.repaired}개 복구`:''}`,false,true);$('#payhere-confirm').checked=false;await refresh(true);window.SCM?.clear()}
-    }catch(error){if(run!==fileGeneration)return;console.error(error);const message=error.message==='PARTIAL_CONTROL_LEDGER'?'SCM 재고는 반영됐지만 통합 기록이 빠졌습니다. 같은 파일로 최종 검사를 다시 실행해 기록 복구 여부를 확인하세요.':error.message==='SOURCE_WRITE_DENIED'?'SCM 쓰기 권한을 확인해야 합니다. 재고는 변경되지 않았습니다.':'최종 검사를 완료하지 못했습니다. 재고는 변경되지 않았습니다.';importStatus(message,true)}finally{if(run===fileGeneration){importBusy=false;$('#payhere-file').disabled=false;renderImport()}}
+      else{try{sessionStorage.removeItem(importRequestStorageKey)}catch{}importStatus(`${result.applied}개 상품 반영 완료 · 중복 ${result.duplicates}개 건너뜀${result.repaired?` · 기록 ${result.repaired}개 복구`:''}`,false,true);$('#payhere-confirm').checked=false;await refresh(true);window.SCM?.clear()}
+    }catch(error){if(run!==fileGeneration)return;console.error(error);const message=error.message==='CONTROL_REPAIR_REQUIRED'?'SCM 원장 반영 뒤 통합 기록 완료를 확인하지 못했습니다. 같은 파일로 다시 검사하면 재고를 재차감하지 않고 기록만 복구합니다.':error.message==='IMPORT_IN_PROGRESS'?'같은 판매를 다른 요청이 처리 중입니다. 잠시 뒤 같은 파일로 다시 검사해 주세요.':error.message==='SOURCE_WRITE_DENIED'?'SCM 쓰기 권한을 확인해야 합니다. 재고는 변경되지 않았습니다.':'최종 검사를 완료하지 못했습니다. 재고 반영 여부를 단정하지 말고 같은 파일로 다시 검사해 주세요.';importStatus(message,true)}finally{if(run===fileGeneration){importBusy=false;$('#payhere-file').disabled=false;renderImport()}}
   }
 
   function open(kind){const filter=$('#integration-filter');filter.value=kind==='connected'?'connected':'';renderCards();if(kind==='needs')$('#integration-connectors').scrollIntoView({behavior:'smooth',block:'start'})}
-  function clear(){generation++;fileGeneration++;connectors=[];mappings=[];inventory=[];loaded=false;loading=false;importBusy=false;stats={mappings:null,movements:null,issues:null,settlements:null};$('#integration-content').hidden=true;importFile=null;importHash='';importPlan=null;dryResult=null;$('#payhere-file').value='';$('#payhere-file').disabled=false;$('#payhere-confirm').checked=false;renderImport();emit(false)}
+  function clear(){generation++;fileGeneration++;connectors=[];mappings=[];inventory=[];loaded=false;loading=false;importBusy=false;stats={mappings:null,movements:null,issues:null,settlements:null};$('#integration-content').hidden=true;importFile=null;importHash='';importRequestId='';importPlan=null;dryResult=null;$('#payhere-file').value='';$('#payhere-file').disabled=false;$('#payhere-confirm').checked=false;renderImport();emit(false)}
   function init(options){
     config=options;client=options.client;onDenied=options.onDenied;$('#integration-refresh').onclick=()=>refresh(true);$('#integration-filter').onchange=renderCards;
     $('#payhere-file').onchange=e=>chooseFile(e.target.files?.[0]);$('#payhere-dry-run').onclick=()=>callImport(true);$('#payhere-confirm').onchange=renderImport;
