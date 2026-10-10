@@ -34,5 +34,5 @@ test('directory is inside existing gated app and includes explicit sync boundari
   const html=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');assert.ok(html.indexOf('id="appView"')<html.indexOf('id="tab-operations"'));assert.ok(html.includes('await checkAdmin()'));assert.ok(html.includes("if(!TABS.includes(name))return;"));assert.match(html,/상태를 관리자 화면으로 자동 조회합니다/);assert.match(html,/메일로 받은 매출 엑셀을 연결 현황에서 검사한 뒤 승인하면 SCM에 반영합니다/);assert.match(html,/스마트스토어·스마트플레이스/);
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(ids.filter(id=>id==='tab-operations').length,1);
   for(const id of ['priorityTotal','dashSearchForm','dashScmStatus','dashScmMetrics','dashDataStatus'])assert.ok(html.includes(`id="${id}"`));
-  for(const label of ['대시보드','업무 찾기','상품 재고','수업 신청','고객 명부','프로그램'])assert.ok(html.includes(`>${label}<`)||html.includes(`>${label}<span`));
+  for(const label of ['대시보드','업무 안내','상품·재고','수업 신청','고객 이력','프로그램'])assert.ok(html.includes(`>${label}<`)||html.includes(`>${label}<span`));
 });

@@ -63,7 +63,7 @@
     if(!importPlan){$('#payhere-review').hidden=true;return}
     $('#payhere-review').hidden=false;
     const quantity=importPlan.ready.reduce((sum,row)=>sum+row.quantity,0),period=importPlan.period.start?`${importPlan.period.start} ~ ${importPlan.period.end}`:'기간 확인 필요';
-    $('#payhere-summary').innerHTML=[['판매 기간',period],['실매출',money(importPlan.net)],['재고 후보',quantity+'권/개'],['재고 제외',importPlan.excluded.reduce((s,x)=>s+x.quantity,0)+'건']].map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('');
+    $('#payhere-summary').innerHTML=[['판매 기간',period],['할인 반영 매출액',money(importPlan.net)],['재고 반영 후보',quantity+'권/개'],['재고에서 제외',importPlan.excluded.reduce((s,x)=>s+x.quantity,0)+'건']].map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('');
     $('#payhere-rows').innerHTML=importPlan.rows.map(row=>{
       const server=serverRow(row),state=rowState(row),sku=row.mapped?.sku||'—',detail=server?.message||row.message;
       const stock=server&&Number.isInteger(server.currentStock)?`<small>현재 ${server.currentStock} → 반영 후 ${server.afterStock}</small>`:'';

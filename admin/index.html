@@ -147,6 +147,7 @@
     .panel{padding:18px 14px}.row{align-items:flex-start}.row .amt{max-width:32%}
   }
 </style>
+<link rel="stylesheet" href="./admin-ux.css?v=20261010-1" />
 </head>
 <body>
 
@@ -167,24 +168,43 @@
 <div id="appView" class="hidden">
   <header>
     <div class="head-in">
-      <span class="logo">🐾 개띠랑 관리실</span>
-      <span class="head-user" id="headUser"></span>
-      <button class="btn-ghost" id="reloadBtn">새로고침</button>
-      <button class="btn-ghost" id="logoutBtn">로그아웃</button>
+      <a class="brand-home" href="#home" data-nav-tab="home" aria-label="관리실 대시보드로 이동">
+        <span class="brand-mark" aria-hidden="true">책</span>
+        <span class="brand-copy"><strong>개띠랑 관리실</strong><small>출판 · 책공방 운영</small></span>
+      </a>
+      <div class="head-actions">
+        <span class="head-user" id="headUser"></span>
+        <button class="btn-ghost" id="reloadBtn" type="button"><span class="compact-icon" aria-hidden="true">↻</span><span class="button-label">최신 자료 확인</span></button>
+        <button class="btn-ghost" id="logoutBtn" type="button"><span class="compact-icon" aria-hidden="true">↪</span><span class="button-label">로그아웃</span></button>
+      </div>
     </div>
     <div class="tabs" id="tabBar" role="tablist" aria-label="관리실 메뉴">
+      <span class="nav-label">오늘</span>
       <button class="tab active" role="tab" aria-selected="true" data-tab="home">대시보드</button>
-      <button class="tab" data-tab="work">진행 업무<span class="badge hidden" id="bWork"></span></button>
-      <button class="tab" data-tab="integration">연결 현황<span class="badge hidden" id="bIntegration"></span></button>
-      <button class="tab" data-tab="operations">업무 찾기</button>
-      <button class="tab" data-tab="scm">상품 재고</button>
+      <button class="tab" data-tab="work">팀 업무<span class="badge hidden" id="bWork"></span></button>
+      <span class="nav-label">처리</span>
       <button class="tab" data-tab="orders">주문<span class="badge hidden" id="bOrders"></span></button>
       <button class="tab" data-tab="apps">수업 신청<span class="badge hidden" id="bApps"></span></button>
-      <button class="tab" data-tab="inquiries">문의<span class="badge hidden" id="bInq"></span></button>
-      <button class="tab" data-tab="members">고객 명부</button>
+      <button class="tab" data-tab="inquiries">기관 문의<span class="badge hidden" id="bInq"></span></button>
+      <span class="nav-label">운영</span>
+      <button class="tab" data-tab="scm">상품·재고</button>
+      <button class="tab" data-tab="integration">판매·연결<span class="badge hidden" id="bIntegration"></span></button>
       <button class="tab" data-tab="cohorts">프로그램</button>
-      <button class="tab" data-tab="alerts">출간알림</button>
-      <a class="tab-link" href="docs.html" style="padding:12px 13px;font-size:14px;font-weight:600;color:var(--muted);text-decoration:none;white-space:nowrap;border-bottom:2.5px solid transparent">서류·링크 📄</a>
+      <span class="nav-label">기록</span>
+      <button class="tab" data-tab="members">고객 이력</button>
+      <button class="tab" data-tab="alerts">출간 알림</button>
+      <button class="tab" data-tab="operations">업무 안내</button>
+      <a class="tab-link" href="docs.html">견적·정산·서류 ↗</a>
+    </div>
+    <div class="mobile-nav-wrap">
+      <label for="mobileNav">이동할 업무</label>
+      <select id="mobileNav" aria-label="관리실 메뉴 선택">
+        <optgroup label="오늘"><option value="home">대시보드</option><option value="work">팀 업무</option></optgroup>
+        <optgroup label="처리"><option value="orders">주문</option><option value="apps">수업 신청</option><option value="inquiries">기관 문의</option></optgroup>
+        <optgroup label="운영"><option value="scm">상품·재고</option><option value="integration">판매·연결</option><option value="cohorts">프로그램</option></optgroup>
+        <optgroup label="기록"><option value="members">고객 이력</option><option value="alerts">출간 알림</option><option value="operations">업무 안내</option></optgroup>
+        <option value="docs">견적·정산·서류</option>
+      </select>
     </div>
   </header>
   <main>
@@ -279,79 +299,91 @@
     <!-- 홈 -->
     <section id="tab-home" class="dash" aria-label="운영 대시보드">
       <div class="dash-top">
-        <div><p class="dash-date" id="homeHd"></p><h1>오늘은 이것부터 보면 돼요.</h1></div>
-        <form id="dashSearchForm" class="dash-search" role="search"><label for="dashSearch">업무 찾기</label><div><input id="dashSearch" type="search" placeholder="블라인드북, 수업, 정산…" autocomplete="off"><button>찾기</button></div></form>
+        <div><p class="dash-date" id="homeHd"></p><h1>오늘 할 일을 먼저 정리했어요.</h1><span class="dash-lead">숫자를 누르면 필요한 조건이 적용된 목록으로 바로 이동합니다.</span></div>
+        <form id="dashSearchForm" class="dash-search" role="search"><label for="dashSearch">메뉴와 업무 찾기</label><div><input id="dashSearch" type="search" placeholder="예: 주문, 블라인드북, 정산" autocomplete="off"><button>찾기</button></div></form>
       </div>
-      <section class="dash-block" aria-labelledby="priorityTitle"><div class="dash-section-head"><div><p class="dash-kicker">오늘</p><h2 id="priorityTitle">지금 처리할 일</h2></div><strong id="priorityTotal" class="dash-total"></strong></div><div class="todo-grid" id="todoGrid"></div></section>
-      <section class="dash-block dash-integration" aria-labelledby="integrationTitle"><div class="dash-section-head"><div><p class="dash-kicker">SYSTEM</p><h2 id="integrationTitle">업무 시스템 연결 상태</h2></div><button class="dash-text-btn" data-dash-tab="integration">전체 보기 →</button></div><div id="dashIntegrationStatus" class="dash-status">연결 상태를 확인하고 있어요.</div><div id="dashIntegrationMetrics" class="dash-mini-metrics"><div><strong>—</strong><span>자동 연결</span></div><div><strong>—</strong><span>사람 확인 필요</span></div></div><p class="dash-help">자동 연결과 수동 관리 항목을 구분해 보여줍니다.</p></section>
-      <section class="dash-block dash-work" aria-labelledby="workTitle"><div class="dash-section-head"><div><p class="dash-kicker">NOTION</p><h2 id="workTitle">팀이 진행 중인 업무</h2></div><button class="dash-text-btn" data-dash-tab="work">전체 보기 →</button></div><div id="dashWorkStatus" class="dash-work-status">노션 업무를 확인하고 있어요.</div><div id="dashWorkMetrics" class="dash-work-metrics"><div><strong>—</strong><span>진행 업무</span></div><div><strong>—</strong><span>확인할 것</span></div><div><strong>—</strong><span>승인할 것</span></div><div><strong>—</strong><span>막힌 것</span></div></div><div id="dashWorkPreview" class="dash-work-preview"></div><p class="dash-help">오래된 기록은 현재 상황으로 단정하지 않고 별도로 표시합니다.</p></section>
-      <div class="dash-columns">
-        <section class="dash-block" aria-labelledby="quickTitle"><div class="dash-section-head"><div><p class="dash-kicker">바로가기</p><h2 id="quickTitle">자주 하는 일</h2></div></div><div class="dash-quick">
-          <button data-dash-tab="scm"><b>상품 찾기</b><span>가격·재고·SKU 확인</span></button><button data-dash-tab="integration"><b>연결 상태</b><span>판매·재고·정산 흐름 확인</span></button><button data-dash-tab="orders"><b>주문 처리</b><span>입금 확인·발송 상태 변경</span></button><button data-dash-tab="apps"><b>수업 신청</b><span>신청자·입금 상태 확인</span></button><button data-dash-tab="inquiries"><b>기관 문의</b><span>새 문의 확인·상태 변경</span></button><button data-dash-tab="operations"><b>팀 업무 찾기</b><span>노션 원본과 업무방 이동</span></button><button data-dash-tab="members"><b>고객 명부</b><span>연락처와 참여 이력 검색</span></button>
-        </div></section>
-        <section class="dash-block dash-stock" aria-labelledby="stockTitle"><div class="dash-section-head"><div><p class="dash-kicker">SCM</p><h2 id="stockTitle">재고에서 볼 것</h2></div><button class="dash-text-btn" data-dash-tab="scm">전체 보기 →</button></div><div id="dashScmStatus" class="dash-status">재고 장부를 확인하고 있어요.</div><div id="dashScmMetrics" class="dash-mini-metrics"><div><strong>—</strong><span>확인 필요</span></div><div><strong>—</strong><span>장부 경고</span></div></div><p class="dash-help">조회 전용입니다. 페이히어 판매는 자동 차감되지 않아요.</p></section>
+      <section class="dash-block dash-priority" aria-labelledby="priorityTitle"><div class="dash-section-head"><div><p class="dash-kicker">오늘의 처리 순서</p><h2 id="priorityTitle">지금 확인할 일</h2></div><strong id="priorityTotal" class="dash-total"></strong></div><p class="dash-priority-note">입금·발송·답변처럼 다음 행동이 필요한 기록만 모았습니다.</p><div class="todo-grid" id="todoGrid"></div></section>
+      <div class="dash-signals" aria-label="운영 신호">
+        <section class="dash-block dash-work" aria-labelledby="workTitle"><div class="dash-section-head"><div><p class="dash-kicker">팀 업무</p><h2 id="workTitle">진행·승인·막힘</h2></div><button class="dash-text-btn" data-dash-tab="work">열기 →</button></div><div id="dashWorkStatus" class="dash-work-status">팀 업무를 확인하고 있어요.</div><div id="dashWorkMetrics" class="dash-work-metrics"><div><strong>—</strong><span>진행</span></div><div><strong>—</strong><span>확인</span></div><div><strong>—</strong><span>승인</span></div><div><strong>—</strong><span>막힘</span></div></div><div id="dashWorkPreview" class="dash-work-preview"></div><p class="dash-help">오래된 기록은 현재 상황과 구분합니다.</p></section>
+        <section class="dash-block dash-stock" aria-labelledby="stockTitle"><div class="dash-section-head"><div><p class="dash-kicker">상품·재고</p><h2 id="stockTitle">장부에서 확인할 것</h2></div><button class="dash-text-btn" data-dash-tab="scm">열기 →</button></div><div id="dashScmStatus" class="dash-status">재고 장부를 확인하고 있어요.</div><div id="dashScmMetrics" class="dash-mini-metrics"><div><strong>—</strong><span>확인 필요</span></div><div><strong>—</strong><span>장부 경고</span></div></div><p class="dash-help">장부 수량이며 실물 수량 보증은 아닙니다.</p></section>
+        <section class="dash-block dash-integration" aria-labelledby="integrationTitle"><div class="dash-section-head"><div><p class="dash-kicker">판매·연결</p><h2 id="integrationTitle">자동·수동 처리</h2></div><button class="dash-text-btn" data-dash-tab="integration">열기 →</button></div><div id="dashIntegrationStatus" class="dash-status">연결 상태를 확인하고 있어요.</div><div id="dashIntegrationMetrics" class="dash-mini-metrics"><div><strong>—</strong><span>자동 연결</span></div><div><strong>—</strong><span>사람 확인</span></div></div><p class="dash-help">자동 연결은 자동 완료를 뜻하지 않습니다.</p></section>
       </div>
-      <section class="dash-block" aria-labelledby="summaryTitle"><div class="dash-section-head"><div><p class="dash-kicker">전체</p><h2 id="summaryTitle">운영 현황</h2></div><span id="dashDataStatus" class="dash-data-status">관리 데이터를 불러오는 중</span></div><div class="stat-row" id="statRow"></div></section>
-      <p class="dash-foot">숫자가 이상하면 원본을 먼저 확인해 주세요. 이 화면은 홈페이지 관리 데이터와 SCM 조회 결과를 모아 보여줍니다.</p>
+      <section class="dash-block dash-shortcuts" aria-labelledby="quickTitle"><div class="dash-section-head"><div><p class="dash-kicker">바로가기</p><h2 id="quickTitle">자주 하는 일</h2></div><button class="dash-text-btn" data-dash-tab="operations">전체 업무 안내 →</button></div><div class="dash-quick"><button data-dash-tab="orders"><b>주문 처리</b><span>입금 확인·발송 상태 변경</span></button><button data-dash-tab="apps"><b>수업 신청</b><span>신청자·입금 상태 확인</span></button><button data-dash-tab="inquiries"><b>기관 문의</b><span>새 문의 확인·견적 연결</span></button><button data-dash-tab="scm"><b>상품 찾기</b><span>가격·재고·SKU 확인</span></button><button data-dash-tab="integration"><b>판매 연결</b><span>판매·재고 반영 흐름 확인</span></button><button data-dash-tab="members"><b>고객 이력</b><span>연락처와 참여 이력 검색</span></button></div></section>
+      <section class="dash-block dash-summary" aria-labelledby="summaryTitle"><div class="dash-section-head"><div><p class="dash-kicker">참고용 전체 수치</p><h2 id="summaryTitle">운영 현황</h2></div><span id="dashDataStatus" class="dash-data-status">관리 데이터를 불러오는 중</span></div><div class="stat-row" id="statRow"></div></section>
+      <p class="dash-foot">‘장부상’ 금액은 주문 기록의 합계이며 실제 수령·지급 완료를 뜻하지 않습니다. 숫자가 이상하면 원본 기록을 먼저 확인해 주세요.</p>
     </section>
 
     <!-- 주문 -->
     <section id="tab-orders" class="hidden">
-      <div class="filters">
-        <label class="sr-only" for="oChannel">주문 채널</label><select id="oChannel"><option value="">전체 채널</option></select>
-        <label class="sr-only" for="oStatus">주문 상태</label><select id="oStatus"><option value="">전체 상태</option></select>
-        <label class="sr-only" for="oSearch">주문 검색</label><input id="oSearch" type="search" placeholder="이름·연락처·책 검색" />
-        <button class="btn-add" id="oAddBtn">+ 주문 직접 추가</button>
-        <span class="count-note" id="ordersCount"></span>
+      <div class="page-intro"><div class="page-intro-copy"><p class="page-eyebrow">처리</p><h1>주문 처리</h1><p>입금 확인과 발송 준비 순서로 확인하고, 주문 상세에서 상태를 저장합니다.</p></div><button class="page-primary" id="oAddBtn" type="button">주문 직접 추가</button></div>
+      <div class="filter-panel" aria-label="주문 찾기와 정렬">
+        <div class="filter-control"><label for="oChannel">주문 채널</label><select id="oChannel"><option value="">전체 채널</option></select></div>
+        <div class="filter-control"><label for="oStatus">처리 상태</label><select id="oStatus"><option value="">전체 상태</option></select></div>
+        <div class="filter-control search"><label for="oSearch">주문 찾기</label><input id="oSearch" type="search" placeholder="이름·연락처·책 이름" /></div>
+        <div class="filter-control"><label for="oSort">정렬</label><select id="oSort"><option value="newest">최근 주문순</option><option value="oldest">오래된 주문순</option><option value="amount_desc">금액 높은 순</option></select></div>
+        <div class="filter-meta"><span class="count-note" id="ordersCount" role="status" aria-live="polite"></span><button class="filter-reset" type="button" data-filter-reset="orders">조건 지우기</button></div>
       </div>
+      <h2 class="results-title">주문 목록</h2>
       <div class="list" id="ordersList"><div class="loading">불러오는 중…</div></div>
     </section>
 
     <!-- 신청자 -->
     <section id="tab-apps" class="hidden">
-      <div class="filters">
-        <select id="fChannel"><option value="">전체 채널</option></select>
-        <select id="fProgram"><option value="">전체 프로그램</option></select>
-        <select id="fCohort"><option value="">전체 기수</option></select>
-        <select id="fStatus"><option value="">전체 상태</option></select>
-        <label class="sr-only" for="fSearch">신청자 검색</label><input id="fSearch" type="search" placeholder="이름·연락처·이메일 검색" />
-        <button class="btn-add" id="aAddBtn">+ 예약·신청 직접 추가</button>
-        <span class="count-note" id="appsCount"></span>
+      <div class="page-intro"><div class="page-intro-copy"><p class="page-eyebrow">처리</p><h1>수업 신청</h1><p>채널별 신청을 모아 입금·확정·참석 상태와 동의 내역을 확인합니다.</p></div><button class="page-primary" id="aAddBtn" type="button">예약·신청 직접 추가</button></div>
+      <div class="filter-panel" aria-label="수업 신청 찾기와 정렬">
+        <div class="filter-control"><label for="fChannel">신청 채널</label><select id="fChannel"><option value="">전체 채널</option></select></div>
+        <div class="filter-control wide"><label for="fProgram">프로그램</label><select id="fProgram"><option value="">전체 프로그램</option></select></div>
+        <div class="filter-control"><label for="fCohort">기수</label><select id="fCohort"><option value="">전체 기수</option></select></div>
+        <div class="filter-control"><label for="fStatus">처리 상태</label><select id="fStatus"><option value="">전체 상태</option></select></div>
+        <div class="filter-control search"><label for="fSearch">신청자 찾기</label><input id="fSearch" type="search" placeholder="이름·연락처·이메일" /></div>
+        <div class="filter-control"><label for="fSort">정렬</label><select id="fSort"><option value="newest">최근 신청순</option><option value="oldest">오래된 신청순</option><option value="name">이름순</option></select></div>
+        <div class="filter-meta"><span class="count-note" id="appsCount" role="status" aria-live="polite"></span><button class="filter-reset" type="button" data-filter-reset="apps">조건 지우기</button></div>
       </div>
+      <h2 class="results-title">신청 목록</h2>
       <div class="list" id="appsList"><div class="loading">불러오는 중…</div></div>
     </section>
 
     <!-- 명부 -->
     <section id="tab-members" class="hidden">
-      <div class="filters">
-        <label class="sr-only" for="mSearch">고객 검색</label><input id="mSearch" type="search" placeholder="이름·연락처·이메일 검색" />
-        <span class="count-note" id="memCount"></span>
+      <div class="page-intro"><div class="page-intro-copy"><p class="page-eyebrow">기록</p><h1>고객 이력</h1><p>같은 연락처의 신청을 한 사람의 이력으로 묶어 재신청과 참여 내역을 봅니다.</p></div></div>
+      <div class="filter-panel" aria-label="고객 이력 찾기와 정렬">
+        <div class="filter-control search"><label for="mSearch">고객 찾기</label><input id="mSearch" type="search" placeholder="이름·연락처·이메일" /></div>
+        <div class="filter-control"><label for="mSort">정렬</label><select id="mSort"><option value="recent">최근 신청순</option><option value="name">이름순</option><option value="frequency">신청 많은 순</option></select></div>
+        <div class="filter-meta"><span class="count-note" id="memCount" role="status" aria-live="polite"></span><button class="filter-reset" type="button" data-filter-reset="members">조건 지우기</button></div>
       </div>
+      <h2 class="results-title">고객 목록</h2>
       <div class="list" id="memList"><div class="loading">불러오는 중…</div></div>
     </section>
 
     <!-- 기수 -->
     <section id="tab-cohorts" class="hidden">
+      <div class="page-intro"><div class="page-intro-copy"><p class="page-eyebrow">운영</p><h1>프로그램 현황</h1><p>기수별 정원·잔여 자리·현재 접수를 비교합니다. 수치는 장부 기준입니다.</p></div></div>
+      <h2 class="results-title">기수 목록</h2>
       <div class="list" id="cohortList"><div class="loading">불러오는 중…</div></div>
     </section>
 
     <!-- 문의 -->
     <section id="tab-inquiries" class="hidden">
-      <div class="filters">
-        <select id="iStatus"><option value="">전체 상태</option></select>
-        <label class="sr-only" for="iSearch">문의 검색</label><input id="iSearch" type="search" placeholder="기관·담당자·연락처 검색" />
-        <span class="count-note" id="inqCount"></span>
+      <div class="page-intro"><div class="page-intro-copy"><p class="page-eyebrow">처리</p><h1>기관 문의</h1><p>새 문의를 확인하고 상담 상태를 기록한 뒤, 같은 정보로 견적 작성을 이어갑니다.</p></div></div>
+      <div class="filter-panel" aria-label="기관 문의 찾기와 정렬">
+        <div class="filter-control"><label for="iStatus">상담 상태</label><select id="iStatus"><option value="">전체 상태</option></select></div>
+        <div class="filter-control search"><label for="iSearch">문의 찾기</label><input id="iSearch" type="search" placeholder="기관·담당자·연락처" /></div>
+        <div class="filter-control"><label for="iSort">정렬</label><select id="iSort"><option value="newest">최근 문의순</option><option value="oldest">오래된 문의순</option><option value="status">미처리 우선</option></select></div>
+        <div class="filter-meta"><span class="count-note" id="inqCount" role="status" aria-live="polite"></span><button class="filter-reset" type="button" data-filter-reset="inquiries">조건 지우기</button></div>
       </div>
+      <h2 class="results-title">문의 목록</h2>
       <div class="list" id="inqList"><div class="loading">불러오는 중…</div></div>
     </section>
 
     <!-- 출간알림 -->
     <section id="tab-alerts" class="hidden">
-      <div class="filters">
-        <label class="sr-only" for="alSearch">출간알림 검색</label><input id="alSearch" type="search" placeholder="이메일·책 검색" />
-        <button class="btn-sm" id="alCopy">이메일 전체 복사</button>
-        <span class="count-note" id="alCount"></span>
+      <div class="page-intro"><div class="page-intro-copy"><p class="page-eyebrow">기록</p><h1>출간 알림</h1><p>책별 알림 신청 이메일을 찾고, 현재 조건에 보이는 주소만 복사합니다.</p></div><button class="page-primary" id="alCopy" type="button">보이는 이메일 복사</button></div>
+      <div class="filter-panel" aria-label="출간 알림 찾기와 정렬">
+        <div class="filter-control search"><label for="alSearch">신청 찾기</label><input id="alSearch" type="search" placeholder="이메일·책 이름" /></div>
+        <div class="filter-control"><label for="alSort">정렬</label><select id="alSort"><option value="newest">최근 신청순</option><option value="oldest">오래된 신청순</option><option value="title">책 이름순</option></select></div>
+        <div class="filter-meta"><span class="count-note" id="alCount" role="status" aria-live="polite"></span><button class="filter-reset" type="button" data-filter-reset="alerts">조건 지우기</button></div>
       </div>
+      <h2 class="results-title">알림 신청 목록</h2>
       <div class="list" id="alList"><div class="loading">불러오는 중…</div></div>
     </section>
   </main>
@@ -403,12 +435,20 @@ async function saveRecord(table,id,patch){
   finally{SAVE_BUSY.delete(key)}
 }
 let panelReturnFocus=null;
+function clearPanel({restoreFocus=true}={}){
+  const host=$('#panelHost');host.replaceChildren();
+  if(restoreFocus&&panelReturnFocus?.isConnected)panelReturnFocus.focus();
+  panelReturnFocus=null;
+}
 function mountPanel(markup){
-  const host=$('#panelHost');panelReturnFocus=document.activeElement;host.innerHTML=markup;
+  const host=$('#panelHost'),wasOpen=!!host.firstElementChild;
+  if(!wasOpen)panelReturnFocus=document.activeElement;
+  host.innerHTML=markup;
+  if(!wasOpen&&!history.state?.panel)history.pushState({...history.state,tab:location.hash.slice(1)||'home',panel:true},'',location.href);
   const panel=host.querySelector('.panel'),backdrop=host.querySelector('.backdrop'),closeButton=host.querySelector('.p-close');
   panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('tabindex','-1');panel.setAttribute('aria-label',panel.querySelector('h2')?.textContent?.trim()||'상세 정보');
   closeButton?.setAttribute('aria-label','닫기');
-  const close=()=>{host.replaceChildren();if(panelReturnFocus?.isConnected)panelReturnFocus.focus();panelReturnFocus=null;};
+  const close=()=>{if(history.state?.panel)history.back();else clearPanel();};
   closeButton.onclick=close;backdrop.onclick=e=>{if(e.target===backdrop)close();};
   panel.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();close();return;}if(e.key!=='Tab')return;const focusable=[...panel.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')];if(!focusable.length)return;const first=focusable[0],last=focusable[focusable.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}};
   requestAnimationFrame(()=>panel.focus());return {host,panel,close};
@@ -459,6 +499,7 @@ sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'&&!$('#appVie
 /* ---------- 데이터 로드 ---------- */
 async function loadAll(){
   if(CORE_LOAD)return CORE_LOAD;
+  $('main').setAttribute('aria-busy','true');
   const button=$('#reloadBtn'),oldText=button.textContent;button.disabled=true;button.textContent='확인 중…';
   CORE_LOAD=(async()=>{
     const [applications,cohorts,orders,orderItems,inquiries,alerts]=await Promise.all([
@@ -476,7 +517,7 @@ async function loadAll(){
     OITEMS={};CORE_DATA.orderItems.forEach(it=>{(OITEMS[it.order_id]=OITEMS[it.order_id]||[]).push(it);});
     buildFilters();renderHome();renderOrders();renderApps();renderMembers();renderCohorts();renderInquiries();renderAlerts();refreshBadges();showCoreBanner();
     window.SCM?.refresh();window.Work?.refresh();window.Integration?.refresh();return CORE_SYNC.ok;
-  })().catch(error=>{if(!authFailure(error)){CORE_SYNC={ok:false,at:new Date(),failed:Object.entries(Core.SOURCES).map(([key,label])=>({key,label,error,keptPrevious:true})),succeeded:[]};showCoreBanner();}return false;}).finally(()=>{button.disabled=false;button.textContent=oldText;CORE_LOAD=null;});
+  })().catch(error=>{if(!authFailure(error)){CORE_SYNC={ok:false,at:new Date(),failed:Object.entries(Core.SOURCES).map(([key,label])=>({key,label,error,keptPrevious:true})),succeeded:[]};showCoreBanner();}return false;}).finally(()=>{button.disabled=false;button.textContent=oldText;$('main').setAttribute('aria-busy','false');CORE_LOAD=null;});
   return CORE_LOAD;
 }
 function refreshBadges(){
@@ -494,24 +535,24 @@ function renderHome(){
   $('#homeHd').textContent = new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})+' 기준';
 
   const todos = [
-    {n:newOrders.length,l:'입금 확인할 주문',tab:'orders',filter:'new',hot:newOrders.length>0},
-    {n:toShip.length,l:'발송할 주문',tab:'orders',filter:'ship',hot:toShip.length>0},
-    {n:newInq.length,l:'답할 기관 문의',tab:'inquiries',filter:'new',hot:newInq.length>0},
-    {n:newApps.length,l:'확인할 새 신청',tab:'apps',filter:'new',hot:newApps.length>0},
-    {n:paymentWaiting.length,l:'입금 대기 신청',tab:'apps',filter:'payment',hot:paymentWaiting.length>0},
+    {n:newOrders.length,l:'새 주문',context:'입금 여부와 주문 내용을 확인해요',tab:'orders',filter:'new',hot:newOrders.length>0},
+    {n:toShip.length,l:'발송할 주문',context:'주소와 발송 준비 상태를 확인해요',tab:'orders',filter:'ship',hot:toShip.length>0},
+    {n:newInq.length,l:'새 기관 문의',context:'답변하거나 견적 작성으로 이어가요',tab:'inquiries',filter:'new',hot:newInq.length>0},
+    {n:newApps.length,l:'새 수업 신청',context:'신청 내용과 동의를 확인해요',tab:'apps',filter:'new',hot:newApps.length>0},
+    {n:paymentWaiting.length,l:'입금 대기 신청',context:'입금 여부를 확인한 뒤 상태를 바꿔요',tab:'apps',filter:'payment',hot:paymentWaiting.length>0},
   ];
   const priorityCount=priorities.total;
   $('#priorityTotal').textContent=priorityCount?`${priorityCount}건 확인 필요`:'바로 처리할 일 없음';
   const tg=$('#todoGrid'); tg.innerHTML='';
   todos.forEach(t=>{
     const b=el('button','todo todo'+(t.n>0?(t.hot?' hot':''):' zero'),
-      `<div class="n">${t.n}</div><div class="l">${t.l}</div><div class="go">${t.n?'확인하기':'현재 없음'} →</div>`);
+      `<div class="n">${t.n}</div><div class="l">${t.l}</div><div class="context">${t.context}</div><div class="go">${t.n?'확인하기':'현재 없음'} →</div>`);
     b.onclick=()=>openPriority(t);
     tg.appendChild(b);
   });
 
   const stats = [
-    {n:won(paidRevenue), l:'장부상 주문 누계', tab:'orders'},
+    {n:won(paidRevenue), l:'입금 확인 이후 주문액', tab:'orders'},
     {n:ORDERS.length+'건', l:'전체 주문', tab:'orders'},
     {n:buildMembers().length+'명', l:'고객 명부', tab:'members'},
     {n:APPS.length+'건', l:'수업 신청', tab:'apps'},
@@ -534,15 +575,21 @@ function openPriority(item){
 $('#dashSearchForm').onsubmit=e=>{e.preventDefault();const q=$('#dashSearch').value.trim();switchTab('operations');window.Operations?.setQuery(q);};
 document.querySelectorAll('[data-dash-tab]').forEach(b=>b.onclick=()=>switchTab(b.dataset.dashTab));
 window.addEventListener('scm:summary',e=>{const d=e.detail||{},time=d.fetchedAt?new Date(d.fetchedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}):'시각 미확인';$('#dashScmStatus').textContent=d.stale?'최근 재고 확인이 늦어지고 있어요.':`재고 연결됨 · ${time}`;$('#dashScmStatus').classList.toggle('bad',!!d.stale);$('#dashScmMetrics').innerHTML=`<button data-dash-scm="attention"><strong>${d.attention??'—'}</strong><span>확인 필요</span></button><button data-dash-scm="checks"><strong>${d.warnings??'—'}</strong><span>장부 경고</span></button>`;document.querySelectorAll('[data-dash-scm]').forEach(b=>b.onclick=()=>{switchTab('scm');window.SCM?.open(b.dataset.dashScm)})});
-window.addEventListener('work:summary',e=>{const d=e.detail||{},time=d.fetchedAt?new Date(d.fetchedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}):'시각 미확인';$('#dashWorkStatus').textContent=d.stale?'최근 노션 확인이 늦어지고 있어요.':`노션 연결됨 · ${time}`;$('#dashWorkStatus').classList.toggle('bad',!!d.stale);$('#dashWorkMetrics').innerHTML=`<button data-dash-work="active"><strong>${d.active??'—'}</strong><span>진행 업무</span></button><button data-dash-work="attention"><strong>${d.attention??'—'}</strong><span>확인할 것</span></button><button data-dash-work="approval"><strong>${d.approvals??'—'}</strong><span>승인할 것</span></button><button data-dash-work="blocked"><strong>${d.blocked??'—'}</strong><span>막힌 것</span></button>`;setBadge('bWork',d.attention||0);$('#dashWorkPreview').innerHTML=(d.preview||[]).map(x=>`<button data-dash-work-item="${esc(x.id)}"><span>${esc(x.kindLabel)}</span><b>${esc(x.title)}</b><small>${esc(x.status)}${x.stale?' · 오래됨':''}</small></button>`).join('')||'<p>표시할 진행 업무가 없어요.</p>';document.querySelectorAll('[data-dash-work]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.open(b.dataset.dashWork)});document.querySelectorAll('[data-dash-work-item]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.focus(b.dataset.dashWorkItem)})});
+window.addEventListener('work:summary',e=>{const d=e.detail||{},time=d.fetchedAt?new Date(d.fetchedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}):'시각 미확인';$('#dashWorkStatus').textContent=d.stale?'최근 팀 업무 확인이 늦어지고 있어요.':`팀 업무 원본 연결됨 · ${time}`;$('#dashWorkStatus').classList.toggle('bad',!!d.stale);$('#dashWorkMetrics').innerHTML=`<button data-dash-work="active"><strong>${d.active??'—'}</strong><span>진행 업무</span></button><button data-dash-work="attention"><strong>${d.attention??'—'}</strong><span>확인할 것</span></button><button data-dash-work="approval"><strong>${d.approvals??'—'}</strong><span>승인할 것</span></button><button data-dash-work="blocked"><strong>${d.blocked??'—'}</strong><span>막힌 것</span></button>`;setBadge('bWork',d.attention||0);$('#dashWorkPreview').innerHTML=(d.preview||[]).map(x=>`<button data-dash-work-item="${esc(x.id)}"><span>${esc(x.kindLabel)}</span><b>${esc(x.title)}</b><small>${esc(x.status)}${x.stale?' · 오래됨':''}</small></button>`).join('')||'<p>표시할 진행 업무가 없어요.</p>';document.querySelectorAll('[data-dash-work]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.open(b.dataset.dashWork)});document.querySelectorAll('[data-dash-work-item]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.focus(b.dataset.dashWorkItem)})});
 window.addEventListener('integration:summary',e=>{const d=e.detail||{},needs=(d.manual||0)+(d.setup||0)+(d.attention||0);$('#dashIntegrationStatus').textContent=d.ok?'통합 원장 정상 · 연결 범위를 구분해 표시 중':'연결 현황을 불러오지 못했어요.';$('#dashIntegrationStatus').classList.toggle('bad',!d.ok);$('#dashIntegrationMetrics').innerHTML=`<button data-dash-integration="connected"><strong>${d.connected??'—'}</strong><span>자동 연결</span></button><button data-dash-integration="needs"><strong>${needs}</strong><span>사람 확인 필요</span></button>`;setBadge('bIntegration',needs);document.querySelectorAll('[data-dash-integration]').forEach(b=>b.onclick=()=>{switchTab('integration');window.Integration?.open(b.dataset.dashIntegration)})});
 
 /* ---------- 주문 탭 ---------- */
 function orderItemsText(id){ return (OITEMS[id]||[]).map(i=>`${i.book_title}×${i.quantity}`).join(', '); }
 function orderDot(st){ if(st==='발송완료')return'g'; if(st==='취소')return'r'; if(st==='입금확인'||st==='발송준비')return'b'; return'y'; }
 function matchesQuery(values,q){if(!q)return true;const text=values.filter(Boolean).join(' ').toLowerCase();if(text.includes(q))return true;const digits=q.replace(/[^0-9]/g,'');return digits.length>=3&&text.replace(/[^0-9]/g,'').includes(digits)}
+function dateValue(value){const n=new Date(value||0).getTime();return Number.isFinite(n)?n:0}
+function resultCount(shown,total,unit='건'){return shown===total?`${shown}${unit}`:`전체 ${total}${unit} 중 ${shown}${unit}`}
+function showEmpty(list,{title,detail,scope}){
+  const wrap=el('div','empty empty-state',`<div><strong>${esc(title)}</strong><p>${esc(detail)}</p>${scope?`<button type="button" data-filter-reset="${scope}">조건 지우고 전체 보기</button>`:''}</div>`);
+  list.appendChild(wrap);
+}
 $('#oStatus').innerHTML='<option value="">전체 상태</option><option value="__ship__">발송할 주문</option>'+ORDER_STATUSES.map(s=>`<option>${s}</option>`).join('');
-['oStatus','oChannel'].forEach(id=>$('#'+id).addEventListener('change',renderOrders));
+['oStatus','oChannel','oSort'].forEach(id=>$('#'+id).addEventListener('change',renderOrders));
 $('#oSearch').addEventListener('input',renderOrders);
 $('#oAddBtn').onclick=openAddOrder;
 function renderOrders(){
@@ -552,9 +599,11 @@ function renderOrders(){
     const items=orderItemsText(o.id).toLowerCase();
     return (!fs||st===fs||(fs==='__ship__'&&['입금확인','발송준비'].includes(st))) && (!fc||(o.channel||'홈페이지')===fc) && matchesQuery([o.buyer_name,o.contact,items],q);
   });
-  $('#ordersCount').textContent=`${rows.length}건`;
+  const sort=$('#oSort').value;
+  rows.sort((a,b)=>sort==='oldest'?dateValue(a.created_at)-dateValue(b.created_at):sort==='amount_desc'?(b.total_amount||0)-(a.total_amount||0):dateValue(b.created_at)-dateValue(a.created_at));
+  $('#ordersCount').textContent=resultCount(rows.length,ORDERS.length);
   const list=$('#ordersList'); list.innerHTML='';
-  if(!rows.length){ list.appendChild(el('div','empty','조건에 맞는 주문이 없어요.')); return; }
+  if(!rows.length){showEmpty(list,{title:'조건에 맞는 주문이 없어요',detail:'검색어나 처리 상태를 지우면 전체 주문을 다시 볼 수 있어요.',scope:'orders'});return;}
   rows.forEach(o=>{
     const st=o.status||'신규';
     const items=orderItemsText(o.id)||'(항목 없음)';
@@ -597,40 +646,54 @@ function openOrder(id){
   };
 }
 function openAddOrder(){
-  const {host,close}=mountPanel(`<div class="backdrop"><div class="panel">
-    <button class="p-close">&times;</button>
-    <h2>주문 직접 추가</h2>
-    <div class="p-contact">스토어 등 다른 채널 주문을 장부에 기록해요</div>
-    <div class="field"><div class="k">채널</div><select class="f-sel" id="naChannel">${ORDER_CHANNELS.map(c=>`<option ${c==='스마트스토어'?'selected':''}>${c}</option>`).join('')}</select></div>
-    <div class="field"><div class="k">주문자 이름</div><input class="f-in" id="naName" placeholder="예: 홍길동"></div>
-    <div class="field"><div class="k">연락처</div><input class="f-in" id="naContact" placeholder="010-0000-0000"></div>
-    <div class="field"><div class="k">이메일(선택)</div><input class="f-in" id="naEmail" type="email" autocomplete="email" placeholder="있는 경우만 입력"></div>
-    <div class="field"><div class="k">품목 (책 이름)</div><input class="f-in" id="naItem" placeholder="필수"></div>
-    <div class="field"><div class="k">수량 / 개당 금액</div>
-      <div style="display:flex;gap:8px"><input class="f-in" id="naQty" type="number" min="1" value="1" style="max-width:90px"><input class="f-in" id="naAmt" type="number" min="0" placeholder="개당 금액(원)"></div></div>
-    <div class="field"><div class="k">상태</div><select class="f-sel" id="naStatus">${ORDER_STATUSES.map(s=>`<option ${s==='신규'?'selected':''}>${s}</option>`).join('')}</select></div>
-    <div class="field"><div class="k" id="naAddressLabel">배송지</div><input class="f-in" id="naAddress" autocomplete="street-address"></div>
-    <div class="field"><div class="k">메모(선택)</div><input class="f-in" id="naMemo" placeholder="주문 특이사항"></div>
-    <div class="actions"><button class="btn-primary" id="naSave">장부에 추가</button><p class="save-note" id="naNote" role="status"></p></div>
-  </div></div>`);
+  const {host,close}=mountPanel(`<div class="backdrop"><div class="panel"><div class="panel-shell">
+    <div class="panel-head"><button class="p-close" type="button">&times;</button><h2>주문 직접 추가</h2><div class="p-contact">다른 판매 채널에서 받은 주문 한 건을 장부에 기록합니다.</div></div>
+    <div class="panel-body">
+      <div class="form-group"><div class="form-group-title">주문 출처와 처리 상태</div><div class="form-group-help">어디에서 들어온 주문인지 먼저 선택하면 필요한 배송 정보가 달라집니다.</div><div class="form-grid">
+        <div class="form-control"><label for="naChannel">채널 <span class="required">필수</span></label><select class="f-sel" id="naChannel">${ORDER_CHANNELS.map(c=>`<option ${c==='스마트스토어'?'selected':''}>${c}</option>`).join('')}</select></div>
+        <div class="form-control"><label for="naStatus">처리 상태 <span class="required">필수</span></label><select class="f-sel" id="naStatus">${ORDER_STATUSES.map(s=>`<option ${s==='신규'?'selected':''}>${s}</option>`).join('')}</select></div>
+      </div></div>
+      <div class="form-group"><div class="form-group-title">주문자 정보</div><div class="form-grid">
+        <div class="form-control"><label for="naName">주문자 이름 <span class="required">필수</span></label><input class="f-in" id="naName" required autocomplete="name" placeholder="이름"></div>
+        <div class="form-control"><label for="naContact">연락처 <span class="required">필수</span></label><input class="f-in" id="naContact" required inputmode="tel" autocomplete="tel" placeholder="010-0000-0000"></div>
+        <div class="form-control full"><label for="naEmail">이메일(선택)</label><input class="f-in" id="naEmail" type="email" autocomplete="email" placeholder="있는 경우만 입력"></div>
+        <div class="form-control full"><label for="naAddress" id="naAddressLabel">배송지 <span class="required">필수</span></label><input class="f-in" id="naAddress" autocomplete="street-address"></div>
+      </div></div>
+      <div class="form-group"><div class="form-group-title">품목과 금액</div><div class="form-group-help">금액은 개당 금액 × 수량으로 계산되며, 실제 입금액과는 별도로 확인해야 합니다.</div><div class="form-grid">
+        <div class="form-control full"><label for="naItem">품목 이름 <span class="required">필수</span></label><input class="f-in" id="naItem" required placeholder="책 또는 상품 이름"></div>
+        <div class="form-control"><label for="naQty">수량 <span class="required">필수</span></label><input class="f-in" id="naQty" type="number" min="1" value="1" required></div>
+        <div class="form-control"><label for="naAmt">개당 금액 <span class="required">필수</span></label><input class="f-in" id="naAmt" type="number" min="0" required inputmode="numeric" placeholder="원"></div>
+        <div class="form-control full"><p class="form-help" id="naTotalPreview" aria-live="polite">주문 합계: 금액을 입력해 주세요.</p></div>
+      </div></div>
+      <div class="form-group"><div class="form-group-title">내부 메모 <span class="optional">선택</span></div><div class="form-control"><label for="naMemo">특이사항</label><input class="f-in" id="naMemo" placeholder="발송·응대 때 필요한 내용"></div></div>
+      <div class="form-error" id="naFormError" role="alert" tabindex="-1"></div>
+      <div class="actions"><button class="btn-primary" id="naSave" type="button">장부에 추가</button><p class="save-note" id="naNote" role="status"></p></div>
+    </div>
+  </div></div></div>`);
   let requestId='',requestPayload='';
   const channelEl=host.querySelector('#naChannel'),addressEl=host.querySelector('#naAddress'),addressLabel=host.querySelector('#naAddressLabel');
   function syncDirectOrderRequirements(){
     const needsAddress=channelEl.value!=='기타';
     addressEl.placeholder=needsAddress?'필수 · 상세에서 바로 복사할 주소':'선택 · 현장 수령이면 비워 두세요';
     addressEl.setAttribute('aria-required',String(needsAddress));
-    addressLabel.textContent=needsAddress?'배송지(필수)':'배송지(선택)';
+    addressEl.required=needsAddress;
+    addressLabel.innerHTML=needsAddress?'배송지 <span class="required">필수</span>':'배송지 <span class="optional">선택</span>';
   }
   channelEl.addEventListener('change',syncDirectOrderRequirements);syncDirectOrderRequirements();
+  const totalPreview=host.querySelector('#naTotalPreview');
+  const updateTotal=()=>{const qty=Number(host.querySelector('#naQty').value),amount=Number(host.querySelector('#naAmt').value);totalPreview.textContent=Number.isInteger(qty)&&qty>0&&Number.isSafeInteger(amount)&&amount>=0?`주문 합계: ${won(qty*amount)} · 실제 입금 여부는 상태에서 별도 확인`:'주문 합계: 수량과 금액을 확인해 주세요.';};
+  host.querySelector('#naQty').addEventListener('input',updateTotal);host.querySelector('#naAmt').addEventListener('input',updateTotal);
   host.querySelector('#naSave').onclick=async(ev)=>{
     const btn=ev.target;
     const name=$('#naName').value.trim(),contact=$('#naContact').value.trim(),email=$('#naEmail').value.trim(),address=$('#naAddress').value.trim();
     const item=$('#naItem').value.trim(),qty=Number($('#naQty').value),unitPrice=Number($('#naAmt').value);
-    const channel=$('#naChannel').value,status=$('#naStatus').value,memo=$('#naMemo').value.trim(),note=$('#naNote');
+    const channel=$('#naChannel').value,status=$('#naStatus').value,memo=$('#naMemo').value.trim(),note=$('#naNote'),formError=host.querySelector('#naFormError');
     const needsAddress=channel!=='기타';
-    if(!name||!contact||!item||(needsAddress&&!address)){toast(needsAddress?'이름·연락처·배송지·품목을 입력해 주세요':'이름·연락처·품목을 입력해 주세요');return;}
-    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('이메일 형식을 확인해 주세요');return;}
-    if(!Number.isInteger(qty)||qty<1||!Number.isSafeInteger(unitPrice)||unitPrice<0){toast('수량과 개당 금액을 확인해 주세요');return;}
+    const showFormError=(message,target)=>{formError.textContent=message;formError.classList.add('show');formError.focus();target?.setAttribute('aria-invalid','true');};
+    formError.classList.remove('show');host.querySelectorAll('[aria-invalid]').forEach(x=>x.removeAttribute('aria-invalid'));
+    if(!name||!contact||!item||(needsAddress&&!address)){const target=!name?$('#naName'):!contact?$('#naContact'):!item?$('#naItem'):$('#naAddress');showFormError(needsAddress?'필수 항목인 이름·연락처·배송지·품목을 확인해 주세요.':'필수 항목인 이름·연락처·품목을 확인해 주세요.',target);return;}
+    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showFormError('이메일 주소 형식을 확인해 주세요. 예: name@example.com',$('#naEmail'));return;}
+    if(!Number.isInteger(qty)||qty<1||!Number.isSafeInteger(unitPrice)||unitPrice<0){showFormError('수량은 1개 이상, 개당 금액은 0원 이상의 정수로 입력해 주세요.',!Number.isInteger(qty)||qty<1?$('#naQty'):$('#naAmt'));return;}
     const payload=JSON.stringify({name,contact,email,address,item,qty,unitPrice,channel,status,memo});
     if(payload!==requestPayload){requestPayload=payload;requestId=crypto.randomUUID();}
     btn.disabled=true; btn.textContent='추가 중…';
@@ -652,7 +715,7 @@ function buildFilters(){
   set('fChannel','<option value="">전체 채널</option>'+APP_CHANNELS.map(c=>`<option>${c}</option>`).join(''));
   set('oChannel','<option value="">전체 채널</option>'+ORDER_CHANNELS.map(c=>`<option>${c}</option>`).join(''));
 }
-['fProgram','fCohort','fStatus','fChannel'].forEach(id=>$('#'+id).addEventListener('change',renderApps));
+['fProgram','fCohort','fStatus','fChannel','fSort'].forEach(id=>$('#'+id).addEventListener('change',renderApps));
 $('#fSearch').addEventListener('input',renderApps);
 $('#aAddBtn').onclick=openAddApp;
 function statusDot(st){ if(st==='확정'||st==='참석완료')return'g'; if(st==='취소'||st==='환불')return'r'; return'y'; }
@@ -662,9 +725,11 @@ function renderApps(){
     (!fp||a.program_name===fp)&&(!fc||a.cohort_name===fc)&&(!fs||(a.status||'신규')===fs)&&(!fch||(a.channel||'홈페이지')===fch)&&
     matchesQuery([a.applicant_name,a.contact,a.email],q)
   );
-  $('#appsCount').textContent=`${rows.length}건`;
+  const sort=$('#fSort').value;
+  rows.sort((a,b)=>sort==='oldest'?dateValue(a.created_at)-dateValue(b.created_at):sort==='name'?String(a.applicant_name||'').localeCompare(String(b.applicant_name||''),'ko'):dateValue(b.created_at)-dateValue(a.created_at));
+  $('#appsCount').textContent=resultCount(rows.length,APPS.length);
   const list=$('#appsList'); list.innerHTML='';
-  if(!rows.length){ list.appendChild(el('div','empty','조건에 맞는 신청이 없어요.')); return; }
+  if(!rows.length){showEmpty(list,{title:'조건에 맞는 신청이 없어요',detail:'검색어나 프로그램·상태 조건을 지우고 다시 확인해 보세요.',scope:'apps'});return;}
   rows.forEach(a=>{
     const st=a.status||'신규';
     const r=el('button','row');r.type='button';
@@ -721,31 +786,38 @@ async function updateApp(id, patch, label){
 }
 function openAddApp(){
   const progs=[...new Set(APPS.map(a=>a.program_name).filter(Boolean))];
-  const {host,close}=mountPanel(`<div class="backdrop"><div class="panel">
-    <button class="p-close">&times;</button>
-    <h2>예약·신청 직접 추가</h2>
-    <div class="p-contact">플레이스 예약 등 다른 채널 건을 장부에 기록해요</div>
-    <div class="field"><div class="k">채널</div><select class="f-sel" id="paChannel">${APP_CHANNELS.map(c=>`<option ${c==='네이버플레이스'?'selected':''}>${c}</option>`).join('')}</select></div>
-    <div class="field"><div class="k">이름</div><input class="f-in" id="paName" placeholder="예: 홍길동"></div>
-    <div class="field"><div class="k">연락처</div><input class="f-in" id="paContact" placeholder="010-0000-0000"></div>
-    <div class="field"><div class="k">프로그램 / 워크숍</div><input class="f-in" id="paProgram" list="paProgList" placeholder="예: 그림책 워크숍"><datalist id="paProgList">${progs.map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div>
-    <div class="field"><div class="k">기수(선택)</div><input class="f-in" id="paCohort" placeholder="예: 1기"></div>
-    <div class="field"><div class="k">인원 / 상태</div>
-      <div style="display:flex;gap:8px"><input class="f-in" id="paCount" type="number" min="1" value="1" style="max-width:90px"><select class="f-sel" id="paStatus">${APP_STATUSES.map(s=>`<option ${s==='신규'?'selected':''}>${s}</option>`).join('')}</select></div></div>
-    <div class="field"><div class="k">메모(선택)</div><input class="f-in" id="paMemo" placeholder="특이사항 등"></div>
-    <div class="actions"><button class="btn-primary" id="paSave">장부에 추가</button></div>
-  </div></div>`);
+  const {host,close}=mountPanel(`<div class="backdrop"><div class="panel"><div class="panel-shell">
+    <div class="panel-head"><button class="p-close" type="button">&times;</button><h2>예약·신청 직접 추가</h2><div class="p-contact">다른 예약 채널에서 받은 신청 한 건을 장부에 기록합니다.</div></div>
+    <div class="panel-body">
+      <div class="form-group"><div class="form-group-title">신청 출처와 사람</div><div class="form-grid">
+        <div class="form-control"><label for="paChannel">채널 <span class="required">필수</span></label><select class="f-sel" id="paChannel">${APP_CHANNELS.map(c=>`<option ${c==='네이버플레이스'?'selected':''}>${c}</option>`).join('')}</select></div>
+        <div class="form-control"><label for="paName">이름 <span class="required">필수</span></label><input class="f-in" id="paName" required autocomplete="name" placeholder="신청자 이름"></div>
+        <div class="form-control full"><label for="paContact">연락처 <span class="optional">선택</span></label><input class="f-in" id="paContact" inputmode="tel" autocomplete="tel" placeholder="010-0000-0000"></div>
+      </div></div>
+      <div class="form-group"><div class="form-group-title">신청 내용</div><div class="form-group-help">프로그램 이름은 기존 기록과 같게 입력하면 목록에서 함께 찾기 쉽습니다.</div><div class="form-grid">
+        <div class="form-control full"><label for="paProgram">프로그램·워크숍 <span class="required">필수</span></label><input class="f-in" id="paProgram" required list="paProgList" placeholder="프로그램 이름"><datalist id="paProgList">${progs.map(p=>`<option value="${esc(p)}">`).join('')}</datalist></div>
+        <div class="form-control"><label for="paCohort">기수 <span class="optional">선택</span></label><input class="f-in" id="paCohort" placeholder="예: 1기"></div>
+        <div class="form-control"><label for="paCount">신청 인원 <span class="required">필수</span></label><input class="f-in" id="paCount" type="number" min="1" value="1" required></div>
+        <div class="form-control full"><label for="paStatus">처리 상태 <span class="required">필수</span></label><select class="f-sel" id="paStatus">${APP_STATUSES.map(s=>`<option ${s==='신규'?'selected':''}>${s}</option>`).join('')}</select><p class="form-help">실제 입금을 확인하기 전에는 ‘확정’으로 바꾸지 마세요.</p></div>
+      </div></div>
+      <div class="form-group"><div class="form-group-title">내부 메모 <span class="optional">선택</span></div><div class="form-control"><label for="paMemo">특이사항</label><input class="f-in" id="paMemo" placeholder="준비·응대 때 필요한 내용"></div></div>
+      <div class="form-error" id="paFormError" role="alert" tabindex="-1"></div>
+      <div class="actions"><button class="btn-primary" id="paSave" type="button">장부에 추가</button><p class="save-note" id="paNote" role="status"></p></div>
+    </div>
+  </div></div></div>`);
   host.querySelector('#paSave').onclick=async(ev)=>{
     const btn=ev.target;
-    const name=$('#paName').value.trim(),program=$('#paProgram').value.trim(),count=Number($('#paCount').value);
-    if(!name||!program){toast('이름과 프로그램을 입력해 주세요');return;}if(!Number.isInteger(count)||count<1){toast('신청 인원을 확인해 주세요');return;}
+    const name=$('#paName').value.trim(),program=$('#paProgram').value.trim(),count=Number($('#paCount').value),formError=host.querySelector('#paFormError');
+    const showFormError=(message,target)=>{formError.textContent=message;formError.classList.add('show');formError.focus();target?.setAttribute('aria-invalid','true');};
+    formError.classList.remove('show');host.querySelectorAll('[aria-invalid]').forEach(x=>x.removeAttribute('aria-invalid'));
+    if(!name||!program){showFormError('필수 항목인 이름과 프로그램을 입력해 주세요.',!name?$('#paName'):$('#paProgram'));return;}if(!Number.isInteger(count)||count<1){showFormError('신청 인원은 1명 이상의 정수로 입력해 주세요.',$('#paCount'));return;}
     btn.disabled=true; btn.textContent='추가 중…';
     const row={ id:crypto.randomUUID(), applicant_name:name, contact:$('#paContact').value.trim(),
       program_name:program,cohort_name:$('#paCohort').value.trim()||null,
       participant_count:String(count),status:$('#paStatus').value,channel:$('#paChannel').value,
       photo_consent:false,refund_confirmed:false,message:$('#paMemo').value.trim()||null };
     const { error } = await sb.from('applications').insert(row);
-    if(error){ toast('추가 실패: '+error.message); btn.disabled=false; btn.textContent='장부에 추가'; return; }
+    if(error){if(!authFailure(error)){const note=host.querySelector('#paNote');note.textContent='신청을 저장하지 못했습니다. 입력 내용을 유지했으니 잠시 후 다시 시도해 주세요.';note.classList.add('bad');}btn.disabled=false;btn.textContent='장부에 추가';return;}
     close();const ok=await loadAll();switchTab('apps');toast(ok?'신청을 저장하고 다시 확인했어요':'신청은 저장됐지만 목록 새로고침을 확인해 주세요');
   };
 }
@@ -762,13 +834,14 @@ function buildMembers(){
   });
   return [...map.values()].sort((x,y)=> new Date(y.apps[0].created_at)-new Date(x.apps[0].created_at));
 }
-$('#mSearch').addEventListener('input',renderMembers);
+$('#mSearch').addEventListener('input',renderMembers);$('#mSort').addEventListener('change',renderMembers);
 function renderMembers(){
   const q=$('#mSearch').value.trim().toLowerCase();
-  let mem=buildMembers().filter(m=>matchesQuery([m.name,m.contact,m.email],q));
-  $('#memCount').textContent=`${mem.length}명`;
+  const all=buildMembers();let mem=all.filter(m=>matchesQuery([m.name,m.contact,m.email],q)),sort=$('#mSort').value;
+  mem.sort((a,b)=>sort==='name'?String(a.name||'').localeCompare(String(b.name||''),'ko'):sort==='frequency'?b.apps.length-a.apps.length:dateValue(b.apps[0]?.created_at)-dateValue(a.apps[0]?.created_at));
+  $('#memCount').textContent=resultCount(mem.length,all.length,'명');
   const list=$('#memList'); list.innerHTML='';
-  if(!mem.length){ list.appendChild(el('div','empty','아직 신청자가 없어요.')); return; }
+  if(!mem.length){showEmpty(list,{title:all.length?'조건에 맞는 고객이 없어요':'아직 고객 이력이 없어요',detail:all.length?'검색어를 지우면 전체 고객 이력을 다시 볼 수 있어요.':'수업 신청이 들어오면 연락처 기준으로 이력이 모입니다.',scope:all.length?'members':''});return;}
   mem.forEach(m=>{
     const progs=[...new Set(m.apps.map(a=>a.program_name).filter(Boolean))];
     const policy=m.apps.filter(a=>a.refund_confirmed).length,att=m.apps.filter(a=>a.attended).length;
@@ -822,7 +895,7 @@ function renderCohorts(){
 }
 
 /* ---------- 문의(B2B) 탭 ---------- */
-['iStatus'].forEach(id=>$('#'+id).addEventListener('change',renderInquiries));
+['iStatus','iSort'].forEach(id=>$('#'+id).addEventListener('change',renderInquiries));
 $('#iSearch').addEventListener('input',renderInquiries);
 function inqDot(st){ if(st==='완료')return'g'; if(st==='보류')return'r'; if(st==='상담중')return'b'; return'y'; }
 function renderInquiries(){
@@ -831,9 +904,11 @@ function renderInquiries(){
     const st=i.status||'신규';
     return (!fs||st===fs) && matchesQuery([i.org_name,i.manager_name,i.contact,i.email],q);
   });
-  $('#inqCount').textContent=`${rows.length}건`;
+  const sort=$('#iSort').value,statusRank={신규:0,상담중:1,보류:2,완료:3};
+  rows.sort((a,b)=>sort==='oldest'?dateValue(a.created_at)-dateValue(b.created_at):sort==='status'?(statusRank[a.status||'신규']??9)-(statusRank[b.status||'신규']??9)||dateValue(b.created_at)-dateValue(a.created_at):dateValue(b.created_at)-dateValue(a.created_at));
+  $('#inqCount').textContent=resultCount(rows.length,INQ.length);
   const list=$('#inqList'); list.innerHTML='';
-  if(!rows.length){ list.appendChild(el('div','empty','기관 문의가 없어요.')); return; }
+  if(!rows.length){showEmpty(list,{title:'조건에 맞는 기관 문의가 없어요',detail:'검색어나 상담 상태를 지우면 전체 문의를 다시 볼 수 있어요.',scope:'inquiries'});return;}
   rows.forEach(i=>{
     const st=i.status||'신규';
     const r=el('button','row');r.type='button';
@@ -872,7 +947,7 @@ function openInquiry(id){
 }
 
 /* ---------- 출간알림 탭 ---------- */
-$('#alSearch').addEventListener('input',renderAlerts);
+$('#alSearch').addEventListener('input',renderAlerts);$('#alSort').addEventListener('change',renderAlerts);
 $('#alCopy').onclick=()=>{
   const q=$('#alSearch').value.trim().toLowerCase();
   const emails=[...new Set(ALERTS.filter(a=>!q||(a.email||'').toLowerCase().includes(q)||(a.book_title||'').toLowerCase().includes(q)).map(a=>a.email).filter(Boolean))];
@@ -882,9 +957,11 @@ $('#alCopy').onclick=()=>{
 function renderAlerts(){
   const q=$('#alSearch').value.trim().toLowerCase();
   let rows=ALERTS.filter(a=>!q||(a.email||'').toLowerCase().includes(q)||(a.book_title||'').toLowerCase().includes(q));
-  $('#alCount').textContent=`${rows.length}명`;
+  const sort=$('#alSort').value;
+  rows.sort((a,b)=>sort==='oldest'?dateValue(a.created_at)-dateValue(b.created_at):sort==='title'?String(a.book_title||'').localeCompare(String(b.book_title||''),'ko'):dateValue(b.created_at)-dateValue(a.created_at));
+  $('#alCount').textContent=resultCount(rows.length,ALERTS.length,'명');
   const list=$('#alList'); list.innerHTML='';
-  if(!rows.length){ list.appendChild(el('div','empty','출간알림 신청이 없어요.')); return; }
+  if(!rows.length){showEmpty(list,{title:'조건에 맞는 알림 신청이 없어요',detail:'검색어를 지우면 전체 신청을 다시 볼 수 있어요.',scope:'alerts'});return;}
   rows.forEach(a=>{
     const r=el('button','row');r.type='button';r.style.cursor='pointer';
     r.innerHTML=`<div class="main">
@@ -896,12 +973,28 @@ function renderAlerts(){
   });
 }
 
+const FILTER_DEFAULTS={
+  orders:{oChannel:'',oStatus:'',oSearch:'',oSort:'newest'},
+  apps:{fChannel:'',fProgram:'',fCohort:'',fStatus:'',fSearch:'',fSort:'newest'},
+  members:{mSearch:'',mSort:'recent'},
+  inquiries:{iStatus:'',iSearch:'',iSort:'newest'},
+  alerts:{alSearch:'',alSort:'newest'},
+};
+function resetFilters(scope){
+  const values=FILTER_DEFAULTS[scope];if(!values)return;
+  Object.entries(values).forEach(([id,value])=>{const node=$('#'+id);if(node)node.value=value;});
+  ({orders:renderOrders,apps:renderApps,members:renderMembers,inquiries:renderInquiries,alerts:renderAlerts})[scope]?.();
+  document.querySelector(`#tab-${scope} input[type="search"]`)?.focus();
+}
+document.addEventListener('click',event=>{const button=event.target.closest('[data-filter-reset]');if(button)resetFilters(button.dataset.filterReset);});
+
 /* ---------- 탭 전환 ---------- */
 const TABS=['home','work','integration','operations','scm','orders','apps','members','cohorts','inquiries','alerts'];
 function switchTab(name,historyMode='push'){
   if(!TABS.includes(name))return;
-  document.querySelectorAll('.tab').forEach(x=>{const active=x.dataset.tab===name;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active));});
-  TABS.forEach(t=>$('#tab-'+t).classList.toggle('hidden', t!==name));
+  document.querySelectorAll('.tab[data-tab]').forEach(x=>{const active=x.dataset.tab===name;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active));x.tabIndex=active?0:-1;});
+  TABS.forEach(t=>{const panel=$('#tab-'+t),active=t===name;panel.classList.toggle('hidden',!active);panel.setAttribute('role','tabpanel');panel.setAttribute('tabindex','0');});
+  $('#mobileNav').value=name;
   if(name==='scm')window.SCM?.refresh();
   if(name==='work')window.Work?.refresh();
   if(name==='integration')window.Integration?.refresh();
@@ -909,8 +1002,12 @@ function switchTab(name,historyMode='push'){
   else if(historyMode==='push'&&location.hash!==`#${name}`)history.pushState({tab:name},'','#'+name);
   window.scrollTo(0,0);
 }
-document.querySelectorAll('.tab').forEach(t=>{t.setAttribute('role','tab');t.onclick=()=>switchTab(t.dataset.tab);});
-window.addEventListener('popstate',()=>switchTab(TABS.includes(location.hash.slice(1))?location.hash.slice(1):'home','none'));
+const tabButtons=[...document.querySelectorAll('.tab[data-tab]')];
+tabButtons.forEach((t,index)=>{t.setAttribute('role','tab');t.setAttribute('aria-controls','tab-'+t.dataset.tab);t.id='nav-'+t.dataset.tab;t.onclick=()=>switchTab(t.dataset.tab);t.onkeydown=e=>{let next=null;if(e.key==='ArrowRight')next=(index+1)%tabButtons.length;if(e.key==='ArrowLeft')next=(index-1+tabButtons.length)%tabButtons.length;if(e.key==='Home')next=0;if(e.key==='End')next=tabButtons.length-1;if(next==null)return;e.preventDefault();tabButtons[next].focus();switchTab(tabButtons[next].dataset.tab);};});
+TABS.forEach(t=>$('#tab-'+t).setAttribute('aria-labelledby','nav-'+t));
+document.querySelectorAll('[data-nav-tab]').forEach(link=>link.addEventListener('click',event=>{event.preventDefault();switchTab(link.dataset.navTab);}));
+$('#mobileNav').addEventListener('change',event=>{if(event.target.value==='docs')location.href='docs.html';else switchTab(event.target.value);});
+window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&&!event.state?.panel)clearPanel();switchTab(TABS.includes(location.hash.slice(1))?location.hash.slice(1):'home','none');});
 
 </script>
 <script src="./scm.js"></script>

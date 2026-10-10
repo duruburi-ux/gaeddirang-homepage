@@ -75,18 +75,24 @@ async function installVirtualAdmin(page){
 async function openAdmin(page,viewport){
   await page.setViewportSize(viewport);await installVirtualAdmin(page);await page.goto('/admin/#home',{waitUntil:'domcontentloaded'});await expect(page.locator('#appView')).toBeVisible();await expect(page.locator('#priorityTotal')).toContainText('5건');
 }
+async function goTab(page,viewport,value,name){
+  if(viewport.width<=700)await page.locator('#mobileNav').selectOption(value);
+  else await page.getByRole('tab',{name}).click();
+}
 
 for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',width:360,height:780}]){
   test(`admin core ${viewport.name}: daily priorities, keyboard and history`,async({page})=>{
     await openAdmin(page,viewport);
+    if(viewport.width>700){const home=page.getByRole('tab',{name:'대시보드'});await home.focus();await home.press('ArrowRight');await expect(page.locator('#tab-work')).toBeVisible();await page.goBack();await expect(page.locator('#tab-home')).toBeVisible();}
+    else await expect(page.locator('#mobileNav')).toBeVisible();
     await page.screenshot({path:`test-results/admin-core-${viewport.name}-dashboard.png`,fullPage:true});
     await page.getByRole('button',{name:/입금 대기 신청/}).click();
-    await expect(page.locator('#tab-apps')).toBeVisible();await expect(page.locator('#fStatus')).toHaveValue('입금대기');await expect(page.locator('#appsCount')).toHaveText('1건');
+    await expect(page.locator('#tab-apps')).toBeVisible();await expect(page.locator('#fStatus')).toHaveValue('입금대기');await expect(page.locator('#appsCount')).toHaveText('전체 2건 중 1건');
     const row=page.locator('#appsList .row').first();await row.focus();await row.press('Enter');
     await expect(row).toContainText('환불규정✓');await expect(row).not.toContainText('입금✓');
     const panel=page.locator('#panelHost .panel');await expect(panel).toBeVisible();await expect(panel).toContainText('환불 규정 확인');await expect(panel).not.toContainText('입금 확인');
     await panel.press('Escape');await expect(panel).not.toBeVisible();await expect(row).toBeFocused();
-    await page.getByRole('tab',{name:/주문/}).click();await page.getByRole('tab',{name:/수업 신청/}).click();await page.goBack();await expect(page.locator('#tab-orders')).toBeVisible();
+    await goTab(page,viewport,'orders',/주문/);await goTab(page,viewport,'apps',/수업 신청/);await page.goBack();await expect(page.locator('#tab-orders')).toBeVisible();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
     await page.screenshot({path:`test-results/admin-core-${viewport.name}-orders.png`,fullPage:true});
   });
@@ -112,11 +118,20 @@ test('admin core: session expiration clears private UI and returns to login',asy
 test('admin core: direct order requires delivery address but allows minimal in-person data',async({page})=>{
   await openAdmin(page,{width:1200,height:900});await page.getByRole('tab',{name:/주문/}).click();await page.locator('#oAddBtn').click();
   await page.waitForTimeout(250);await page.screenshot({path:'test-results/admin-core-direct-order.png',fullPage:true});
-  await expect(page.locator('#naAddressLabel')).toHaveText('배송지(필수)');await expect(page.locator('#naAddress')).toHaveAttribute('aria-required','true');
-  await page.locator('#naChannel').selectOption('기타');await expect(page.locator('#naAddressLabel')).toHaveText('배송지(선택)');await expect(page.locator('#naAddress')).toHaveAttribute('aria-required','false');await page.screenshot({path:'test-results/admin-core-direct-order-in-person.png',fullPage:true});
+  await expect(page.locator('#naAddressLabel')).toContainText('배송지');await expect(page.locator('#naAddressLabel')).toContainText('필수');await expect(page.locator('#naAddress')).toHaveAttribute('aria-required','true');
+  await page.locator('#naSave').click();await expect(page.locator('#naFormError')).toBeVisible();await expect(page.locator('#naFormError')).toContainText('필수 항목');
+  await page.locator('#naChannel').selectOption('기타');await expect(page.locator('#naAddressLabel')).toContainText('선택');await expect(page.locator('#naAddress')).toHaveAttribute('aria-required','false');await page.screenshot({path:'test-results/admin-core-direct-order-in-person.png',fullPage:true});
   await page.locator('#naName').fill('가상 직접 주문자');await page.locator('#naContact').fill('010-0000-0003');
   await page.locator('#naItem').fill('가상 도서 C');await page.locator('#naQty').fill('2');await page.locator('#naAmt').fill('7000');
-  await page.locator('#naSave').click();await expect(page.locator('#toast')).toContainText('주문과 품목을 저장');await expect(page.locator('#ordersCount')).toHaveText('3건');
+  await expect(page.locator('#naTotalPreview')).toContainText('14,000원');await page.locator('#naSave').evaluate(button=>{button.click();button.click()});await expect(page.locator('#toast')).toContainText('주문과 품목을 저장');await expect(page.locator('#ordersCount')).toHaveText('3건');
   const state=await page.evaluate(()=>({calls:window.__adminOrderRpcCalls,orders:window.__db.orders.filter(x=>x.id.startsWith('order-direct-')),items:window.__db.order_items.filter(x=>x.order_id.startsWith('order-direct-'))}));
   expect(state.calls).toBe(1);expect(state.orders).toHaveLength(1);expect(state.orders[0]).toMatchObject({total_amount:14000,email:'',shipping_address:'',channel:'기타'});expect(state.items).toHaveLength(1);expect(state.items[0].unit_price).toBe(7000);
+});
+
+test('admin core: list search, sort, reset and browser-back detail flow',async({page})=>{
+  await openAdmin(page,{width:1200,height:900});await page.getByRole('tab',{name:/주문/}).click();
+  await page.locator('#oSort').selectOption('amount_desc');await expect(page.locator('#ordersList .row').first()).toContainText('15,000원');
+  await page.locator('#oSearch').fill('없는 주문');await expect(page.locator('#ordersList .empty-state')).toContainText('조건에 맞는 주문이 없어요');await expect(page.locator('#ordersCount')).toContainText('전체 2건 중 0건');
+  await page.getByRole('button',{name:'조건 지우고 전체 보기'}).click();await expect(page.locator('#ordersCount')).toHaveText('2건');await expect(page.locator('#oSearch')).toBeFocused();
+  const row=page.locator('#ordersList .row').first();await row.click();await expect(page.locator('#panelHost .panel')).toBeVisible();await page.goBack();await expect(page.locator('#panelHost .panel')).toBeHidden();await expect(row).toBeFocused();
 });
