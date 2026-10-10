@@ -333,8 +333,8 @@ test('admin docs: standard settlement form separates sales, event royalties and 
   expect(sectionLine.height).toBeCloseTo(1.333,1);
   expect(sectionLine.width).toBeCloseTo(sectionLine.hostWidth,0);
   expect(sectionLine.marginTop).toBeCloseTo(5.333,1);
-  await expect(sheet).toContainText('실제 수령액·송금 완료를 뜻하지 않으며 기지급·공제·지급 상태를 별도로 확인해야 합니다.');
-  await expect(sheet.getByText('이 금액은 원장과 산식으로 구한 계산 결과입니다. 실제 수령액·송금 완료를 뜻하지 않으며 기지급·공제·지급 상태를 별도로 확인해야 합니다.', { exact:true })).toHaveCount(1);
+  await expect(sheet).toContainText('실제 지급액은 기지급 내역과 공제 사항 확인 후 확정됩니다.');
+  await expect(sheet.getByText('실제 지급액은 기지급 내역과 공제 사항 확인 후 확정됩니다.', { exact:true })).toHaveCount(1);
   await expect(sheet.getByText('온라인 판매는 구매확정일 기준, 그 외 채널은 9월30일까지 결제·출고 완료분을 기준으로 합니다.', { exact:true })).toHaveCount(1);
   await expect(sheet.locator('.section-title', { hasText:'저자 증정본 제공 내역' })).toHaveCount(0);
   await expect(sheet).not.toContainText('정가 환산액');

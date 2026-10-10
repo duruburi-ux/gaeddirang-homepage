@@ -39,10 +39,8 @@ test('직접 입력 폼은 필수·선택, 계산 의미, 화면 안 오류와 �
   assert.match(html,/aria-invalid/);
 });
 
-test('정산 문구는 계산액·문서 상태·실제 지급을 서로 다른 개념으로 설명한다',()=>{
-  assert.match(docs,/정산 대상: 이번 문서 계산에 포함/);
-  assert.match(docs,/지급 상태: 실제 송금 여부이며 문서 확정과 별도/);
-  assert.match(docs,/이번 정산 계산액 \(공제 전/);
-  assert.match(docs,/실제 수령액·송금 완료를 뜻하지 않으며/);
-  assert.match(docs,/지급 완료로 표시되지 않은 금액/);
+test('별도 감사 중인 정산 PDF와 계산 문구는 UI 배포에서 바꾸지 않는다',()=>{
+  assert.match(docs,/공제 전 \$\{amountName\}/);
+  assert.match(docs,/실제 지급액은 기지급 내역과 공제 사항 확인 후 확정됩니다/);
+  assert.doesNotMatch(docs,/이번 정산 계산액/);
 });
