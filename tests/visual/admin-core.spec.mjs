@@ -70,6 +70,7 @@ for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',wi
     await page.getByRole('button',{name:/입금 대기 신청/}).click();
     await expect(page.locator('#tab-apps')).toBeVisible();await expect(page.locator('#fStatus')).toHaveValue('입금대기');await expect(page.locator('#appsCount')).toHaveText('1건');
     const row=page.locator('#appsList .row').first();await row.focus();await row.press('Enter');
+    await expect(row).toContainText('환불규정✓');await expect(row).not.toContainText('입금✓');
     const panel=page.locator('#panelHost .panel');await expect(panel).toBeVisible();await expect(panel).toContainText('환불 규정 확인');await expect(panel).not.toContainText('입금 확인');
     await panel.press('Escape');await expect(panel).not.toBeVisible();await expect(row).toBeFocused();
     await page.getByRole('tab',{name:/주문/}).click();await page.getByRole('tab',{name:/수업 신청/}).click();await page.goBack();await expect(page.locator('#tab-orders')).toBeVisible();

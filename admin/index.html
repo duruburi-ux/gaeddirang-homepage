@@ -663,7 +663,7 @@ function renderApps(){
         <span class="chip prog">${esc(a.program_name)||'프로그램 미상'}</span>
         ${a.cohort_name?`<span class="chip cohort">${esc(a.cohort_name)}</span>`:''}
         <span class="chip st">${esc(st)}</span>
-        ${a.refund_confirmed?'<span class="chip on">입금✓</span>':''}
+        ${a.refund_confirmed?'<span class="chip on">환불규정✓</span>':''}
         ${a.attended?'<span class="chip on">출석✓</span>':''}
       </div></div>
       <div class="amt">${fmtDate(a.created_at)}<br>${esc(a.participant_count||'')}${a.participant_count?'명':''}</div>`;

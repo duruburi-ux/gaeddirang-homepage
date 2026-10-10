@@ -1512,10 +1512,15 @@ async function printStatement(){
       to_name: s.toName, to_manager: s.toManager, to_biz: s.toBiz, title: s.title, vat_mode: s.vatIncluded ? 'in' : 'out',
       alt: false, is_draft: false, items: cleanList(TS_ITEMS), extra_notes: s.memo ? [s.memo] : [], total_amount: s.total };
     const btn = $('#tsPrintBtn'); btn.disabled = true;
-    const res = TS_EDIT ? await sb.from('quotes').update(row).eq('id', TS_EDIT.id).select().single()
-                        : await sb.from('quotes').insert(row).select().single();
+    let res;
+    if(TS_EDIT){
+      let req = sb.from('quotes').update(row).eq('id', TS_EDIT.id);
+      if(TS_EDIT.updated_at) req = req.eq('updated_at', TS_EDIT.updated_at);
+      res = await req.select().maybeSingle();
+    } else res = await sb.from('quotes').insert(row).select().single();
     btn.disabled = false;
     if(res.error){ toast('저장하지 못했어요. ' + friendlyError(res.error), true); return; }
+    if(!res.data){ toast('그 사이 다른 곳에서 이 거래명세서를 고쳤어요. 최신 기록을 다시 연 뒤 PDF를 만들어 주세요.', true); return; }
     const isNew = !TS_EDIT;
     TS_EDIT = res.data;
     QUOTES = [TS_EDIT, ...QUOTES.filter(x=>x.id!==TS_EDIT.id)];
@@ -1526,8 +1531,11 @@ async function printStatement(){
   } else if(MODE==='db' && s.row){
     const patch = { statement_date: s.date };
     if(['작성','보냄'].includes(s.row.status)) patch.status = '수주';
-    const { data, error } = await sb.from('quotes').update(patch).eq('id', s.row.id).select().single();
-    if(error){ toast('견적 기록을 고치지 못했어요. ' + friendlyError(error), true); }
+    let req = sb.from('quotes').update(patch).eq('id', s.row.id);
+    if(s.row.updated_at) req = req.eq('updated_at', s.row.updated_at);
+    const { data, error } = await req.select().maybeSingle();
+    if(error){ toast('견적 기록을 고치지 못했어요. ' + friendlyError(error), true); return; }
+    if(!data){ toast('그 사이 다른 곳에서 이 견적을 고쳤어요. 최신 기록을 다시 연 뒤 PDF를 만들어 주세요.', true); return; }
     else {
       Object.assign(s.row, data); QUOTES = QUOTES.map(x=>x.id===data.id?s.row:x);
       if(CURRENT && CURRENT.id===data.id){ CURRENT = s.row; renderSavedBar(); }
