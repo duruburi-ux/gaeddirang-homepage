@@ -128,6 +128,26 @@
   .ry-account-form{border-top:1px solid var(--line);margin-top:12px;padding-top:8px}
   .ry-account-form .chk{align-items:flex-start}
 
+  /* ---- 정산 자료실 ---- */
+  .archive-template-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:13px}
+  @media(max-width:680px){.archive-template-grid{grid-template-columns:1fr}}
+  .archive-template{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:15px;display:flex;align-items:center;gap:12px}
+  .archive-template>div{flex:1;min-width:0}.archive-template h3{font-size:14px;color:var(--brown);margin-bottom:3px}.archive-template p{font-size:12px;color:var(--muted)}
+  .archive-toolbar{display:flex;align-items:flex-end;gap:16px;justify-content:space-between}
+  .archive-toolbar>div:first-child{min-width:210px}.archive-toolbar h3{margin-bottom:2px}
+  .archive-filters{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+  .archive-filters .in{min-width:132px}.archive-filters #archiveSearch{min-width:190px}
+  .archive-group{margin:15px 0 20px}.archive-group>h3{font-size:14px;color:var(--brown);margin:0 2px 7px}
+  .archive-row{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:center;gap:12px}
+  .archive-row-main{flex:1;min-width:0}.archive-row-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:14px}.archive-row-top b{overflow-wrap:anywhere}
+  .archive-sub{font-size:12.5px;color:var(--ink);margin-top:4px;overflow-wrap:anywhere}.archive-meta{font-size:11.5px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
+  .archive-version{font-size:11px;font-weight:800;color:var(--blue);background:#edf2f7;border-radius:999px;padding:2px 7px}
+  .archive-status{font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px}.archive-status.review{background:#fff0dd;color:#8a5a12}.archive-status.confirmed{background:#e6f5ee;color:var(--ok)}.archive-status.superseded{background:#f0eeec;color:#887c72}
+  .archive-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.archive-empty{font-size:12.5px;color:var(--muted);padding:18px;text-align:center;border:1px dashed var(--line);border-radius:10px}
+  .archive-upload{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:17px;margin-bottom:13px}.archive-upload h3{font-size:14px;color:var(--brown);margin-bottom:8px}
+  .archive-safe{font-size:12px;color:var(--ok);background:#eef6f1;border-radius:8px;padding:8px 10px;margin-bottom:10px}
+  @media(max-width:720px){.archive-toolbar,.archive-row{align-items:stretch;flex-direction:column}.archive-filters{justify-content:flex-start}.archive-filters .in,.archive-filters #archiveSearch{width:100%}.archive-actions{justify-content:flex-start}}
+
   /* ---- 미리보기 ---- */
   .preview-col{position:sticky;top:110px}
   @media (max-width:880px){ .preview-col{position:static} }
@@ -367,6 +387,7 @@
       <span class="tab-anchor" data-group="class"></span>
       <span class="tab-group">정산</span>
       <button class="doc-tab" data-view="royalty">작가 정산</button>
+      <button class="doc-tab" data-view="settlements">정산 자료실</button>
       <span class="tab-group">자료</span>
       <button class="doc-tab" data-view="links">링크 모음</button>
     </div>
@@ -558,6 +579,15 @@
         <p class="print-tip" id="ryPrintTip">선택한 도서의 정가·적용률과 확정 부수로 공제 전 정산액을 다시 계산합니다. PDF로 저장할 때는 「머리글과 바닥글」을 꺼 주세요.</p>
       </div>
     </div>
+  </section>
+
+  <!-- ===== 정산 자료실 ===== -->
+  <section class="page view hidden" id="view-settlements">
+    <div class="archive-template-grid">
+      <article class="archive-template"><div><h3>저자 인세 정산서</h3><p>확정 판매수량과 인세 적용 이벤트만 계산하는 고정 표준양식</p></div><button class="btn-sm" data-settlement-template="royalty">양식 열기</button></article>
+      <article class="archive-template"><div><h3>위탁도서 판매대금 정산서</h3><p>입고·출고 기록과 실제 판매 정산분을 분리하는 고정 표준양식</p></div><button class="btn-sm" data-settlement-template="consignment">양식 열기</button></article>
+    </div>
+    <div id="settlementArchiveHost"></div>
   </section>
 
   <!-- ===== 기록 ===== -->
@@ -1805,6 +1835,13 @@ function initRoyalty(){
   else $('#ryPasteWrap').open = true;
   if(window.RoyaltyAccountUI)window.RoyaltyAccountUI.selectAuthor(BOOK.author);
 }
+function openSettlementTemplate(kind){
+  switchView('royalty');
+  const wantsRoyalty=kind==='royalty';
+  const picked=RY_BOOKS.find(book=>!!book.isRoyalty===wantsRoyalty);
+  if(picked)selectRoyaltyBook(picked.key);
+  toast(wantsRoyalty?'저자 인세 정산서 표준양식을 열었어요.':'위탁도서 판매대금 정산서 표준양식을 열었어요.');
+}
 async function printRoyalty(){
   const s = renderRoyalty();
   if(!BOOK.key||!BOOK.author||!BOOK.title){ toast('작가·도서를 먼저 골라 주세요', true); return; }
@@ -2095,7 +2132,7 @@ async function addLink(){
 }
 
 /* ============ 화면 전환 ============ */
-const VIEWS = ['quote','statement','records','items','links','royalty'];
+const VIEWS = ['quote','statement','records','items','links','royalty','settlements'];
 // 탭마다 맨 위 한 줄: 언제 쓰는 탭인지
 const VIEW_DESC = {
   quote: '기관·학교에 보낼 견적서예요. 문의 메일을 붙여넣으면 칸이 채워져요.',
@@ -2107,6 +2144,7 @@ const VIEW_DESC = {
   roster: '수업이 끝나고 기관 결과보고에 낼 참가자 명단·출석부예요.',
   fees: '지원사업 강사 사례비와 원천세를 계산하고, 신고용 요약까지 뽑아요.',
   royalty: '작가·도서를 골라 인세 또는 외부위탁 판매·재고 현황을 정산서로 만들어요.',
+  settlements: '정산 PDF·원본 파일을 구분·기간·버전·상태별로 비공개 보관하고 이전 버전도 함께 봐요.',
   links: '팀이 같이 쓰는 시트·판매자센터·SNS 주소 모음이에요.',
 };
 const TAB_GROUP = { partners:'b2b', kit:'class', roster:'class', fees:'class' };
@@ -2149,6 +2187,7 @@ function switchView(name){
   if(VIEW_DESC[name] && !sec.querySelector(':scope > .view-desc')) sec.insertAdjacentHTML('afterbegin', `<p class="view-desc">${VIEW_DESC[name]}</p>`);
   if(name==='links') renderLinks();
   if(name==='royalty'){ initRoyalty(); renderRoyalty(); }
+  if(name==='settlements'&&window.SettlementArchiveUI)window.SettlementArchiveUI.show();
   if(EXT[name] && EXT[name].show) EXT[name].show();
   if(activeTab && window.matchMedia('(max-width:880px)').matches) activeTab.scrollIntoView({ block:'nearest', inline:'center' });
   window.scrollTo(0,0);
@@ -2372,12 +2411,14 @@ async function boot(){
 }
 window.__docs = { parseRequest, parseItems, matchCatalog, calcLine, buildQuote, loadData, fillFromText, readForm, koreanAmount,
   buildStatement, switchView, selectStatementSource, tsItems: () => TS_ITEMS, hasSeal: () => !!SEAL,
-  parseLedger, applyRoyaltyPaste, buildRoyalty, withholding, setQuarter, registerDocView };
+  parseLedger, applyRoyaltyPaste, buildRoyalty, withholding, setQuarter, registerDocView, openSettlementTemplate };
 // 추가 탭 파일(docs-*.js)이 모두 등록된 뒤 시작한다
 window.addEventListener('DOMContentLoaded', boot);
 </script>
 <script src="royalty-account-model.js?v=20261010-1"></script>
 <script src="docs-royalty-accounts.js?v=20261010-1"></script>
+<script src="settlement-document-model.js?v=20261010-1"></script>
+<script src="docs-settlement-archive.js?v=20261010-1"></script>
 <script src="docs-kit.js?v=20260916-6"></script>
 <script src="profile-import-model.js?v=20260916-6"></script>
 <script src="docs-profile-import.js?v=20260916-6"></script>

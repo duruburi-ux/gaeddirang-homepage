@@ -28,6 +28,7 @@ const matchBook=(r,get,b)=>compact(get(r,'작가'))===compact(b.author)&&compact
 
 function legacyDashboard(dash,scmDash=[]){
   const pick=label=>number(dash.find(r=>r[0]===label)?.[1]);
+  const pickPrefix=prefix=>number(dash.find(r=>text(r[0]).startsWith(prefix))?.[1]);
   let exemptUsed=null,nonSaleRows=[];
   const eh=dash.findIndex(r=>r[0]==='용도'&&r.includes('누적 사용'));
   if(eh>=0){
@@ -42,19 +43,20 @@ function legacyDashboard(dash,scmDash=[]){
   // SCM 현황이 있으면 판매외 부수는 SCM 입출고원장의 실시간 집계를 우선한다.
   const scmPick=label=>number(scmDash.find(r=>text(r[0])===label)?.[1]);
   const scmExempt=scmPick('면제 사용 합계');
+  const exemptLimit=scmDash.map(r=>text(r[0]).match(/인세 면제\s*([\d,]+)\s*부/)).find(Boolean)?.[1];
   const scmRows=[
     ['납본','납본','도서 등록을 위해 제공한 부수'],
     ['책방/증정 샘플','책방 샘플 제공','책방 비치·소개를 위해 제공한 부수'],
     ['서평단 배포','서평용 제공','서평 및 도서 소개를 위해 제공한 부수'],
   ].map(([source,purpose,note])=>({purpose,qty:scmPick(source),note})).filter(r=>r.qty!=null&&r.qty>0);
   if(scmRows.length){nonSaleRows=scmRows;if(scmExempt!=null)exemptUsed=scmExempt;}
-  return {exemptUsed,nonSaleRows,dashboard:{totalQty:pick('누적 판매권수(인세대상)'),totalRoyalty:pick('누적 인세(정가30%)'),paid:pick('지급 완료'),unpaid:pick('미지급(지급 예정)')}};
+  return {exemptLimit:number(exemptLimit),exemptUsed,nonSaleRows,dashboard:{totalQty:pick('누적 판매권수(인세대상)'),totalRoyalty:pickPrefix('누적 인세('),paid:pick('지급 완료'),unpaid:pick('미지급(지급 예정)')}};
 }
 
-function ledgerSales(ledger,b){
+function ledgerSales(ledger,b,allowLegacy){
   const {header,rows,get}=ledger;
   const hasBookColumns=header.includes('작가')&&header.includes('도서');
-  if(!hasBookColumns&&b.title!=='문고리')return [];
+  if(!hasBookColumns&&!allowLegacy)return [];
   return rows.filter(r=>!hasBookColumns||matchBook(r,get,b)).map(r=>({
     month:get(r,'정산월'),date:get(r,'판매일'),channel:get(r,'채널'),partner:get(r,'거래처'),
     price:number(get(r,'정가'))??b.price,qty:number(get(r,'판매권수'))??0,
@@ -116,6 +118,8 @@ export function buildRoyalty(raw){
   const ledger=table(raw.ledger,LEDGER_REQUIRED),basis=table(raw.basis,BASIS_REQUIRED);
   const inventory=table(raw.inventory,INVENTORY_REQUIRED),settlements=table(raw.settlements,SETTLEMENT_REQUIRED);
   const legacy=legacyDashboard(rowsOf(raw.dashboard),rowsOf(raw.scmStatus));
+  const royaltyBasisRows=basis.rows.filter(r=>/인세|자체출판/.test(basis.get(r,'관리 구분')));
+  const legacyRoyaltyKey=royaltyBasisRows.length===1?keyOf(basis.get(royaltyBasisRows[0],'작가'),basis.get(royaltyBasisRows[0],'도서')):'';
   const books=basis.rows.map(r=>{
     const b={
       author:basis.get(r,'작가'),title:basis.get(r,'도서'),type:basis.get(r,'관리 구분')||'작가 정산',
@@ -130,7 +134,7 @@ export function buildRoyalty(raw){
       const latest=latestInventoryBalance(inventory,b);
       if(latest){b.currentStock=latest.qty;b.checkedAt=latest.date;}
     }
-    b.sales=b.isRoyalty?ledgerSales(ledger,b):consignmentSales(inventory,b);
+    b.sales=b.isRoyalty?ledgerSales(ledger,b,b.key===legacyRoyaltyKey):consignmentSales(inventory,b);
     b.operations=b.isRoyalty?legacy.nonSaleRows.map(x=>({label:x.purpose,qty:x.qty,note:x.note})):consignmentOperations(inventory,b);
     const giftCopies={
       agreed:number(basis.get(r,'증정본 약정 수량')),
@@ -138,8 +142,8 @@ export function buildRoyalty(raw){
       remaining:number(basis.get(r,'증정본 잔여 수량')),
     };
     if(b.isRoyalty&&Object.values(giftCopies).some(v=>v!=null))b.giftCopies=giftCopies;
-    b.exemptLimit=b.isRoyalty&&b.title==='문고리'?200:null;
-    b.exemptUsed=b.exemptLimit?legacy.exemptUsed:null;
+    b.exemptLimit=b.isRoyalty&&b.key===legacyRoyaltyKey?legacy.exemptLimit:null;
+    b.exemptUsed=b.exemptLimit!=null?legacy.exemptUsed:null;
     b.payoutStatus=payoutStatus(settlements,b);
     return b;
   }).filter(b=>b.author&&b.title&&b.price>0&&b.rate>0);

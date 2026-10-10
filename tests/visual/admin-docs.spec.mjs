@@ -10,6 +10,7 @@ const views = [
   ['roster', '명단·출석부'],
   ['fees', '사례비 지급 명세'],
   ['royalty', '작가 정산'],
+  ['settlements', '정산 자료실'],
   ['links', '링크 모음'],
 ];
 
@@ -436,6 +437,72 @@ test('admin docs: royalty payment accounts stay masked, explicit and outside the
   await expect(account.locator('#ryAccountNote')).toContainText('확인 완료');
   expect(await page.evaluate(()=>Object.values(localStorage).some(v=>String(v).includes('000000000000')))).toBe(false);
   await expect(page.locator('#rySheet')).not.toContainText('000000000000');
+});
+
+test('admin docs: settlement archive separates templates, versions and private access', async ({ page }) => {
+  await page.goto('/admin/docs.html?preview#settlements', {waitUntil:'domcontentloaded'});
+  const archive=page.locator('#view-settlements');
+  await expect(archive).toBeVisible();
+  await expect(archive).toContainText('저자 인세 정산서');
+  await expect(archive).toContainText('위탁도서 판매대금 정산서');
+  await expect(archive).toContainText('작가별 외부 정산');
+  await expect(archive).toContainText('내부 팀 정산');
+  await expect(archive).toContainText('회사 보고서');
+  await expect(archive.locator('.archive-status.review').first()).toContainText('검토중');
+  await expect(archive.locator('.archive-status.confirmed').first()).toContainText('확정');
+  await expect(archive.locator('.archive-status.superseded').first()).toContainText('대체됨');
+  await expect(archive.locator('.archive-row')).toHaveCount(4);
+  await expect(archive.locator('.archive-row').first()).toContainText('가상');
+  await expect(archive.locator('.archive-open').first()).toBeDisabled();
+
+  await archive.locator('[data-settlement-template="consignment"]').click();
+  await expect(page.locator('#view-royalty')).toBeVisible();
+  await expect(page).toHaveURL(/#royalty$/);
+
+  await page.evaluate(async()=>{
+    MODE='db';window.confirm=()=>true;window.__archiveCalls=[];window.__archiveOpen='';
+    window.open=url=>{window.__archiveOpen=url;};
+    const rows=[{id:'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',series_id:'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',version_no:1,category:'internal_team',period_label:'2026년 8~9월',subject:'가상팀',title:'가상 내부 정산',status:'review',file_name:'가상팀_정산.pdf',storage_path:'33333333-3333-3333-3333-333333333333/cccccccc-cccc-cccc-cccc-cccccccccccc/가상팀_정산.pdf',mime_type:'application/pdf',size_bytes:100,created_at:'2026-10-10T00:00:00Z'}];
+    sb.auth.getSession=async()=>({data:{session:{user:{id:'33333333-3333-3333-3333-333333333333'}}}});
+    sb.rpc=async(name,args)=>{
+      window.__archiveCalls.push({name,args});
+      if(name==='list_settlement_documents')return {data:rows,error:null};
+      if(name==='record_settlement_document_access')return {data:rows[0].storage_path,error:null};
+      if(name==='set_settlement_document_status')return {data:null,error:null};
+      if(name==='register_settlement_document')return {data:[{id:'new-doc'}],error:null};
+      return {data:null,error:{message:'UNEXPECTED_RPC'}};
+    };
+    sb.storage.from=bucket=>({
+      createSignedUrl:async(path,seconds,options)=>{window.__archiveCalls.push({name:'signed',bucket,path,seconds,options});return {data:{signedUrl:'https://signed.example.test/file'},error:null};},
+      upload:async(path,file,options)=>{window.__archiveCalls.push({name:'upload',bucket,path,fileName:file.name,options});return {data:{path},error:null};},
+      remove:async paths=>{window.__archiveCalls.push({name:'remove',paths});return {data:[],error:null};},
+    });
+    switchView('settlements');await SettlementArchiveUI.reload();
+  });
+  await expect(archive).toContainText('가상 내부 정산');
+  await archive.locator('.archive-open').click();
+  await expect.poll(()=>page.evaluate(()=>window.__archiveOpen)).toBe('https://signed.example.test/file');
+  const signed=await page.evaluate(()=>window.__archiveCalls.find(call=>call.name==='signed'));
+  expect(signed.bucket).toBe('settlement-documents');
+  expect(signed.seconds).toBe(60);
+  await archive.locator('.archive-supersede').first().click();
+  await expect.poll(()=>page.evaluate(()=>window.__archiveCalls.some(call=>call.name==='set_settlement_document_status'&&call.args.p_status==='superseded'))).toBe(true);
+
+  await archive.locator('#archiveAdd').click();
+  await archive.locator('#archivePeriodLabel').fill('2026년 10월');
+  await archive.locator('#archiveSubject').fill('가상팀');
+  await archive.locator('#archiveTitle').fill('가상 월간 정산');
+  await archive.locator('#archiveFile').setInputFiles({name:'가상팀_10월_정산.pdf',mimeType:'application/pdf',buffer:Buffer.from('fake private pdf')});
+  await archive.locator('#archiveUpload').click();
+  await expect.poll(()=>page.evaluate(()=>window.__archiveCalls.some(call=>call.name==='register_settlement_document'))).toBe(true);
+  const upload=await page.evaluate(()=>window.__archiveCalls.find(call=>call.name==='upload'));
+  const register=await page.evaluate(()=>window.__archiveCalls.find(call=>call.name==='register_settlement_document'));
+  expect(upload.options.upsert).toBe(false);
+  expect(upload.path).toMatch(/^33333333-3333-3333-3333-333333333333\/[0-9a-f-]{36}\//);
+  expect(register.args.p_storage_path).toBe(upload.path);
+  expect(register.args.p_sha256).toMatch(/^[0-9a-f]{64}$/);
+  expect(register.args.p_status).toBeUndefined();
+  expect(await page.evaluate(()=>Object.values(localStorage).some(value=>String(value).includes('가상팀_10월_정산.pdf')))).toBe(false);
 });
 
 test('admin docs: every printable form stays on one branded A4 page', async ({ page }) => {
