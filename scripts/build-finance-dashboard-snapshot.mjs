@@ -134,7 +134,7 @@ export function buildSnapshot(data,definitions,sources,validation,drilldown={con
       const scheduledSigned=sum(memberSchedule.map(row=>{const raw=data.recommended_transfers_not_sent[Number(row.id.split(':')[1])-1];return raw.to===member.member_id?row.amount:-row.amount}));
       const memberCompleted=monthCompleted.filter(row=>{const raw=data.actual_completed_transfers.find(item=>`transfer:${item.transfer_id}`===row.id);return raw.from_member_id===member.member_id||raw.to_member_id===member.member_id});
       const actualReceived=Number.isSafeInteger(month.team_money_already_received)?month.team_money_already_received+Number(month.prior_settlement_received||0):null;
-      const memberDocs=[selector(periodKey,member.legal_name)];
+      const memberDocs=[selector(periodKey,`${member.display_name} 본인 검토`)];
       const metrics=[
         metric('income',sum(memberIncome.map(row=>row.amount)),'verified',status,'확인된 개인 100% 수입만 표시하며 팀 수입·보관금에서 제외합니다.',[],memberIncome.map(row=>row.id)),
         metric('expense',null,'not_applicable',status,'현재 원천은 개인 지출 장부를 제공하지 않습니다.'),
@@ -143,7 +143,7 @@ export function buildSnapshot(data,definitions,sources,validation,drilldown={con
         Number.isSafeInteger(month.outstanding_signed)?metric('settlement',month.outstanding_signed,'verified','confirmed',`${stateNote(month)}입니다. 양수는 팀이 줄 돈, 음수는 구성원이 돌려줄 돈입니다.`,[],memberEvidence.filter(row=>row.id.startsWith('settlement:')).map(row=>row.id),memberDocs):pending('settlement',month.reason||'이 달 정산을 아직 만들지 않았습니다.'),
         actualReceived==null?pending('received',month.reason||'실제 수령 근거를 확인해야 합니다.'):metric('received',actualReceived,'verified','confirmed','개인 통장으로 이미 받은 팀 돈과 이전에 실제 받은 정산금을 합쳤습니다. 지급 완료 상태와 별도로 확인합니다.',[{label:'개인 통장으로 이미 받은 팀 돈',amount:month.team_money_already_received,operator:'+'},{label:'전에 실제 받은 정산금',amount:Number(month.prior_settlement_received||0),operator:'+'}],memberCompleted.map(row=>row.id),memberDocs),
         metric('held_unsettled',sum(memberHolding.map(row=>row.amount)),'verified',status,'개인 수입이 아니라 아직 배분하지 않은 팀 돈입니다.',[],memberHolding.map(row=>row.id)),
-        metric('scheduled',scheduledSigned,'verified','review','8·9월 합산 권장 이체입니다. 양수는 받을 돈, 음수는 보낼 돈이며 아직 완료되지 않았습니다.',[],memberSchedule.map(row=>row.id),[selector('2026-08',member.legal_name),selector('2026-09',member.legal_name)]),
+        metric('scheduled',scheduledSigned,'verified','review','8·9월 합산 권장 이체입니다. 양수는 받을 돈, 음수는 보낼 돈이며 아직 완료되지 않았습니다.',[],memberSchedule.map(row=>row.id),[selector('2026-08',`${member.display_name} 본인 검토`),selector('2026-09',`${member.display_name} 본인 검토`)]),
         Number.isSafeInteger(month.share_total)?metric('share',month.share_total,'verified','confirmed','활동비·프로그램 몫·인세·개인 책 판매·비용 돌려받기의 합계이며 현재 통장 잔액이 아닙니다.',Object.entries(month.share_components||{}).map(([key,amount])=>({label:COMPONENT_LABELS[key]||key,amount,operator:'+'})),memberEvidence.filter(row=>row.id.startsWith('share:')).map(row=>row.id),memberDocs):pending('share',month.reason||'이 달 개인 몫을 아직 계산하지 않았습니다.'),
       ];
       assert(metrics.map(row=>row.key).every(key=>METRIC_KEYS.includes(key)),'FINANCE_METRIC_KEY_INVALID');
@@ -166,7 +166,8 @@ export function loadBundle(directory){
   const sourceFile=parsed['sources_2026-10-12.json'];
   for(const row of sourceFile.sources||[]){assert(existsSync(row.path),`FINANCE_ORIGINAL_SOURCE_MISSING:${row.source_id}`);assert(sha256(readFileSync(row.path))===row.sha256,`FINANCE_ORIGINAL_SOURCE_CHANGED:${row.source_id}`)}
   const payload=buildSnapshot(parsed['finance_dashboard_data_2026-10-12.json'],parsed['metric_definitions_2026-10-12.json'],sourceFile,parsed['validation_2026-10-12.json'],parsed['finance_dashboard_transactions_2026-10-12.json'],parsed['finance_dashboard_transaction_schema_2026-10-12.json'],parsed['finance_dashboard_drilldown_validation_2026-10-12.json']);
-  const bundleHash=sha256(Buffer.concat(buffers.flatMap(([name,buffer])=>[Buffer.from(name),buffer])));
+  const builderBuffer=readFileSync(fileURLToPath(import.meta.url));
+  const bundleHash=sha256(Buffer.concat([...buffers.flatMap(([name,buffer])=>[Buffer.from(name),buffer]),Buffer.from('build-finance-dashboard-snapshot.mjs'),builderBuffer]));
   return {sourceAsOf:parsed['finance_dashboard_data_2026-10-12.json'].as_of,sourceSha256:bundleHash,validationStatus:parsed['validation_2026-10-12.json'].status,payload};
 }
 

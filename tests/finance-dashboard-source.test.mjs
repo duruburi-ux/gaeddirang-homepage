@@ -27,6 +27,7 @@ test('검증 원천을 UI 계약으로 바꾸되 회사 손익·잔액은 추정
 test('정산 계산 상태와 지급 상태를 합치지 않고 개인 몫·받은 팀 돈·남은 돈을 따로 만든다',()=>{
   const payload=buildSnapshot(...args()),person=payload.periods[0].scopes.find(row=>row.key==='duru'),byKey=Object.fromEntries(person.metrics.map(row=>[row.key,row]));
   assert.equal(byKey.share.amount,30000);assert.equal(byKey.received.amount,12000);assert.equal(byKey.settlement.amount,18000);assert.match(byKey.settlement.note,/계산 확정/);assert.match(byKey.settlement.note,/월별 지급 전/);assert.equal(byKey.expense.availability,'not_applicable');assert.equal(byKey.payable.amount,18000);assert.equal(byKey.receivable.amount,0);
+  assert.equal(byKey.settlement.documentSelectors[0].subject,'가상1 본인 검토');
 });
 
 test('private snapshot에는 원천 경로·민감 원문을 내보내지 않고 공개 seed도 만들지 않는다',()=>{
