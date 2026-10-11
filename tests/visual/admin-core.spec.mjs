@@ -37,7 +37,18 @@ async function installVirtualAdmin(page){
         {id:'22222222-2222-4222-8222-222222222222',connector_code:'smartstore',occurred_at:'2026-10-10T04:05:00Z',evidence_type:'smartstore_order',summary:'스마트스토어 상품 주문 · RETURN_REQUEST',candidate_type:'reversal',review_reason:'원거래 참조 필수',review_status:'conflict',created_at:'2026-10-10T04:06:00Z'},
       ],
     };
-    window.__failTable='';window.__failScmRead=false;window.__scmFetchedAt='';window.__authCallbacks=[];window.__orderRequests=new Map();window.__adminOrderRpcCalls=0;
+    window.__failTable='';window.__failScmRead=false;window.__scmFetchedAt='';window.__failFinance=false;window.__financeDelay=0;window.__financeRpcCalls=0;window.__authCallbacks=[];window.__orderRequests=new Map();window.__adminOrderRpcCalls=0;
+    const financeMetrics=(status='confirmed')=>[
+      {key:'income',amount:128000,availability:'verified',status,calculation:[{label:'가상 판매 입금',amount:128000,operator:'='}],evidenceIds:['virtual-income'],documentIds:[],note:'내부 이체를 제외한 합성 검증값입니다.'},
+      {key:'expense',amount:null,availability:'withheld',status,calculation:[],evidenceIds:['virtual-transfer'],documentIds:[],note:'카드 정산과 계좌 지출 중복을 가를 수 없어 합계를 보류했습니다.'},
+      {key:'settlement',amount:48000,availability:'verified',status,calculation:[{label:'가상 확정 정산',amount:48000,operator:'='}],evidenceIds:['virtual-settlement'],documentIds:['aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'],note:'문서 확정이며 지급 완료가 아닙니다.'},
+      {key:'received',amount:32000,availability:'verified',status,calculation:[],evidenceIds:['virtual-received'],documentIds:[]},
+      {key:'held_unsettled',amount:16000,availability:'verified',status,calculation:[],evidenceIds:['virtual-held'],documentIds:[]},
+      {key:'scheduled',amount:48000,availability:'verified',status,calculation:[],evidenceIds:['virtual-settlement'],documentIds:['aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa']},
+      {key:'share',amount:null,availability:'pending',status,calculation:[],evidenceIds:[],documentIds:[],note:'개인 귀속 규칙 확인이 필요합니다.'},
+    ];
+    const financePeriod=(key,label,status)=>({key,label,status,sourceAsOf:`${key}-28`,teamAccountBalance:{amount:999999,availability:'pending',note:'은행 잔액 근거가 없어 수입-지출로 역산하지 않았습니다.'},bankMovement:{availability:key==='2026-10'?'pending':'verified',inflow:key==='2026-10'?null:180000,outflow:key==='2026-10'?null:125000,netChange:key==='2026-10'?null:55000,rowCount:key==='2026-10'?null:8,note:key==='2026-10'?'월별 원천이 아직 준비되지 않았습니다.':'합성 은행계좌 행 참고값이며 손익·잔액이 아닙니다.'},warnings:['가상 개인 100% 수입은 팀 수입에서 제외했습니다.'],scopes:['team','duru','jini','dasom'].map(scope=>({key:scope,metrics:financeMetrics(status==='in_progress'?'review':'confirmed')})),evidence:[{id:'virtual-income',date:`${key}-03`,label:'가상 판매 입금',amount:128000,kind:'income',source:'합성 거래 원장',status:'verified',included:true,sourceRefHash:'a'.repeat(64)},{id:'virtual-transfer',date:`${key}-04`,label:'가상 내부 이체',amount:50000,kind:'internal_transfer',source:'합성 거래 원장',status:'excluded',included:false,note:'수입·지출 합계 제외',sourceRefHash:'b'.repeat(64)},{id:'virtual-settlement',date:`${key}-20`,label:'가상 확정 정산',amount:48000,kind:'settlement',source:'합성 정산 문서',status:'verified',included:true,sourceRefHash:'c'.repeat(64)},{id:'virtual-received',date:`${key}-21`,label:'가상 실제 입금',amount:32000,kind:'received',source:'합성 입금 근거',status:'verified',included:true,sourceRefHash:'d'.repeat(64)},{id:'virtual-held',date:`${key}-22`,label:'가상 개인 보관금',amount:16000,kind:'held_unsettled',source:'합성 검토 자료',status:'verified',included:true,sourceRefHash:'e'.repeat(64)}],documents:[{id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',title:'가상 최종 정산서',periodLabel:label,status:'confirmed',versionNo:3}]});
+    window.__financePayload={schemaVersion:1,generatedAt:'2026-10-12T01:00:00Z',periods:[financePeriod('2026-10','2026년 10월','in_progress'),financePeriod('2026-09','2026년 9월','confirmed'),financePeriod('2026-08','2026년 8월','confirmed')]};
     class Query{
       constructor(table){this.table=table;this.op='select';this.filters=[];this.options={};this.patch=null;this.payload=null;this.returning=false;}
       select(_columns,options={}){if(this.op==='update')this.returning=true;else this.op='select';this.options={...this.options,...options};return this;}
@@ -68,6 +79,9 @@ async function installVirtualAdmin(page){
     };
     const rpc=async(name,args)=>{
       if(name==='is_admin')return {data:true,error:null};
+      if(name==='get_finance_dashboard'){window.__financeRpcCalls++;if(window.__financeDelay)await new Promise(resolve=>setTimeout(resolve,window.__financeDelay));return window.__failFinance?{data:null,error:{message:'virtual finance failure'}}:{data:clone(window.__financePayload),error:null}}
+      if(name==='list_settlement_documents')return {data:[{id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',title:'가상 최종 정산서',period_label:'2026년 9월',version_no:3,status:'confirmed',storage_path:'virtual/document.pdf',file_name:'virtual-document.pdf'}],error:null};
+      if(name==='record_settlement_document_access')return {data:'virtual/document.pdf',error:null};
       if(name==='create_admin_order_v1'){
         window.__adminOrderRpcCalls++;
         const fingerprint=JSON.stringify(args),prior=window.__orderRequests.get(args.p_request_id);
@@ -79,7 +93,7 @@ async function installVirtualAdmin(page){
       }
       return {data:null,error:{message:'unsupported rpc'}};
     };
-    window.supabase={createClient:()=>({auth,from:table=>new Query(table),rpc})};
+    window.supabase={createClient:()=>({auth,from:table=>new Query(table),rpc,storage:{from:()=>({createSignedUrl:async()=>({data:{signedUrl:'https://example.test/document'},error:null})})}})};
   });
   await page.route('**/supabase.min.js',route=>route.fulfill({contentType:'application/javascript',body:''}));
   await page.route('**/xlsx.full.min.js',route=>route.fulfill({contentType:'application/javascript',body:'window.XLSX={};'}));
@@ -263,4 +277,34 @@ test('admin core: list search, sort, reset and browser-back detail flow',async({
   await page.locator('#oSearch').fill('없는 주문');await expect(page.locator('#ordersList .empty-state')).toContainText('조건에 맞는 주문이 없어요');await expect(page.locator('#ordersCount')).toContainText('전체 2건 중 0건');
   await page.getByRole('button',{name:'조건 지우고 전체 보기'}).click();await expect(page.locator('#ordersCount')).toHaveText('2건');await expect(page.locator('#oSearch')).toBeFocused();
   const row=page.locator('#ordersList .row').first();await row.click();await expect(page.locator('#panelHost .panel')).toBeVisible();await page.goBack();await expect(page.locator('#panelHost .panel')).toBeHidden();await expect(row).toBeFocused();
+});
+
+for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',width:360,height:780}]){
+  test(`admin finance ${viewport.name}: periods, scopes, evidence and conservative unknowns`,async({page})=>{
+    await openAdmin(page,viewport);await page.waitForFunction(()=>Boolean(window.FinanceDashboard));await goTab(page,viewport,'finance',/재정 현황/);
+    await expect(page.locator('#finance-content')).toBeVisible();
+    await expect(page.locator('#finance-period')).toHaveValue('2026-10');
+    await expect(page.locator('#finance-period-banner')).toContainText('진행 중');
+    await expect(page.locator('#finance-balance')).toContainText('확인 필요');
+    await expect(page.locator('#finance-balance')).not.toContainText('999,999');
+    await expect(page.locator('#finance-metrics .finance-card')).toHaveCount(7);
+    await expect(page.locator('.finance-card[data-finance-metric="expense"]')).toContainText('집계 보류');
+    await page.screenshot({path:`test-results/admin-finance-${viewport.name}-team.png`,fullPage:true});
+    await page.locator('#finance-scope [data-finance-scope="dasom"]').click();await expect(page.locator('#finance-scope [data-finance-scope="dasom"]')).toHaveAttribute('aria-pressed','true');
+    await page.locator('#finance-period').selectOption('2026-09');await expect(page.locator('#finance-period-banner')).toContainText('확정');
+    const settlement=page.locator('.finance-card[data-finance-metric="settlement"]');await settlement.click();await expect(page.locator('#panelHost .panel')).toBeVisible();
+    await expect(page.locator('#panelHost .panel')).toContainText('문서 확정이며 지급 완료가 아닙니다');await expect(page.locator('#panelHost .panel')).toContainText('가상 최종 정산서');
+    await page.goBack();await expect(page.locator('#panelHost .panel')).toBeHidden();await expect(settlement).toBeFocused();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+    await page.evaluate(()=>window.scrollTo(0,0));
+    await page.screenshot({path:`test-results/admin-finance-${viewport.name}-member.png`,fullPage:true});
+  });
+}
+
+test('admin finance: failed refresh does not reuse or invent a successful value',async({page})=>{
+  await openAdmin(page,{width:1200,height:900});await page.evaluate(()=>{window.__failFinance=true});await goTab(page,{width:1200,height:900},'finance',/재정 현황/);
+  await expect(page.locator('#finance-status')).toContainText('이전 값을 재사용하지 않았습니다');await expect(page.locator('#finance-content')).toBeHidden();
+  await page.evaluate(()=>{window.__failFinance=false});await page.locator('#finance-refresh').click();await expect(page.locator('#finance-content')).toBeVisible();await expect(page.locator('#finance-status')).toContainText('검증된 재정 스냅샷');
+  const before=await page.evaluate(()=>window.__financeRpcCalls);await page.evaluate(()=>{window.__financeDelay=80;const button=document.querySelector('#finance-refresh');button.click();button.click()});await expect(page.locator('#finance-refresh')).toBeEnabled();expect(await page.evaluate(()=>window.__financeRpcCalls)).toBe(before+1);
+  await page.evaluate(()=>window.__authCallbacks.forEach(callback=>callback('SIGNED_OUT',null)));await expect(page.locator('#loginView')).toBeVisible();await expect(page.locator('#finance-content')).toBeHidden();
 });
