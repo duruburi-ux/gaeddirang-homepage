@@ -1,8 +1,9 @@
 begin;
 
-select plan(12);
+select plan(13);
 
 select has_table('public', 'integration_evidence_inbox', 'evidence inbox exists');
+select has_column('public', 'integration_evidence_inbox', 'evidence_metadata', 'minimal source metadata has a dedicated private column');
 select ok(
   (select c.relrowsecurity from pg_catalog.pg_class c
     join pg_catalog.pg_namespace n on n.oid=c.relnamespace

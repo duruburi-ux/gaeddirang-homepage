@@ -38,6 +38,7 @@ export function makeHandler({env,fetcher=fetch,now=()=>Date.now(),cryptoImpl=cry
       rows.push({
         source_event_id:event.sourceEventId,content_hash:contentHash,occurred_at:event.occurredAt,evidence_type:event.evidenceType,
         summary:event.summary,source_ref:event.sourceRef||null,attachment_hashes:event.attachmentHashes||[],candidate_type:event.candidateType,
+        evidence_metadata:event.evidenceMetadata||{},
         candidate_payload:{canonical_sku:event.canonicalSku||null,quantity:event.quantity,unit_amount:event.unitAmount,reverses_event_id:event.reversesEventId||null},
         review_reason:event.reviewReason||null,
       });

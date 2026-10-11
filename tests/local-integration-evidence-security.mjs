@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 
 const apiUrl = process.env.LOCAL_SUPABASE_URL;
 const anonKey = process.env.LOCAL_SUPABASE_ANON_KEY;
@@ -100,6 +100,10 @@ const ordinaryIngest = await rpc('ingest_integration_evidence', {
 expectDenied(ordinaryIngest, 'ordinary ingest');
 
 const sourceEventId = `order:virtual-${runId}:발송준비`;
+const hash = value => createHash('sha256').update(value).digest('hex');
+const uidHash = hash(`uid:${runId}`);
+const messageIdHash = hash(`message:${runId}`);
+const attachmentHash = 'f'.repeat(64);
 const baseRow = {
   source_event_id: sourceEventId,
   content_hash: 'a'.repeat(64),
@@ -144,10 +148,15 @@ const messageEscalation = await rpc('ingest_integration_evidence', {
   p_run_id: randomUUID(),
   p_rows: [{
     ...baseRow,
-    source_event_id: `mail:virtual-${runId}`,
+    source_event_id: `naver-mail:${uidHash}:${messageIdHash}`,
     content_hash: 'c'.repeat(64),
     evidence_type: 'mail_message',
     summary: '가상 업무 메일',
+    evidence_metadata: {
+      source_uid_hash: uidHash,
+      message_id_hash: messageIdHash,
+      attachments: [{ sha256: attachmentHash, mime_type: 'text/csv', size: 100, local_ref: `moneypin_attachments/2026-10/${attachmentHash}.csv` }],
+    },
     candidate_type: 'sale',
   }],
 }, adminToken);
@@ -201,6 +210,91 @@ assert.equal(edgeRow.json?.length, 1, 'Edge ingest must be queryable through RLS
 assert.equal(edgeRow.json[0].review_status, 'pending');
 assert.equal(edgeRow.json[0].candidate_type, 'reservation');
 
+const naverSourceId = `naver-mail:${uidHash}:${messageIdHash}`;
+const naverEdge = await request('/functions/v1/integration-ingest', {
+  method: 'POST',
+  token: adminToken,
+  body: {
+    action: 'ingest', connectorCode: 'naver_mail', runId: randomUUID(), dryRun: false,
+    events: [{
+      messageId: naverSourceId,
+      receivedAt: '2026-10-11T01:00:00Z',
+      mailbox: 'INBOX', uidHash, messageIdHash,
+      subject: '이 합성 제목은 저장되면 안 됨', body: '이 합성 본문은 저장되면 안 됨',
+      attachments: [{
+        sha256: attachmentHash,
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        size: 1024,
+        localRef: `moneypin_attachments/2026-10/${attachmentHash}.xlsx`,
+      }],
+    }],
+  },
+});
+assert.equal(naverEdge.response.status, 200, naverEdge.text);
+assert.equal(naverEdge.json?.inserted, 1);
+const naverRow = await request(
+  `/rest/v1/integration_evidence_inbox?source_event_id=eq.${encodeURIComponent(naverSourceId)}&select=attachment_hashes,evidence_metadata,summary`,
+  { token: adminToken },
+);
+assert.equal(naverRow.response.status, 200, naverRow.text);
+assert.deepEqual(naverRow.json?.[0]?.attachment_hashes, [attachmentHash]);
+assert.equal(naverRow.json?.[0]?.evidence_metadata?.source_uid_hash, uidHash);
+assert.equal(naverRow.json?.[0]?.evidence_metadata?.attachments?.[0]?.size, 1024);
+assert.ok(!JSON.stringify(naverRow.json).includes('합성 제목'));
+assert.ok(!JSON.stringify(naverRow.json).includes('합성 본문'));
+
+const chatSourceId = `spaces/s/messages/${runId}`;
+const chatBase = {
+  messageId: chatSourceId,
+  createTime: '2026-10-11T02:00:00Z',
+  threadName: 'spaces/s/threads/synthetic',
+  contentHash: '7'.repeat(64),
+  attachmentRefHashes: ['8'.repeat(64)],
+  text: '이 합성 Chat 본문은 저장되면 안 됨',
+};
+const chatEdge = await request('/functions/v1/integration-ingest', {
+  method: 'POST', token: adminToken,
+  body: { action: 'ingest', connectorCode: 'google_chat', runId: randomUUID(), dryRun: false, events: [chatBase] },
+});
+assert.equal(chatEdge.response.status, 200, chatEdge.text);
+assert.equal(chatEdge.json?.inserted, 1);
+const chatRow = await request(
+  `/rest/v1/integration_evidence_inbox?source_event_id=eq.${encodeURIComponent(chatSourceId)}&select=evidence_metadata,summary`,
+  { token: adminToken },
+);
+assert.equal(chatRow.response.status, 200, chatRow.text);
+assert.deepEqual(chatRow.json?.[0]?.evidence_metadata, { content_hash: '7'.repeat(64), attachment_ref_hashes: ['8'.repeat(64)] });
+assert.ok(!JSON.stringify(chatRow.json).includes('합성 Chat 본문'));
+
+const changedChat = await request('/functions/v1/integration-ingest', {
+  method: 'POST', token: adminToken,
+  body: { action: 'ingest', connectorCode: 'google_chat', runId: randomUUID(), dryRun: false, events: [{ ...chatBase, contentHash: '9'.repeat(64) }] },
+});
+assert.equal(changedChat.response.status, 200, changedChat.text);
+assert.equal(changedChat.json?.conflicts, 1, 'same source with changed metadata must conflict');
+
+for (const [label, evidenceMetadata] of [
+  ['raw body key', { body: 'forbidden' }],
+  ['oversized attachment', { source_uid_hash: uidHash, message_id_hash: messageIdHash, attachments: [{ sha256: attachmentHash, mime_type: 'text/csv', size: 10485761, local_ref: `moneypin_attachments/2026-10/${attachmentHash}.csv` }] }],
+  ['unsafe local ref', { source_uid_hash: uidHash, message_id_hash: messageIdHash, attachments: [{ sha256: attachmentHash, mime_type: 'text/csv', size: 100, local_ref: '../outside.csv' }] }],
+  ['invalid content hash', { content_hash: 'bad', attachment_ref_hashes: [] }],
+]) {
+  const rejected = await rpc('ingest_integration_evidence', {
+    p_connector_code: label === 'invalid content hash' ? 'google_chat' : 'naver_mail',
+    p_run_id: randomUUID(),
+    p_rows: [{
+      ...baseRow,
+      source_event_id: `invalid:${label}:${runId}`,
+      content_hash: '6'.repeat(64),
+      evidence_type: 'mail_message',
+      candidate_type: 'evidence',
+      evidence_metadata: evidenceMetadata,
+    }],
+  }, adminToken);
+  expectDenied(rejected, label);
+  assert.match(rejected.text, /EVIDENCE_ROW_INVALID/);
+}
+
 const logout = await request('/auth/v1/logout?scope=local', {
   method: 'POST',
   token: adminToken,
@@ -221,4 +315,4 @@ const cleanup = await request(`/rest/v1/admin_emails?email=eq.${encodeURICompone
 });
 assert.equal(cleanup.response.status, 204, cleanup.text);
 
-console.log('PASS local evidence HTTP: anon/ordinary denied, admin insert/duplicate/conflict/review, messages stay evidence-only, Edge persistence, direct writes denied, session revocation');
+console.log('PASS local evidence HTTP: auth/RLS, Naver+Chat minimal metadata, raw text exclusion, metadata rejection/conflict, review, session revocation');

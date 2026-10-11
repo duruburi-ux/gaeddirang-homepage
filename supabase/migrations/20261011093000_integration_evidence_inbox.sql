@@ -12,6 +12,7 @@ create table if not exists public.integration_evidence_inbox (
   summary text not null check (char_length(summary) between 1 and 180),
   source_ref text check (source_ref is null or char_length(source_ref) <= 300),
   attachment_hashes text[] not null default '{}',
+  evidence_metadata jsonb not null default '{}'::jsonb check (jsonb_typeof(evidence_metadata) = 'object'),
   candidate_type text not null check (candidate_type in ('evidence','reservation','sale','reversal','settlement_candidate')),
   candidate_payload jsonb not null default '{}'::jsonb check (jsonb_typeof(candidate_payload) = 'object'),
   review_reason text check (review_reason is null or char_length(review_reason) <= 500),
@@ -82,6 +83,53 @@ begin
          select 1 from jsonb_array_elements_text(coalesce(v_row -> 'attachment_hashes','[]'::jsonb)) h(value)
           where h.value !~ '^[a-f0-9]{64}$'
        )
+       or jsonb_typeof(coalesce(v_row -> 'evidence_metadata','{}'::jsonb)) <> 'object'
+       or coalesce(v_row -> 'evidence_metadata','{}'::jsonb)
+            - array['source_uid_hash','message_id_hash','content_hash','attachments','attachment_ref_hashes'] <> '{}'::jsonb
+       or (coalesce(v_row -> 'evidence_metadata','{}'::jsonb) ? 'source_uid_hash'
+           and coalesce(v_row #>> '{evidence_metadata,source_uid_hash}','') !~ '^[a-f0-9]{64}$')
+       or (coalesce(v_row -> 'evidence_metadata','{}'::jsonb) ? 'message_id_hash'
+           and coalesce(v_row #>> '{evidence_metadata,message_id_hash}','') !~ '^[a-f0-9]{64}$')
+       or (coalesce(v_row -> 'evidence_metadata','{}'::jsonb) ? 'content_hash'
+           and coalesce(v_row #>> '{evidence_metadata,content_hash}','') !~ '^[a-f0-9]{64}$')
+       or (coalesce(v_row -> 'evidence_metadata','{}'::jsonb) ? 'attachment_ref_hashes' and (
+         jsonb_typeof(v_row #> '{evidence_metadata,attachment_ref_hashes}') <> 'array'
+         or jsonb_array_length(v_row #> '{evidence_metadata,attachment_ref_hashes}') > 20
+         or exists (
+           select 1 from jsonb_array_elements_text(v_row #> '{evidence_metadata,attachment_ref_hashes}') r(value)
+            where r.value !~ '^[a-f0-9]{64}$'
+         )
+       ))
+       or (coalesce(v_row -> 'evidence_metadata','{}'::jsonb) ? 'attachments' and (
+         jsonb_typeof(v_row #> '{evidence_metadata,attachments}') <> 'array'
+         or jsonb_array_length(v_row #> '{evidence_metadata,attachments}') > 20
+         or exists (
+           select 1 from jsonb_array_elements(v_row #> '{evidence_metadata,attachments}') a(value)
+            where jsonb_typeof(a.value) <> 'object'
+               or a.value - array['sha256','mime_type','size','local_ref'] <> '{}'::jsonb
+               or coalesce(a.value ->> 'sha256','') !~ '^[a-f0-9]{64}$'
+               or char_length(coalesce(a.value ->> 'mime_type','')) not between 1 and 160
+               or char_length(coalesce(a.value ->> 'local_ref','')) not between 1 and 300
+               or coalesce(a.value ->> 'local_ref','') !~ '^moneypin_attachments/[0-9]{4}-[0-9]{2}/[a-f0-9]{64}\.(xlsx|xls|csv)$'
+               or split_part(split_part(coalesce(a.value ->> 'local_ref',''),'/',3),'.',1) <> coalesce(a.value ->> 'sha256','')
+               or jsonb_typeof(a.value -> 'size') <> 'number'
+               or not case when coalesce(a.value ->> 'size','') ~ '^[0-9]+$'
+                           then (a.value ->> 'size')::bigint between 1 and 10485760
+                           else false end
+         )
+       ))
+       or pg_column_size(coalesce(v_row -> 'evidence_metadata','{}'::jsonb)) > 16384
+       or (p_connector_code = 'naver_mail' and (
+         not (coalesce(v_row -> 'evidence_metadata','{}'::jsonb) ?& array['source_uid_hash','message_id_hash','attachments'])
+         or jsonb_array_length(v_row #> '{evidence_metadata,attachments}') < 1
+         or v_source_id <> 'naver-mail:' || (v_row #>> '{evidence_metadata,source_uid_hash}') || ':' || (v_row #>> '{evidence_metadata,message_id_hash}')
+         or (select array_agg(h.value order by h.value) from jsonb_array_elements_text(v_row -> 'attachment_hashes') h(value))
+              <> (select array_agg(a.value ->> 'sha256' order by a.value ->> 'sha256') from jsonb_array_elements(v_row #> '{evidence_metadata,attachments}') a(value))
+       ))
+       or (p_connector_code = 'google_chat' and
+         not (coalesce(v_row -> 'evidence_metadata','{}'::jsonb) ?& array['content_hash','attachment_ref_hashes']))
+       or (p_connector_code not in ('naver_mail','google_chat') and
+         coalesce(v_row -> 'evidence_metadata','{}'::jsonb) <> '{}'::jsonb)
        or jsonb_typeof(coalesce(v_row -> 'candidate_payload','{}'::jsonb)) <> 'object'
        or coalesce(v_row -> 'candidate_payload','{}'::jsonb)
             - array['canonical_sku','quantity','unit_amount','reverses_event_id'] <> '{}'::jsonb
@@ -127,13 +175,13 @@ begin
 
     insert into public.integration_evidence_inbox (
       connector_code,source_event_id,content_hash,occurred_at,evidence_type,summary,source_ref,
-      attachment_hashes,candidate_type,candidate_payload,review_reason,review_status,ingest_run_id,created_by
+      attachment_hashes,evidence_metadata,candidate_type,candidate_payload,review_reason,review_status,ingest_run_id,created_by
     ) values (
       p_connector_code,v_source_id,v_hash,(v_row ->> 'occurred_at')::timestamptz,
       left(btrim(coalesce(v_row ->> 'evidence_type','')),80),left(btrim(coalesce(v_row ->> 'summary','')),180),
       nullif(left(btrim(coalesce(v_row ->> 'source_ref','')),300),''),
       coalesce(array(select jsonb_array_elements_text(coalesce(v_row -> 'attachment_hashes','[]'::jsonb)) limit 20),'{}'),
-      v_candidate_type,coalesce(v_row -> 'candidate_payload','{}'::jsonb),
+      coalesce(v_row -> 'evidence_metadata','{}'::jsonb),v_candidate_type,coalesce(v_row -> 'candidate_payload','{}'::jsonb),
       nullif(left(btrim(coalesce(v_row ->> 'review_reason','')),500),''),v_status,p_run_id,v_user_id
     ) returning id into v_id;
     evidence_id:=v_id;source_event_id:=v_source_id;result:=case when v_status='conflict' then 'conflict' else 'inserted' end;return next;

@@ -19,7 +19,9 @@ test('evidence inbox is admin-only metadata and cannot directly mutate business 
   assert.match(sql,/ledger_changed',false/);
   for(const forbidden of ['message_body','attachment_body','bank_account','access_token','refresh_token'])assert.equal(sql.includes(forbidden),false);
   assert.equal(/insert\s+into\s+public\.(integration_inventory_movements|integration_settlement_entries)/i.test(sql),false);
-  assert.match(pgTap,/select plan\(12\)/i);
+  assert.match(sql,/evidence_metadata jsonb not null/i);
+  assert.match(pgTap,/select plan\(13\)/i);
+  assert.match(pgTap,/has_column\('public', 'integration_evidence_inbox', 'evidence_metadata'/i);
   assert.match(pgTap,/no direct write grant/i);
   assert.match(pgTap,/public RPC wrappers are security invoker/i);
 });

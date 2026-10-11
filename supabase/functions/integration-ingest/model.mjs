@@ -39,8 +39,25 @@ function message(raw,connectorCode){
   const id=text(raw?.messageId||raw?.message_id||raw?.uid||raw?.id,300),occurredAt=iso(raw?.receivedAt||raw?.received_at||raw?.createTime||raw?.created_at),kind=connectorCode==='google_chat'?'chat_message':'mail_message';
   if(!id||!occurredAt)throw Error('INVALID_SOURCE_EVENT');
   const label=connectorCode==='google_chat'?'Google Chat 메시지':'네이버 메일';
-  const hashes=Array.isArray(raw?.attachmentHashes)?raw.attachmentHashes.map(value=>text(value,64)).filter(value=>/^[a-f0-9]{64}$/.test(value)).slice(0,20):[];
-  return {sourceEventId:id,occurredAt,evidenceType:kind,summary:label,sourceRef:text(raw?.threadName||raw?.thread_name||raw?.mailbox||'',300),attachmentHashes:hashes,...transaction('evidence',{reason:'메시지는 근거일 뿐 승인·명령·확정 거래가 아닙니다.'})};
+  let attachmentHashes=[],evidenceMetadata={};
+  if(connectorCode==='naver_mail'){
+    if(!Array.isArray(raw?.attachments)||raw.attachments.length<1||raw.attachments.length>20)throw Error('INVALID_SOURCE_EVENT');
+    const attachments=Array.isArray(raw?.attachments)?raw.attachments.slice(0,20).map(item=>({
+      sha256:text(item?.sha256,64),mime_type:text(item?.mimeType||item?.mime_type,160),size:integer(item?.size),local_ref:text(item?.localRef||item?.local_ref,300),
+    })):[];
+    if(!attachments.length||new Set(attachments.map(item=>item.sha256)).size!==attachments.length||attachments.some(item=>!/^[a-f0-9]{64}$/.test(item.sha256)||!item.mime_type||!Number.isSafeInteger(item.size)||item.size<1||item.size>10*1024*1024||!item.local_ref.startsWith('moneypin_attachments/')))throw Error('INVALID_SOURCE_EVENT');
+    attachmentHashes=attachments.map(item=>item.sha256);
+    evidenceMetadata={source_uid_hash:text(raw?.uidHash||raw?.uid_hash,64),message_id_hash:text(raw?.messageIdHash||raw?.message_id_hash,64),attachments};
+    if(!/^[a-f0-9]{64}$/.test(evidenceMetadata.source_uid_hash)||!/^[a-f0-9]{64}$/.test(evidenceMetadata.message_id_hash))throw Error('INVALID_SOURCE_EVENT');
+    if(id!==`naver-mail:${evidenceMetadata.source_uid_hash}:${evidenceMetadata.message_id_hash}`||attachments.some(item=>!new RegExp(`^moneypin_attachments/[0-9]{4}-[0-9]{2}/${item.sha256}\\.(xlsx|xls|csv)$`).test(item.local_ref)))throw Error('INVALID_SOURCE_EVENT');
+  }else{
+    const rawRefs=raw?.attachmentRefHashes||raw?.attachment_ref_hashes;
+    if(!Array.isArray(rawRefs)||rawRefs.length>20)throw Error('INVALID_SOURCE_EVENT');
+    const contentHash=text(raw?.contentHash||raw?.content_hash,64),refs=rawRefs.map(value=>text(value,64));
+    if(!/^[a-f0-9]{64}$/.test(contentHash)||new Set(refs).size!==refs.length||refs.some(value=>!/^[a-f0-9]{64}$/.test(value)))throw Error('INVALID_SOURCE_EVENT');
+    evidenceMetadata={content_hash:contentHash,attachment_ref_hashes:refs};
+  }
+  return {sourceEventId:id,occurredAt,evidenceType:kind,summary:label,sourceRef:text(raw?.threadName||raw?.thread_name||raw?.mailbox||'',300),attachmentHashes,evidenceMetadata,...transaction('evidence',{reason:'메시지는 근거일 뿐 승인·명령·확정 거래가 아닙니다.'})};
 }
 
 function settlement(raw){
@@ -72,7 +89,7 @@ export function validateBatch(body){
 }
 
 export function canonicalEvidence(connectorCode,event){
-  return JSON.stringify({connectorCode,sourceEventId:event.sourceEventId,occurredAt:event.occurredAt,evidenceType:event.evidenceType,summary:event.summary,sourceRef:event.sourceRef||'',attachmentHashes:event.attachmentHashes||[],candidateType:event.candidateType,canonicalSku:event.canonicalSku||'',quantity:event.quantity,unitAmount:event.unitAmount,reversesEventId:event.reversesEventId||''});
+  return JSON.stringify({connectorCode,sourceEventId:event.sourceEventId,occurredAt:event.occurredAt,evidenceType:event.evidenceType,summary:event.summary,sourceRef:event.sourceRef||'',attachmentHashes:event.attachmentHashes||[],evidenceMetadata:event.evidenceMetadata||{},candidateType:event.candidateType,canonicalSku:event.canonicalSku||'',quantity:event.quantity,unitAmount:event.unitAmount,reversesEventId:event.reversesEventId||''});
 }
 
 export function homepageRows(rows=[]){
