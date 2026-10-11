@@ -81,7 +81,7 @@ async function installVirtualAdmin(page){
   });
   await page.route('**/supabase.min.js',route=>route.fulfill({contentType:'application/javascript',body:''}));
   await page.route('**/xlsx.full.min.js',route=>route.fulfill({contentType:'application/javascript',body:'window.XLSX={};'}));
-  await page.route('**/functions/v1/scm-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-10T03:00:00Z',stale:false},datasets:{inventory:[{sku:'V-001',name:'가상 도서',author:'가상 작가',category:'도서',owner:'가상팀',price:12000,cost:6000,stock:4,skuStock:4,status:'판매중',kind:'도서'}],blind:[],counts:[],actions:[]}})}));
+  await page.route('**/functions/v1/scm-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-11T08:00:00Z',stale:false},datasets:{inventory:[{sku:'V-001',name:'가상 도서',author:'가상 작가',category:'도서',owner:'가상팀',price:12000,cost:6000,stock:4,skuStock:4,status:'판매중',kind:'도서'}],blind:[],counts:[],actions:[],connections:[{connector_code:'naver_mail',status:'success',last_attempt_at:'2026-10-11T08:00:00Z',last_success_at:'2026-10-11T08:00:00Z',last_failure_at:'',evidence_total:4,batch_sha256:'a'.repeat(64),schema_version:'1',error_code:''},{connector_code:'google_chat',status:'success',last_attempt_at:'2026-10-11T08:01:00Z',last_success_at:'2026-10-11T08:01:00Z',last_failure_at:'',evidence_total:7,batch_sha256:'b'.repeat(64),schema_version:'1',error_code:''}]}})}));
   await page.route('**/functions/v1/royalty-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-10T03:00:00Z',stale:false,readOnly:true},books:[{key:'virtual-a'},{key:'virtual-b'}]})}));
   await page.route('**/functions/v1/work-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-10T03:00:00Z',stale:false},work:{summary:{active:1,attention:1,approvals:0,blocked:0,stale:0},coverage:[],records:[{id:'work-1',kind:'tasks',title:'가상 확인 업무',status:'진행',owner:'가상 담당',updated:'2026-10-10T02:00:00Z',attention:true,terminal:false}]}})}));
   await page.route('**/functions/v1/integration-ingest',async route=>{
@@ -138,8 +138,10 @@ for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',wi
     await expect(page.locator('#integration-pipeline')).toContainText('지급 확정 아님');
     const smartstore=page.locator('#integration-sources .integration-source-card',{hasText:'스마트스토어'});
     await expect(smartstore).toContainText('재시도 필요');await expect(smartstore).toContainText('마지막 성공');await expect(smartstore).toContainText('마지막 실패');
+    const mail=page.locator('#integration-sources .integration-source-card',{hasText:'네이버 메일'});
+    await expect(mail).toContainText('자동 확인');await expect(mail).toContainText('누적 근거 4건');
     const chat=page.locator('#integration-sources .integration-source-card',{hasText:'Google Chat'});
-    await expect(chat).toContainText('수집 대기');await expect(chat).toContainText('거래 확정 아님');
+    await expect(chat).toContainText('자동 확인');await expect(chat).toContainText('누적 근거 7건');await expect(chat).toContainText('거래 확정 아님');
     await expect(page.locator('#integration-queue')).toContainText('스마트스토어 재시도');
     await expect(page.locator('#integration-queue')).toContainText('열린 불일치 1건');
     await expect(page.locator('#integration-runs .integration-run')).toHaveCount(3);
