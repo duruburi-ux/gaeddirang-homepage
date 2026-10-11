@@ -7,6 +7,7 @@ const INVENTORY_HEADERS=['SKU','도서명','SCM 대조수량','페이히어 수�
 const YES24_HEADERS=['카트분류','ISBN','도서명','수량','행합계(원)','주문·입고 여부','재고 처리'];
 const text=value=>value==null?'':String(value).trim();
 const isbn=value=>text(value).toUpperCase().replace(/[^0-9X]/g,'');
+const physicalCheckComplete=value=>Boolean(text(value))&&!/(미확인|미등록|확인 필요|대기|예정)/.test(text(value));
 
 function table(range,required){
   const values=range?.values;
@@ -31,6 +32,10 @@ export function buildBookshop(raw){
     const sku=text(row.SKU);
     if(!sku||seen.has(sku))throw Error('BOOKSHOP_SCHEMA_CHANGED');
     seen.add(sku);
+    const physicalCount=count(row['매장 실물수량']);
+    const physicalCheck=text(row['매장 실사']);
+    const hasEvidence=Boolean(text(row['근거']));
+    const recordedSellable=count(row['판매가능 확정값']);
     return {
       sku,
       ledgerCount:count(row['SCM 대조수량']),
@@ -39,13 +44,13 @@ export function buildBookshop(raw){
       smartstoreCandidateCount:count(row['SS 매핑 후보수량']),
       reserved:count(row['기록 예약수량']),
       pendingInbound:count(row['입고예정 기록']),
-      physicalCount:count(row['매장 실물수량']),
-      sellableConfirmed:count(row['판매가능 확정값']),
-      physicalCheck:text(row['매장 실사']),
+      physicalCount,
+      sellableConfirmed:physicalCount!=null&&physicalCheckComplete(physicalCheck)&&hasEvidence?recordedSellable:null,
+      physicalCheck,
       review:text(row['확인할 사항']),
       ownership:text(row['재고소유']),
       scopeNote:text(row['재고범위·주의']),
-      hasEvidence:Boolean(text(row['근거'])),
+      hasEvidence,
     };
   });
 
@@ -68,6 +73,7 @@ export function buildBookshop(raw){
     purchaseCandidates:[...byIsbn].map(([value,quantity])=>({isbn:value,quantity})),
     summary:{
       sourceItems:items.length,
+      ledgerQuantity:sum('ledgerCount'),
       reservations:{titles:positive('reserved'),quantity:sum('reserved')},
       pendingInbound:{titles:positive('pendingInbound'),quantity:sum('pendingInbound')},
       purchase:{titles:candidates.length,quantity:purchaseQuantity,supplyTotal},

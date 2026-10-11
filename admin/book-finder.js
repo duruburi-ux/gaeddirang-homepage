@@ -27,11 +27,13 @@ window.BookFinder=(()=>{
   }
 
   function resultCard(row){
-    const warning=row.hasConflict?`<span class="finder-badge danger">${esc(row.conflicts.join(' · '))}</span>`:row.countAt==='미등록'?'<span class="finder-badge caution">실사 정보 미등록</span>':'<span class="finder-badge">실사 기록 있음</span>';
+    const warning=row.hasConflict?`<span class="finder-badge danger">${esc(row.conflicts.join(' · '))}</span>`:row.hasPhysicalEvidence?'<span class="finder-badge">매장 실사 근거 확인</span>':'<span class="finder-badge caution">판매 가능 확인 필요</span>';
+    const facts=[['예약',row.reserved],['입고 예정',row.incoming],['YES24 후보',row.purchaseCandidate]].filter(([,value])=>Number.isInteger(value)&&value>0).map(([label,value])=>`<span>${esc(label)} ${value}권</span>`).join('');
+    const cover=row.coverUrl?`<img src="${esc(row.coverUrl)}" alt="" loading="lazy">`:'<span>표지<br>미등록</span>';
     return `<button type="button" class="finder-result ${view==='list'?'list':''}" data-book-sku="${esc(row.sku)}">
-      <span class="finder-cover" aria-hidden="true"><span>표지<br>미등록</span></span>
+      <span class="finder-cover" aria-hidden="true">${cover}</span>
       <span class="finder-result-copy"><span class="finder-title">${esc(row.title)}</span><span class="finder-author">${esc(row.author)}</span>
-      <span class="finder-stock">${esc(row.sellableLabel)}</span><span class="finder-proof">SCM ${esc(row.stockLabel)} · 예약 차감 계산 ${esc(row.calculatedAvailable??'미등록')}권</span><span class="finder-proof">예약 ${esc(row.reserved??'미등록')}권 · 입고 예정 ${esc(row.incoming??'미등록')}권 · YES24 후보 ${esc(row.purchaseCandidate??'미등록')}권</span><span class="finder-proof">PayHere ${esc(row.payhereCount??'미등록')}권 · SmartStore ${esc(row.smartstoreCount??'미등록')}권</span><span class="finder-identifiers">ISBN ${esc(row.isbn)} · SKU ${esc(row.sku||'미등록')}</span>
+      <span class="finder-stock">${esc(row.sellableLabel)}</span><span class="finder-proof">시스템 장부 ${esc(row.recordedStock??'미확인')}권 · 예약 차감 ${esc(row.calculatedAvailable??'미확인')}권</span>${facts?`<span class="finder-facts">${facts}</span>`:''}<span class="finder-identifiers">ISBN ${esc(row.isbn)} · SKU ${esc(row.sku||'미등록')}</span>
       ${row.sameTitleCount>1?`<span class="finder-edition">동명 도서 ${row.sameTitleCount}개 · ISBN·SKU 확인</span>`:''}${warning}</span>
     </button>`;
   }
@@ -55,11 +57,12 @@ window.BookFinder=(()=>{
 
   function renderSupplement(){
     const rows=window.BookFinderModel.bookRows(data?.inventory||[],data?.counts||[],meta?.fetchedAt,data?.bookshop);
-    const needs=rows.filter(row=>row.hasConflict||row.recordedStock==null||row.countAt==='미등록').length;
+    const needs=rows.filter(row=>row.hasConflict||!row.hasPhysicalEvidence).length;
     const summary=data?.bookshop?.summary,sourceMeta=meta?.bookshop;
     const sourceNote=summary?(sourceMeta?.stale?'지난 조회 기록':'통합 재고 원본'):(sourceMeta?.error==='BOOKSHOP_SOURCE_NOT_CONFIGURED'?'비공개 원본 설정 대기':'원본 조회 필요');
+    const ledgerValue=summary?`${summary.sourceItems}종${Number.isInteger(summary.ledgerQuantity)?` · ${summary.ledgerQuantity.toLocaleString('ko-KR')}권`:''}`:`${rows.length}종`;
     $('#book-finder-supplement').innerHTML=[
-      ['통합 재고',summary?`${summary.sourceItems}종`:`${rows.length}종`,sourceNote],
+      ['시스템 장부',ledgerValue,summary?`${sourceMeta?.stale?'지난 조회 기록 · ':''}매장 실물 합계 아님`:sourceNote],
       ['예약 근거',summary?`${summary.reservations.titles}종 · ${summary.reservations.quantity}권`:'미등록',summary?'예약은 판매 가능 계산에서만 차감':'수량 확인 필요 '+needs+'종'],
       ['입고 예정',summary?`${summary.pendingInbound.titles}종 · ${summary.pendingInbound.quantity}권`:'미등록',summary?'실입고 전 재고 미반영':'원본 조회 필요'],
       ['YES24 구매 후보',summary?`${summary.purchase.titles}종 · ${summary.purchase.quantity}권`:'미등록',summary?`공급가 합계 ${money(summary.purchase.supplyTotal)} · 구매 미실행`:'구매 실행 없음'],
@@ -72,7 +75,7 @@ window.BookFinder=(()=>{
     lastFocus=button||document.activeElement;lastSku=sku;
     const conflict=row.hasConflict?`<div class="finder-detail-alert danger"><strong>수량 충돌</strong><p>${esc(row.conflicts.join(' · '))}. 손님에게 수량을 확답하지 말고 원본과 실물을 확인하세요.</p></div>`:'';
     $('#book-finder-detail-body').innerHTML=`<p class="finder-kicker">COUNTER LOOKUP / READ ONLY</p><h2>${esc(row.title)}</h2><p class="finder-detail-author">${esc(row.author)}</p>
-      <div class="finder-detail-alert"><strong>${esc(row.sellableLabel)}</strong><p>PayHere·SmartStore 수량은 책공방 실물 기준이지만, 실사 확정값이 없으면 손님에게 재고를 확답하지 않습니다.</p></div>${conflict}
+      <div class="finder-detail-alert"><strong>${esc(row.sellableLabel)}</strong><p>${row.hasPhysicalEvidence?'매장 실물수량·실사 상태·근거가 함께 확인된 값입니다.':'실물 근거가 없으면 기록값이 0이어도 판매 가능 수량으로 확정하지 않습니다.'}</p></div>${conflict}
       <section><h3>도서 구분</h3><dl>${detailRow('ISBN',row.isbn)}${detailRow('SKU',row.sku)}${detailRow('판본',row.edition,'판본 열이 없어 ISBN과 SKU로 구분합니다.')}${detailRow('분류',row.category)}</dl></section>
       <section><h3>수량 기록</h3><dl>${detailRow('SCM 장부상 수량',row.recordedStock)}${detailRow('상품 마스터 수량',row.masterStock)}${detailRow('예약 수량',row.reserved,row.bookshopLinked?'통합 재고 원본의 기록 예약':'원본 미연결')}${detailRow('예약 차감 계산',row.calculatedAvailable,'SCM 대조수량−예약이며 실물 판매 가능 확정값이 아닙니다.')}${detailRow('입고 예정',row.incoming,'실입고 전에는 판매 재고에 포함하지 않습니다.')}${detailRow('YES24 구매 후보',row.purchaseCandidate,'장바구니 후보이며 주문·입고 완료가 아닙니다.')}</dl></section>
       <section><h3>매장·채널</h3><dl>${detailRow('판매 가능 확정값',row.sellableConfirmed,'매장 실사로 확정되지 않았다면 미등록을 유지합니다.')}${detailRow('매장 실물수량',row.physicalCount)}${detailRow('매장 실사 상태',row.physicalCheck)}${detailRow('PayHere 수량',row.payhereCount,'책공방 실물 기준 채널 기록')}${detailRow('SmartStore 연결 수량',row.smartstoreCount,'책공방에서 즉시 발송 가능한 채널 기록')}${detailRow('SmartStore 매핑 후보',row.smartstoreCandidateCount,'연결 확정 전에는 채널 수량으로 합산하지 않습니다.')}</dl></section>

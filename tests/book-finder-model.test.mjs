@@ -17,7 +17,7 @@ const counts=[
   {sku:'BOOK-A-1',name:'가상 마음 산책',date:'2026-09-01',scope:'이전 위치',count:4,current:3},
 ];
 const bookshop={
-  items:[{sku:'BOOK-A-1',ledgerCount:3,reserved:1,pendingInbound:2,payhereCount:2,smartstoreCount:2,smartstoreCandidateCount:null,physicalCount:null,sellableConfirmed:null,physicalCheck:'미확인',review:'가상 실사 필요',scopeNote:'매장 기준'}],
+  items:[{sku:'BOOK-A-1',ledgerCount:3,reserved:1,pendingInbound:2,payhereCount:2,smartstoreCount:2,smartstoreCandidateCount:null,physicalCount:null,sellableConfirmed:null,physicalCheck:'미확인',hasEvidence:true,review:'가상 실사 필요',scopeNote:'매장 기준'}],
   purchaseCandidates:[{isbn:'9780000000011',quantity:1}],
 };
 
@@ -43,8 +43,21 @@ test('통합 재고는 SKU·ISBN으로만 연결하고 미확정 실물값을 �
   const row=M.searchBooks({inventory,counts,bookshop,query:'BOOK-A-1',fetchedAt:'2026-10-11T08:00:00Z'}).items[0];
   assert.equal(row.countAt,'2026-10-10');assert.equal(row.countScope,'책공방 앞 책장');assert.equal(row.countQuantity,3);
   assert.equal(row.reserved,1);assert.equal(row.incoming,2);assert.equal(row.calculatedAvailable,2);assert.equal(row.purchaseCandidate,1);
-  assert.equal(row.payhereCount,2);assert.equal(row.smartstoreCount,2);assert.equal(row.sellableConfirmed,null);assert.match(row.sellableLabel,/미확정/);
+  assert.equal(row.payhereCount,2);assert.equal(row.smartstoreCount,2);assert.equal(row.sellableConfirmed,null);assert.match(row.sellableLabel,/확인 필요/);
   assert.equal(row.shelf,'미등록');assert.equal(row.bookshopLinked,true);
+});
+
+test('판매 가능 0은 실물수량·실사 상태·근거가 모두 있을 때만 확정한다',()=>{
+  const base={sku:'BOOK-A-2',ledgerCount:0,reserved:0,physicalCount:null,sellableConfirmed:0,physicalCheck:'미확인',hasEvidence:false};
+  const unknown=M.searchBooks({inventory,counts,bookshop:{items:[base],purchaseCandidates:[]},query:'BOOK-A-2'}).items[0];
+  assert.equal(unknown.sellableConfirmed,null);assert.equal(unknown.hasPhysicalEvidence,false);assert.match(unknown.sellableLabel,/확인 필요/);assert.doesNotMatch(unknown.sellableLabel,/확정 0권/);
+  const confirmed=M.searchBooks({inventory,counts,bookshop:{items:[{...base,physicalCount:0,physicalCheck:'확인',hasEvidence:true}],purchaseCandidates:[]},query:'BOOK-A-2'}).items[0];
+  assert.equal(confirmed.sellableConfirmed,0);assert.equal(confirmed.hasPhysicalEvidence,true);assert.match(confirmed.sellableLabel,/확정 0권/);
+});
+
+test('공개 페이지에서 ISBN으로 검증된 표지만 연결하고 나머지는 비워 둔다',()=>{
+  const rows=M.bookRows([{sku:'PUBLIC',kind:'도서',name:'가상 공개책',isbn:'9791199271524'},{sku:'OTHER',kind:'도서',name:'가상 다른책',isbn:'9790000000999'}],[],'');
+  assert.equal(rows[0].coverUrl,'../assets/moongori/cover.png');assert.equal(rows[1].coverUrl,'');
 });
 
 test('없는 검색 결과는 빈 배열이며 0권 결과와 구분된다',()=>{

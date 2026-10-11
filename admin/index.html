@@ -11,11 +11,11 @@
 <link rel="stylesheet" href="./operations.css" />
 <link rel="stylesheet" href="./integration.css?v=20261011-3" />
 <link rel="stylesheet" href="./dashboard.css" />
-<link rel="stylesheet" href="./book-finder.css?v=20261011-1" />
+<link rel="stylesheet" href="./book-finder.css?v=20261011-2" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script src="./admin-core-model.js?v=20261010-1"></script>
 <script src="./operations-hub-model.js?v=20261011-3"></script>
-<script src="./book-finder-model.js?v=20261011-2"></script>
+<script src="./book-finder-model.js?v=20261011-3"></script>
 <style>
   :root{
     --orange:#F26D4F; --orange-d:#d9583c; --ink:#2b2622; --muted:#8a817a;
@@ -322,10 +322,9 @@
       <aside class="ops-connections"><h2>연결 범위, 정확하게 보기</h2><dl><div><dt>홈페이지 주문·신청·문의</dt><dd>기존 관리 메뉴로 이동합니다. 해당 메뉴에서 조회·처리해요.</dd></div><div><dt>SCM 상품·재고</dt><dd>조회 전용 화면입니다. 불러오기 성공 여부와 조회 시각은 상품·재고 화면에서 확인해요.</dd></div><div><dt>노션 진행 업무</dt><dd>업무 영역·실행 업무·프로젝트·결정함의 상태를 관리자 화면으로 자동 조회합니다. 수정은 노션 원본에서 해요.</dd></div><div><dt>페이히어</dt><dd>메일로 받은 매출 엑셀을 연결 현황에서 검사한 뒤 승인하면 SCM에 반영합니다.</dd></div><div><dt>스마트스토어·스마트플레이스</dt><dd>계정 인증 전이라 아직 자동 동기화되지 않습니다.</dd></div></dl><p>노션 기록이 오래됐거나 원본 상태가 틀리면 이 화면에도 그대로 보입니다. 자동 조회가 자동 완료 판정이나 업무 전수 확인을 뜻하지는 않습니다.</p></aside>
     </section>
     <section id="tab-finder" class="book-finder hidden" aria-label="책공방 현장 조회">
-      <div class="finder-hero"><div><p class="finder-kicker">BOOKSHOP DESK</p><h1>책공방에서 찾는 책, 10초 안에.</h1><p class="finder-hero-copy">제목·저자·ISBN으로 SCM, 통합 재고, 예약, 입고 예정과 구매 후보를 한 번에 봅니다. 매장 실사 확정값이 없으면 채널 수량이 있어도 손님에게 재고를 확답하지 않습니다.</p></div><button id="book-finder-refresh" class="finder-refresh" type="button">원본 다시 확인</button></div>
+      <div class="finder-hero"><div><p class="finder-kicker">BOOKSHOP DESK</p><h1>책공방 책 찾기</h1><p class="finder-hero-copy">제목·저자·ISBN으로 장부와 매장 확인 상태를 함께 봅니다.</p></div><button id="book-finder-refresh" class="finder-refresh" type="button">새로고침</button></div>
       <div id="book-finder-status" class="finder-status" role="status" aria-live="polite">책 찾기를 열면 관리자 권한으로 SCM을 확인합니다.</div>
       <button id="book-finder-retry" class="finder-retry" type="button" hidden>다시 확인</button>
-      <p class="finder-trust"><strong>현재 원본 정합 작업 중</strong> · 판매 가능 수량은 책공방에 실제 있고 지금 판매·발송할 수 있는 수량입니다. 예약·미입고·외부 위탁·파손·집 보유는 제외하며, 양수라도 실사 전에는 “있어요”라고 확답하지 마세요.</p>
       <div id="book-finder-content" hidden>
         <form id="book-finder-form" class="finder-search-panel" role="search">
           <label for="book-finder-query">제목·저자·ISBN 찾기</label>
@@ -333,6 +332,7 @@
           <div class="finder-toolbar"><label class="sr-only" for="book-finder-filter">재고 상태</label><select id="book-finder-filter"><option value="all">전체 상태</option><option value="recorded">기록 수량 있음</option><option value="zero">장부상 0권</option><option value="conflict">수량 충돌</option><option value="unverified">실사·수량 미확인</option></select><div class="finder-view-toggle" aria-label="검색 결과 보기"><button type="button" class="active" data-finder-view="cards" aria-pressed="true">카드</button><button type="button" data-finder-view="list" aria-pressed="false">간결 목록</button></div></div>
         </form>
         <div id="book-finder-supplement" class="finder-supplement" aria-label="책공방 보조 현황"></div>
+        <details class="finder-trust"><summary>판매 가능 수량은 실사 확정값만 안내합니다</summary><p>시스템 장부와 채널 수량은 매장 실물 합계가 아닙니다. 예약·미입고·외부 위탁·파손·집 보유를 제외하고, 실물 근거가 없으면 0권도 확정하지 않습니다.</p></details>
         <p id="book-finder-summary" class="finder-summary" role="status" aria-live="polite"></p>
         <div id="book-finder-results" class="finder-results"></div>
       </div>
@@ -1070,7 +1070,7 @@ $('#mobileNav').addEventListener('change',event=>{if(event.target.value==='docs'
 window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&&!event.state?.panel)clearPanel();switchTab(TABS.includes(location.hash.slice(1))?location.hash.slice(1):'home','none');});
 
 </script>
-<script src="./book-finder.js?v=20261011-2"></script>
+<script src="./book-finder.js?v=20261011-3"></script>
 <script src="./scm.js?v=20261011-2"></script>
 <script src="./work.js?v=20260906-2"></script>
 <script src="./operations.js"></script>

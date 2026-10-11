@@ -6,6 +6,9 @@
   'use strict';
 
   const UNKNOWN='미등록';
+  const VERIFIED_COVERS=new Map([
+    ['9791199271524','../assets/moongori/cover.png'],
+  ]);
   const isCount=value=>Number.isSafeInteger(value);
   const normalizeText=value=>String(value??'').normalize('NFKC').toLocaleLowerCase('ko-KR').replace(/\s+/g,'');
   const normalizeIsbn=value=>String(value??'').normalize('NFKC').toUpperCase().replace(/[^0-9X]/g,'');
@@ -40,7 +43,11 @@
       const incoming=isCount(supplement?.pendingInbound)?supplement.pendingInbound:null;
       const ledgerCount=isCount(supplement?.ledgerCount)?supplement.ledgerCount:null;
       const calculatedAvailable=isCount(ledgerCount)&&isCount(reserved)?Math.max(ledgerCount-reserved,0):null;
-      const sellableConfirmed=isCount(supplement?.sellableConfirmed)?supplement.sellableConfirmed:null;
+      const physicalCount=isCount(supplement?.physicalCount)?supplement.physicalCount:null;
+      const physicalCheck=String(supplement?.physicalCheck||UNKNOWN);
+      const physicalCheckComplete=physicalCheck!==UNKNOWN&&!/(미확인|미등록|확인 필요|대기|예정)/.test(physicalCheck);
+      const hasPhysicalEvidence=physicalCount!=null&&physicalCheckComplete&&supplement?.hasEvidence===true;
+      const sellableConfirmed=hasPhysicalEvidence&&isCount(supplement?.sellableConfirmed)?supplement.sellableConfirmed:null;
       return {
         sku:String(item.sku||''),title:String(item.name||UNKNOWN),author:String(item.author||UNKNOWN),isbn:isbn||UNKNOWN,
         category:String(item.category||UNKNOWN),owner:String(item.owner||UNKNOWN),note:String(item.note||''),
@@ -49,14 +56,14 @@
         sameTitleCount:titleCounts.get(normalizeText(item.name))||1,
         edition:titleCounts.get(normalizeText(item.name))>1?'동명 도서 · ISBN과 SKU로 구분':UNKNOWN,
         shelf:UNKNOWN,reserved,incoming,ledgerCount,calculatedAvailable,sellableConfirmed,
-        sellableLabel:isCount(sellableConfirmed)?`매장 판매 가능 확정 ${sellableConfirmed}권`:'매장 판매 가능 미확정 · 실물 확인 필요',
-        physicalCount:isCount(supplement?.physicalCount)?supplement.physicalCount:null,physicalCheck:String(supplement?.physicalCheck||UNKNOWN),
+        sellableLabel:isCount(sellableConfirmed)?`매장 판매 가능 확정 ${sellableConfirmed}권`:'매장 판매 가능 · 확인 필요',
+        physicalCount,physicalCheck,hasPhysicalEvidence,
         payhereCount:isCount(supplement?.payhereCount)?supplement.payhereCount:null,smartstoreCount:isCount(supplement?.smartstoreCount)?supplement.smartstoreCount:null,
         smartstoreCandidateCount:isCount(supplement?.smartstoreCandidateCount)?supplement.smartstoreCandidateCount:null,
         purchaseCandidate:isCount(candidatesByIsbn.get(normalizeIsbn(isbn)))?candidatesByIsbn.get(normalizeIsbn(isbn)):(bookshop?0:null),
         bookshopLinked:Boolean(supplement),bookshopAvailable:Boolean(bookshop),review:String(supplement?.review||''),scopeNote:String(supplement?.scopeNote||''),
         countAt:String(counted?.date||UNKNOWN),countScope:String(counted?.scope||UNKNOWN),countQuantity:isCount(counted?.count)?counted.count:null,
-        sourceCheckedAt:String(fetchedAt||''),
+        sourceCheckedAt:String(fetchedAt||''),coverUrl:VERIFIED_COVERS.get(normalizeIsbn(isbn))||'',
         _title:normalizeText(item.name),_author:normalizeText(item.author),_isbn:normalizeIsbn(isbn),_sku:normalizeText(item.sku),
       };
     });
