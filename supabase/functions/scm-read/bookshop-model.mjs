@@ -8,8 +8,8 @@ const YES24_HEADERS=['카트분류','ISBN','도서명','수량','행합계(원)'
 const MISSING_COUNTS=new Set(['미확인','미확정','해당 없음','매핑 미확인']);
 const text=value=>value==null?'':String(value).trim();
 const isbn=value=>text(value).toUpperCase().replace(/[^0-9X]/g,'');
-const physicalCheckComplete=(value,evidence,sellable)=>{
-  const status=text(value),proof=text(evidence);
+const physicalCheckComplete=(value,confirmationNote,sellable)=>{
+  const status=text(value),proof=text(confirmationNote);
   if(/^(확인|완료|확정|실사 완료)$/.test(status))return true;
   if(status!=='사용자 확인'||!Number.isSafeInteger(sellable))return false;
   return /사용자\s*확인/.test(proof)&&new RegExp(`판매\\s*가능\\s*${sellable}\\s*권`).test(proof);
@@ -41,10 +41,11 @@ export function buildBookshop(raw){
     seen.add(sku);
     const physicalCount=count(row['매장 실물수량']);
     const physicalCheck=text(row['매장 실사']);
+    const scopeNote=text(row['재고범위·주의']);
     const evidence=text(row['근거']);
     const hasEvidence=Boolean(evidence);
     const recordedSellable=count(row['판매가능 확정값']);
-    const sellableConfirmed=physicalCount!=null&&recordedSellable!=null&&recordedSellable<=physicalCount&&hasEvidence&&physicalCheckComplete(physicalCheck,evidence,recordedSellable)?recordedSellable:null;
+    const sellableConfirmed=physicalCount!=null&&recordedSellable!=null&&recordedSellable<=physicalCount&&hasEvidence&&physicalCheckComplete(physicalCheck,scopeNote,recordedSellable)?recordedSellable:null;
     return {
       sku,
       ledgerCount:count(row['SCM 대조수량']),
@@ -58,7 +59,7 @@ export function buildBookshop(raw){
       physicalCheck,
       review:text(row['확인할 사항']),
       ownership:text(row['재고소유']),
-      scopeNote:text(row['재고범위·주의']),
+      scopeNote,
       hasEvidence,
     };
   });
