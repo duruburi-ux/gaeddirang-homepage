@@ -260,15 +260,15 @@
           </div>
           <div id="integration-evidence-status" class="integration-evidence-status" role="status" aria-live="polite">먼저 미리보기로 수집 범위를 확인하세요.</div>
           <div class="integration-collector-import" aria-labelledby="integration-collector-title">
-            <div class="integration-collector-copy"><strong id="integration-collector-title">정기 수집 파일 가져오기</strong><p>Mac mini 수집기가 만든 비식별 메타데이터 JSON만 받습니다. 메일 제목·본문·파일명·첨부 원본은 전송하지 않으며, 이 단계는 재고·정산·지급을 바꾸지 않습니다.</p></div>
+            <div class="integration-collector-copy"><strong id="integration-collector-title">정기 수집 파일 가져오기</strong><p>Mac mini 수집기가 만든 비식별 메타데이터 JSON만 받습니다. 파일 선택은 브라우저 1차 검사만 하고, ‘서버 저장 전 검사’를 눌러야 관리자 세션으로 미리보기를 전송합니다. 메일 제목·본문·파일명·첨부 원본은 전송하지 않으며 재고·정산·지급을 바꾸지 않습니다.</p></div>
             <div class="integration-collector-controls">
               <label class="payhere-file-button" for="integration-collector-file">JSON 선택</label>
               <input id="integration-collector-file" type="file" accept=".json,application/json" />
-              <button id="integration-collector-preview" class="payhere-secondary" type="button" disabled>메타데이터 검사</button>
+              <button id="integration-collector-preview" class="payhere-secondary" type="button" disabled>서버 저장 전 검사</button>
               <label class="integration-collector-confirm"><input id="integration-collector-confirm" type="checkbox" disabled /> 검사 결과와 비반영 범위를 확인했습니다</label>
               <button id="integration-collector-apply" class="integration-button" type="button" disabled>검토함에 저장</button>
             </div>
-            <div id="integration-collector-status" class="integration-evidence-status" role="status" aria-live="polite">파일을 고르면 브라우저 안에서 형식과 민감 필드를 먼저 검사합니다.</div>
+            <div id="integration-collector-status" class="integration-evidence-status" role="status" aria-live="polite">파일을 고르면 브라우저 안에서 형식과 민감 필드를 먼저 검사합니다. 검사 버튼을 누르기 전에는 서버 전송이 없습니다.</div>
           </div>
           <div class="integration-evidence-summary"><span id="integration-evidence-count">대기 —</span><label for="integration-evidence-filter">상태</label><select id="integration-evidence-filter"><option value="needs">검토 필요</option><option value="pending">검토 대기</option><option value="conflict">충돌</option><option value="reviewed">근거 확인</option><option value="rejected">반려</option><option value="">전체</option></select></div>
           <div id="integration-evidence-list" class="integration-evidence-list"></div>
@@ -1055,7 +1055,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="./payhere-import.js?v=20260906-1"></script>
 <script src="./evidence-batch-import.js?v=20261011-1"></script>
-<script src="./integration.js?v=20261011-3"></script>
+<script src="./integration.js?v=20261011-4"></script>
 <script>
 window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
