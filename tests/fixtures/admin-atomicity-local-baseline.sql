@@ -2,6 +2,42 @@
 -- It mirrors only the production columns and constraints required by the
 -- additive migration; it contains no production rows or credentials.
 
+create schema if not exists private;
+
+create table if not exists public.admin_emails (
+  email text primary key,
+  name text not null default ''
+);
+
+-- The additive migration replaces this predicate with the live-session check.
+-- This definition only mirrors the pre-migration production dependency so a
+-- fresh, isolated local database can apply and test the migration chain.
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from public.admin_emails a
+    where lower(a.email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  );
+$$;
+
+revoke all on function public.is_admin() from public, anon, authenticated;
+grant execute on function public.is_admin() to authenticated;
+
+alter table public.admin_emails enable row level security;
+revoke all privileges on table public.admin_emails from public, anon, authenticated;
+grant select on table public.admin_emails to authenticated;
+grant select, insert, delete on table public.admin_emails to service_role;
+
+create policy admin_emails_admin_read on public.admin_emails
+  for select to authenticated
+  using ((select public.is_admin()));
+
 create table if not exists public.books (
   id uuid primary key default gen_random_uuid(),
   title text not null,
