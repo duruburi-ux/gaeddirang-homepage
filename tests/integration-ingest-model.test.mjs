@@ -4,9 +4,9 @@ import {adaptEvent,canonicalEvidence,homepageRows,validateBatch} from '../supaba
 
 const runId='11111111-1111-4111-8111-111111111111';
 
-test('message connectors keep only metadata and can never become a transaction',()=>{
+test('message connectors accept only metadata and can never become a transaction',()=>{
   const event=adaptEvent('naver_mail',{
-    messageId:`naver-mail:${'b'.repeat(64)}:${'c'.repeat(64)}`,receivedAt:'2026-10-11T09:00:00+09:00',subject:'가상 고객 이름과 금액',body:'저장하면 안 되는 본문',candidateType:'sale',
+    messageId:`naver-mail:${'b'.repeat(64)}:${'c'.repeat(64)}`,receivedAt:'2026-10-11T09:00:00+09:00',
     uidHash:'b'.repeat(64),messageIdHash:'c'.repeat(64),mailbox:'INBOX',attachments:[{
       sha256:'a'.repeat(64),mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',size:123,localRef:`moneypin_attachments/2026-10/${'a'.repeat(64)}.xlsx`,
     }],
@@ -16,18 +16,23 @@ test('message connectors keep only metadata and can never become a transaction',
   assert.deepEqual(event.attachmentHashes,['a'.repeat(64)]);
   assert.equal(event.evidenceMetadata.source_uid_hash,'b'.repeat(64));
   assert.equal(event.evidenceMetadata.attachments[0].size,123);
-  assert.ok(!JSON.stringify(event).includes('저장하면 안 되는 본문'));
-  assert.ok(!JSON.stringify(event).includes('가상 고객 이름과 금액'));
 });
 
 test('Google Chat stores content and attachment reference hashes, never bodies',()=>{
   const event=adaptEvent('google_chat',{
     messageId:'spaces/s/messages/m1',createTime:'2026-10-11T00:00:00Z',threadName:'spaces/s/threads/t1',
-    contentHash:'d'.repeat(64),attachmentRefHashes:['e'.repeat(64)],text:'저장하면 안 되는 본문',
+    contentHash:'d'.repeat(64),attachmentRefHashes:['e'.repeat(64)],
   });
   assert.deepEqual(event.evidenceMetadata,{content_hash:'d'.repeat(64),attachment_ref_hashes:['e'.repeat(64)]});
-  assert.ok(!JSON.stringify(event).includes('저장하면 안 되는 본문'));
   assert.deepEqual(event.attachmentHashes,[]);
+});
+
+test('message adapters reject extra body, subject, filename, or attachment fields',()=>{
+  const mail={messageId:`naver-mail:${'b'.repeat(64)}:${'c'.repeat(64)}`,receivedAt:'2026-10-11T00:00:00Z',mailbox:'INBOX',uidHash:'b'.repeat(64),messageIdHash:'c'.repeat(64),attachments:[{sha256:'a'.repeat(64),mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',size:123,localRef:`moneypin_attachments/2026-10/${'a'.repeat(64)}.xlsx`}]};
+  assert.throws(()=>adaptEvent('naver_mail',{...mail,subject:'private'}),/INVALID_SOURCE_EVENT/);
+  assert.throws(()=>adaptEvent('naver_mail',{...mail,attachments:[{...mail.attachments[0],fileName:'private.xlsx'}]}),/INVALID_SOURCE_EVENT/);
+  assert.throws(()=>adaptEvent('google_chat',{messageId:'spaces/x/messages/y',createTime:'2026-10-11T00:00:00Z',threadName:'spaces/x/threads/z',contentHash:'d'.repeat(64),attachmentRefHashes:[],body:'private'}),/INVALID_SOURCE_EVENT/);
+  assert.throws(()=>validateBatch({action:'ingest',connectorCode:'naver_mail',runId,dryRun:false,events:[mail],token:'must not travel'}),/EVENTS_INVALID/);
 });
 
 test('message metadata fails closed instead of silently truncating attachments',()=>{

@@ -11,6 +11,7 @@
   let config,client,onDenied,connectors=[],mappings=[],inventory=[],syncRuns=[],evidenceInbox=[],hub=null,loaded=false,loading=false,generation=0,fileGeneration=0,stats={mappings:null,movements:null,issues:null,settlements:null},scmState={available:false,stale:false,error:''},royaltyState={available:false,stale:false,error:'',bookCount:null},connectorsState={stale:false,error:''},syncRunsState={stale:false,error:''},evidenceState={stale:false,error:''};
   let importFile=null,importHash='',importPlan=null,dryResult=null,importBusy=false,importRequestId='';
   let evidencePreview=null,evidenceRunId='',evidenceBusy=false;
+  let collectorBatch=null,collectorPreview=null,collectorBusy=false,collectorFileGeneration=0;
 
   function counts(){return connectors.reduce((a,x)=>{a[x.status]=(a[x.status]||0)+1;return a},{connected:0,manual:0,setup_required:0,attention:0,disabled:0})}
   function emit(ok=true){const c=counts(),m=hub?.metrics||{};window.dispatchEvent(new CustomEvent('integration:summary',{detail:{ok,connected:c.connected,manual:c.manual,setup:c.setup_required,attention:c.attention,healthy:m.healthy??null,review:m.review??null,failed:m.failed??null,waiting:m.waiting??null,fetchedAt:new Date().toISOString()}}))}
@@ -44,6 +45,14 @@
   const evidenceTypeLabels={evidence:'근거만',reservation:'예약 후보',sale:'판매 후보',reversal:'취소·반품 후보',settlement_candidate:'정산 후보'};
   const evidenceStatusLabels={pending:'검토 대기',conflict:'내용 충돌',reviewed:'근거 확인',rejected:'반려',duplicate:'중복'};
   function evidenceStatus(text,bad=false,good=false){const el=$('#integration-evidence-status');el.textContent=text;el.classList.toggle('bad',bad);el.classList.toggle('good',good)}
+  function collectorStatus(text,bad=false,good=false){const el=$('#integration-collector-status');el.textContent=text;el.classList.toggle('bad',bad);el.classList.toggle('good',good)}
+  function renderCollectorBatch(){
+    const canPreview=Boolean(collectorBatch)&&!collectorBusy,canApply=Boolean(collectorBatch&&collectorPreview)&&!collectorBusy;
+    $('#integration-collector-file').disabled=collectorBusy;
+    $('#integration-collector-preview').disabled=!canPreview;
+    $('#integration-collector-confirm').disabled=!canApply;
+    $('#integration-collector-apply').disabled=!canApply||!$('#integration-collector-confirm').checked;
+  }
   function renderEvidence(){
     const filter=$('#integration-evidence-filter').value,rows=evidenceInbox.filter(row=>!filter||(filter==='needs'?['pending','conflict'].includes(row.review_status):row.review_status===filter)),needs=evidenceInbox.filter(row=>['pending','conflict'].includes(row.review_status)).length;
     $('#integration-evidence-count').textContent=`검토 필요 ${needs}건 · 표시 ${rows.length}건`;
@@ -54,6 +63,7 @@
     }).join(''):'<p class="integration-empty-state">이 상태의 근거가 없습니다. 원천 전체 확인 완료를 뜻하지는 않습니다.</p>');
     $('#integration-collect-preview').disabled=evidenceBusy;
     $('#integration-collect-apply').disabled=evidenceBusy||!evidencePreview||!evidencePreview.received;
+    renderCollectorBatch();
     if(evidenceState.error)evidenceStatus('검토함을 불러오지 못했습니다. 다시 확인해 주세요.',true);
   }
 
@@ -107,6 +117,26 @@
     const {data,error}=await client.auth.getSession();if(error||!data.session){onDenied?.();throw Error('LOGIN_REQUIRED')}
     const res=await fetch(config.url+'/functions/v1/integration-ingest',{method:'POST',headers:{Authorization:'Bearer '+data.session.access_token,apikey:config.key,'Content-Type':'application/json'},body:JSON.stringify(body)});
     const result=await res.json().catch(()=>({}));if(res.status===401||res.status===403){onDenied?.();throw Error('LOGIN_REQUIRED')}if(!res.ok)throw Error(result.error||'INTEGRATION_REQUEST_FAILED');return result;
+  }
+  async function chooseCollectorBatch(file){
+    const run=++collectorFileGeneration;collectorBatch=null;collectorPreview=null;$('#integration-collector-confirm').checked=false;renderCollectorBatch();
+    if(!file)return collectorStatus('파일을 고르면 브라우저 안에서 형식과 민감 필드를 먼저 검사합니다.');
+    collectorStatus('파일 구조와 비식별 필드를 확인하고 있어요.');
+    try{
+      const model=window.IntegrationEvidenceBatchModel;if(!model)throw Error('EVIDENCE_BATCH_READER_MISSING');
+      const batch=model.parse(await file.text());if(run!==collectorFileGeneration)return;
+      collectorBatch=batch;const detail=model.describe(batch);collectorStatus(`${detail.label} ${detail.count}건을 읽었습니다. 아직 서버로 전송하지 않았습니다.`,false,true);
+    }catch(error){if(run!==collectorFileGeneration)return;console.error(error);collectorStatus(error.message==='EVIDENCE_BATCH_TOO_LARGE'?'파일이 256KB를 넘습니다. 수집기에서 100건 이하로 다시 내보내 주세요.':'수집기 형식과 다르거나 허용되지 않은 필드가 있습니다. 서버로 전송하지 않았습니다.',true)}finally{if(run===collectorFileGeneration)renderCollectorBatch()}
+  }
+  async function callCollectorBatch(dryRun){
+    if(collectorBusy||!collectorBatch||(!dryRun&&!collectorPreview))return;
+    const run=collectorFileGeneration,batch=collectorBatch,detail=window.IntegrationEvidenceBatchModel.describe(batch);collectorBusy=true;if(dryRun)collectorPreview=null;renderCollectorBatch();collectorStatus(dryRun?'서버에서 저장 후보의 형식을 다시 확인하고 있어요.':'검토함에 메타데이터만 저장하고 있어요.');
+    try{
+      const result=await integrationRequest({...batch,dryRun});if(run!==collectorFileGeneration)return;
+      const historyWarning=result.runRecorded===false?' · 실행 이력 저장 실패':'';
+      if(dryRun){collectorPreview=result;collectorStatus(`${detail.label} ${result.received??detail.count}건의 서버 형식 검사가 끝났습니다. 아직 저장하지 않았으며 중복·충돌은 저장 시 원자적으로 판정합니다.`,false,true)}
+      else{collectorStatus(`${detail.label} 저장 ${result.inserted||0}건 · 중복 ${result.duplicates||0}건 · 충돌 ${result.conflicts||0}건${historyWarning}. 재고·정산·지급은 바뀌지 않았습니다.`,Boolean(result.conflicts)||result.runRecorded===false,!result.conflicts&&result.runRecorded!==false);collectorBatch=null;collectorPreview=null;$('#integration-collector-file').value='';$('#integration-collector-confirm').checked=false;await refresh(true)}
+    }catch(error){if(run!==collectorFileGeneration)return;console.error(error);collectorStatus(dryRun?'서버 검사를 완료하지 못했습니다. 어떤 메타데이터도 저장하지 않았습니다.':'저장 결과를 확인하지 못했습니다. 같은 파일을 다시 검사하면 중복 저장하지 않습니다.',true)}finally{if(run===collectorFileGeneration){collectorBusy=false;renderCollectorBatch()}}
   }
   async function previewHomepage(){
     if(evidenceBusy)return;evidenceBusy=true;evidencePreview=null;evidenceRunId=crypto.randomUUID();renderEvidence();evidenceStatus('홈페이지 주문을 읽어 저장 전 후보를 만들고 있어요.');
@@ -176,11 +206,13 @@
   }
 
   function open(kind){const filter=$('#integration-filter');filter.value=kind==='connected'?'connected':'';renderCards();if(kind==='needs')$('#integration-queue').scrollIntoView({behavior:'smooth',block:'start'});else $('#integration-pipeline').scrollIntoView({behavior:'smooth',block:'start'})}
-  function clear(){generation++;fileGeneration++;connectors=[];mappings=[];inventory=[];syncRuns=[];evidenceInbox=[];hub=null;loaded=false;loading=false;importBusy=false;evidenceBusy=false;evidencePreview=null;evidenceRunId='';stats={mappings:null,movements:null,issues:null,settlements:null};scmState={available:false,stale:false,error:''};royaltyState={available:false,stale:false,error:'',bookCount:null};connectorsState={stale:false,error:''};syncRunsState={stale:false,error:''};evidenceState={stale:false,error:''};$('#integration-content').hidden=true;for(const id of ['integration-metrics','integration-pipeline','integration-queue','integration-runs','integration-sources','integration-connectors','integration-ledger-stats','integration-evidence-list'])$('#'+id).replaceChildren();$('#integration-queue-count').textContent='';$('#integration-status').textContent='로그인한 관리자만 통합 운영실을 볼 수 있습니다.';$('#integration-status').classList.remove('bad');importFile=null;importHash='';importRequestId='';importPlan=null;dryResult=null;$('#payhere-file').value='';$('#payhere-file').disabled=false;$('#payhere-confirm').checked=false;renderImport();emit(false)}
+  function clear(){generation++;fileGeneration++;collectorFileGeneration++;connectors=[];mappings=[];inventory=[];syncRuns=[];evidenceInbox=[];hub=null;loaded=false;loading=false;importBusy=false;evidenceBusy=false;collectorBusy=false;evidencePreview=null;evidenceRunId='';collectorBatch=null;collectorPreview=null;stats={mappings:null,movements:null,issues:null,settlements:null};scmState={available:false,stale:false,error:''};royaltyState={available:false,stale:false,error:'',bookCount:null};connectorsState={stale:false,error:''};syncRunsState={stale:false,error:''};evidenceState={stale:false,error:''};$('#integration-content').hidden=true;for(const id of ['integration-metrics','integration-pipeline','integration-queue','integration-runs','integration-sources','integration-connectors','integration-ledger-stats','integration-evidence-list'])$('#'+id).replaceChildren();$('#integration-queue-count').textContent='';$('#integration-status').textContent='로그인한 관리자만 통합 운영실을 볼 수 있습니다.';$('#integration-status').classList.remove('bad');importFile=null;importHash='';importRequestId='';importPlan=null;dryResult=null;$('#payhere-file').value='';$('#payhere-file').disabled=false;$('#payhere-confirm').checked=false;$('#integration-collector-file').value='';$('#integration-collector-confirm').checked=false;collectorStatus('파일을 고르면 브라우저 안에서 형식과 민감 필드를 먼저 검사합니다.');renderCollectorBatch();renderImport();emit(false)}
   function init(options){
     config=options;client=options.client;onDenied=options.onDenied;$('#integration-refresh').onclick=()=>refresh(true);$('#integration-filter').onchange=renderCards;
     $('#integration-evidence-filter').onchange=renderEvidence;$('#integration-collect-preview').onclick=previewHomepage;$('#integration-collect-apply').onclick=applyHomepage;
     $('#integration-evidence-list').onclick=event=>{const button=event.target.closest('[data-evidence-id]');if(button)reviewEvidence(button.dataset.evidenceId,button.dataset.evidenceDecision)};
+    $('#integration-collector-file').onchange=event=>chooseCollectorBatch(event.target.files?.[0]);$('#integration-collector-preview').onclick=()=>callCollectorBatch(true);$('#integration-collector-confirm').onchange=renderCollectorBatch;
+    $('#integration-collector-apply').onclick=()=>{if(!$('#integration-collector-confirm').checked||!collectorPreview)return;if(confirm('검사된 비식별 메타데이터만 검토함에 저장할까요? 재고·정산·지급·원문·첨부는 바뀌거나 전송되지 않습니다.'))callCollectorBatch(false)};
     $('#payhere-file').onchange=e=>chooseFile(e.target.files?.[0]);$('#payhere-dry-run').onclick=()=>callImport(true);$('#payhere-confirm').onchange=renderImport;
     $('#payhere-apply').onclick=()=>{if(!$('#payhere-confirm').checked)return;if(confirm('검사된 판매 수량을 SCM 원장에 반영할까요? 이 작업은 재고를 차감합니다.'))callImport(false)};
     client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'||event==='USER_UPDATED')clear()});

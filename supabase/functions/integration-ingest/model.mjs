@@ -3,6 +3,11 @@ const TYPES=new Set(['evidence','reservation','sale','reversal','settlement_cand
 const text=(value,max=300)=>String(value??'').normalize('NFKC').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,max);
 const integer=value=>value===null||value===undefined||value===''?null:Number.isSafeInteger(Number(value))?Number(value):null;
 const iso=value=>{const time=Date.parse(value||'');return Number.isFinite(time)?new Date(time).toISOString():''};
+const exactKeys=(value,allowed)=>value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).every(key=>allowed.has(key))&&Object.keys(value).length===allowed.size;
+const MAIL_KEYS=new Set(['messageId','receivedAt','mailbox','uidHash','messageIdHash','attachments']);
+const CHAT_KEYS=new Set(['messageId','createTime','threadName','contentHash','attachmentRefHashes']);
+const ATTACHMENT_KEYS=new Set(['sha256','mimeType','size','localRef']);
+const MESSAGE_BATCH_KEYS=new Set(['action','connectorCode','runId','dryRun','events']);
 
 function transaction(type,{sku='',quantity=null,unitAmount=null,reversesEventId='',reason=''}){
   return {
@@ -36,12 +41,14 @@ function payhere(raw){
 }
 
 function message(raw,connectorCode){
+  if(!exactKeys(raw,connectorCode==='naver_mail'?MAIL_KEYS:CHAT_KEYS))throw Error('INVALID_SOURCE_EVENT');
   const id=text(raw?.messageId||raw?.message_id||raw?.uid||raw?.id,300),occurredAt=iso(raw?.receivedAt||raw?.received_at||raw?.createTime||raw?.created_at),kind=connectorCode==='google_chat'?'chat_message':'mail_message';
   if(!id||!occurredAt)throw Error('INVALID_SOURCE_EVENT');
   const label=connectorCode==='google_chat'?'Google Chat 메시지':'네이버 메일';
   let attachmentHashes=[],evidenceMetadata={};
   if(connectorCode==='naver_mail'){
     if(!Array.isArray(raw?.attachments)||raw.attachments.length<1||raw.attachments.length>20)throw Error('INVALID_SOURCE_EVENT');
+    if(raw.attachments.some(item=>!exactKeys(item,ATTACHMENT_KEYS)))throw Error('INVALID_SOURCE_EVENT');
     const attachments=Array.isArray(raw?.attachments)?raw.attachments.slice(0,20).map(item=>({
       sha256:text(item?.sha256,64),mime_type:text(item?.mimeType||item?.mime_type,160),size:integer(item?.size),local_ref:text(item?.localRef||item?.local_ref,300),
     })):[];
@@ -78,6 +85,7 @@ export function adaptEvent(connectorCode,raw){
 export function validateBatch(body){
   const connectorCode=text(body?.connectorCode,60),runId=text(body?.runId,60),dryRun=body?.dryRun!==false;
   if(!CONNECTORS.has(connectorCode))throw Error('CONNECTOR_NOT_SUPPORTED');
+  if(['naver_mail','google_chat'].includes(connectorCode)&&(!exactKeys(body,MESSAGE_BATCH_KEYS)||body.action!=='ingest'))throw Error('EVENTS_INVALID');
   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(runId))throw Error('RUN_ID_REQUIRED');
   if(!Array.isArray(body?.events)||body.events.length<1||body.events.length>100)throw Error('EVENTS_INVALID');
   const seen=new Set(),events=body.events.map(raw=>{

@@ -91,6 +91,11 @@ async function installVirtualAdmin(page){
       await page.evaluate(()=>window.__db.integration_evidence_inbox.unshift({id:'33333333-3333-4333-8333-333333333333',connector_code:'homepage',occurred_at:'2026-10-10T05:00:00Z',evidence_type:'homepage_order',summary:'홈페이지 주문 · 발송준비',candidate_type:'reservation',review_reason:'가용 재고만 차감 · 판매 확정 아님',review_status:'pending',created_at:'2026-10-10T05:01:00Z'}));
       return route.fulfill({contentType:'application/json',body:JSON.stringify({connectorCode:'homepage',runId:body.runId,dryRun:false,received:1,inserted:1,duplicates:0,conflicts:0,reviewRequired:1,items:[]})});
     }
+    if(body.action==='ingest'&&body.dryRun)return route.fulfill({contentType:'application/json',body:JSON.stringify({connectorCode:body.connectorCode,runId:body.runId,dryRun:true,received:body.events.length,reviewRequired:body.events.length,rows:[]})});
+    if(body.action==='ingest'){
+      await page.evaluate(()=>window.__db.integration_evidence_inbox.unshift({id:'44444444-4444-4444-8444-444444444444',connector_code:'google_chat',occurred_at:'2026-10-10T06:00:00Z',evidence_type:'chat_message',summary:'Google Chat 메시지',candidate_type:'evidence',review_reason:'메시지는 근거일 뿐 승인·명령·확정 거래가 아닙니다.',review_status:'pending',created_at:'2026-10-10T06:01:00Z'}));
+      return route.fulfill({contentType:'application/json',body:JSON.stringify({connectorCode:body.connectorCode,runId:body.runId,dryRun:false,received:body.events.length,inserted:body.events.length,duplicates:0,conflicts:0,reviewRequired:body.events.length,runRecorded:true,items:[]})});
+    }
     if(body.action==='review'){
       await page.evaluate(({id,decision})=>{const row=window.__db.integration_evidence_inbox.find(item=>item.id===id);if(row)row.review_status=decision},{id:body.evidenceId,decision:body.decision});
       return route.fulfill({contentType:'application/json',body:JSON.stringify({review:{id:body.evidenceId,review_status:body.decision,ledger_changed:false},ledgerChanged:false})});
@@ -166,6 +171,17 @@ test('admin unified operations: collection previews before metadata storage and 
   const first=page.locator('.integration-evidence-item').first();await first.getByRole('button',{name:'근거 확인'}).click();
   await expect(page.locator('#integration-evidence-status')).toContainText('원장에는 반영하지 않았습니다');
   await expect(page.locator('#integration-evidence-count')).toContainText('검토 필요 2건');
+});
+
+test('admin unified operations: local collector JSON is validated, previewed and stored as evidence only',async({page})=>{
+  await openAdmin(page,{width:1200,height:900});await goTab(page,{width:1200,height:900},'integration',/통합 운영실/);
+  const hash='d'.repeat(64),batch={action:'ingest',connectorCode:'google_chat',runId:'55555555-5555-4555-8555-555555555555',dryRun:false,events:[{messageId:'spaces/example/messages/one',createTime:'2026-10-10T06:00:00Z',threadName:'spaces/example/threads/one',contentHash:hash,attachmentRefHashes:[]}]};
+  await page.locator('#integration-collector-file').setInputFiles({name:'google_chat.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(batch))});
+  await expect(page.locator('#integration-collector-status')).toContainText('아직 서버로 전송하지 않았습니다');
+  await page.locator('#integration-collector-preview').click();await expect(page.locator('#integration-collector-status')).toContainText('서버 형식 검사가 끝났습니다');
+  await page.locator('#integration-collector-confirm').check();page.once('dialog',dialog=>dialog.accept());await page.locator('#integration-collector-apply').click();
+  await expect(page.locator('#integration-collector-status')).toContainText('저장 1건');await expect(page.locator('#integration-collector-status')).toContainText('재고·정산·지급은 바뀌지 않았습니다');
+  await expect(page.locator('#integration-evidence-count')).toContainText('검토 필요 3건');
 });
 
 test('admin core: partial refresh keeps last-known-good data and saved rows are re-read',async({page})=>{
