@@ -66,7 +66,7 @@ export function buildData(raw){
     if(checks.length)warn((r['키워드']||sku)+' 블라인드북 확인',checks.join(' · '));
     return {sku,type:r['유형']||'미분류',keyword:r['키워드']||sku,book:r['구성도서']||'연결 미확인',base,price,stock,check:checks.join(' · ')};
   });
-  const counts=t.counts.filter(r=>r.SKU).map(r=>({name:r['상품명'],date:r['실사·등록일'],scope:r['재고 범위'],count:num(r['확정수량']),current:inv.get(String(r.SKU))?.stock??null}));
+  const counts=t.counts.filter(r=>r.SKU).map(r=>({sku:String(r.SKU),name:r['상품명'],date:r['실사·등록일'],scope:r['재고 범위'],count:num(r['확정수량']),current:inv.get(String(r.SKU))?.stock??null}));
   const flagged=t.ledger.filter(r=>r['원장주의']);
   if(flagged.length)warn('원장 주의 표시',`${flagged.length}개 행에 경고가 있습니다. 행 수는 중복 사건 수와 다릅니다.`);
   const missing=t.ledger.filter(r=>r['도서']&&!r.SKU);

@@ -8,7 +8,7 @@ const docs=readFileSync(new URL('../admin/docs.html',import.meta.url),'utf8');
 
 test('관리 메뉴는 오늘·처리·운영·기록으로 묶이고 모바일에서도 전 메뉴에 접근한다',()=>{
   for(const group of ['오늘','처리','운영','기록'])assert.match(html,new RegExp(`(?:nav-label|optgroup label=")${group}`));
-  for(const tab of ['home','work','orders','apps','inquiries','scm','integration','cohorts','members','alerts','operations']){
+  for(const tab of ['home','work','orders','apps','inquiries','finder','scm','integration','cohorts','members','alerts','operations']){
     assert.match(html,new RegExp(`<option value="${tab}"`));
   }
   assert.match(html,/id="mobileNav"[\s\S]+addEventListener\('change'/);

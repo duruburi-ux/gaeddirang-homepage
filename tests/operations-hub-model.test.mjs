@@ -74,6 +74,36 @@ test('실행 이력 조회 실패 시 이전 성공본을 자동 확인으로 �
   assert.match(source.detail,/이전 확인본/);
 });
 
+test('조회 실패는 성공 이력이 오래됐어도 이전 확인본임을 숨기지 않는다',()=>{
+  const model=M.buildOperationsHub({
+    now,
+    sourcesStale:true,
+    connectors:[{code:'homepage',name:'홈페이지',status:'connected',data_direction:'inbound'}],
+    runs:[{connector_code:'homepage',status:'success',completed_at:'2026-10-09T05:00:00Z'}],
+    stats:{mappings:1,movements:1,issues:0,settlements:0},
+    scm:{available:true,stale:false},
+    royalty:{available:true,stale:false,bookCount:1},
+  });
+  const source=model.sources.find(row=>row.id==='homepage');
+  assert.equal(source.state,'review');
+  assert.match(source.detail,/이전 확인본/);
+});
+
+test('조회 실패는 이전 실패 상태에도 이전 확인본 표시를 남긴다',()=>{
+  const model=M.buildOperationsHub({
+    now,
+    collectorStatusStale:true,
+    collectorStatuses:[{connector_code:'google_chat',status:'failed',last_success_at:'2026-10-10T05:00:00Z',last_failure_at:'2026-10-11T05:30:00Z',evidence_total:0,error_code:'COLLECTOR_EXIT_7'}],
+    connectors:[],runs:[],
+    stats:{mappings:1,movements:1,issues:0,settlements:0},
+    scm:{available:true,stale:true},
+    royalty:{available:true,stale:false,bookCount:1},
+  });
+  const source=model.sources.find(row=>row.id==='google_chat');
+  assert.equal(source.state,'failed');
+  assert.match(source.detail,/이전 확인본/);
+});
+
 test('SCM 연결상태의 최근 수집 성공은 수동 커넥터보다 우선해 읽기 연결을 자동 확인한다',()=>{
   const model=M.buildOperationsHub({
     now,

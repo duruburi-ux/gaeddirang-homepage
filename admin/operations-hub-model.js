@@ -48,8 +48,9 @@
     let state=failed?'failed':now-timeValue(successAt)>26*60*60*1000?'review':'healthy';
     let detail=failed?'마지막 읽기 수집이 실패했습니다.':state==='healthy'?'최근 읽기 수집에 성공했습니다.':'마지막 읽기 성공 확인이 오래됐습니다.';
     if(Number.isInteger(status.evidence_total)&&status.evidence_total>=0)detail+=` · 누적 근거 ${status.evidence_total}건`;
-    if(statusStale&&state==='healthy'){
-      state='review';detail='연결 상태 조회 실패 · 아래는 이전 확인본입니다.';
+    if(statusStale){
+      if(state==='healthy')state='review';
+      detail='연결 상태 조회 실패 · 아래는 이전 확인본입니다.';
     }
     return {
       id:expectation.id,label:connector?.name||expectation.label,scope:expectation.scope||connector?.purpose||'',state,stateLabel:STATE_LABELS[state],detail,
@@ -83,8 +84,9 @@
         detail=state==='healthy'?'최근 성공 이력이 있습니다.':'마지막 성공 확인이 오래됐습니다.';
       }
     }
-    if(runsStale&&state==='healthy'){
-      state='review';detail='연결·실행 상태 조회 실패 · 아래는 이전 확인본입니다.';
+    if(runsStale){
+      if(state==='healthy')state='review';
+      detail='연결·실행 상태 조회 실패 · 아래는 이전 확인본입니다.';
     }
     return {
       id:expectation.id,label:connector.name||expectation.label,scope:expectation.scope||connector.purpose||'',state,stateLabel:STATE_LABELS[state],detail,

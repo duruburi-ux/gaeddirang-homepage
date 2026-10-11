@@ -35,7 +35,7 @@ async function installVirtualAdmin(page){
         {id:'22222222-2222-4222-8222-222222222222',connector_code:'smartstore',occurred_at:'2026-10-10T04:05:00Z',evidence_type:'smartstore_order',summary:'스마트스토어 상품 주문 · RETURN_REQUEST',candidate_type:'reversal',review_reason:'원거래 참조 필수',review_status:'conflict',created_at:'2026-10-10T04:06:00Z'},
       ],
     };
-    window.__failTable='';window.__authCallbacks=[];window.__orderRequests=new Map();window.__adminOrderRpcCalls=0;
+    window.__failTable='';window.__failScmRead=false;window.__scmFetchedAt='';window.__authCallbacks=[];window.__orderRequests=new Map();window.__adminOrderRpcCalls=0;
     class Query{
       constructor(table){this.table=table;this.op='select';this.filters=[];this.options={};this.patch=null;this.payload=null;this.returning=false;}
       select(_columns,options={}){if(this.op==='update')this.returning=true;else this.op='select';this.options={...this.options,...options};return this;}
@@ -81,7 +81,11 @@ async function installVirtualAdmin(page){
   });
   await page.route('**/supabase.min.js',route=>route.fulfill({contentType:'application/javascript',body:''}));
   await page.route('**/xlsx.full.min.js',route=>route.fulfill({contentType:'application/javascript',body:'window.XLSX={};'}));
-  await page.route('**/functions/v1/scm-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-11T08:00:00Z',stale:false},datasets:{inventory:[{sku:'V-001',name:'가상 도서',author:'가상 작가',category:'도서',owner:'가상팀',price:12000,cost:6000,stock:4,skuStock:4,status:'판매중',kind:'도서'}],blind:[],counts:[],actions:[],connections:[{connector_code:'naver_mail',status:'success',last_attempt_at:'2026-10-11T08:00:00Z',last_success_at:'2026-10-11T08:00:00Z',last_failure_at:'',evidence_total:4,batch_sha256:'a'.repeat(64),schema_version:'1',error_code:''},{connector_code:'google_chat',status:'success',last_attempt_at:'2026-10-11T08:01:00Z',last_success_at:'2026-10-11T08:01:00Z',last_failure_at:'',evidence_total:7,batch_sha256:'b'.repeat(64),schema_version:'1',error_code:''}]}})}));
+  await page.route('**/functions/v1/scm-read',async route=>{
+    if(await page.evaluate(()=>window.__failScmRead))return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({meta:{error:'SOURCE_UNAVAILABLE'},datasets:null})});
+    const forcedAt=await page.evaluate(()=>window.__scmFetchedAt);
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:forcedAt||new Date().toISOString(),stale:false},datasets:{inventory:[{sku:'V-001',name:'가상 마음 산책',author:'가상 작가',isbn:'9780000000011',category:'에세이',owner:'위탁',price:12000,cost:6000,stock:4,skuStock:3,status:'재고 있음',kind:'도서'},{sku:'V-002',name:'가상 마음 산책',author:'가상 작가',isbn:'9780000000028',category:'에세이',owner:'자체',price:13000,cost:7000,stock:0,skuStock:0,status:'품절',kind:'도서'},{sku:'V-003',name:'공백 없는책',author:'다른 작가',isbn:'9780000000035',category:'소설',owner:'미확인',price:14000,cost:null,stock:null,skuStock:null,status:'수량 미확인',kind:'도서'}],blind:[],counts:[{sku:'V-001',name:'가상 마음 산책',date:'2026-10-10',scope:'책공방 앞 책장',count:4,current:4}],actions:[],connections:[{connector_code:'naver_mail',status:'success',last_attempt_at:'2026-10-11T08:00:00Z',last_success_at:'2026-10-11T08:00:00Z',last_failure_at:'',evidence_total:4,batch_sha256:'a'.repeat(64),schema_version:'1',error_code:''},{connector_code:'google_chat',status:'success',last_attempt_at:'2026-10-11T08:01:00Z',last_success_at:'2026-10-11T08:01:00Z',last_failure_at:'',evidence_total:7,batch_sha256:'b'.repeat(64),schema_version:'1',error_code:''}]}})});
+  });
   await page.route('**/functions/v1/royalty-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-10T03:00:00Z',stale:false,readOnly:true},books:[{key:'virtual-a'},{key:'virtual-b'}]})}));
   await page.route('**/functions/v1/work-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-10T03:00:00Z',stale:false},work:{summary:{active:1,attention:1,approvals:0,blocked:0,stale:0},coverage:[],records:[{id:'work-1',kind:'tasks',title:'가상 확인 업무',status:'진행',owner:'가상 담당',updated:'2026-10-10T02:00:00Z',attention:true,terminal:false}]}})}));
   await page.route('**/functions/v1/integration-ingest',async route=>{
@@ -129,6 +133,31 @@ for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',wi
     await page.screenshot({path:`test-results/admin-core-${viewport.name}-orders.png`,fullPage:true});
   });
 }
+
+for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',width:360,height:780}]){
+  test(`admin book finder ${viewport.name}: exact lookup, uncertainty and back stay clear`,async({page})=>{
+    await openAdmin(page,viewport);await goTab(page,viewport,'finder',/책공방/);
+    const input=page.locator('#book-finder-query');await expect(input).toBeVisible();
+    await input.fill('978 000 000 001 1');await expect(page.locator('.finder-result')).toHaveCount(1);await expect(page.locator('#book-finder-summary')).toContainText('정확한 ISBN 우선');
+    const result=page.locator('.finder-result').first();await expect(result).toContainText('시스템 장부상 4권 · 실물 확인 필요');await expect(result).toContainText('최근 실사/등록 4권');await expect(result).toContainText('예약 제외 가용 수량 미등록');await expect(result).toContainText('원본 수량 불일치');
+    await result.focus();await result.press('Enter');await expect(page.locator('#book-finder-detail')).toBeVisible();await expect(page.locator('#book-finder-detail')).toContainText('책장 위치');await expect(page.locator('#book-finder-detail')).toContainText('미등록');
+    await page.goBack();await expect(page.locator('#book-finder-detail')).not.toBeVisible();await expect(result).toBeFocused();
+    await input.fill('가상 작가');await expect(page.locator('.finder-result')).toHaveCount(2);await expect(page.locator('.finder-edition').first()).toContainText('ISBN·SKU 확인');await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`test-results/admin-book-finder-${viewport.name}.png`,fullPage:true});
+    await page.getByRole('button',{name:'간결 목록'}).click();await expect(page.locator('.finder-result.list')).toHaveCount(2);
+    await input.fill('등록 안 된 책');await expect(page.locator('.finder-empty')).toContainText('검색 결과 없음은 품절을 뜻하지 않습니다');
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+  });
+}
+
+test('admin book finder: load failure is not shown as zero stock and retry stays available',async({page})=>{
+  await openAdmin(page,{width:1200,height:900});await page.evaluate(()=>{window.__failScmRead=true});await goTab(page,{width:1200,height:900},'finder',/책공방/);
+  await expect(page.locator('#book-finder-status')).toContainText('0권으로 판단하지 말고');await expect(page.locator('#book-finder-retry')).toBeVisible();await expect(page.locator('#book-finder-content')).toBeHidden();
+});
+
+test('admin book finder: a source copy older than ten minutes is hidden',async({page})=>{
+  await openAdmin(page,{width:1200,height:900});await page.evaluate(()=>{window.__scmFetchedAt=new Date(Date.now()-11*60*1000).toISOString()});await goTab(page,{width:1200,height:900},'finder',/책공방/);
+  await expect(page.locator('#book-finder-status')).toContainText('10분 넘게 갱신되지 않아 수량을 숨겼습니다');await expect(page.locator('#book-finder-retry')).toBeVisible();await expect(page.locator('#book-finder-content')).toBeHidden();
+});
 
 for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',width:360,height:780}]){
   test(`admin unified operations ${viewport.name}: scope, freshness and retry stay explicit`,async({page})=>{
@@ -198,9 +227,10 @@ test('admin core: partial refresh keeps last-known-good data and saved rows are 
 
 test('admin core: session expiration clears private UI and returns to login',async({page})=>{
   await openAdmin(page,{width:1200,height:900});
+  await goTab(page,{width:1200,height:900},'finder',/책공방/);await page.locator('#book-finder-query').fill('가상 작가');await expect(page.locator('.finder-result')).toHaveCount(2);
   await page.evaluate(()=>window.__authCallbacks.forEach(cb=>cb('SIGNED_OUT',null)));
   await expect(page.locator('#loginView')).toBeVisible();await expect(page.locator('#appView')).toBeHidden();await expect(page.locator('#loginMsg')).toContainText('다시 로그인');
-  expect(await page.evaluate(()=>({apps:APPS.length,orders:ORDERS.length,panel:document.querySelector('#panelHost').childElementCount}))).toEqual({apps:0,orders:0,panel:0});
+  expect(await page.evaluate(()=>({apps:APPS.length,orders:ORDERS.length,panel:document.querySelector('#panelHost').childElementCount,finderHidden:document.querySelector('#book-finder-content').hidden,finderRows:document.querySelector('#book-finder-results').childElementCount}))).toEqual({apps:0,orders:0,panel:0,finderHidden:true,finderRows:0});
 });
 
 test('admin core: direct order requires delivery address but allows minimal in-person data',async({page})=>{
