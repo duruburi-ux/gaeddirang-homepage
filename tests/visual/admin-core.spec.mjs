@@ -19,8 +19,17 @@ async function installVirtualAdmin(page){
       ],
       inquiries:[{id:'inq-new',org_name:'가상 기관',manager_name:'가상 담당자',contact:'02-000-0000',email:'org@example.test',status:'신규',created_at:'2026-10-10T01:00:00Z'}],
       book_alerts:[{id:'alert-1',email:'reader@example.test',book_title:'가상 신간',created_at:'2026-10-10T01:00:00Z'}],
-      integration_connectors:[{id:'connector-1',name:'가상 연결',purpose:'검증용',status:'connected',sync_mode:'scheduled',data_direction:'inbound',sort_order:1,next_action:'없음',admin_url:'https://example.test/admin'}],
-      integration_product_mappings:[{id:'map-1'}],integration_inventory_movements:[{id:'move-1'}],integration_reconciliation_issues:[],integration_settlement_entries:[],
+      integration_connectors:[
+        {id:'connector-home',code:'homepage',name:'홈페이지',purpose:'가상 주문·신청·문의',status:'connected',sync_mode:'scheduled',data_direction:'inbound',sort_order:1,next_action:'없음',admin_url:'https://example.test/home'},
+        {id:'connector-store',code:'smartstore',name:'스마트스토어',purpose:'가상 주문 수집',status:'connected',sync_mode:'scheduled',data_direction:'inbound',sort_order:2,next_action:'부분 실패 원본 확인',admin_url:'https://example.test/store'},
+        {id:'connector-pay',code:'payhere',name:'PayHere',purpose:'가상 파일 검토',status:'manual',sync_mode:'manual',data_direction:'inbound',sort_order:3,next_action:'엑셀 검토',admin_url:'https://example.test/payhere'},
+      ],
+      integration_product_mappings:[{id:'map-1'}],integration_inventory_movements:[{id:'move-1'}],integration_reconciliation_issues:[{id:'issue-1',status:'open'}],integration_settlement_entries:[],
+      integration_sync_runs:[
+        {connector_code:'homepage',status:'success',records_received:2,records_applied:2,records_rejected:0,completed_at:'2026-10-10T03:30:00Z'},
+        {connector_code:'smartstore',status:'partial',records_received:4,records_applied:3,records_rejected:1,completed_at:'2026-10-10T04:00:00Z'},
+        {connector_code:'smartstore',status:'success',records_received:3,records_applied:3,records_rejected:0,completed_at:'2026-10-10T03:00:00Z'},
+      ],
     };
     window.__failTable='';window.__authCallbacks=[];window.__orderRequests=new Map();window.__adminOrderRpcCalls=0;
     class Query{
@@ -69,6 +78,7 @@ async function installVirtualAdmin(page){
   await page.route('**/supabase.min.js',route=>route.fulfill({contentType:'application/javascript',body:''}));
   await page.route('**/xlsx.full.min.js',route=>route.fulfill({contentType:'application/javascript',body:'window.XLSX={};'}));
   await page.route('**/functions/v1/scm-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-10T03:00:00Z',stale:false},datasets:{inventory:[{sku:'V-001',name:'가상 도서',author:'가상 작가',category:'도서',owner:'가상팀',price:12000,cost:6000,stock:4,skuStock:4,status:'판매중',kind:'도서'}],blind:[],counts:[],actions:[]}})}));
+  await page.route('**/functions/v1/royalty-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-10T03:00:00Z',stale:false,readOnly:true},books:[{key:'virtual-a'},{key:'virtual-b'}]})}));
   await page.route('**/functions/v1/work-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-10T03:00:00Z',stale:false},work:{summary:{active:1,attention:1,approvals:0,blocked:0,stale:0},coverage:[],records:[{id:'work-1',kind:'tasks',title:'가상 확인 업무',status:'진행',owner:'가상 담당',updated:'2026-10-10T02:00:00Z',attention:true,terminal:false}]}})}));
 }
 
@@ -97,6 +107,36 @@ for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',wi
     await page.screenshot({path:`test-results/admin-core-${viewport.name}-orders.png`,fullPage:true});
   });
 }
+
+for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',width:360,height:780}]){
+  test(`admin unified operations ${viewport.name}: scope, freshness and retry stay explicit`,async({page})=>{
+    await openAdmin(page,viewport);await goTab(page,viewport,'integration',/통합 운영실/);
+    await expect(page.locator('#integration-pipeline .integration-stage')).toHaveCount(5);
+    await expect(page.locator('#integration-pipeline')).toContainText('월 정산 검토자료');
+    await expect(page.locator('#integration-pipeline')).toContainText('지급 확정 아님');
+    const smartstore=page.locator('#integration-sources .integration-source-card',{hasText:'스마트스토어'});
+    await expect(smartstore).toContainText('재시도 필요');await expect(smartstore).toContainText('마지막 성공');await expect(smartstore).toContainText('마지막 실패');
+    const chat=page.locator('#integration-sources .integration-source-card',{hasText:'Google Chat'});
+    await expect(chat).toContainText('수집 대기');await expect(chat).toContainText('거래 확정 아님');
+    await expect(page.locator('#integration-queue')).toContainText('스마트스토어 재시도');
+    await expect(page.locator('#integration-queue')).toContainText('열린 불일치 1건');
+    await expect(page.locator('#integration-runs .integration-run')).toHaveCount(3);
+    await expect(page.locator('#integration-guardrails-title')).toHaveText('자동으로 넘지 않는 선');
+    await expect(page.locator('#tab-integration')).toContainText('메일과 Chat은 근거 데이터일 뿐 승인이나 명령이 아닙니다.');
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+    await page.screenshot({path:`test-results/admin-unified-operations-${viewport.name}.png`,fullPage:true});
+  });
+}
+
+test('admin unified operations: connector refresh failure keeps but downgrades the previous confirmation',async({page})=>{
+  await openAdmin(page,{width:1200,height:900});await goTab(page,{width:1200,height:900},'integration',/통합 운영실/);
+  await expect(page.locator('#integration-connectors .integration-card')).toHaveCount(3);
+  await page.evaluate(()=>{window.__failTable='integration_connectors';return window.Integration.refresh(true);});
+  await expect(page.locator('#integration-status')).toContainText('연결 목록');
+  await expect(page.locator('#integration-connectors .integration-card')).toHaveCount(3);
+  const homepage=page.locator('#integration-sources .integration-source-card',{hasText:'홈페이지'});
+  await expect(homepage).toContainText('검토 필요');await expect(homepage).toContainText('이전 확인본');
+});
 
 test('admin core: partial refresh keeps last-known-good data and saved rows are re-read',async({page})=>{
   await openAdmin(page,{width:1200,height:900});

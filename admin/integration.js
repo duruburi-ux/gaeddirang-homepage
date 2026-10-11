@@ -3,17 +3,17 @@
   const $=s=>document.querySelector(s);
   const esc=value=>String(value??'').replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
   const money=value=>value==null||value===''||!Number.isFinite(Number(value))?'미확인':Number(value).toLocaleString('ko-KR')+'원';
-  const labels={connected:'자동 연결',manual:'수동 관리',setup_required:'준비 필요',attention:'확인 필요',disabled:'사용 안 함'};
+  const labels={connected:'연결 등록',manual:'수동 관리',setup_required:'준비 필요',attention:'확인 필요',disabled:'사용 안 함'};
   const modes={realtime:'실시간',scheduled:'주기 확인',manual:'사람이 입력',reference_only:'참고용'};
   const directions={inbound:'가져오기',outbound:'보내기',two_way:'양방향',reference_only:'참고만'};
   const rowLabels={ready:'반영 후보',excluded:'재고 제외',unmapped:'상품 연결 필요',ambiguous:'거래 연결 필요',price_mismatch:'가격 확인 필요',duplicate:'이미 반영',applicable:'반영 가능',blocked:'확인 필요',applied:'반영 완료'};
   const importRequestStorageKey='gaeddirang.payhere.import-request.v1';
-  let config,client,onDenied,connectors=[],mappings=[],inventory=[],loaded=false,loading=false,generation=0,fileGeneration=0,stats={mappings:null,movements:null,issues:null,settlements:null};
+  let config,client,onDenied,connectors=[],mappings=[],inventory=[],syncRuns=[],hub=null,loaded=false,loading=false,generation=0,fileGeneration=0,stats={mappings:null,movements:null,issues:null,settlements:null},scmState={available:false,stale:false,error:''},royaltyState={available:false,stale:false,error:'',bookCount:null},connectorsState={stale:false,error:''},syncRunsState={stale:false,error:''};
   let importFile=null,importHash='',importPlan=null,dryResult=null,importBusy=false,importRequestId='';
 
   function counts(){return connectors.reduce((a,x)=>{a[x.status]=(a[x.status]||0)+1;return a},{connected:0,manual:0,setup_required:0,attention:0,disabled:0})}
-  function emit(ok=true){const c=counts();window.dispatchEvent(new CustomEvent('integration:summary',{detail:{ok,connected:c.connected,manual:c.manual,setup:c.setup_required,attention:c.attention,fetchedAt:new Date().toISOString()}}))}
-  function renderMetrics(){const c=counts();$('#integration-metrics').innerHTML=[['자동 연결',c.connected],['수동 관리',c.manual],['연결 준비 필요',c.setup_required],['확인 필요',c.attention]].map(([label,n])=>`<div><strong>${n}</strong><span>${label}</span></div>`).join('')}
+  function emit(ok=true){const c=counts(),m=hub?.metrics||{};window.dispatchEvent(new CustomEvent('integration:summary',{detail:{ok,connected:c.connected,manual:c.manual,setup:c.setup_required,attention:c.attention,healthy:m.healthy??null,review:m.review??null,failed:m.failed??null,waiting:m.waiting??null,fetchedAt:new Date().toISOString()}}))}
+  function renderMetrics(){const m=hub?.metrics||{};$('#integration-metrics').innerHTML=[['자동 확인 단계',m.healthy],['검토 필요',m.review],['재시도 필요',m.failed],['연결·확인 대기',m.waiting]].map(([label,n])=>`<div><strong>${n==null?'—':n}</strong><span>${label}</span></div>`).join('')}
   function safeAdminUrl(value){try{const url=new URL(value);return url.protocol==='https:'?url.href:''}catch{return''}}
   function renderCards(){
     const filter=$('#integration-filter').value,rows=connectors.filter(x=>!filter||x.status===filter);
@@ -24,12 +24,35 @@
     $('#integration-ledger-stats').innerHTML=[['상품 연결표',stats.mappings],['입출고 기록',stats.movements],['열린 불일치',stats.issues],['정산 기록',stats.settlements]].map(([label,n])=>`<div><strong>${n==null?'미확인':n}</strong><span>${label}</span></div>`).join('');
   }
 
+  function formatTime(value){
+    if(!value)return '없음';const date=new Date(value);return Number.isNaN(date.valueOf())?'확인 불가':date.toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+  }
+  function renderHub(){
+    const model=window.OperationsHubModel;if(!model)return;
+    hub=model.buildOperationsHub({connectors,runs:syncRuns,sourcesStale:Boolean(connectorsState.error||syncRunsState.error),stats,scm:scmState,royalty:royaltyState});
+    renderMetrics();
+    $('#integration-pipeline').innerHTML=hub.stages.map(row=>`<article class="integration-stage"><small>${esc(row.step)} / ${esc(row.id.toUpperCase())}</small><b>${esc(row.title)}</b><span class="integration-stage-state ${esc(row.state)}">${esc(row.stateLabel)}</span><p>${esc(row.detail)}</p></article>`).join('');
+    $('#integration-queue-count').textContent=`${hub.queue.length}건`;
+    $('#integration-queue').innerHTML=hub.queue.length?hub.queue.map(row=>`<article class="integration-queue-item ${esc(row.level)}"><span class="integration-queue-mark" aria-hidden="true"></span><div><b>${esc(row.title)}</b><p>${esc(row.detail)}</p><small>${esc(row.action)}</small></div></article>`).join(''):'<p class="integration-empty-state">지금 표시할 검토 항목이 없습니다. 원본 전체 확인 완료를 뜻하지는 않습니다.</p>';
+    const runsWarning=syncRunsState.stale?'<p class="integration-inline-warning">실행 이력 조회에 실패했습니다. 아래 내용은 이전 확인본이며 현재 상태로 단정하지 않습니다.</p>':'';
+    $('#integration-runs').innerHTML=runsWarning+(hub.recentRuns.length?hub.recentRuns.map(row=>`<article class="integration-run"><b>${esc(row.label)}</b><span class="integration-run-state ${esc(row.state)}">${esc(row.stateLabel)}</span><time>${esc(formatTime(row.at))}</time><small>수신 ${row.received??'미확인'} · 반영 ${row.applied??'미확인'} · 제외/거절 ${row.rejected??'미확인'}</small></article>`).join(''):'<p class="integration-empty-state">이 화면에 연결된 실행 이력이 없습니다. 자동화를 실행 중이라고 판단하지 않습니다.</p>');
+    $('#integration-sources').innerHTML=hub.sources.map(row=>`<article class="integration-source-card"><div class="integration-source-head"><h3>${esc(row.label)}</h3><span class="integration-source-state ${esc(row.state)}">${esc(row.stateLabel)}</span></div><p class="integration-source-scope">${esc(row.scope||'등록된 수집 범위 미확인')}</p><p class="integration-source-detail">${esc(row.detail)}</p><div class="integration-source-times"><span>마지막 성공 ${esc(formatTime(row.lastSuccess))}</span><span>마지막 실패 ${esc(formatTime(row.lastFailure))}</span></div>${row.nextAction?`<p class="integration-source-next">다음: ${esc(row.nextAction)}</p>`:''}</article>`).join('');
+  }
+
   async function loadInventory(){
     try{
       const {data,error}=await client.auth.getSession();if(error||!data.session)return {data:null,error:error||Error('AUTH_REQUIRED')};
       const res=await fetch(config.url+'/functions/v1/scm-read',{headers:{Authorization:'Bearer '+data.session.access_token,apikey:config.key},cache:'no-store'});
       if(!res.ok)return {data:null,error:Error(`SCM_${res.status}`)};
-      return {data:(await res.json()).datasets?.inventory||[],error:null};
+      const result=await res.json();return {data:result.datasets?.inventory||[],meta:result.meta||{},error:null};
+    }catch(error){return {data:null,error}}
+  }
+  async function loadRoyalty(){
+    try{
+      const {data,error}=await client.auth.getSession();if(error||!data.session)return {data:null,error:error||Error('AUTH_REQUIRED')};
+      const res=await fetch(config.url+'/functions/v1/royalty-read',{headers:{Authorization:'Bearer '+data.session.access_token,apikey:config.key},cache:'no-store'});
+      if(!res.ok)return {data:null,error:Error(`ROYALTY_${res.status}`)};
+      const result=await res.json();return {data:{bookCount:Array.isArray(result.books)?result.books.length:null},meta:result.meta||{},error:null};
     }catch(error){return {data:null,error}}
   }
 
@@ -37,22 +60,26 @@
     if(loading||(!force&&loaded))return;
     loading=true;const run=++generation,button=$('#integration-refresh');button.disabled=true;button.textContent='확인 중…';
     try{
-      const [co,ma,mv,is,se,scm]=await Promise.all([
+      const [co,ma,mv,issues,se,runs,scm,royalty]=await Promise.all([
         client.from('integration_connectors').select('*').order('sort_order'),
         client.from('integration_product_mappings').select('*',{count:'exact'}),
         client.from('integration_inventory_movements').select('*',{count:'exact',head:true}),
         client.from('integration_reconciliation_issues').select('*',{count:'exact',head:true}).in('status',['open','investigating']),
         client.from('integration_settlement_entries').select('*',{count:'exact',head:true}),
-        loadInventory()
+        client.from('integration_sync_runs').select('connector_code,status,records_received,records_applied,records_rejected,completed_at').order('completed_at',{ascending:false}),
+        loadInventory(),
+        loadRoyalty()
       ]);
       if(run!==generation)return;
-      const results=[['연결 목록',co],['상품 연결표',ma],['입출고 기록',mv],['불일치',is],['정산',se],['SCM',scm]],failed=results.filter(([,r])=>r.error);
+      const results=[['연결 목록',co],['상품 연결표',ma],['입출고 기록',mv],['불일치',issues],['정산',se],['실행 이력',runs],['SCM',scm],['인세 원본',royalty]],failed=results.filter(([,r])=>r.error);
       const denied=failed.find(([,r])=>r.error?.code==='PGRST301'||/jwt|auth/i.test(r.error?.message||''));if(denied){onDenied?.();return}
-      if(co.error)throw co.error;
-      connectors=co.data||[];if(!ma.error)mappings=ma.data||[];if(!scm.error)inventory=scm.data;
-      stats={mappings:ma.error?null:(ma.count??ma.data?.length??0),movements:mv.error?null:(mv.count??0),issues:is.error?null:(is.count??0),settlements:se.error?null:(se.count??0)};loaded=true;
-      renderMetrics();renderCards();renderLedger();$('#integration-content').hidden=false;
-      const now=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}),partial=failed.length>0;$('#integration-status').textContent=partial?`일부 원장 확인 실패 · ${failed.map(([name])=>name).join('·')} 값은 미확인입니다.`:`통합 원장 정상 · ${now} 확인 · 자동 ${counts().connected}곳 / 사람 확인 ${counts().manual+counts().setup_required+counts().attention}곳`;$('#integration-status').classList.toggle('bad',partial);emit(!partial);
+      if(!co.error){connectors=co.data||[];connectorsState={stale:false,error:''}}else connectorsState={stale:connectors.length>0,error:co.error?.message||'연결 목록 조회 실패'};
+      if(!ma.error)mappings=ma.data||[];if(!runs.error){syncRuns=runs.data||[];syncRunsState={stale:false,error:''}}else syncRunsState={stale:syncRuns.length>0,error:runs.error?.message||'실행 이력 조회 실패'};
+      if(!scm.error){inventory=scm.data;scmState={available:true,stale:!!scm.meta?.stale,error:'',fetchedAt:scm.meta?.fetchedAt||''}}else scmState={...scmState,stale:scmState.available,error:'SCM 조회 실패'};
+      if(!royalty.error)royaltyState={available:true,stale:!!royalty.meta?.stale,error:'',fetchedAt:royalty.meta?.fetchedAt||'',bookCount:royalty.data?.bookCount??null};else royaltyState={...royaltyState,stale:royaltyState.available,error:'인세 원본 조회 실패'};
+      stats={mappings:ma.error?null:(ma.count??ma.data?.length??0),movements:mv.error?null:(mv.count??0),issues:issues.error?null:(issues.count??0),settlements:se.error?null:(se.count??0)};loaded=true;
+      renderCards();renderLedger();renderHub();$('#integration-content').hidden=false;
+      const now=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}),partial=failed.length>0,needs=(hub?.metrics.review||0)+(hub?.metrics.failed||0)+(hub?.metrics.waiting||0);$('#integration-status').textContent=partial?`일부 원본 확인 실패 · ${failed.map(([name])=>name).join('·')} 값은 0이 아니라 미확인입니다.`:`원본 조회 완료 · ${now} · 자동 확인 ${hub?.metrics.healthy??0}단계 / 검토·재시도·대기 ${needs}단계`;$('#integration-status').classList.toggle('bad',partial||(hub?.metrics.failed||0)>0);emit(!partial);
     }catch(error){if(run!==generation)return;$('#integration-status').textContent='연결 현황을 불러오지 못했어요. 다시 확인해 주세요.';$('#integration-status').classList.add('bad');emit(false)}finally{if(run===generation){loading=false;button.disabled=false;button.textContent='지금 확인'}}
   }
 
@@ -108,8 +135,8 @@
     }catch(error){if(run!==fileGeneration)return;console.error(error);const message=error.message==='CONTROL_REPAIR_REQUIRED'?'SCM 원장 반영 뒤 통합 기록 완료를 확인하지 못했습니다. 같은 파일로 다시 검사하면 재고를 재차감하지 않고 기록만 복구합니다.':error.message==='IMPORT_IN_PROGRESS'?'같은 판매를 다른 요청이 처리 중입니다. 잠시 뒤 같은 파일로 다시 검사해 주세요.':error.message==='SOURCE_WRITE_DENIED'?'SCM 쓰기 권한을 확인해야 합니다. 재고는 변경되지 않았습니다.':'최종 검사를 완료하지 못했습니다. 재고 반영 여부를 단정하지 말고 같은 파일로 다시 검사해 주세요.';importStatus(message,true)}finally{if(run===fileGeneration){importBusy=false;$('#payhere-file').disabled=false;renderImport()}}
   }
 
-  function open(kind){const filter=$('#integration-filter');filter.value=kind==='connected'?'connected':'';renderCards();if(kind==='needs')$('#integration-connectors').scrollIntoView({behavior:'smooth',block:'start'})}
-  function clear(){generation++;fileGeneration++;connectors=[];mappings=[];inventory=[];loaded=false;loading=false;importBusy=false;stats={mappings:null,movements:null,issues:null,settlements:null};$('#integration-content').hidden=true;importFile=null;importHash='';importRequestId='';importPlan=null;dryResult=null;$('#payhere-file').value='';$('#payhere-file').disabled=false;$('#payhere-confirm').checked=false;renderImport();emit(false)}
+  function open(kind){const filter=$('#integration-filter');filter.value=kind==='connected'?'connected':'';renderCards();if(kind==='needs')$('#integration-queue').scrollIntoView({behavior:'smooth',block:'start'});else $('#integration-pipeline').scrollIntoView({behavior:'smooth',block:'start'})}
+  function clear(){generation++;fileGeneration++;connectors=[];mappings=[];inventory=[];syncRuns=[];hub=null;loaded=false;loading=false;importBusy=false;stats={mappings:null,movements:null,issues:null,settlements:null};scmState={available:false,stale:false,error:''};royaltyState={available:false,stale:false,error:'',bookCount:null};connectorsState={stale:false,error:''};syncRunsState={stale:false,error:''};$('#integration-content').hidden=true;for(const id of ['integration-metrics','integration-pipeline','integration-queue','integration-runs','integration-sources','integration-connectors','integration-ledger-stats'])$('#'+id).replaceChildren();$('#integration-queue-count').textContent='';$('#integration-status').textContent='로그인한 관리자만 통합 운영실을 볼 수 있습니다.';$('#integration-status').classList.remove('bad');importFile=null;importHash='';importRequestId='';importPlan=null;dryResult=null;$('#payhere-file').value='';$('#payhere-file').disabled=false;$('#payhere-confirm').checked=false;renderImport();emit(false)}
   function init(options){
     config=options;client=options.client;onDenied=options.onDenied;$('#integration-refresh').onclick=()=>refresh(true);$('#integration-filter').onchange=renderCards;
     $('#payhere-file').onchange=e=>chooseFile(e.target.files?.[0]);$('#payhere-dry-run').onclick=()=>callImport(true);$('#payhere-confirm').onchange=renderImport;
