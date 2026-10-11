@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="./work.css?v=20260906-2" />
 <link rel="stylesheet" href="./operations.css" />
 <link rel="stylesheet" href="./integration.css?v=20261011-3" />
-<link rel="stylesheet" href="./finance-dashboard.css?v=20261012-1" />
+<link rel="stylesheet" href="./finance-dashboard.css?v=20261012-2" />
 <link rel="stylesheet" href="./dashboard.css" />
 <link rel="stylesheet" href="./book-finder.css?v=20261011-2" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
@@ -151,7 +151,7 @@
     .panel{padding:18px 14px}.row{align-items:flex-start}.row .amt{max-width:32%}
   }
 </style>
-<link rel="stylesheet" href="./admin-ux.css?v=20261010-1" />
+<link rel="stylesheet" href="./admin-ux.css?v=20261012-1" />
 </head>
 <body>
 
@@ -317,7 +317,7 @@
     </section>
     <section id="tab-finance" class="finance hidden" aria-label="재정 현황">
       <div class="finance-head">
-        <div><p class="finance-kicker">PRIVATE / READ ONLY</p><h1>재정 현황</h1><p>확정된 계산, 실제 입금, 개인 보관금과 지급 예정액을 섞지 않고 봅니다. 숫자를 누르면 거래 근거와 계산식, 관련 최종 정산 문서를 확인할 수 있어요.</p></div>
+        <div><p class="finance-kicker">PRIVATE / READ ONLY</p><h1>재정 현황</h1><p>잔액·수입·지출·정산·보관금·머니핀 거래를 한 페이지에서 봅니다. 확인되지 않은 회사 총계는 개인 정산으로 대신 채우지 않습니다.</p></div>
         <button id="finance-refresh" class="finance-refresh" type="button">지금 확인</button>
       </div>
       <div id="finance-status" class="finance-status" role="status" aria-live="polite">관리자 확인 후 검증된 재정 원천을 불러옵니다.</div>
@@ -327,10 +327,15 @@
           <div class="finance-period"><label for="finance-period">확인할 월</label><select id="finance-period"></select></div>
         </div>
         <div id="finance-period-banner" class="finance-period-banner"></div>
+        <section id="finance-coverage" class="finance-coverage" aria-label="포함된 자료와 확인 중인 범위"></section>
         <section id="finance-balance" class="finance-balance pending" aria-label="팀 계좌 잔액"></section>
         <section id="finance-bank-movement" class="finance-bank-movement" aria-label="머니핀 통장 입출금 참고값" hidden></section>
         <div id="finance-warnings" class="finance-warning-list" role="note"></div>
+        <div class="finance-section-head"><div><p class="finance-kicker">POSITION</p><h2>지금 재정 상태</h2></div><p>미수금·미지급금은 확정 정산 범위만 표시합니다.</p></div>
         <div id="finance-metrics" class="finance-metrics"></div>
+        <section class="finance-members" aria-labelledby="finance-members-title"><div class="finance-section-head"><div><p class="finance-kicker">PEOPLE</p><h2 id="finance-members-title">개인별 몫과 주고받을 돈</h2></div><p>내 몫·이미 받은 돈·팀 보관금·정산 잔액을 나눠 봅니다.</p></div><div id="finance-member-grid" class="finance-member-grid"></div></section>
+        <section class="finance-review" aria-labelledby="finance-review-title"><div class="finance-section-head"><div><p class="finance-kicker">ACTION / REVIEW</p><h2 id="finance-review-title">지금 확인할 돈과 증빙</h2></div><p>확정 미지급·분배 전 보관금·중복 후보를 거래 합계와 분리합니다.</p></div><div id="finance-review-list" class="finance-review-list"></div></section>
+        <section class="finance-transactions" aria-labelledby="finance-transactions-title"><div class="finance-section-head"><div><p class="finance-kicker">MONEYPIN / READ ONLY</p><h2 id="finance-transactions-title">거래·증빙 전체 보기</h2></div><p id="finance-source-scope">머니핀 8~9월 455행 확인, 그 밖 기간 미확인</p></div><div class="finance-transaction-controls"><label><span>거래 찾기</span><input id="finance-transaction-search" type="search" placeholder="날짜·표시 이름·자료 종류 검색" autocomplete="off"></label><label><span>자료 종류</span><select id="finance-transaction-group"><option value="">전체</option><option value="bank">은행</option><option value="card">카드</option><option value="invoice">계산서</option><option value="other">그 밖 증빙</option></select></label><label><span>방향</span><select id="finance-transaction-direction"><option value="">전체</option><option value="inflow_or_positive_document">유입·양수</option><option value="outflow_or_negative_document">유출·음수</option><option value="zero">0원</option></select></label><label><span>검토 상태</span><select id="finance-transaction-review"><option value="">전체</option><option value="candidate">연결·분류 후보</option><option value="excluded">중복·손익 제외</option><option value="needs">추가 확인</option><option value="duplicate">중복 후보</option></select></label></div><p id="finance-transaction-count" class="finance-transaction-count" role="status"></p><div id="finance-transaction-list" class="finance-transaction-list"></div></section>
         <p class="finance-note">매출·입금·이익은 서로 다른 값입니다. 내부 이체는 수입·지출에서 제외하고, 카드 정산과 카드 거래 또는 세금계산서와 계좌 지출의 중복을 가를 수 없으면 집계를 보류합니다. 문서 확정은 지급 완료가 아닙니다.</p>
       </div>
     </section>
@@ -1100,8 +1105,8 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./payhere-import.js?v=20260906-1"></script>
 <script src="./evidence-batch-import.js?v=20261011-1"></script>
 <script src="./integration.js?v=20261011-5"></script>
-<script src="./finance-dashboard-model.js?v=20261012-1"></script>
-<script src="./finance-dashboard.js?v=20261012-1"></script>
+<script src="./finance-dashboard-model.js?v=20261012-2"></script>
+<script src="./finance-dashboard.js?v=20261012-2"></script>
 <script>
 window.BookFinder?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});

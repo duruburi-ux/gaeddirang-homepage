@@ -13,9 +13,11 @@ function fixture(){
   const metrics=[
     {key:'income',amount:120000,availability:'verified',status:'confirmed',evidenceIds:['sale-1','transfer-1'],documentIds:[],calculation:[{label:'검증 판매',amount:120000,operator:'='}]},
     {key:'expense',amount:999999,availability:'withheld',status:'review',evidenceIds:[],documentIds:[],note:'중복 근거 부족'},
+    {key:'receivable',amount:15000,availability:'verified',status:'confirmed',evidenceIds:['settlement-1'],documentIds:[]},
+    {key:'payable',amount:55000,availability:'verified',status:'confirmed',evidenceIds:['settlement-1'],documentIds:[]},
     {key:'settlement',amount:40000,availability:'verified',status:'confirmed',evidenceIds:['settlement-1'],documentIds:['aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa']},
   ];
-  return {schemaVersion:1,generatedAt:'2026-10-12T01:00:00Z',periods:[{key:'2026-10',label:'2026년 10월',status:'in_progress',sourceAsOf:'2026-10-11',teamAccountBalance:{amount:777777,availability:'pending',note:'은행 근거 미확인'},warnings:['합성 경고'],scopes:[{key:'team',metrics}],evidence:[{id:'sale-1',date:'2026-10-03',label:'합성 판매',amount:120000,kind:'income',source:'합성 원장',status:'verified',included:true,sourceRefHash:'a'.repeat(64)},{id:'transfer-1',date:'2026-10-03',label:'합성 내부 이체',amount:50000,kind:'internal_transfer',source:'합성 원장',status:'excluded',included:false,note:'수입 제외',sourceRefHash:'b'.repeat(64)},{id:'settlement-1',date:'2026-10-04',label:'합성 정산',amount:40000,kind:'settlement',source:'합성 문서',status:'verified',included:true,sourceRefHash:'c'.repeat(64)}],documents:[{id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',title:'합성 정산서',periodLabel:'2026년 10월',status:'confirmed',versionNo:3}]}]};
+  return {schemaVersion:1,generatedAt:'2026-10-12T01:00:00Z',sourceScope:'머니핀 8~9월 455행 확인, 그 밖 기간 미확인',openItems:[{id:'open:synthetic',kind:'team_payable',severity:'high',title:'합성 미지급',status:'확정·미지급',amount:55000,note:'거래 합계 제외'}],evidenceIssues:[{id:'issue:synthetic',severity:'medium',status:'open',title:'합성 중복 후보',evidence:'동일 필드',action:'자동 삭제하지 않음'}],periods:[{key:'2026-10',label:'2026년 10월',status:'in_progress',sourceAsOf:'2026-10-11',coverage:{included:['확인된 합성 자료'],pending:['회사 손익 확정']},teamAccountBalance:{amount:777777,availability:'pending',note:'은행 근거 미확인'},financeRecords:[{id:'virtual-record',date:'2026-10-03',direction:'inflow_or_positive_document',amount:120000,tax:0,label:'합성 통장 입금',group:'bank',grain:'bank_transaction',sourceType:'은행계좌',sourceTag:'매출',profitLossRole:'candidate_income',reviewStatus:'needs_final_classification',reason:'합성 분류 확인',sourceRow:3,evidenceLinkIds:[],duplicateCandidateGroupId:'',includeInBankCashReference:true,sourceRefHash:'e'.repeat(64),sourceRecordHash:'d'.repeat(64)}],warnings:['합성 경고'],scopes:[{key:'team',metrics}],evidence:[{id:'sale-1',date:'2026-10-03',label:'합성 판매',amount:120000,kind:'income',source:'합성 원장',status:'verified',included:true,sourceRefHash:'a'.repeat(64)},{id:'transfer-1',date:'2026-10-03',label:'합성 내부 이체',amount:50000,kind:'internal_transfer',source:'합성 원장',status:'excluded',included:false,note:'수입 제외',sourceRefHash:'b'.repeat(64)},{id:'settlement-1',date:'2026-10-04',label:'합성 정산',amount:40000,kind:'settlement',source:'합성 문서',status:'verified',included:true,sourceRefHash:'c'.repeat(64)}],documents:[{id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',title:'합성 정산서',periodLabel:'2026년 10월',status:'confirmed',versionNo:3}]}]};
 }
 
 test('검증된 집계만 금액을 표시하고 보류·미확인 값은 0이나 입력값으로 바꾸지 않는다',()=>{
@@ -43,6 +45,17 @@ test('확정 정산 계산과 지급 완료를 분리하고 관련 비공개 문
   assert.equal(M.period(model,'2026-10').status,'in_progress');
 });
 
+test('전체 재정 허브는 정산 미수·미지급과 머니핀 거래를 회사 손익과 분리한다',()=>{
+  const model=M.normalizePayload(fixture()),period=M.period(model,'2026-10');
+  assert.equal(M.metric(model,'2026-10','team','receivable').amount,15000);
+  assert.equal(M.metric(model,'2026-10','team','payable').amount,55000);
+  assert.equal(period.financeRecords.length,1);
+  assert.equal(period.financeRecords[0].label,'합성 통장 입금');
+  assert.equal(model.openItems[0].amount,55000);
+  assert.equal(model.evidenceIssues[0].title,'합성 중복 후보');
+  assert.deepEqual(period.coverage.pending,['회사 손익 확정']);
+});
+
 test('지원하지 않는 스키마와 빈 기간은 fail-closed 한다',()=>{
   assert.throws(()=>M.normalizePayload({schemaVersion:2,periods:[]}),/FINANCE_SCHEMA_UNSUPPORTED/);
   assert.throws(()=>M.normalizePayload({schemaVersion:1,periods:[]}),/FINANCE_PERIODS_EMPTY/);
@@ -52,6 +65,7 @@ test('재정 탭은 데스크톱·모바일 메뉴와 세션 정리에 연결되
   assert.match(html,/data-tab="finance">재정 현황/);
   assert.match(html,/<option value="finance">재정 현황/);
   assert.match(html,/id="tab-finance"/);
+  for(const id of ['finance-coverage','finance-member-grid','finance-review-list','finance-transaction-search','finance-transaction-group','finance-transaction-direction','finance-transaction-review','finance-transaction-list'])assert.match(html,new RegExp(`id="${id}"`));
   assert.match(html,/window\.FinanceDashboard\?\.clear\(\)/);
   assert.match(html,/if\(name==='finance'\)window\.FinanceDashboard\?\.refresh\(\)/);
   new vm.Script(source);new vm.Script(browser);
