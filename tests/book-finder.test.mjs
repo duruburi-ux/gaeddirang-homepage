@@ -21,18 +21,18 @@ test('책 찾기 브라우저 코드는 읽기 전용 SCM GET만 사용하고 �
   assert.doesNotMatch(html,/SERVICE_ROLE|BEGIN PRIVATE KEY|SCM_GOOGLE_SERVICE_ACCOUNT/);
 });
 
-test('빈 결과·오류·오래된 값과 0권을 서로 다른 문구로 표시한다',()=>{
+test('빈 결과·오류·지난 조회 기록과 0권을 서로 다른 문구로 표시한다',()=>{
   assert.match(js,/검색 결과 없음은 품절을 뜻하지 않습니다/);
   assert.match(js,/0권으로 판단하지 말고 다시 확인/);
-  assert.match(js,/10분 이내 이전 확인본을 표시합니다/);
-  assert.match(js,/10분 넘게 갱신되지 않아 수량을 숨겼습니다/);
+  assert.match(js,/지난 조회 기록을 표시합니다/);
+  assert.match(js,/36시간을 넘어 수량을 숨겼습니다/);
   assert.match(model,/장부상 0권 · 실물 확인 필요/);
 });
 
-test('예약·입고·구매 후보는 연결되지 않은 원본을 꾸며내지 않는다',()=>{
-  assert.match(js,/예약·입고 예정','미등록','책별 원본 미연결/);
-  assert.match(js,/YES24 구매 후보','미등록','구매 실행 없음/);
-  assert.match(js,/예약 제외 가용 수량 미등록/);
+test('예약·입고·구매 후보는 통합 원본을 표시하되 주문·입고·실물 확정으로 바꾸지 않는다',()=>{
+  assert.match(js,/예약 근거/);assert.match(js,/입고 예정/);assert.match(js,/YES24 구매 후보/);
+  assert.match(js,/구매 미실행/);assert.match(js,/실입고 전 재고 미반영/);assert.match(model,/매장 판매 가능 미확정/);
+  assert.match(js,/비공개 원본 설정 대기/);assert.match(js,/SmartStore 매핑 후보/);
 });
 
 test('60초·탭 복귀 갱신과 로그아웃 캐시 삭제를 갖는다',()=>{

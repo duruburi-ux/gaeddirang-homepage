@@ -1,12 +1,14 @@
 import {buildData,RANGES} from './model.mjs';
+import {BOOKSHOP_RANGES,BOOKSHOP_SETTING_KEY,buildBookshop} from './bookshop-model.mjs';
 const SHEET='1ZeH4pa5s1QS8BlC_gbHWLLp0dhezISXfYTXXxiE0NKw';
 const ORIGINS=new Set(['https://gaeddirang.com','https://www.gaeddirang.com']);
+const FRESH_MS=10*60*1000,HISTORY_MS=36*60*60*1000;
 const enc=new TextEncoder();
 const b64=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replaceAll('+','-').replaceAll('/','_').replaceAll('=','');
 const json64=v=>b64(enc.encode(JSON.stringify(v)));
 
 export function makeHandler({env,fetcher=fetch,now=()=>Date.now(),cryptoImpl=crypto}){
-  let token=null,tokenExpiry=0,cache=null,cacheAt=0,attempt=0,inFlight=null,lastError=null;
+  let token=null,tokenExpiry=0,cache=null,cacheAt=0,bookshopCache=null,bookshopAt=0,attempt=0,inFlight=null,lastError=null,bookshopError=null;
   async function request(url,options={}){return fetcher(url,{...options,signal:AbortSignal.timeout(12000)})}
   async function googleToken(){
     if(token&&now()<tokenExpiry-60000)return token;
@@ -23,14 +25,23 @@ export function makeHandler({env,fetcher=fetch,now=()=>Date.now(),cryptoImpl=cry
     const d=await response.json();if(!d.access_token)throw Error('SOURCE_AUTH_FAILED');
     token=d.access_token;tokenExpiry=now()+Math.min(Number(d.expires_in)||3600,3600)*1000;return token;
   }
-  async function refresh(){
-    const access=await googleToken();const url=new URL(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET}/values:batchGet`);
-    Object.values(RANGES).forEach(r=>url.searchParams.append('ranges',r));url.searchParams.set('valueRenderOption','UNFORMATTED_VALUE');
+  async function readRanges(access,sheet,ranges,schemaError='SCHEMA_CHANGED'){
+    const url=new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sheet)}/values:batchGet`);
+    Object.values(ranges).forEach(range=>url.searchParams.append('ranges',range));url.searchParams.set('valueRenderOption','UNFORMATTED_VALUE');
     const res=await request(url,{headers:{Authorization:'Bearer '+access}});
     if(!res.ok){if(res.status===401){token=null;tokenExpiry=0}throw Error('SOURCE_READ_FAILED')}
-    const d=await res.json();if(d.valueRanges?.length!==Object.keys(RANGES).length)throw Error('SCHEMA_CHANGED');
-    const next=buildData(Object.fromEntries(Object.keys(RANGES).map((k,i)=>[k,d.valueRanges[i]])));
+    const data=await res.json();if(data.valueRanges?.length!==Object.keys(ranges).length)throw Error(schemaError);
+    return Object.fromEntries(Object.keys(ranges).map((key,index)=>[key,data.valueRanges[index]]));
+  }
+  async function refresh(bookshopSheetId){
+    const access=await googleToken();
+    const next=buildData(await readRanges(access,SHEET,RANGES));
     cache=next;cacheAt=now();lastError=null;
+    if(!/^[A-Za-z0-9_-]{20,100}$/.test(bookshopSheetId||'')){bookshopError='BOOKSHOP_SOURCE_NOT_CONFIGURED';return}
+    try{
+      bookshopCache=buildBookshop(await readRanges(access,bookshopSheetId,BOOKSHOP_RANGES,'BOOKSHOP_SCHEMA_CHANGED'));
+      bookshopAt=now();bookshopError=null;
+    }catch(error){bookshopError=error.message==='BOOKSHOP_SCHEMA_CHANGED'?'BOOKSHOP_SCHEMA_CHANGED':'BOOKSHOP_SOURCE_READ_FAILED'}
   }
   return async function handle(req){
     const origin=req.headers.get('origin');
@@ -45,8 +56,8 @@ export function makeHandler({env,fetcher=fetch,now=()=>Date.now(),cryptoImpl=cry
     if(!apiKey){try{apiKey=JSON.parse(env('SUPABASE_PUBLISHABLE_KEYS')||'{}').default}catch{}}
     if(!base||!apiKey)return send({error:'SERVER_NOT_CONFIGURED'},503);
     // Validate the bearer on every request, including cache hits. Never trust browser role flags.
+    const h={Authorization:auth,apikey:apiKey};let bookshopSheetId='';
     try{
-      const h={Authorization:auth,apikey:apiKey};
       const userRes=await request(base+'/auth/v1/user',{headers:h});
       if(userRes.status===401||userRes.status===403)return send({error:'LOGIN_REQUIRED'},401);
       if(!userRes.ok)return send({error:'AUTH_CHECK_FAILED'},503);
@@ -60,12 +71,19 @@ export function makeHandler({env,fetcher=fetch,now=()=>Date.now(),cryptoImpl=cry
       const allow=await allowRes.json();
       if(!Array.isArray(allow)||!allow.some(r=>String(r.email).toLowerCase()===user.email.toLowerCase()))return send({error:'ADMIN_REQUIRED'},403);
     }catch{return send({error:'AUTH_CHECK_FAILED'},503)}
+    try{
+      const settingRes=await request(base+`/rest/v1/doc_settings?select=value&key=eq.${BOOKSHOP_SETTING_KEY}`,{headers:h});
+      if(settingRes.ok){const settings=await settingRes.json();bookshopSheetId=String(settings?.[0]?.value||'').trim()}
+      else bookshopError='BOOKSHOP_SOURCE_NOT_CONFIGURED';
+    }catch{bookshopError='BOOKSHOP_SOURCE_NOT_CONFIGURED'}
     if(!attempt||now()-attempt>=55000){
-      if(!inFlight){attempt=now();inFlight=refresh().catch(e=>{lastError=['SOURCE_NOT_CONFIGURED','SOURCE_AUTH_FAILED','SOURCE_READ_FAILED','SCHEMA_CHANGED','DUPLICATE_SKU'].includes(e.message)?e.message:'SOURCE_READ_FAILED'}).finally(()=>{inFlight=null})}
+      if(!inFlight){attempt=now();inFlight=refresh(bookshopSheetId).catch(e=>{lastError=['SOURCE_NOT_CONFIGURED','SOURCE_AUTH_FAILED','SOURCE_READ_FAILED','SCHEMA_CHANGED','DUPLICATE_SKU'].includes(e.message)?e.message:'SOURCE_READ_FAILED'}).finally(()=>{inFlight=null})}
     }
     if(inFlight)await inFlight;
-    // Keep stale data at most 10 minutes; clients always see the actual successful read time.
-    const usable=cache&&now()-cacheAt<600000;
-    return send({datasets:usable?cache:null,meta:{fetchedAt:cacheAt?new Date(cacheAt).toISOString():null,stale:!!lastError||!usable,error:lastError,readOnly:true,pollSeconds:60,payhere:'reviewed_import',stockCalculation:'ledger'}},usable?200:503);
+    // Daily operational sources remain visible as an explicitly historical record for 36 hours.
+    const age=cacheAt?now()-cacheAt:Infinity,usable=cache&&age<HISTORY_MS,fresh=usable&&age<FRESH_MS&&!lastError;
+    const bookshopAge=bookshopAt?now()-bookshopAt:Infinity,bookshopUsable=bookshopCache&&bookshopAge<HISTORY_MS;
+    const datasets=usable?{...cache,bookshop:bookshopUsable?bookshopCache:null}:null;
+    return send({datasets,meta:{fetchedAt:cacheAt?new Date(cacheAt).toISOString():null,stale:!fresh,freshness:fresh?'fresh':'historical',error:lastError,readOnly:true,pollSeconds:60,payhere:'reviewed_import',stockCalculation:'ledger',bookshop:{fetchedAt:bookshopAt?new Date(bookshopAt).toISOString():null,stale:!bookshopUsable||bookshopAge>=FRESH_MS||!!bookshopError,error:bookshopError,readOnly:true}}},usable?200:503);
   };
 }

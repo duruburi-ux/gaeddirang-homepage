@@ -23,16 +23,24 @@
     return `장부상 ${item.stock}권 · 실물 확인 필요`;
   }
 
-  function bookRows(inventory=[],counts=[],fetchedAt=''){
+  function bookRows(inventory=[],counts=[],fetchedAt='',bookshop=null){
     const books=inventory.filter(item=>item?.kind==='도서');
+    const supplementBySku=new Map((bookshop?.items||[]).map(item=>[String(item.sku||''),item]));
+    const candidatesByIsbn=new Map((bookshop?.purchaseCandidates||[]).map(item=>[normalizeIsbn(item.isbn),item.quantity]));
     const titleCounts=new Map();
     for(const item of books){const key=normalizeText(item.name);titleCounts.set(key,(titleCounts.get(key)||0)+1)}
     return books.map(item=>{
       const counted=latestCount(counts,item.sku);
+      const supplement=supplementBySku.get(String(item.sku||''));
       const stockConflict=isCount(item.stock)&&isCount(item.skuStock)&&item.stock!==item.skuStock;
       const countConflict=!!counted&&isCount(counted.count)&&isCount(item.stock)&&counted.count!==item.stock;
       const conflicts=[stockConflict?'원본 수량 불일치':'',countConflict?'최근 실사 수량 불일치':''].filter(Boolean);
       const isbn=String(item.isbn||item.barcode||'').trim();
+      const reserved=isCount(supplement?.reserved)?supplement.reserved:null;
+      const incoming=isCount(supplement?.pendingInbound)?supplement.pendingInbound:null;
+      const ledgerCount=isCount(supplement?.ledgerCount)?supplement.ledgerCount:null;
+      const calculatedAvailable=isCount(ledgerCount)&&isCount(reserved)?Math.max(ledgerCount-reserved,0):null;
+      const sellableConfirmed=isCount(supplement?.sellableConfirmed)?supplement.sellableConfirmed:null;
       return {
         sku:String(item.sku||''),title:String(item.name||UNKNOWN),author:String(item.author||UNKNOWN),isbn:isbn||UNKNOWN,
         category:String(item.category||UNKNOWN),owner:String(item.owner||UNKNOWN),note:String(item.note||''),
@@ -40,7 +48,13 @@
         stockLabel:stockLabel(item),status:String(item.status||'수량 미확인'),conflicts,hasConflict:conflicts.length>0,
         sameTitleCount:titleCounts.get(normalizeText(item.name))||1,
         edition:titleCounts.get(normalizeText(item.name))>1?'동명 도서 · ISBN과 SKU로 구분':UNKNOWN,
-        shelf:UNKNOWN,reserved:UNKNOWN,incoming:UNKNOWN,channelStock:UNKNOWN,channelCheckedAt:UNKNOWN,
+        shelf:UNKNOWN,reserved,incoming,ledgerCount,calculatedAvailable,sellableConfirmed,
+        sellableLabel:isCount(sellableConfirmed)?`매장 판매 가능 확정 ${sellableConfirmed}권`:'매장 판매 가능 미확정 · 실물 확인 필요',
+        physicalCount:isCount(supplement?.physicalCount)?supplement.physicalCount:null,physicalCheck:String(supplement?.physicalCheck||UNKNOWN),
+        payhereCount:isCount(supplement?.payhereCount)?supplement.payhereCount:null,smartstoreCount:isCount(supplement?.smartstoreCount)?supplement.smartstoreCount:null,
+        smartstoreCandidateCount:isCount(supplement?.smartstoreCandidateCount)?supplement.smartstoreCandidateCount:null,
+        purchaseCandidate:isCount(candidatesByIsbn.get(normalizeIsbn(isbn)))?candidatesByIsbn.get(normalizeIsbn(isbn)):(bookshop?0:null),
+        bookshopLinked:Boolean(supplement),bookshopAvailable:Boolean(bookshop),review:String(supplement?.review||''),scopeNote:String(supplement?.scopeNote||''),
         countAt:String(counted?.date||UNKNOWN),countScope:String(counted?.scope||UNKNOWN),countQuantity:isCount(counted?.count)?counted.count:null,
         sourceCheckedAt:String(fetchedAt||''),
         _title:normalizeText(item.name),_author:normalizeText(item.author),_isbn:normalizeIsbn(isbn),_sku:normalizeText(item.sku),
@@ -56,8 +70,8 @@
     return 4;
   }
 
-  function searchBooks({inventory=[],counts=[],query='',fetchedAt=''}={}){
-    const raw=String(query??'').trim(),rows=bookRows(inventory,counts,fetchedAt);
+  function searchBooks({inventory=[],counts=[],bookshop=null,query='',fetchedAt=''}={}){
+    const raw=String(query??'').trim(),rows=bookRows(inventory,counts,fetchedAt,bookshop);
     if(!raw)return {items:[],total:rows.length,query:'',exactIsbn:false,conflictTotal:rows.filter(row=>row.hasConflict).length};
     const queryText=normalizeText(raw),queryIsbn=normalizeIsbn(raw);
     const isbnLike=/^[\dXx\s-]+$/.test(raw)&&queryIsbn.length>=10;

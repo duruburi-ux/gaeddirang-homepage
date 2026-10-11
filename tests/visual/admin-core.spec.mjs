@@ -1,5 +1,7 @@
 import {test,expect} from '@playwright/test';
 
+test.afterEach(async({page})=>{await page.unrouteAll({behavior:'ignoreErrors'})});
+
 async function installVirtualAdmin(page){
   await page.addInitScript(()=>{
     const clone=value=>JSON.parse(JSON.stringify(value));
@@ -84,7 +86,8 @@ async function installVirtualAdmin(page){
   await page.route('**/functions/v1/scm-read',async route=>{
     if(await page.evaluate(()=>window.__failScmRead))return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({meta:{error:'SOURCE_UNAVAILABLE'},datasets:null})});
     const forcedAt=await page.evaluate(()=>window.__scmFetchedAt);
-    return route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:forcedAt||new Date().toISOString(),stale:false},datasets:{inventory:[{sku:'V-001',name:'가상 마음 산책',author:'가상 작가',isbn:'9780000000011',category:'에세이',owner:'위탁',price:12000,cost:6000,stock:4,skuStock:3,status:'재고 있음',kind:'도서'},{sku:'V-002',name:'가상 마음 산책',author:'가상 작가',isbn:'9780000000028',category:'에세이',owner:'자체',price:13000,cost:7000,stock:0,skuStock:0,status:'품절',kind:'도서'},{sku:'V-003',name:'공백 없는책',author:'다른 작가',isbn:'9780000000035',category:'소설',owner:'미확인',price:14000,cost:null,stock:null,skuStock:null,status:'수량 미확인',kind:'도서'}],blind:[],counts:[{sku:'V-001',name:'가상 마음 산책',date:'2026-10-10',scope:'책공방 앞 책장',count:4,current:4}],actions:[],connections:[{connector_code:'naver_mail',status:'success',last_attempt_at:'2026-10-11T08:00:00Z',last_success_at:'2026-10-11T08:00:00Z',last_failure_at:'',evidence_total:4,batch_sha256:'a'.repeat(64),schema_version:'1',error_code:''},{connector_code:'google_chat',status:'success',last_attempt_at:'2026-10-11T08:01:00Z',last_success_at:'2026-10-11T08:01:00Z',last_failure_at:'',evidence_total:7,batch_sha256:'b'.repeat(64),schema_version:'1',error_code:''}]}})});
+    const fetchedAt=forcedAt||new Date().toISOString();
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt,stale:Boolean(forcedAt),bookshop:{fetchedAt,stale:Boolean(forcedAt),error:null,readOnly:true}},datasets:{inventory:[{sku:'V-001',name:'가상 마음 산책',author:'가상 작가',isbn:'9780000000011',category:'에세이',owner:'위탁',price:12000,cost:6000,stock:4,skuStock:3,status:'재고 있음',kind:'도서'},{sku:'V-002',name:'가상 마음 산책',author:'가상 작가',isbn:'9780000000028',category:'에세이',owner:'자체',price:13000,cost:7000,stock:0,skuStock:0,status:'품절',kind:'도서'},{sku:'V-003',name:'공백 없는책',author:'다른 작가',isbn:'9780000000035',category:'소설',owner:'미확인',price:14000,cost:null,stock:null,skuStock:null,status:'수량 미확인',kind:'도서'}],blind:[],counts:[{sku:'V-001',name:'가상 마음 산책',date:'2026-10-10',scope:'책공방 앞 책장',count:4,current:4}],actions:[],connections:[{connector_code:'naver_mail',status:'success',last_attempt_at:'2026-10-11T08:00:00Z',last_success_at:'2026-10-11T08:00:00Z',last_failure_at:'',evidence_total:4,batch_sha256:'a'.repeat(64),schema_version:'1',error_code:''},{connector_code:'google_chat',status:'success',last_attempt_at:'2026-10-11T08:01:00Z',last_success_at:'2026-10-11T08:01:00Z',last_failure_at:'',evidence_total:7,batch_sha256:'b'.repeat(64),schema_version:'1',error_code:''}],bookshop:{items:[{sku:'V-001',ledgerCount:4,payhereCount:3,smartstoreCount:3,smartstoreCandidateCount:null,reserved:1,pendingInbound:2,physicalCount:null,sellableConfirmed:null,physicalCheck:'미확인',review:'가상 실사 필요',scopeNote:'매장 기준'},{sku:'V-002',ledgerCount:0,payhereCount:0,smartstoreCount:0,smartstoreCandidateCount:null,reserved:0,pendingInbound:0,physicalCount:0,sellableConfirmed:0,physicalCheck:'확인',review:'',scopeNote:'매장 기준'}],purchaseCandidates:[{isbn:'9780000000011',quantity:1}],summary:{sourceItems:3,reservations:{titles:1,quantity:1},pendingInbound:{titles:1,quantity:2},purchase:{titles:1,quantity:1,supplyTotal:6000},sellableConfirmedTitles:1}}}})});
   });
   await page.route('**/functions/v1/royalty-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-10T03:00:00Z',stale:false,readOnly:true},books:[{key:'virtual-a'},{key:'virtual-b'}]})}));
   await page.route('**/functions/v1/work-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-10T03:00:00Z',stale:false},work:{summary:{active:1,attention:1,approvals:0,blocked:0,stale:0},coverage:[],records:[{id:'work-1',kind:'tasks',title:'가상 확인 업무',status:'진행',owner:'가상 담당',updated:'2026-10-10T02:00:00Z',attention:true,terminal:false}]}})}));
@@ -139,7 +142,7 @@ for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',wi
     await openAdmin(page,viewport);await goTab(page,viewport,'finder',/책공방/);
     const input=page.locator('#book-finder-query');await expect(input).toBeVisible();
     await input.fill('978 000 000 001 1');await expect(page.locator('.finder-result')).toHaveCount(1);await expect(page.locator('#book-finder-summary')).toContainText('정확한 ISBN 우선');
-    const result=page.locator('.finder-result').first();await expect(result).toContainText('시스템 장부상 4권 · 실물 확인 필요');await expect(result).toContainText('최근 실사/등록 4권');await expect(result).toContainText('예약 제외 가용 수량 미등록');await expect(result).toContainText('원본 수량 불일치');
+    const result=page.locator('.finder-result').first();await expect(result).toContainText('매장 판매 가능 미확정');await expect(result).toContainText('SCM 장부상 4권 · 실물 확인 필요');await expect(result).toContainText('예약 1권 · 입고 예정 2권');await expect(result).toContainText('YES24 후보 1권');await expect(result).toContainText('원본 수량 불일치');
     await result.focus();await result.press('Enter');await expect(page.locator('#book-finder-detail')).toBeVisible();await expect(page.locator('#book-finder-detail')).toContainText('책장 위치');await expect(page.locator('#book-finder-detail')).toContainText('미등록');
     await page.goBack();await expect(page.locator('#book-finder-detail')).not.toBeVisible();await expect(result).toBeFocused();
     await input.fill('가상 작가');await expect(page.locator('.finder-result')).toHaveCount(2);await expect(page.locator('.finder-edition').first()).toContainText('ISBN·SKU 확인');await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`test-results/admin-book-finder-${viewport.name}.png`,fullPage:true});
@@ -154,9 +157,14 @@ test('admin book finder: load failure is not shown as zero stock and retry stays
   await expect(page.locator('#book-finder-status')).toContainText('0권으로 판단하지 말고');await expect(page.locator('#book-finder-retry')).toBeVisible();await expect(page.locator('#book-finder-content')).toBeHidden();
 });
 
-test('admin book finder: a source copy older than ten minutes is hidden',async({page})=>{
+test('admin book finder: a daily source older than ten minutes stays visible as historical',async({page})=>{
   await openAdmin(page,{width:1200,height:900});await page.evaluate(()=>{window.__scmFetchedAt=new Date(Date.now()-11*60*1000).toISOString()});await goTab(page,{width:1200,height:900},'finder',/책공방/);
-  await expect(page.locator('#book-finder-status')).toContainText('10분 넘게 갱신되지 않아 수량을 숨겼습니다');await expect(page.locator('#book-finder-retry')).toBeVisible();await expect(page.locator('#book-finder-content')).toBeHidden();
+  await expect(page.locator('#book-finder-status')).toContainText('지난 조회 기록');await expect(page.locator('#book-finder-content')).toBeVisible();await expect(page.locator('#book-finder-supplement')).toContainText('지난 조회 기록');
+});
+
+test('admin book finder: a source copy older than 36 hours is hidden',async({page})=>{
+  await openAdmin(page,{width:1200,height:900});await page.evaluate(()=>{window.__scmFetchedAt=new Date(Date.now()-37*60*60*1000).toISOString()});await goTab(page,{width:1200,height:900},'finder',/책공방/);
+  await expect(page.locator('#book-finder-status')).toContainText('36시간을 넘어 수량을 숨겼습니다');await expect(page.locator('#book-finder-retry')).toBeVisible();await expect(page.locator('#book-finder-content')).toBeHidden();
 });
 
 for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',width:360,height:780}]){

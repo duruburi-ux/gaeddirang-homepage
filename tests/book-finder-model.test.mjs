@@ -16,6 +16,10 @@ const counts=[
   {sku:'BOOK-A-1',name:'가상 마음 산책',date:'2026-10-10',scope:'책공방 앞 책장',count:3,current:3},
   {sku:'BOOK-A-1',name:'가상 마음 산책',date:'2026-09-01',scope:'이전 위치',count:4,current:3},
 ];
+const bookshop={
+  items:[{sku:'BOOK-A-1',ledgerCount:3,reserved:1,pendingInbound:2,payhereCount:2,smartstoreCount:2,smartstoreCandidateCount:null,physicalCount:null,sellableConfirmed:null,physicalCheck:'미확인',review:'가상 실사 필요',scopeNote:'매장 기준'}],
+  purchaseCandidates:[{isbn:'9780000000011',quantity:1}],
+};
 
 test('제목·저자 검색은 공백을 정규화하고 굿즈를 책 결과에 섞지 않는다',()=>{
   assert.deepEqual(M.searchBooks({inventory,counts,query:'가상마음 산책'}).items.map(row=>row.sku),['BOOK-A-1','BOOK-A-2']);
@@ -35,10 +39,12 @@ test('양수도 실재고 있음으로 확정하지 않고 두 원본 수량 충
   assert.equal(row.hasConflict,true);assert.ok(row.conflicts.includes('원본 수량 불일치'));
 });
 
-test('위치·예약·입고·채널 값은 만들지 않고 최근 SKU 실사만 연결한다',()=>{
-  const row=M.searchBooks({inventory,counts,query:'BOOK-A-1',fetchedAt:'2026-10-11T08:00:00Z'}).items[0];
+test('통합 재고는 SKU·ISBN으로만 연결하고 미확정 실물값을 만들지 않는다',()=>{
+  const row=M.searchBooks({inventory,counts,bookshop,query:'BOOK-A-1',fetchedAt:'2026-10-11T08:00:00Z'}).items[0];
   assert.equal(row.countAt,'2026-10-10');assert.equal(row.countScope,'책공방 앞 책장');assert.equal(row.countQuantity,3);
-  for(const key of ['shelf','reserved','incoming','channelStock','channelCheckedAt'])assert.equal(row[key],'미등록');
+  assert.equal(row.reserved,1);assert.equal(row.incoming,2);assert.equal(row.calculatedAvailable,2);assert.equal(row.purchaseCandidate,1);
+  assert.equal(row.payhereCount,2);assert.equal(row.smartstoreCount,2);assert.equal(row.sellableConfirmed,null);assert.match(row.sellableLabel,/미확정/);
+  assert.equal(row.shelf,'미등록');assert.equal(row.bookshopLinked,true);
 });
 
 test('없는 검색 결과는 빈 배열이며 0권 결과와 구분된다',()=>{
@@ -48,5 +54,5 @@ test('없는 검색 결과는 빈 배열이며 0권 결과와 구분된다',()=>
 
 test('작가·위치·실사 정보가 없으면 미등록을 유지한다',()=>{
   const rows=M.bookRows([{sku:'BOOK-C',kind:'도서',name:'가상 무명',stock:null,skuStock:null}],[],'');
-  assert.equal(rows[0].author,'미등록');assert.equal(rows[0].shelf,'미등록');assert.equal(rows[0].countAt,'미등록');assert.equal(rows[0].sourceCheckedAt,'');
+  assert.equal(rows[0].author,'미등록');assert.equal(rows[0].shelf,'미등록');assert.equal(rows[0].countAt,'미등록');assert.equal(rows[0].sourceCheckedAt,'');assert.equal(rows[0].reserved,null);assert.equal(rows[0].purchaseCandidate,null);
 });
