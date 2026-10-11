@@ -17,7 +17,9 @@
     if (program.is_open === false) return 'closed';
     if (program.registration_start && program.registration_start > today) return 'upcoming';
     if (program.registration_end && program.registration_end < today) return 'closed';
-    if (program.start_date && program.start_date <= today && !program.late_join) return 'in_progress';
+    if (program.schedule_needs_confirmation) return 'schedule_check';
+    // Independently bookable dates are not one continuous course after the first session.
+    if (program.start_date && program.start_date <= today && !program.late_join && !program.session_dates?.length) return 'in_progress';
     // A future class date alone is not evidence of current registration availability.
     if (program.is_open !== true || !program.registration_verified_until || program.registration_verified_until < today) return 'check_required';
     return 'open';
@@ -29,6 +31,7 @@
       closed: ['접수 종료 · 공식 안내 확인', '접수 종료', '다음 접수 안내 확인하기'],
       upcoming: ['접수 예정 · 공식 안내 확인', '접수 전', '공식 일정 확인하기'],
       in_progress: ['운영 일정 진행 중 · 추가 참여 확인 필요', '추가 참여 문의', '추가 참여 가능 여부 확인하기'],
+      schedule_check: ['일정·장소 확인 중', '일정 확인 필요', '공식 일정 확인하기'],
       check_required: ['모집 상태 확인 필요', '공식 안내 확인', '공식 모집 안내 확인하기']
     };
     if (status === 'open') return { ...program, status };

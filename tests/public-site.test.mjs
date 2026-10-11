@@ -3,6 +3,36 @@ import test from 'node:test';
 import { readFile, access } from 'node:fs/promises';
 import vm from 'node:vm';
 import api from '../assets/public-site.js';
+import content from '../assets/public-content.js';
+test('October source-backed programs retain exact costs, facilitators and booking destinations', () => {
+  assert.equal(content.programs.length, 4);
+  assert.deepEqual(content.programs.map(p => new URL(p.apply_url).pathname.split('/').at(-1)), ['8106497','8116481','8031041','8106509']);
+  const [walk, books, duru, drama] = content.programs;
+  assert.match(walk.price, /25,000/); assert.equal(walk.instructor, '다솜(이다솜) · 감정기록가·숲해설가');
+  assert.match(books.price, /240,000/); assert.equal(books.instructor, '박지현 · 아홉프레스 대표');
+  assert.match(books.time_info, /구독료/); assert.match(books.benefit, /보장.*아닙니다/);
+  assert.match(duru.price, /10,000/); assert.match(drama.price, /59,000/);
+  assert.match(drama.time_info, /ChatGPT·Higgsfield/);
+});
+test('observed reservation availability expires and conflicting schedules cannot be advertised as open', () => {
+  const [walk, books, duru, drama] = content.programs;
+  for (const p of [walk,books]) {
+    assert.equal(api.programStatus(p,'2026-10-11'),'open');
+    assert.equal(api.programStatus(p,'2026-10-12'),'check_required');
+  }
+  for (const p of [duru,drama]) {
+    assert.equal(api.programStatus(p,'2026-10-11'),'schedule_check');
+    assert.equal(api.programForDisplay(p,'2026-10-11').badge_type,'일정·장소 확인 중');
+  }
+  assert.equal(api.programStatus(walk,'2026-11-01'),'ended');
+  assert.equal(api.programStatus(books,'2026-10-30'),'in_progress');
+});
+test('independent one-day sessions remain bookable after their first date only with fresh evidence', () => {
+  const walk=content.programs[0];
+  assert.equal(api.programStatus({...walk,registration_verified_until:'2026-10-24'},'2026-10-24'),'open');
+  assert.equal(api.programStatus(walk,'2026-10-24'),'check_required');
+  assert.equal(api.programStatus({...walk,is_open:false},'2026-10-24'),'closed');
+});
 test('Korean date boundary and enrollment are independent of class end date', () => {
   assert.equal(api.seoulDate(new Date('2026-09-29T15:00:00Z')), '2026-09-30');
   const p={is_open:true,start_date:'2026-09-20',end_date:'2026-11-22',late_join:false};

@@ -17,7 +17,7 @@ async function prepare(page,target='/'){
   await page.route('**/*.supabase.co/**',route=>route.abort());
   await page.route('https://www.youtube-nocookie.com/**',route=>route.fulfill({contentType:'text/html',body:''}));
   await page.goto(target,{waitUntil:'domcontentloaded'});
-  await expect(page.locator('.prog-card')).toHaveCount(4);
+  await expect(page.locator('.prog-card')).toHaveCount(8);
   await page.evaluate(()=>document.fonts.ready);
   return errors;
 }
@@ -25,7 +25,7 @@ for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',wi
   test(`${viewport.name}: three journeys, cases, keyboard and modal return`,async({page})=>{
     await page.setViewportSize(viewport);const errors=await prepare(page);
     await expect(page.locator('.journey-links a')).toHaveCount(3);
-    await expect(page.locator('#homeProgramTitle')).toContainText('다음 참여 일정');
+    await expect(page.locator('#homeProgramTitle')).toContainText('프로그램 2개');
     await expect(page.locator('#nbListNews')).not.toContainText('늦은 합류');
     await expect(page.locator('#nbListNews')).not.toContainText('공개 예정');
     await expect(page.locator('#nbListNews')).toContainText('학교별 공동문집');
@@ -81,11 +81,11 @@ for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',wi
     await expect(book).toBeFocused();
     await page.evaluate(()=>switchView('main','projects'));
     await expect(page.locator('.team-person')).toHaveCount(3);
-    await expect(page.locator('.project-card')).toHaveCount(6);
+    await expect(page.locator('.project-card')).toHaveCount(7);
     await page.getByRole('button',{name:'이다솜',exact:true}).click();
     await expect(page.locator('.project-card:visible')).toHaveCount(3);
     await page.getByRole('button',{name:'전체',exact:true}).click();
-    await expect(page.locator('.project-card:visible')).toHaveCount(6);
+    await expect(page.locator('.project-card:visible')).toHaveCount(7);
     await page.locator('.chat-launcher').click();await expect(page.locator('.chat-launcher')).toHaveAttribute('aria-expanded','true');
     await page.getByRole('button',{name:'챗봇 닫기',exact:true}).click();
     await page.getByRole('button',{name:'개인정보처리방침',exact:true}).click();
@@ -200,12 +200,13 @@ for(const width of [1440,390,320]){
     await page.screenshot({path:path.join(screenshotDir,`checkout-ux-${width}.png`)});
     await page.keyboard.press('Escape');
     await page.evaluate(()=>switchView('main','program'));
-    await expect(page.locator('#progGrid .prog-card').first()).toHaveAttribute('data-program','forest-sentences-autumn-2026');
+    await expect(page.locator('#progGrid .prog-card').first()).toHaveAttribute('data-program','walk-and-write-oct-2026');
     await expect(page.locator('#progGrid button button')).toHaveCount(0);
     await expect(page.locator('#progGrid')).toHaveCSS('transform','none');
     await page.getByRole('button',{name:'진행·예정 일정',exact:true}).click();
-    await expect(page.locator('#progGrid .prog-card')).toHaveCount(1);
-    await expect(page.locator('#progGrid')).not.toContainText('모집 중');
+    await expect(page.locator('#progGrid .prog-card')).toHaveCount(5);
+    await expect(page.locator('#progGrid .state-open')).toHaveCount(2);
+    await expect(page.locator('#progGrid .state-schedule_check')).toHaveCount(2);
     await page.getByRole('button',{name:'지난 회차',exact:true}).click();
     await expect(page.locator('#progGrid .prog-card')).toHaveCount(3);
     await page.getByRole('button',{name:'전체',exact:true}).click();
@@ -247,6 +248,21 @@ test('search opens a project detail; catalog errors are visible without exposing
   await page.keyboard.press('Escape');
   await page.evaluate(async()=>{supabaseClient.from=()=>({select(){return this},order:async()=>({data:null,error:{message:'synthetic'}})});await loadAllContent();switchView('main','library');});
   await expect(page.locator('#libraryLoadState')).toBeVisible();await expect(page.locator('#libraryLoadState')).not.toContainText('synthetic');
+});
+
+test('new real programs expose exclusions, schedule checks and correct facilitators in their detail panels',async({page})=>{
+  await prepare(page,'/?program=make-my-book-first-2026');
+  await expect(page.locator('#pmInstructor')).toContainText('박지현');
+  await expect(page.locator('#pmTime')).toContainText('구독료');
+  await expect(page.locator('#pmBenefit')).toContainText('보장');
+  await page.locator('#programModal .pm-close').click();
+  await page.goto('/?program=after-work-writing-90-oct-2026');
+  await expect(page.locator('#pmType')).toHaveText('일정·장소 확인 중');
+  await expect(page.locator('#pmTime')).toContainText('19:30');
+  await page.locator('#programModal .pm-close').click();
+  await page.goto('/?project=nurile#projects');
+  await expect(page.locator('#projectDetailRole')).toContainText('두루');
+  await expect(page.locator('#projectDetailResult')).toContainText('완료 실적이 아닙니다');
 });
 
 test('canonical book pages are readable and navigable on small phones',async({page})=>{
