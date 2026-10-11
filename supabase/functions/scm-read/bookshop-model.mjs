@@ -5,9 +5,10 @@ export const BOOKSHOP_RANGES={inventory:"'통합 재고'!A:R",yes24:"'YES24 확�
 
 const INVENTORY_HEADERS=['SKU','도서명','SCM 대조수량','페이히어 수량','SS 연결수량','SS 매핑 후보수량','기록 예약수량','입고예정 기록','확인할 사항','재고소유','재고범위·주의','매장 실물수량','판매가능 확정값','매장 실사','근거'];
 const YES24_HEADERS=['카트분류','ISBN','도서명','수량','행합계(원)','주문·입고 여부','재고 처리'];
+const MISSING_COUNTS=new Set(['미확인','미확정','해당 없음','매핑 미확인']);
 const text=value=>value==null?'':String(value).trim();
 const isbn=value=>text(value).toUpperCase().replace(/[^0-9X]/g,'');
-const physicalCheckComplete=value=>Boolean(text(value))&&!/(미확인|미등록|확인 필요|대기|예정)/.test(text(value));
+const physicalCheckComplete=value=>/^(확인|완료|확정|실사 완료)$/.test(text(value));
 
 function table(range,required){
   const values=range?.values;
@@ -19,8 +20,9 @@ function table(range,required){
 }
 
 function count(value){
-  if(value==null||value==='')return null;
-  const normalized=String(value).replaceAll(',','').replace(/[원권]/g,'').trim();
+  const raw=text(value);
+  if(!raw||MISSING_COUNTS.has(raw))return null;
+  const normalized=raw.replaceAll(',','').replace(/[원권]/g,'').trim();
   const parsed=Number(normalized);
   if(!Number.isSafeInteger(parsed)||parsed<0)throw Error('BOOKSHOP_SCHEMA_CHANGED');
   return parsed;
