@@ -3262,7 +3262,7 @@ function programForDisplay(program) {
 }
 
 function getOpenPrograms() {
-  return CURRENT_PROGRAMS.filter(isProgramOpen);
+  return CURRENT_PROGRAMS.filter(isProgramOpen).sort((a,b) => Number(a.sort_no) - Number(b.sort_no));
 }
 
 function renderProgramHighlights() {

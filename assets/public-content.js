@@ -33,33 +33,25 @@
     start_date: '2026-10-30', end_date: '2026-12-04',
     badge_type: '온라인·오프라인 병행 · 6주 과정',
     stat1_label: '정원', stat1_value: '8명', stat2_label: '기간', stat2_value: '6주',
-    sort_no: -3, border_color: '#806c25', bg_color: '#f5f1d8', icon_emoji: '📖✂️',
+    sort_no: -1, border_color: '#806c25', bg_color: '#f5f1d8', icon_emoji: '📖✂️',
     apply_url: booking + '8116481'
-  }, {
-    ...common, slug: 'after-work-writing-90-oct-2026', title: '퇴근 후,<br>내 이야기를 쓰는 90분',
-    description: '두루가 고른 두세 문장과 하나의 질문에서 출발해 내 이야기를 씁니다. 합평·첨삭·과제 없이, 글을 나누는 것은 선택입니다.',
-    target: '퇴근 뒤 내 이야기를 써보고 싶은 직장인 · 최대 4명',
-    time_info: '네이버 예약 안내: 2026년 10월 14·21·28일(수) 19:30 · 회차별 90분<br>같은 장소의 다른 수업과 일정이 겹쳐, 최종 일정과 장소를 확인하고 있습니다.<br>필기도구와 노트를 준비해 주세요. 나와 관련된 책·사진·물건은 선택입니다.',
-    benefit: '30분 글쓰기와 선택적인 나눔<br>그날의 질문으로 남기는 나의 문장',
-    price: '1회 10,000원', instructor: '두루(장진호)',
-    start_date: '2026-10-14', end_date: '2026-10-28',
-    session_dates: ['2026-10-14', '2026-10-21', '2026-10-28'], schedule_needs_confirmation: true,
-    badge_type: '일정·장소 확인 중', stat1_label: '대상', stat1_value: '직장인 · 4명',
-    stat2_label: '시간', stat2_value: '90분', sort_no: -2,
-    border_color: '#285943', bg_color: '#e9f3ec', icon_emoji: '📝☕', apply_url: booking + '8031041'
   }, {
     ...common, slug: 'drama-writer-oct-2026', title: '나도<br>드라마 작가',
     description: '내 감정과 기억에서 인물을 찾고 짧은 대본을 쓴 뒤, AI 이미지·클립과 편집을 더해 짧은 영상으로 만들어봅니다. 개인 경험은 공개하지 않아도 됩니다.',
     target: '내 이야기를 대본과 영상으로 만들어보고 싶은 성인 · 정원 6명',
-    time_info: '네이버 예약 안내: 2026년 10월 14·21·28일, 11월 4일(수) 19:00–21:00 · 총 4회<br>같은 장소의 다른 수업과 일정이 겹쳐, 최종 일정과 장소를 확인하고 있습니다.<br>노트북을 권장하며 ChatGPT·Higgsfield 개별 구독이 필요합니다. 구독료는 수강료와 별도입니다.',
+    time_info: '2026년 10월 14·21·28일, 11월 4일(수) 19:00–21:00 · 총 4회<br>노트북을 권장하며 ChatGPT·Higgsfield 개별 구독이 필요합니다. 구독료는 수강료와 별도입니다.',
     benefit: '짧은 대본 · 30초–1분 영상 · PDF 대본집<br>첫 회차 예약으로 4회 전체에 참여하는 과정',
     price: '4회 전체 59,000원 (도구 구독료 별도)', instructor: '이다솜',
-    start_date: '2026-10-14', end_date: '2026-11-04', schedule_needs_confirmation: true,
-    badge_type: '일정·장소 확인 중', stat1_label: '대상', stat1_value: '성인 · 6명',
-    stat2_label: '기간', stat2_value: '4회', sort_no: -1,
+    start_date: '2026-10-14', end_date: '2026-11-04',
+    badge_type: '4회 연속 과정 · 공식 예약 안내', stat1_label: '대상', stat1_value: '성인 · 6명',
+    stat2_label: '기간', stat2_value: '4회', sort_no: -3,
     border_color: '#4c5894', bg_color: '#eef0fb', icon_emoji: '🎬✍️', apply_url: booking + '8106509'
   }];
   const news = [{
+    category: 'news', title: '[책공방 프로그램] 다솜과 나도 드라마 작가',
+    published_on: '2026-10-11', date_label: '10.11', expires_on: '2026-11-04',
+    body: '다솜과 내 이야기를 짧은 대본과 영상으로 만들어보는 네 번의 수업입니다. 10월 14·21·28일과 11월 4일 수요일 19:00–21:00, 개띠랑책공방에서 만납니다. 성인 정원 6명, 4회 전체 59,000원이며 첫 회차 예약으로 전체 과정에 참여합니다. 노트북을 권장하며 ChatGPT·Higgsfield 구독료는 별도입니다. 최신 접수 상태는 프로그램 카드의 네이버 예약에서 확인해 주세요.'
+  }, {
     category: 'news', title: '[책공방] 감정과 키워드로 고르는 블라인드북',
     published_on: '2026-10-11', date_label: '10.11',
     body: '책공방의 10월 3일 공개 안내에서는 이다솜의 감정카드나 두루의 키워드카드에서 끌리는 말 하나를 골라, 표지를 가린 책을 만나는 블라인드북을 소개했습니다. 책공방에서는 카드를 직접 보며 고를 수 있고 스마트스토어에서도 안내를 확인할 수 있습니다. 제목을 먼저 정해 구매하는 일반 도서와 다른 방식이며, 현재 상품 구성과 판매 여부는 매장 또는 공식 스토어에서 확인해 주세요.'
