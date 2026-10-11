@@ -8,7 +8,7 @@
   const directions={inbound:'가져오기',outbound:'보내기',two_way:'양방향',reference_only:'참고만'};
   const rowLabels={ready:'반영 후보',excluded:'재고 제외',unmapped:'상품 연결 필요',ambiguous:'거래 연결 필요',price_mismatch:'가격 확인 필요',duplicate:'이미 반영',applicable:'반영 가능',blocked:'확인 필요',applied:'반영 완료'};
   const importRequestStorageKey='gaeddirang.payhere.import-request.v1';
-  let config,client,onDenied,connectors=[],mappings=[],inventory=[],syncRuns=[],evidenceInbox=[],hub=null,loaded=false,loading=false,generation=0,fileGeneration=0,stats={mappings:null,movements:null,issues:null,settlements:null},scmState={available:false,stale:false,error:''},royaltyState={available:false,stale:false,error:'',bookCount:null},connectorsState={stale:false,error:''},syncRunsState={stale:false,error:''},evidenceState={stale:false,error:''};
+  let config,client,onDenied,connectors=[],mappings=[],inventory=[],collectorStatuses=[],syncRuns=[],evidenceInbox=[],hub=null,loaded=false,loading=false,generation=0,fileGeneration=0,stats={mappings:null,movements:null,issues:null,settlements:null},scmState={available:false,stale:false,error:''},royaltyState={available:false,stale:false,error:'',bookCount:null},connectorsState={stale:false,error:''},syncRunsState={stale:false,error:''},evidenceState={stale:false,error:''};
   let importFile=null,importHash='',importPlan=null,dryResult=null,importBusy=false,importRequestId='';
   let evidencePreview=null,evidenceRunId='',evidenceBusy=false;
   let collectorBatch=null,collectorPreview=null,collectorBusy=false,collectorFileGeneration=0;
@@ -31,7 +31,7 @@
   }
   function renderHub(){
     const model=window.OperationsHubModel;if(!model)return;
-    hub=model.buildOperationsHub({connectors,runs:syncRuns,sourcesStale:Boolean(connectorsState.error||syncRunsState.error),stats,scm:scmState,royalty:royaltyState});
+    hub=model.buildOperationsHub({connectors,runs:syncRuns,collectorStatuses,collectorStatusStale:Boolean(scmState.stale||scmState.error),sourcesStale:Boolean(connectorsState.error||syncRunsState.error),stats,scm:scmState,royalty:royaltyState});
     renderMetrics();
     $('#integration-pipeline').innerHTML=hub.stages.map(row=>`<article class="integration-stage"><small>${esc(row.step)} / ${esc(row.id.toUpperCase())}</small><b>${esc(row.title)}</b><span class="integration-stage-state ${esc(row.state)}">${esc(row.stateLabel)}</span><p>${esc(row.detail)}</p></article>`).join('');
     $('#integration-queue-count').textContent=`${hub.queue.length}건`;
@@ -72,7 +72,7 @@
       const {data,error}=await client.auth.getSession();if(error||!data.session)return {data:null,error:error||Error('AUTH_REQUIRED')};
       const res=await fetch(config.url+'/functions/v1/scm-read',{headers:{Authorization:'Bearer '+data.session.access_token,apikey:config.key},cache:'no-store'});
       if(!res.ok)return {data:null,error:Error(`SCM_${res.status}`)};
-      const result=await res.json();return {data:result.datasets?.inventory||[],meta:result.meta||{},error:null};
+      const result=await res.json();return {data:{inventory:result.datasets?.inventory||[],connections:result.datasets?.connections||[]},meta:result.meta||{},error:null};
     }catch(error){return {data:null,error}}
   }
   async function loadRoyalty(){
@@ -105,7 +105,7 @@
       if(!co.error){connectors=co.data||[];connectorsState={stale:false,error:''}}else connectorsState={stale:connectors.length>0,error:co.error?.message||'연결 목록 조회 실패'};
       if(!ma.error)mappings=ma.data||[];if(!runs.error){syncRuns=runs.data||[];syncRunsState={stale:false,error:''}}else syncRunsState={stale:syncRuns.length>0,error:runs.error?.message||'실행 이력 조회 실패'};
       if(!evidence.error){evidenceInbox=evidence.data||[];evidenceState={stale:false,error:''}}else evidenceState={stale:evidenceInbox.length>0,error:evidence.error?.message||'근거 검토함 조회 실패'};
-      if(!scm.error){inventory=scm.data;scmState={available:true,stale:!!scm.meta?.stale,error:'',fetchedAt:scm.meta?.fetchedAt||''}}else scmState={...scmState,stale:scmState.available,error:'SCM 조회 실패'};
+      if(!scm.error){inventory=scm.data.inventory;collectorStatuses=scm.data.connections;scmState={available:true,stale:!!scm.meta?.stale,error:'',fetchedAt:scm.meta?.fetchedAt||''}}else scmState={...scmState,stale:scmState.available,error:'SCM 조회 실패'};
       if(!royalty.error)royaltyState={available:true,stale:!!royalty.meta?.stale,error:'',fetchedAt:royalty.meta?.fetchedAt||'',bookCount:royalty.data?.bookCount??null};else royaltyState={...royaltyState,stale:royaltyState.available,error:'인세 원본 조회 실패'};
       stats={mappings:ma.error?null:(ma.count??ma.data?.length??0),movements:mv.error?null:(mv.count??0),issues:issues.error?null:(issues.count??0),settlements:se.error?null:(se.count??0)};loaded=true;
       renderCards();renderLedger();renderHub();renderEvidence();$('#integration-content').hidden=false;
@@ -206,7 +206,7 @@
   }
 
   function open(kind){const filter=$('#integration-filter');filter.value=kind==='connected'?'connected':'';renderCards();if(kind==='needs')$('#integration-queue').scrollIntoView({behavior:'smooth',block:'start'});else $('#integration-pipeline').scrollIntoView({behavior:'smooth',block:'start'})}
-  function clear(){generation++;fileGeneration++;collectorFileGeneration++;connectors=[];mappings=[];inventory=[];syncRuns=[];evidenceInbox=[];hub=null;loaded=false;loading=false;importBusy=false;evidenceBusy=false;collectorBusy=false;evidencePreview=null;evidenceRunId='';collectorBatch=null;collectorPreview=null;stats={mappings:null,movements:null,issues:null,settlements:null};scmState={available:false,stale:false,error:''};royaltyState={available:false,stale:false,error:'',bookCount:null};connectorsState={stale:false,error:''};syncRunsState={stale:false,error:''};evidenceState={stale:false,error:''};$('#integration-content').hidden=true;for(const id of ['integration-metrics','integration-pipeline','integration-queue','integration-runs','integration-sources','integration-connectors','integration-ledger-stats','integration-evidence-list'])$('#'+id).replaceChildren();$('#integration-queue-count').textContent='';$('#integration-status').textContent='로그인한 관리자만 통합 운영실을 볼 수 있습니다.';$('#integration-status').classList.remove('bad');importFile=null;importHash='';importRequestId='';importPlan=null;dryResult=null;$('#payhere-file').value='';$('#payhere-file').disabled=false;$('#payhere-confirm').checked=false;$('#integration-collector-file').value='';$('#integration-collector-confirm').checked=false;collectorStatus('파일을 고르면 브라우저 안에서 형식과 민감 필드를 먼저 검사합니다. 검사 버튼을 누르기 전에는 서버 전송이 없습니다.');renderCollectorBatch();renderImport();emit(false)}
+  function clear(){generation++;fileGeneration++;collectorFileGeneration++;connectors=[];mappings=[];inventory=[];collectorStatuses=[];syncRuns=[];evidenceInbox=[];hub=null;loaded=false;loading=false;importBusy=false;evidenceBusy=false;collectorBusy=false;evidencePreview=null;evidenceRunId='';collectorBatch=null;collectorPreview=null;stats={mappings:null,movements:null,issues:null,settlements:null};scmState={available:false,stale:false,error:''};royaltyState={available:false,stale:false,error:'',bookCount:null};connectorsState={stale:false,error:''};syncRunsState={stale:false,error:''};evidenceState={stale:false,error:''};$('#integration-content').hidden=true;for(const id of ['integration-metrics','integration-pipeline','integration-queue','integration-runs','integration-sources','integration-connectors','integration-ledger-stats','integration-evidence-list'])$('#'+id).replaceChildren();$('#integration-queue-count').textContent='';$('#integration-status').textContent='로그인한 관리자만 통합 운영실을 볼 수 있습니다.';$('#integration-status').classList.remove('bad');importFile=null;importHash='';importRequestId='';importPlan=null;dryResult=null;$('#payhere-file').value='';$('#payhere-file').disabled=false;$('#payhere-confirm').checked=false;$('#integration-collector-file').value='';$('#integration-collector-confirm').checked=false;collectorStatus('파일을 고르면 브라우저 안에서 형식과 민감 필드를 먼저 검사합니다. 검사 버튼을 누르기 전에는 서버 전송이 없습니다.');renderCollectorBatch();renderImport();emit(false)}
   function init(options){
     config=options;client=options.client;onDenied=options.onDenied;$('#integration-refresh').onclick=()=>refresh(true);$('#integration-filter').onchange=renderCards;
     $('#integration-evidence-filter').onchange=renderEvidence;$('#integration-collect-preview').onclick=previewHomepage;$('#integration-collect-apply').onclick=applyHomepage;
@@ -216,6 +216,8 @@
     $('#payhere-file').onchange=e=>chooseFile(e.target.files?.[0]);$('#payhere-dry-run').onclick=()=>callImport(true);$('#payhere-confirm').onchange=renderImport;
     $('#payhere-apply').onclick=()=>{if(!$('#payhere-confirm').checked)return;if(confirm('검사된 판매 수량을 SCM 원장에 반영할까요? 이 작업은 재고를 차감합니다.'))callImport(false)};
     client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'||event==='USER_UPDATED')clear()});
+    setInterval(()=>{if(!document.hidden&&!$('#appView').classList.contains('hidden')&&!$('#tab-integration').classList.contains('hidden'))refresh(true)},60000);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('#appView').classList.contains('hidden')&&!$('#tab-integration').classList.contains('hidden'))refresh(true)});
   }
   window.Integration={init,refresh,clear,open};
 })();

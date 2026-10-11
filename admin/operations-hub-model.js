@@ -41,7 +41,26 @@
     return [...rows].filter(Boolean).sort((a,b)=>timeValue(timestamp(b))-timeValue(timestamp(a)));
   }
 
-  function sourceRow(expectation,connector,runs,now,runsStale=false){
+  function collectorSourceRow(expectation,connector,status,now,statusStale=false){
+    if(!status)return null;
+    const failed=status.status==='failed';
+    const successAt=status.last_success_at||'';
+    let state=failed?'failed':now-timeValue(successAt)>26*60*60*1000?'review':'healthy';
+    let detail=failed?'마지막 읽기 수집이 실패했습니다.':state==='healthy'?'최근 읽기 수집에 성공했습니다.':'마지막 읽기 성공 확인이 오래됐습니다.';
+    if(Number.isInteger(status.evidence_total)&&status.evidence_total>=0)detail+=` · 누적 근거 ${status.evidence_total}건`;
+    if(statusStale&&state==='healthy'){
+      state='review';detail='연결 상태 조회 실패 · 아래는 이전 확인본입니다.';
+    }
+    return {
+      id:expectation.id,label:connector?.name||expectation.label,scope:expectation.scope||connector?.purpose||'',state,stateLabel:STATE_LABELS[state],detail,
+      lastSuccess:successAt,lastFailure:status.last_failure_at||'',
+      nextAction:connector?.next_action||(failed?'Mac mini 수집 로그와 원본 읽기 연결을 확인합니다.':''),connector:connector||null,
+    };
+  }
+
+  function sourceRow(expectation,connector,runs,now,runsStale=false,collectorStatus=null,collectorStatusStale=false){
+    const collected=collectorSourceRow(expectation,connector,collectorStatus,now,collectorStatusStale);
+    if(collected)return collected;
     if(!connector){
       return {id:expectation.id,label:expectation.label,scope:expectation.scope||'',state:'waiting',stateLabel:STATE_LABELS.waiting,detail:'연결 기록 없음',lastSuccess:'',lastFailure:'',nextAction:'읽기 범위와 계정 승인이 필요합니다.',connector:null};
     }
@@ -75,12 +94,13 @@
     };
   }
 
-  function buildSources(connectors=[],runs=[],now=Date.now(),runsStale=false){
+  function buildSources(connectors=[],runs=[],now=Date.now(),runsStale=false,collectorStatuses=[],collectorStatusStale=false){
     const used=new Set();
     const expected=SOURCE_EXPECTATIONS.map(expectation=>{
       const connector=connectors.find(row=>!used.has(row)&&matchesExpectation(row,expectation));
       if(connector)used.add(connector);
-      return sourceRow(expectation,connector,runs,now,runsStale);
+      const collectorStatus=collectorStatuses.find(row=>norm(row?.connector_code)===norm(expectation.id));
+      return sourceRow(expectation,connector,runs,now,runsStale,collectorStatus,collectorStatusStale);
     });
     const extra=connectors.filter(row=>!used.has(row)).map(row=>sourceRow({id:connectorKey(row)||row.name,label:row.name||connectorKey(row),scope:row.purpose||'',aliases:[]},row,runs,now,runsStale));
     return [...expected,...extra];
@@ -133,7 +153,8 @@
 
   function buildOperationsHub(input={}){
     const connectors=Array.isArray(input.connectors)?input.connectors:[],runs=Array.isArray(input.runs)?input.runs:[],now=Number(input.now)||Date.now();
-    const sources=buildSources(connectors,runs,now,Boolean(input.runsStale||input.sourcesStale)),stages=buildStages({sources,stats:input.stats,scm:input.scm,royalty:input.royalty});
+    const collectorStatuses=Array.isArray(input.collectorStatuses)?input.collectorStatuses:[];
+    const sources=buildSources(connectors,runs,now,Boolean(input.runsStale||input.sourcesStale),collectorStatuses,Boolean(input.collectorStatusStale)),stages=buildStages({sources,stats:input.stats,scm:input.scm,royalty:input.royalty});
     const metrics={healthy:stages.filter(x=>x.state==='healthy').length,review:stages.filter(x=>x.state==='review').length,failed:stages.filter(x=>x.state==='failed').length,waiting:stages.filter(x=>x.state==='waiting'||x.state==='unknown').length};
     return {sources,stages,metrics,queue:buildQueue({sources,stats:input.stats,scm:input.scm,royalty:input.royalty,stages}),recentRuns:buildRecentRuns(runs,connectors)};
   }

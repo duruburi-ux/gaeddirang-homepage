@@ -1,11 +1,35 @@
 // Pure source mapping. No snapshots, credentials, or writes.
-export const RANGES={products:"'상품SKU마스터'!A:M",books:"'도서마스터'!A:P",goods:"'굿즈마스터'!A:M",blind:"'블라인드북매핑'!A:K",counts:"'재고실사_기준'!A:H",ledger:"'입출고원장'!A:N"};
+export const RANGES={products:"'상품SKU마스터'!A:M",books:"'도서마스터'!A:P",goods:"'굿즈마스터'!A:M",blind:"'블라인드북매핑'!A:K",counts:"'재고실사_기준'!A:H",ledger:"'입출고원장'!A:N",connections:"'연결상태'!A:I"};
 const REQUIRED={products:['SKU','상품군','재고SKU','현재고','정가'],books:['SKU','현재고','정가'],goods:['SKU','총재고'],blind:['블라인드SKU','구성도서SKU','도서정가','블라인드판매가','현재고'],counts:['SKU','확정수량'],ledger:['날짜','유형','SKU']};
+const CONNECTION_HEADERS=['connector_code','status','last_attempt_at','last_success_at','last_failure_at','evidence_total','batch_sha256','schema_version','error_code'];
+const CONNECTION_CODES=new Set(['naver_mail','google_chat']);
+const HASH=/^[a-f0-9]{64}$/;
+const ERROR=/^[A-Z][A-Z0-9_]{0,63}$/;
+const UTC_TIME=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
 export function num(v){if(v==null||v===''||typeof v==='boolean')return null;const n=Number(String(v).replaceAll(',',''));return Number.isSafeInteger(n)?n:null}
 function records(raw,key){const v=raw[key]?.values;if(!v?.length||!REQUIRED[key].every(h=>v[0].includes(h)))throw Error('SCHEMA_CHANGED');return v.slice(1).filter(r=>r.some(x=>x!=null&&x!=='')).map(r=>Object.fromEntries(v[0].map((h,i)=>[h,r[i]??null])))}
 function indexed(rows,key){const m=new Map();for(const r of rows){if(!r[key])continue;if(m.has(String(r[key])))throw Error('DUPLICATE_SKU');m.set(String(r[key]),r)}return m}
+function connectionRows(raw){
+  const values=raw.connections?.values;
+  if(!values?.length||values[0].length!==CONNECTION_HEADERS.length||!values[0].every((value,index)=>value===CONNECTION_HEADERS[index]))throw Error('SCHEMA_CHANGED');
+  const seen=new Set();
+  return values.slice(1).filter(row=>row.some(value=>value!=null&&value!=='')).map(row=>{
+    if(row.length>CONNECTION_HEADERS.length)throw Error('SCHEMA_CHANGED');
+    const record=Object.fromEntries(CONNECTION_HEADERS.map((header,index)=>[header,row[index]??'']));
+    if(!CONNECTION_CODES.has(record.connector_code)||seen.has(record.connector_code)||!['success','failed'].includes(record.status)||record.schema_version!=='1')throw Error('SCHEMA_CHANGED');
+    seen.add(record.connector_code);
+    const total=record.evidence_total===''?null:num(record.evidence_total);
+    if((total!=null&&total<0)||(record.evidence_total!==''&&total==null)||(record.batch_sha256&&!HASH.test(record.batch_sha256))||(total>0&&!record.batch_sha256)||(total===0&&record.batch_sha256)||(record.error_code&&!ERROR.test(record.error_code)))throw Error('SCHEMA_CHANGED');
+    for(const key of ['last_attempt_at','last_success_at','last_failure_at'])if(record[key]&&(!UTC_TIME.test(record[key])||!Number.isFinite(Date.parse(record[key]))))throw Error('SCHEMA_CHANGED');
+    if(!record.last_attempt_at)throw Error('SCHEMA_CHANGED');
+    if(record.status==='success'&&(!record.last_success_at||record.error_code||total==null))throw Error('SCHEMA_CHANGED');
+    if(record.status==='failed'&&(!record.last_failure_at||!record.error_code))throw Error('SCHEMA_CHANGED');
+    return {...record,evidence_total:total};
+  });
+}
 export function buildData(raw){
-  const t=Object.fromEntries(Object.keys(RANGES).map(k=>[k,records(raw,k)]));
+  const t=Object.fromEntries(Object.keys(REQUIRED).map(k=>[k,records(raw,k)]));
+  const connections=connectionRows(raw);
   const books=indexed(t.books,'SKU'),goods=indexed(t.goods,'SKU'),products=indexed(t.products,'SKU');
   const inventory=[];const actions=[];
   const warn=(title,detail)=>actions.push({title,detail});
@@ -49,5 +73,5 @@ export function buildData(raw){
   if(missing.length)warn('원장 SKU 누락',`${missing.length}개 행의 상품 연결을 확인하세요.`);
   const orphans=[...goods.keys()].filter(k=>!products.has(k));
   if(orphans.length)warn('굿즈 관리용 연결 확인',`${orphans.length}개 SKU가 상품SKU마스터에 없습니다.`);
-  return {inventory,blind,counts,actions};
+  return {inventory,blind,counts,actions,connections};
 }

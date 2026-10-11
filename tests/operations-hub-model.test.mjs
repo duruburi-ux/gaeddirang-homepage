@@ -73,3 +73,38 @@ test('실행 이력 조회 실패 시 이전 성공본을 자동 확인으로 �
   assert.equal(source.state,'review');
   assert.match(source.detail,/이전 확인본/);
 });
+
+test('SCM 연결상태의 최근 수집 성공은 수동 커넥터보다 우선해 읽기 연결을 자동 확인한다',()=>{
+  const model=M.buildOperationsHub({
+    now,
+    connectors:[{code:'naver_mail',name:'네이버 메일',status:'manual',data_direction:'inbound'}],
+    runs:[],
+    collectorStatuses:[{connector_code:'naver_mail',status:'success',last_success_at:'2026-10-11T05:00:00Z',last_failure_at:'',evidence_total:4}],
+    stats:{mappings:1,movements:1,issues:0,settlements:0},scm:{available:true,stale:false},royalty:{available:true,stale:false,bookCount:1},
+  });
+  const source=model.sources.find(row=>row.id==='naver_mail');
+  assert.equal(source.state,'healthy');
+  assert.equal(source.lastSuccess,'2026-10-11T05:00:00Z');
+  assert.match(source.detail,/누적 근거 4건/);
+});
+
+test('수집 실패는 이전 근거가 0건이어도 정상으로 표시하지 않고 마지막 성공을 보존한다',()=>{
+  const model=M.buildOperationsHub({
+    now,
+    connectors:[],runs:[],
+    collectorStatuses:[{connector_code:'google_chat',status:'failed',last_success_at:'2026-10-10T05:00:00Z',last_failure_at:'2026-10-11T05:30:00Z',evidence_total:0,error_code:'COLLECTOR_EXIT_7'}],
+    stats:{mappings:1,movements:1,issues:0,settlements:0},scm:{available:true,stale:false},royalty:{available:true,stale:false,bookCount:1},
+  });
+  const source=model.sources.find(row=>row.id==='google_chat');
+  assert.equal(source.state,'failed');
+  assert.equal(source.lastSuccess,'2026-10-10T05:00:00Z');
+  assert.equal(source.lastFailure,'2026-10-11T05:30:00Z');
+  assert.ok(model.queue.some(row=>row.title==='Google Chat 재시도'));
+});
+
+test('연결상태 조회가 이전 정상본이면 최근 성공도 자동 확인으로 단정하지 않는다',()=>{
+  const model=M.buildOperationsHub({now,collectorStatusStale:true,collectorStatuses:[{connector_code:'naver_mail',status:'success',last_success_at:'2026-10-11T05:00:00Z',last_failure_at:'',evidence_total:0}],connectors:[],runs:[],stats:{mappings:1,movements:1,issues:0,settlements:0},scm:{available:true,stale:true},royalty:{available:true,stale:false,bookCount:1}});
+  const source=model.sources.find(row=>row.id==='naver_mail');
+  assert.equal(source.state,'review');
+  assert.match(source.detail,/이전 확인본/);
+});
