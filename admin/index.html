@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="./scm.css" />
 <link rel="stylesheet" href="./work.css?v=20260906-2" />
 <link rel="stylesheet" href="./operations.css" />
-<link rel="stylesheet" href="./integration.css?v=20261011-1" />
+<link rel="stylesheet" href="./integration.css?v=20261011-2" />
 <link rel="stylesheet" href="./dashboard.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script src="./admin-core-model.js?v=20261010-1"></script>
@@ -252,6 +252,15 @@
         <section class="integration-sources" aria-labelledby="integration-sources-title">
           <div class="integration-section-head"><div><p class="integration-kicker">EVIDENCE SOURCES</p><h2 id="integration-sources-title">원천별 범위와 신선도</h2></div><span>메일·Chat 내용은 근거이며 실행 권한이 아님</span></div>
           <div id="integration-sources" class="integration-source-grid"></div>
+        </section>
+        <section class="integration-evidence" aria-labelledby="integration-evidence-title">
+          <div class="integration-evidence-head">
+            <div><p class="integration-kicker">EVIDENCE INBOX</p><h2 id="integration-evidence-title">수집 근거 검토함</h2><p>원문·첨부·개인정보는 저장하지 않고 사건 식별자와 해시, 상태 후보만 보관합니다. ‘근거 확인’은 SCM·정산·지급 반영이 아닙니다.</p></div>
+            <div class="integration-evidence-actions"><button id="integration-collect-preview" class="payhere-secondary" type="button">홈페이지 수집 미리보기</button><button id="integration-collect-apply" class="integration-button" type="button" disabled>검토함에 넣기</button></div>
+          </div>
+          <div id="integration-evidence-status" class="integration-evidence-status" role="status" aria-live="polite">먼저 미리보기로 수집 범위를 확인하세요.</div>
+          <div class="integration-evidence-summary"><span id="integration-evidence-count">대기 —</span><label for="integration-evidence-filter">상태</label><select id="integration-evidence-filter"><option value="needs">검토 필요</option><option value="pending">검토 대기</option><option value="conflict">충돌</option><option value="reviewed">근거 확인</option><option value="rejected">반려</option><option value="">전체</option></select></div>
+          <div id="integration-evidence-list" class="integration-evidence-list"></div>
         </section>
         <section class="payhere-import" aria-labelledby="payhere-import-title">
           <div class="payhere-import-head">
@@ -1034,7 +1043,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./operations.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="./payhere-import.js?v=20260906-1"></script>
-<script src="./integration.js?v=20261011-1"></script>
+<script src="./integration.js?v=20261011-2"></script>
 <script>
 window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});

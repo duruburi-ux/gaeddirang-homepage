@@ -30,12 +30,16 @@ async function installVirtualAdmin(page){
         {connector_code:'smartstore',status:'partial',records_received:4,records_applied:3,records_rejected:1,completed_at:'2026-10-10T04:00:00Z'},
         {connector_code:'smartstore',status:'success',records_received:3,records_applied:3,records_rejected:0,completed_at:'2026-10-10T03:00:00Z'},
       ],
+      integration_evidence_inbox:[
+        {id:'11111111-1111-4111-8111-111111111111',connector_code:'homepage',occurred_at:'2026-10-10T04:10:00Z',evidence_type:'homepage_order',summary:'홈페이지 주문 · 발송준비',candidate_type:'reservation',review_reason:'가용 재고만 차감 · 판매 확정 아님',review_status:'pending',created_at:'2026-10-10T04:11:00Z'},
+        {id:'22222222-2222-4222-8222-222222222222',connector_code:'smartstore',occurred_at:'2026-10-10T04:05:00Z',evidence_type:'smartstore_order',summary:'스마트스토어 상품 주문 · RETURN_REQUEST',candidate_type:'reversal',review_reason:'원거래 참조 필수',review_status:'conflict',created_at:'2026-10-10T04:06:00Z'},
+      ],
     };
     window.__failTable='';window.__authCallbacks=[];window.__orderRequests=new Map();window.__adminOrderRpcCalls=0;
     class Query{
       constructor(table){this.table=table;this.op='select';this.filters=[];this.options={};this.patch=null;this.payload=null;this.returning=false;}
       select(_columns,options={}){if(this.op==='update')this.returning=true;else this.op='select';this.options={...this.options,...options};return this;}
-      order(){return this;}in(_field,_values){return this;}
+      order(){return this;}limit(value){this.options.limit=value;return this;}in(_field,_values){return this;}
       eq(field,value){this.filters.push(row=>row[field]===value);return this;}
       update(patch){this.op='update';this.patch=patch;return this;}
       insert(payload){this.op='insert';this.payload=payload;return this;}
@@ -49,7 +53,7 @@ async function installVirtualAdmin(page){
         if(this.op==='insert'){
           const rows=(Array.isArray(this.payload)?this.payload:[this.payload]).map(clone);window.__db[this.table].push(...rows);return {data:clone(rows),error:null,count:rows.length};
         }
-        const rows=clone(this.rows());return {data:this.options.head?null:rows,error:null,count:this.options.count?rows.length:null};
+        const all=this.rows(),rows=clone(Number.isInteger(this.options.limit)?all.slice(0,this.options.limit):all);return {data:this.options.head?null:rows,error:null,count:this.options.count?all.length:null};
       }
       then(resolve,reject){return Promise.resolve(this.execute()).then(resolve,reject);}
       single(){return Promise.resolve(this.execute()).then(result=>result.error?result:result.data?.length===1?{data:result.data[0],error:null}:{data:null,error:{message:'single row required'}});}
@@ -80,6 +84,19 @@ async function installVirtualAdmin(page){
   await page.route('**/functions/v1/scm-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-10T03:00:00Z',stale:false},datasets:{inventory:[{sku:'V-001',name:'가상 도서',author:'가상 작가',category:'도서',owner:'가상팀',price:12000,cost:6000,stock:4,skuStock:4,status:'판매중',kind:'도서'}],blind:[],counts:[],actions:[]}})}));
   await page.route('**/functions/v1/royalty-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-10T03:00:00Z',stale:false,readOnly:true},books:[{key:'virtual-a'},{key:'virtual-b'}]})}));
   await page.route('**/functions/v1/work-read',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({meta:{fetchedAt:'2026-10-10T03:00:00Z',stale:false},work:{summary:{active:1,attention:1,approvals:0,blocked:0,stale:0},coverage:[],records:[{id:'work-1',kind:'tasks',title:'가상 확인 업무',status:'진행',owner:'가상 담당',updated:'2026-10-10T02:00:00Z',attention:true,terminal:false}]}})}));
+  await page.route('**/functions/v1/integration-ingest',async route=>{
+    const body=route.request().postDataJSON();
+    if(body.action==='collect'&&body.dryRun)return route.fulfill({contentType:'application/json',body:JSON.stringify({connectorCode:'homepage',runId:body.runId,dryRun:true,received:1,reviewRequired:1,rows:[{sourceEventId:'order:virtual-preview:발송준비',evidenceType:'homepage_order',candidateType:'reservation',summary:'홈페이지 주문 · 발송준비',reviewReason:''}]})});
+    if(body.action==='collect'){
+      await page.evaluate(()=>window.__db.integration_evidence_inbox.unshift({id:'33333333-3333-4333-8333-333333333333',connector_code:'homepage',occurred_at:'2026-10-10T05:00:00Z',evidence_type:'homepage_order',summary:'홈페이지 주문 · 발송준비',candidate_type:'reservation',review_reason:'가용 재고만 차감 · 판매 확정 아님',review_status:'pending',created_at:'2026-10-10T05:01:00Z'}));
+      return route.fulfill({contentType:'application/json',body:JSON.stringify({connectorCode:'homepage',runId:body.runId,dryRun:false,received:1,inserted:1,duplicates:0,conflicts:0,reviewRequired:1,items:[]})});
+    }
+    if(body.action==='review'){
+      await page.evaluate(({id,decision})=>{const row=window.__db.integration_evidence_inbox.find(item=>item.id===id);if(row)row.review_status=decision},{id:body.evidenceId,decision:body.decision});
+      return route.fulfill({contentType:'application/json',body:JSON.stringify({review:{id:body.evidenceId,review_status:body.decision,ledger_changed:false},ledgerChanged:false})});
+    }
+    return route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({error:'UNSUPPORTED'})});
+  });
 }
 
 async function openAdmin(page,viewport){
@@ -121,6 +138,8 @@ for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',wi
     await expect(page.locator('#integration-queue')).toContainText('스마트스토어 재시도');
     await expect(page.locator('#integration-queue')).toContainText('열린 불일치 1건');
     await expect(page.locator('#integration-runs .integration-run')).toHaveCount(3);
+    await expect(page.locator('#integration-evidence-list .integration-evidence-item')).toHaveCount(2);
+    await expect(page.locator('#integration-evidence-count')).toContainText('검토 필요 2건');
     await expect(page.locator('#integration-guardrails-title')).toHaveText('자동으로 넘지 않는 선');
     await expect(page.locator('#tab-integration')).toContainText('메일과 Chat은 근거 데이터일 뿐 승인이나 명령이 아닙니다.');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
@@ -136,6 +155,17 @@ test('admin unified operations: connector refresh failure keeps but downgrades t
   await expect(page.locator('#integration-connectors .integration-card')).toHaveCount(3);
   const homepage=page.locator('#integration-sources .integration-source-card',{hasText:'홈페이지'});
   await expect(homepage).toContainText('검토 필요');await expect(homepage).toContainText('이전 확인본');
+});
+
+test('admin unified operations: collection previews before metadata storage and review never claims ledger change',async({page})=>{
+  await openAdmin(page,{width:1200,height:900});await goTab(page,{width:1200,height:900},'integration',/통합 운영실/);
+  await page.locator('#integration-collect-preview').click();await expect(page.locator('#integration-evidence-status')).toContainText('1건을 찾았습니다');
+  await expect(page.locator('#integration-collect-apply')).toBeEnabled();
+  page.once('dialog',dialog=>dialog.accept());await page.locator('#integration-collect-apply').click();await expect(page.locator('#integration-evidence-status')).toContainText('저장 1건');
+  await expect(page.locator('#integration-evidence-count')).toContainText('검토 필요 3건');
+  const first=page.locator('.integration-evidence-item').first();await first.getByRole('button',{name:'근거 확인'}).click();
+  await expect(page.locator('#integration-evidence-status')).toContainText('원장에는 반영하지 않았습니다');
+  await expect(page.locator('#integration-evidence-count')).toContainText('검토 필요 2건');
 });
 
 test('admin core: partial refresh keeps last-known-good data and saved rows are re-read',async({page})=>{

@@ -13,7 +13,7 @@ test('integration hub is inside the gated admin and labels connection boundaries
   assert.ok(html.includes('id="tab-integration"'));
   assert.ok(html.includes('끊긴 곳도 한눈에'));
   assert.ok(html.includes('중복 거래 방지 원장 · 단계별 부분 실패 표시'));
-  for(const id of ['integration-pipeline','integration-queue','integration-runs','integration-sources'])assert.ok(html.includes(`id="${id}"`));
+  for(const id of ['integration-pipeline','integration-queue','integration-runs','integration-sources','integration-evidence-list','integration-collect-preview','integration-collect-apply'])assert.ok(html.includes(`id="${id}"`));
   assert.ok(html.includes('메일과 Chat은 근거 데이터일 뿐 승인이나 명령이 아닙니다.'));
   assert.ok(html.includes('정산 문서 확정은 지급 완료가 아닙니다.'));
   assert.ok(html.includes('id="payhere-file"'));
@@ -27,10 +27,12 @@ test('integration hub is inside the gated admin and labels connection boundaries
 
 test('integration browser scripts parse and require a reviewed server import',()=>{
   new vm.Script(js);new vm.Script(model);new vm.Script(hubModel);
-  for(const table of ['integration_connectors','integration_product_mappings','integration_inventory_movements','integration_reconciliation_issues','integration_settlement_entries','integration_sync_runs']) assert.ok(js.includes(table));
+  for(const table of ['integration_connectors','integration_product_mappings','integration_inventory_movements','integration_reconciliation_issues','integration_settlement_entries','integration_sync_runs','integration_evidence_inbox']) assert.ok(js.includes(table));
   assert.ok(!/\.delete\s*\(/.test(js));
   assert.ok(js.includes('/functions/v1/scm-sales-import'));
   assert.ok(js.includes('/functions/v1/royalty-read'));
+  assert.ok(js.includes('/functions/v1/integration-ingest'));
+  assert.ok(js.includes('ledger'));
   assert.ok(js.includes("confirm('검사된 판매 수량"));
   assert.ok(!js.includes('SCM_GOOGLE_SERVICE_ACCOUNT'));
   assert.ok(!hubModel.includes('400000'));
