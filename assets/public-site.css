@@ -1,0 +1,31 @@
+/* First-phase navigation additions; inherit the existing brand palette and type. */
+.home-purpose{font-size:15px;line-height:1.8;color:var(--brown);margin:20px 0}
+.journey-links{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.journey-links .btn-core{min-width:235px;text-align:center;text-decoration:none;font-size:15px}
+.home-evidence,.sec-institutions{max-width:1180px;margin:40px auto;padding:32px 28px}
+.home-evidence h2{font-size:30px;line-height:1.5;margin:12px 0 24px}
+.evidence-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.evidence-grid>a{display:flex;flex-direction:column;gap:13px;border:1px solid #ddcfc4;border-radius:20px;background:#faf7f3;padding:25px;text-decoration:none;color:var(--brown);transition:transform .2s}
+.evidence-grid>a:hover{transform:translateY(-3px)}
+.evidence-grid span{font-size:13px;color:#796556}
+.evidence-grid strong{font-size:21px;line-height:1.55}
+.evidence-grid small{font-size:13px;line-height:1.6;margin-top:auto}
+.institution-guide{margin-top:24px;padding:28px;border-radius:20px;background:#f3eee7;line-height:1.9}
+.institution-guide p{margin:10px 0 20px}
+.institution-guide>a{display:inline-block;text-decoration:none}
+.institution-guide>small{display:block;margin-top:12px}
+.project-detail-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.project-detail-actions a{text-decoration:none}
+button.book-card{border:0;background:none;color:inherit;font:inherit;text-align:inherit;padding:0;cursor:pointer}
+button.nm-close{border:0;background:transparent;font:inherit;cursor:pointer}
+:is(a,button,[role="button"]):focus-visible{outline:3px solid #285943;outline-offset:4px}
+.co-shipping-note{font-size:13px;line-height:1.8;text-align:right;white-space:pre-line}
+.nb-date{flex-shrink:0;white-space:nowrap}.nb-item{gap:12px}
+#institutionTitle{word-break:keep-all}
+#programModal{align-items:flex-start;overflow-y:auto;padding:20px 0}
+#programModal .pm-wrapper{flex:0 0 auto;margin:auto 0}
+.pm-nav{position:sticky;top:0;z-index:2;background:#fff;border-radius:18px;padding:6px}
+.pm-title{word-break:keep-all}
+@media(max-width:400px){.pm-title{font-size:26px;padding:15px 12px}}
+@media(prefers-reduced-motion:reduce){.pm-wrapper{animation:none}}
+@media(max-width:700px){.evidence-grid{grid-template-columns:1fr}.home-evidence,.sec-institutions{padding:20px;margin:20px auto}.home-evidence h2{font-size:25px}.journey-links{align-items:stretch}.journey-links .btn-core{min-width:0}.project-detail-actions .btn-core{width:100%;text-align:center;font-size:14px}}

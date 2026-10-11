@@ -19,7 +19,7 @@ test('sitemap contains only canonical pages and no query variants', async () => 
   const sitemap = await readFile(new URL('sitemap.xml', root), 'utf8');
   assert.ok(!sitemap.includes('?program='));
   const locations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-  assert.equal(locations.length, 16);
+  assert.equal(locations.length, 17);
   assert.equal(new Set(locations).size, locations.length);
   assert.ok(locations.every((url) => url.startsWith('https://gaeddirang.com/')));
 });

@@ -6,12 +6,17 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>개띠랑 | 책공방</title>
 <!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-PXC9NRPNSL"></script>
 <script>
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
+if (location.hostname === 'gaeddirang.com' || location.hostname === 'www.gaeddirang.com') {
+const analytics = document.createElement('script');
+analytics.async = true;
+analytics.src = 'https://www.googletagmanager.com/gtag/js?id=G-PXC9NRPNSL';
+document.head.appendChild(analytics);
 gtag('js', new Date());
 gtag('config', 'G-PXC9NRPNSL');
+}
 </script>
 
 
@@ -1243,7 +1248,7 @@ background: rgba(0, 0, 0, 0.5);
       "about": { "@id": "https://gaeddirang.com/#organization" },
       "mainEntity": [
         {"@type":"Question","name":"개띠랑이 뭐야? / 개띠랑 유니버스는 무슨 뜻이야?","acceptedAnswer":{"@type":"Answer","text":"개띠랑은 '개띠와 함께!'를 뜻합니다. 개띠를 비롯한 십이간지 모든 띠와 함께 즐거운 세상을 꿈꾸는 창작자 팀 '개띠랑 유니버스'의 이름입니다."}},
-        {"@type":"Question","name":"개띠랑은 누가 만들었어? / 누가 운영해?","acceptedAnswer":{"@type":"Answer","text":"장두루와 다솜(이다솜)을 중심으로 한 창작자들이 함께 만드는 팀입니다. 각자 감정과 일상을 기록한 책을 쓰는 작가이기도 합니다."}},
+        {"@type":"Question","name":"개띠랑은 누가 만들었어? / 누가 운영해?","acceptedAnswer":{"@type":"Answer","text":"개띠랑(이진이), 이다솜, 두루(장진호)가 함께하는 창작팀입니다. 출판 편집과 디자인, 감정 기록 수업, 시민 글쓰기와 프로젝트 기획을 각자의 영역에서 이어갑니다. 프로젝트에 따라 협력 강사·기관과 함께합니다."}},
         {"@type":"Question","name":"개띠랑은 무엇을 만들어? / 어떤 걸 팔아?","acceptedAnswer":{"@type":"Answer","text":"감정과 일상을 기록한 에세이 책, 감정카드, 표지를 가린 블라인드북을 만들고, 감정을 기록하는 글쓰기 워크숍을 엽니다."}},
         {"@type":"Question","name":"개띠랑 책공방은 어디 있어?","acceptedAnswer":{"@type":"Answer","text":"경기 화성 동탄호수공원 라크몽에 '개띠랑 책공방'이 있습니다."}},
         {"@type":"Question","name":"개띠랑 책·굿즈는 어디서 사?","acceptedAnswer":{"@type":"Answer","text":"개띠랑 공식 홈페이지(gaeddirang.com)와 스마트스토어에서 구매할 수 있습니다."}},
@@ -1528,44 +1533,54 @@ background: rgba(0, 0, 0, 0.5);
 }
 </style>
 
+<link rel="stylesheet" href="assets/public-site.css">
+<link rel="stylesheet" href="assets/site-ux.css">
+<script src="assets/site-ux.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#page-main">본문으로 바로 가기</a>
+<div id="uxStatus" class="ux-toast" role="status" aria-live="polite"></div>
 
 <div class="pencil-scroll-container"><div class="scroll-ink" id="scrollInk"></div><div class="scroll-pencil" id="scrollPencil">✏️</div></div>
-<div id="topBtn" class="top-btn" onclick="scrollToTop()">⬆</div>
+<button type="button" id="topBtn" class="top-btn" onclick="scrollToTop()" aria-label="페이지 맨 위로">↑</button>
 
 <header id="header">
-<a onclick="switchView('main')"><img src="assets/images/brand/gd-universe-logo.png" class="logo-img" alt="GD.UNIVERSE Logo"></a>
-<nav class="gnb">
-<a class="mtab mt-y" onclick="switchView('main', 'library')">책과 이야기</a>
-<a class="mtab mt-g" onclick="switchView('authors')">작가들</a>
-<a class="mtab mt-b" onclick="switchView('main', 'finder')">기록 도구</a>
-<a class="mtab mt-l" onclick="switchView('main', 'program')">프로그램</a>
+<a href="#" onclick="return navigatePublic(event,'home')" aria-label="개띠랑 홈"><img src="assets/images/brand/gd-universe-logo.png" class="logo-img" alt="개띠랑 유니버스"></a>
+<nav class="gnb" aria-label="주 메뉴">
+<a class="mtab mt-y" href="#library" onclick="return navigatePublic(event,'library')">책·카드</a>
+<a class="mtab mt-l" href="#program" onclick="return navigatePublic(event,'program')">수업·모임</a>
+<a class="mtab mt-g" href="#projects" onclick="return navigatePublic(event,'projects')">프로젝트</a>
+<a class="mtab mt-b" href="#institutions" onclick="return navigatePublic(event,'institutions')">학교·기관 의뢰</a>
 </nav>
-<nav class="gnb-sub">
-<a onclick="switchView('publisher')">출판사 소개</a>
-<a onclick="switchView('main', 'projects')">프로젝트</a>
-<a onclick="switchView('main', 'game')">게임</a>
-<a onclick="switchView('main', 'gaedditv')">개띠랑TV</a>
-</nav>
+<details class="nav-more"><summary>소개와 더보기</summary><nav class="gnb-sub" aria-label="소개와 더보기">
+<a href="#authors" onclick="return navigatePublic(event,'authors')">작가들</a>
+<a href="#publisher" onclick="return navigatePublic(event,'publisher')">출판사 소개</a>
+<a href="#finder" onclick="return navigatePublic(event,'finder')">나에게 맞는 기록 도구</a>
+<a href="#game" onclick="return navigatePublic(event,'game')">게임</a>
+<a href="#gaedditv" onclick="return navigatePublic(event,'gaedditv')">개띠랑TV</a>
+</nav></details>
+<button type="button" class="header-search" onclick="openSiteSearch()" aria-label="사이트 전체 검색"><i class="fas fa-search" aria-hidden="true"></i></button>
 <button class="auth-nav-btn" id="authNavBtn" onclick="openAuthModal()"><i class="fas fa-user"></i> 로그인</button>
 <button class="cart-icon-btn" onclick="openCartModal()" aria-label="장바구니 열기"><i class="fas fa-shopping-bag" aria-hidden="true"></i><span class="cart-badge" id="cartBadge">0</span></button>
-<button class="header-cta btn-core" style="font-size:14px; padding:8px 20px;" onclick="openEmotionModal()">기록 시작하기</button>
-<button class="hamburger-btn" onclick="toggleMobileNav()" aria-label="메뉴 열기"><i class="fas fa-bars" aria-hidden="true"></i></button>
+<button class="hamburger-btn" onclick="toggleMobileNav()" aria-label="메뉴 열기" aria-controls="mobileNavPanel" aria-expanded="false"><i class="fas fa-bars" aria-hidden="true"></i></button>
 </header>
 
 <div class="mobile-nav-overlay" id="mobileNavOverlay" onclick="toggleMobileNav()"></div>
-<div class="mobile-nav-panel" id="mobileNavPanel">
-<a onclick="toggleMobileNav(); switchView('main', 'library')">책과 이야기</a>
-<a onclick="toggleMobileNav(); switchView('authors')">작가들</a>
-<a onclick="toggleMobileNav(); switchView('main', 'finder')">기록 도구</a>
-<a onclick="toggleMobileNav(); switchView('main', 'program')">프로그램</a>
-<a onclick="toggleMobileNav(); switchView('publisher')">출판사 소개</a>
-<a onclick="toggleMobileNav(); switchView('main', 'projects')">프로젝트</a>
-<a onclick="toggleMobileNav(); switchView('main', 'game')">게임</a>
-<a onclick="toggleMobileNav(); switchView('main', 'gaedditv')">개띠랑TV</a>
-<a class="mnav-cta" onclick="toggleMobileNav(); openEmotionModal()">기록 시작하기 ›</a>
+<div class="mobile-nav-panel" id="mobileNavPanel" inert aria-hidden="true">
+<button type="button" class="mobile-menu-close" onclick="toggleMobileNav()" aria-label="메뉴 닫기">✕ 닫기</button>
+<a href="#" onclick="toggleMobileNav();return navigatePublic(event,'home')">홈</a>
+<a href="#library" onclick="toggleMobileNav();return navigatePublic(event,'library')">책·카드</a>
+<a href="#program" onclick="toggleMobileNav();return navigatePublic(event,'program')">수업·모임</a>
+<a href="#projects" onclick="toggleMobileNav();return navigatePublic(event,'projects')">프로젝트</a>
+<a href="#institutions" onclick="toggleMobileNav();return navigatePublic(event,'institutions')">학교·기관 의뢰</a>
+<a href="#authors" onclick="toggleMobileNav();return navigatePublic(event,'authors')">작가들</a>
+<a href="#finder" onclick="toggleMobileNav();return navigatePublic(event,'finder')">기록 도구</a>
+<a href="#publisher" onclick="toggleMobileNav();return navigatePublic(event,'publisher')">출판사 소개</a>
+<a href="#game" onclick="toggleMobileNav();return navigatePublic(event,'game')">게임</a>
+<a href="#gaedditv" onclick="toggleMobileNav();return navigatePublic(event,'gaedditv')">개띠랑TV</a>
+<button type="button" class="mnav-cta" onclick="toggleMobileNav(); openEmotionModal()">기록 시작하기 ›</button>
 </div>
+<nav id="pageTrail" class="page-trail" aria-label="현재 위치" hidden><a href="#" onclick="return navigatePublic(event,'home')">홈</a><span aria-hidden="true"> / </span><span id="pageTrailCurrent" aria-current="page"></span></nav>
 
 <div id="page-publisher" class="content-area" style="display:none;">
 <div class="pub-container">
@@ -1615,8 +1630,13 @@ background: rgba(0, 0, 0, 0.5);
 <div class="home-copy">
 <span class="hero-badge">만나면 좋아하게 되는 팀, 개띠랑</span>
 <h1 class="home-h1 serif">그래서 당신은,<br>요즘 어때요?</h1>
-<p class="home-desc">남의 안부는 그렇게 잘 챙기면서, 정작 당신 얘긴 늘 뒤로 미뤘잖아요.<br><b>이번엔 당신 차례예요. 쓰고, 그리고, 만나면서요.</b></p>
-<button class="btn-core" onclick="switchView('main','program')">수업·모임 둘러보기 ›</button>
+<p class="home-desc">남의 안부는 그렇게 잘 챙기면서, 정작 당신 얘긴 늘 뒤로 미뤘잖아요.<br> <b>이번엔 당신 차례예요. 쓰고, 그리고, 만나면서요.</b></p>
+<p class="home-purpose">책과 감정카드, 함께 쓰는 수업, 학교·기관의 책 만들기.<br> 당신에게 맞는 기록의 시작을 골라보세요.</p>
+<div class="journey-links" aria-label="기록을 시작하는 세 가지 방법">
+<a class="btn-core" href="#library" onclick="return navigatePublic(event,'library')">책·카드 고르기 →</a>
+<a class="btn-core" href="#program" onclick="return navigatePublic(event,'program')">수업·모임 참여하기 →</a>
+<a class="btn-core" href="#institutions" onclick="return navigatePublic(event,'institutions')">학교·기관 의뢰하기 →</a>
+</div>
 </div>
 <article class="stage" id="moongori">
 <div class="stage-text">
@@ -1645,6 +1665,34 @@ background: rgba(0, 0, 0, 0.5);
 <button class="st-notify-btn" id="mgAlertBtn" onclick="submitBookAlert()">소식 받기</button>
 </div>
 </article>
+</section>
+
+<section data-cat="home" class="home-evidence" aria-labelledby="homeEvidenceTitle">
+<div class="project-kicker">함께 만든 기록</div>
+<h2 id="homeEvidenceTitle" class="serif">이런 만남이 책과 이야기로 남았어요</h2>
+<div class="evidence-grid">
+<a href="?project=forest#projects" onclick="openProjectDetail('forest',this);return false"><span>숲숲학교</span><strong>숲의 관찰에서<br>아홉 권의 개인 책으로</strong><small>봄학기 10회 · 가을학기는 일정 진행 중 →</small></a>
+<a href="?project=schools#projects" onclick="openProjectDetail('schools',this);return false"><span>흥업초·호저초</span><strong>학교별 여섯 번의 수업,<br>두 학교의 공동문집</strong><small>학교별 공동문집 1종 · 출간기념회 →</small></a>
+<a href="?project=moongori-project#projects" onclick="openProjectDetail('moongori-project',this);return false"><span>개띠랑 출판</span><strong>여섯 편의 소설에<br>여섯 곡의 북OST를</strong><small>신태림 단편소설집 《문고리》 →</small></a>
+</div>
+</section>
+
+<section data-cat="institutions" class="sec-institutions" id="institutions" aria-labelledby="institutionTitle">
+<div class="project-kicker">학교 · 도서관 · 기관 담당자께</div>
+<h2 id="institutionTitle" class="project-title serif">한 번의 기록 수업부터,<br>함께 만드는 책까지</h2>
+<p class="project-lead">참여 대상과 목적에 맞춰 감정 기록, 글쓰기, 편집과 책 만들기를 함께 설계합니다. 아래는 운영 사례이며, 새로운 의뢰의 일정·회차·비용은 협의 후 확정합니다.</p>
+<div class="evidence-grid">
+<a href="?project=schools#projects" onclick="openProjectDetail('schools',this);return false"><span>학교 출판교육</span><strong>학생들의 이야기를<br>학교의 공동문집으로</strong><small>흥업초·호저초의 과정과 결과 보기 →</small></a>
+<a href="?project=dasom-programs#projects" onclick="openProjectDetail('dasom-programs',this);return false"><span>이다솜의 감정·AI 기록</span><strong>마음을 발견하고<br>자기 말로 쓰는 시간</strong><small>대상별 프로그램 구성 살펴보기 →</small></a>
+<a href="?project=daerim#projects" onclick="openProjectDetail('daerim',this);return false"><span>두루의 시민 기록</span><strong>일상과 계절을<br>글과 이미지로 엮기</strong><small>대림도서관 기록공작소 보기 →</small></a>
+</div>
+<div class="institution-guide">
+<h3>이 다섯 가지만 알려주세요</h3>
+<p>기관명 · 참여 대상과 예상 인원 · 희망 시기와 회차 · 예산 범위 · 원하는 결과물</p>
+<p>일정과 운영 가능 범위를 확인한 뒤, 수업 구성과 제작 범위를 함께 정합니다. 참여자 사진·원고·후기는 별도 공개 동의 없이 홍보 자료로 사용하지 않습니다.</p>
+<a class="btn-core" href="mailto:gaeddirang085@naver.com?subject=%ED%95%99%EA%B5%90%C2%B7%EA%B8%B0%EA%B4%80%20%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%A8%20%EB%AC%B8%EC%9D%98">기관 프로그램 문의 메일 작성 →</a>
+<small>메일 앱이 열립니다. 작성 후 직접 보내주세요.</small>
+</div>
 </section>
 
 <div data-cat="home" class="portals-row">
@@ -1716,7 +1764,6 @@ background: rgba(0, 0, 0, 0.5);
 </section>
 
 <section data-cat="home" class="sec-notice-search">
-<div class="search-wrapper" id="searchWrapper"><div class="search-box"><input type="text" class="search-input" id="searchInput" placeholder="어떤 이야기를 찾으시나요? (예: 빵, 다솜, 감정)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search" enterkeyhint="search" role="combobox" aria-expanded="false" aria-controls="searchResults" aria-autocomplete="list" aria-haspopup="listbox" oninput="liveSearch()" onkeydown="if(event.key==='Enter'){event.preventDefault();performSearch();} if(event.key==='Escape'){closeSearchResults();}"><button class="search-btn" onclick="performSearch()">검색</button></div><div class="search-results" id="searchResults" role="listbox"></div></div>
 <div class="notice-board">
 <div class="nb-col" data-label="공지사항">
 <div class="nb-header"><span class="nb-title">📢 공지사항</span></div>
@@ -1739,15 +1786,17 @@ background: rgba(0, 0, 0, 0.5);
 </div>
 </div>
 <div class="category-tabs">
-<button class="cat-btn active" onclick="filterBooks('all')">전체</button>
-<button class="cat-btn" onclick="filterBooks('book')">도서</button>
-<button class="cat-btn" onclick="filterBooks('card')">카드</button>
+<button class="cat-btn active" aria-pressed="true" onclick="filterBooks('all',this)">전체</button>
+<button class="cat-btn" aria-pressed="false" onclick="filterBooks('book',this)">도서</button>
+<button class="cat-btn" aria-pressed="false" onclick="filterBooks('card',this)">카드</button>
 </div>
+<div class="library-tools"><label for="libraryQuery">제목·저자로 찾기</label><input type="search" id="libraryQuery" placeholder="예: 감정, 두루" oninput="renderBooks()"><span id="libraryCount" role="status" aria-live="polite"></span></div>
+<div id="libraryLoadState" class="load-state" hidden><span>책 목록을 모두 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</span><button type="button" onclick="loadAllContent()">다시 불러오기</button></div>
 <div class="library-wrapper">
-<div class="scroll-arrow left" onclick="scrollLibrary('left')"><i class="fas fa-chevron-left"></i></div>
 <div class="ranking-scroll" id="bookContainer"></div>
-<div class="scroll-arrow right" onclick="scrollLibrary('right')"><i class="fas fa-chevron-right"></i></div>
 </div>
+<div id="libraryEmpty" class="ux-empty" hidden>찾는 책·카드가 없어요.<button type="button" onclick="resetBookFilters()">검색과 분류 초기화</button></div>
+<a class="library-finder" href="#finder" onclick="return navigatePublic(event,'finder')">어떤 카드가 맞을지 고민된다면, 기록 도구 추천받기 →</a>
 </section>
 
 <section data-cat="_legacy" class="sec-common" id="authors" style="background:var(--gray-bg);">
@@ -1763,9 +1812,9 @@ background: rgba(0, 0, 0, 0.5);
 <div class="g-step active" id="gStep1">
 <div class="walking-area"><h3 class="serif" style="font-size:28px; color:var(--brown);">어떤 길로 떠날까요?</h3></div>
 <div class="path-options">
-<div class="path-btn btn-core" style="width:140px; height:140px; background:#fff; color:var(--brown);" onclick="startGame('bread')"><span class="path-icon">🥐</span><span>빵의 길</span></div>
-<div class="path-btn btn-core" style="width:140px; height:140px; background:#fff; color:var(--brown);" onclick="startGame('emotion')"><span class="path-icon">🎨</span><span>감정의 길</span></div>
-<div class="path-btn btn-core" style="width:140px; height:140px; background:#fff; color:var(--brown);" onclick="startGame('mind')"><span class="path-icon">🌱</span><span>마음의 길</span></div>
+<button type="button" class="path-btn btn-core" style="width:140px; height:140px; background:#fff; color:var(--brown);" onclick="startGame('bread')"><span class="path-icon">🥐</span><span>빵의 길</span></button>
+<button type="button" class="path-btn btn-core" style="width:140px; height:140px; background:#fff; color:var(--brown);" onclick="startGame('emotion')"><span class="path-icon">🎨</span><span>감정의 길</span></button>
+<button type="button" class="path-btn btn-core" style="width:140px; height:140px; background:#fff; color:var(--brown);" onclick="startGame('mind')"><span class="path-icon">🌱</span><span>마음의 길</span></button>
 </div>
 </div>
 <div class="g-step" id="gStep2">
@@ -1808,6 +1857,7 @@ background: rgba(0, 0, 0, 0.5);
 <button class="res-btn-small" onclick="resetQuiz()">다시 하기</button>
 <button class="res-btn-small" onclick="shareResult()">결과 공유하기</button>
 </div>
+<a id="resDetailLink" class="library-finder" href="#library">추천 카드 자세히 보기 →</a>
 </div>
 </div>
 <div class="toolart"><div class="img-slot filled"><img src="assets/images/gaeddirang-card-drawer.webp" alt="카드 서랍을 여는 개띠랑" loading="lazy"></div></div>
@@ -1819,12 +1869,15 @@ background: rgba(0, 0, 0, 0.5);
 <div>
 <div class="pg-kicker">TOGETHER, BETTER</div>
 <h2 class="pg-title serif">혼자보다 함께,<br>기록은 더 즐거워져요</h2>
-<p class="pg-sub">수업과 모임, 기관 프로그램을 한곳에서 만나보세요.</p>
+<p class="pg-sub">일정과 모집 상태를 먼저 확인하고, 나에게 맞는 만남을 골라보세요.</p>
 </div>
 <div class="img-slot filled" style="aspect-ratio:16/7"><img src="assets/images/program-group-writing.webp" alt="글을 쓰는 두루·개띠랑·다솜" loading="lazy"></div>
 </div>
+<div class="program-toolbar"><div class="program-filters" aria-label="프로그램 일정 분류"><button type="button" class="active" aria-pressed="true" onclick="filterPrograms('all',this)">전체</button><button type="button" aria-pressed="false" onclick="filterPrograms('current',this)">진행·예정 일정</button><button type="button" aria-pressed="false" onclick="filterPrograms('past',this)">지난 회차</button></div><p>일정이 진행 중이어도 모집 중이라는 뜻은 아닙니다. 추가 참여는 공식 안내에서 확인해 주세요.</p></div>
 <div class="prog-grid-wrap"><div class="prog-grid" id="progGrid"></div>
 </div>
+<p id="programEmpty" class="ux-empty" hidden>이 분류에 등록된 일정이 없어요. 전체 목록이나 공식 안내를 확인해 주세요.</p>
+<a class="library-finder" href="#institutions" onclick="return navigatePublic(event,'institutions')">학교·기관에서 진행하고 싶다면, 의뢰 안내 보기 →</a>
 </section>
 
 <section data-cat="projects" class="sec-projects" id="projects">
@@ -1893,7 +1946,7 @@ background: rgba(0, 0, 0, 0.5);
 <div class="project-meta"><span class="project-tag">오리지널 IP · 연재</span><span class="project-status">2026.09– · 공개 시작</span></div>
 <h3>개띠랑 빵!탐정</h3>
 <p>빵과 재료가 살아 움직이는 세계에서 벌어지는, 가볍고 조금 이상한 미스터리 코미디입니다. 파일럿 이야기를 시작으로 개띠랑의 새 연재 세계를 만들어갑니다.</p>
-<div class="project-result">티저 공개 · 1화 2026.09.09 공개 예정</div>
+<div class="project-result">파일럿·티저 제작 기록 · 최신 연재는 공식 채널에서 확인</div>
 <a class="project-link" href="https://www.instagram.com/gaeddirangverse/" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">개띠랑 인스타그램에서 보기 →</a>
 </article>
 <article class="project-card" role="button" tabindex="0" aria-label="문고리 출간 프로젝트 자세히 보기" onclick="openProjectDetail('moongori-project',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('moongori-project',this)}" data-team="gaeddit" data-project="문고리 신태림 단편소설집 북OST 출판 북토크">
@@ -1938,8 +1991,8 @@ background: rgba(0, 0, 0, 0.5);
 <div class="last-header"><h2 class="sec-h2 serif">함께하면 더 맛있는 기록 생활</h2></div>
 <div class="last-grid">
 <div class="last-card card-yellow"><div class="last-txt"><h3 id="homeProgramTitle">지금 함께할 수 있는<br>프로그램을 만나보세요</h3><p id="homeProgramSummary">현재 신청 가능한 프로그램을 불러오고 있어요.</p><button class="last-btn" onclick="switchView('main','program')">프로그램 전체 보기</button></div><div class="last-icon">📖🧡</div></div>
-<div class="last-card card-green"><div class="last-txt"><h3>똑똑, 기록 배달 왔습니다! 🚚<br>(학교/기업/도서관)</h3><p>원하시는 주제와 인원에 맞춰<br>맞춤형 프로그램을 기획해 드려요.</p><button class="last-btn" onclick="location.href='mailto:gaeddirang085@naver.com'">강연 제안서 받기</button></div><div class="last-icon">🏫✨</div></div>
-<div class="last-card card-blue"><div class="last-txt"><h3>아직 책이 되지 못한 이야기가 있다면?<br>질문지부터 받아보세요</h3><p>내 책의 씨앗을 찾는 질문 8가지,<br>이메일로 무료 PDF를 보내드려요.</p><button class="last-btn" onclick="openLeadModal()">무료 질문지 받기</button></div><div class="last-icon">🌱📖</div></div>
+<div class="last-card card-green"><div class="last-txt"><h3>똑똑, 기록 배달 왔습니다! 🚚<br>(학교/기업/도서관)</h3><p>원하시는 주제와 인원에 맞춰<br>맞춤형 프로그램을 기획해 드려요.</p><button class="last-btn" onclick="switchView('main','institutions')">사례와 의뢰 안내 보기</button></div><div class="last-icon">🏫✨</div></div>
+<div class="last-card card-blue"><div class="last-txt"><h3>아직 책이 되지 못한 이야기가 있다면?<br>질문지부터 받아보세요</h3><p>내 책의 씨앗을 찾는 질문 8가지,<br>신청 후 이 화면에서 PDF를 받아보세요.</p><button class="last-btn" onclick="openLeadModal()">무료 질문지 받기</button></div><div class="last-icon">🌱📖</div></div>
 </div>
 </section>
 
@@ -1961,7 +2014,7 @@ background: rgba(0, 0, 0, 0.5);
 </div>
 <div class="faq-list">
 <details class="faq-item"><summary>개띠랑이 뭐야? / 개띠랑 유니버스는 무슨 뜻이야?</summary><div class="faq-a">개띠랑은 '개띠와 함께!'를 뜻합니다. 개띠를 비롯한 십이간지 모든 띠와 함께 즐거운 세상을 꿈꾸는 창작자 팀 '개띠랑 유니버스'의 이름입니다.</div></details>
-<details class="faq-item"><summary>개띠랑은 누가 만들었어? / 누가 운영해?</summary><div class="faq-a">장두루와 다솜(이다솜)을 중심으로 한 창작자들이 함께 만드는 팀입니다. 각자 감정과 일상을 기록한 책을 쓰는 작가이기도 합니다.</div></details>
+<details class="faq-item"><summary>개띠랑은 누가 만들었어? / 누가 운영해?</summary><div class="faq-a">개띠랑(이진이), 이다솜, 두루(장진호)가 함께하는 창작팀입니다. 출판 편집과 디자인, 감정 기록 수업, 시민 글쓰기와 프로젝트 기획을 각자의 영역에서 이어갑니다. 프로젝트에 따라 협력 강사·기관과 함께합니다.</div></details>
 <details class="faq-item"><summary>개띠랑은 무엇을 만들어? / 어떤 걸 팔아?</summary><div class="faq-a">감정과 일상을 기록한 에세이 책, 감정카드, 표지를 가린 블라인드북을 만들고, 감정을 기록하는 글쓰기 워크숍을 엽니다.</div></details>
 <details class="faq-item"><summary>개띠랑 책공방은 어디 있어?</summary><div class="faq-a">경기 화성 동탄 라크몽에 '개띠랑 책공방'이 있습니다. (경기도 화성시 동탄구 동탄대로5길 21, B동 W241호) <a href="https://map.naver.com/p/entry/place/2052456243" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700;">네이버 지도에서 보기 →</a></div></details>
 <details class="faq-item"><summary>개띠랑 책·굿즈는 어디서 사?</summary><div class="faq-a">개띠랑 공식 홈페이지(gaeddirang.com)와 스마트스토어에서 구매할 수 있습니다.</div></details>
@@ -2104,6 +2157,7 @@ background: rgba(0, 0, 0, 0.5);
 </div>
 
 <footer>
+<nav class="footer-quick" aria-label="다시 찾기"><a href="#library" onclick="return navigatePublic(event,'library')">책·카드</a><a href="#program" onclick="return navigatePublic(event,'program')">수업·모임</a><a href="#projects" onclick="return navigatePublic(event,'projects')">프로젝트</a><a href="#institutions" onclick="return navigatePublic(event,'institutions')">학교·기관 의뢰</a></nav>
 <div class="footer-content">
 <div class="footer-left">
 <h3>개띠랑</h3>
@@ -2160,14 +2214,12 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <button type="b
 </div>
 </div>
 
-<div class="overlay-bg" id="detailModal">
+<div class="overlay-bg" id="detailModal" role="dialog" aria-modal="true" aria-labelledby="nmTitle">
 <div class="new-modal-wrapper">
-<span class="nm-close" onclick="closeOverlay('detailModal')">✕</span>
+<button type="button" class="nm-close" onclick="closeOverlay('detailModal')" aria-label="책 상세 닫기">✕</button>
 
 <div class="nm-header-banner">
-<p class="nm-header-sub">당신의 이야기가 책이 되는 곳</p>
-<h2 class="nm-header-main">개띠랑 책공방이 전하는<br>희망, 용기, 회복의 메시지</h2>
-<div class="nm-header-deco"></div>
+<button type="button" class="book-back" onclick="closeOverlay('detailModal')">← 책·카드 목록</button>
 </div>
 
 <div class="nm-body">
@@ -2179,6 +2231,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <button type="b
 <div class="nm-title-box">
 <h3 class="nm-title-text" id="nmTitle">제목</h3>
 <span class="nm-author-text" id="nmAuthor">저자명</span>
+<p id="nmPrice" class="nm-price"></p>
 </div>
 
 <div class="nm-specs-table" id="nmSpecs">
@@ -2188,6 +2241,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <button type="b
 책 소개 내용이 들어갑니다.
 </div>
 </div>
+
 </div>
 
 <div class="nm-footer">
@@ -2203,6 +2257,11 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <button type="b
 </div>
 </div>
 </div>
+
+<div class="overlay-bg" id="siteSearchModal" role="dialog" aria-modal="true" aria-labelledby="siteSearchTitle">
+<div class="ux-search-panel"><button type="button" class="em-close" onclick="closeOverlay('siteSearchModal')" aria-label="검색 닫기">✕</button><h2 id="siteSearchTitle">어떤 이야기를 찾으세요?</h2><p>책·카드, 작가, 프로그램, 프로젝트, 공지를 함께 찾습니다.</p>
+<div class="search-wrapper" id="searchWrapper"><div class="search-box"><label class="visually-hidden" for="searchInput">사이트 검색어</label><input type="text" class="search-input" id="searchInput" placeholder="예: 감정, 다솜, 숲숲학교" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search" enterkeyhint="search" role="combobox" aria-expanded="false" aria-controls="searchResults" aria-autocomplete="list" aria-haspopup="listbox" oninput="liveSearch()" onkeydown="handleSearchKeys(event)"><button class="search-btn" onclick="performSearch()">검색</button></div><div class="search-results" id="searchResults" role="listbox" aria-label="검색 결과"></div><p id="searchCount" role="status" aria-live="polite"></p></div>
+</div></div>
 
 <div class="overlay-bg" id="programModal" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
 <div class="pm-wrapper" tabindex="-1">
@@ -2262,7 +2321,7 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <button type="b
 <div class="project-detail-box"><h4>개띠랑의 역할</h4><p id="projectDetailRole"></p></div>
 <div class="project-detail-box"><h4>확인된 결과</h4><p id="projectDetailResult"></p></div>
 </div>
-<div class="project-detail-photo">프로젝트 현장 사진 자리<br>공개 동의가 확인된 실제 사진으로 교체할 예정입니다.</div>
+<div class="project-detail-actions"><button type="button" class="btn-core" onclick="shareProject()">이 프로젝트 링크 복사</button><a class="btn-core" href="#institutions" onclick="closeProjectForInquiry();return false">비슷한 프로그램 의뢰하기 →</a></div>
 </div>
 </div>
 
@@ -2274,15 +2333,15 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <button type="b
 <h2 class="em-title">프로그램 신청하기</h2>
 <p class="em-subtitle" id="apProgramName">프로그램명</p>
 <input type="text" class="hp-field" id="apHoneypot" name="website" tabindex="-1" autocomplete="off">
-<input type="text" class="em-nickname" id="apName" placeholder="이름">
-<input type="text" class="em-nickname" id="apContact" placeholder="연락처 (전화번호)">
-<input type="email" class="em-nickname" id="apEmail" placeholder="이메일">
-<select class="em-nickname" id="apParticipants">
+<label class="ux-field-label" for="apName">이름</label><input type="text" class="em-nickname" id="apName" autocomplete="name" placeholder="이름">
+<label class="ux-field-label" for="apContact">연락처</label><input type="tel" class="em-nickname" id="apContact" autocomplete="tel" placeholder="전화번호">
+<label class="ux-field-label" for="apEmail">이메일</label><input type="email" class="em-nickname" id="apEmail" autocomplete="email" placeholder="이메일">
+<label class="ux-field-label" for="apParticipants">참여 인원</label><select class="em-nickname" id="apParticipants">
 <option value="1인">참여 인원: 1인</option>
 <option value="2인">참여 인원: 2인</option>
 <option value="기타">참여 인원: 기타(메시지에 적어주세요)</option>
 </select>
-<textarea class="em-textarea" id="apMessage" placeholder="신청 동기나 이 프로그램에서 기대하는 점을 자유롭게 적어주세요"></textarea>
+<label class="ux-field-label" for="apMessage">신청 동기·기대하는 점</label><textarea class="em-textarea" id="apMessage" placeholder="자유롭게 적어주세요"></textarea>
 <div class="em-consent-row">
 <label><input type="checkbox" id="apConsent"> 개인정보 수집·이용에 동의합니다 (필수)</label>
 <button type="button" class="em-consent-link" onclick="openOverlaySafe('privacyModal')">자세히 보기</button>
@@ -2331,11 +2390,11 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <button type="b
 </div>
 <p class="co-order-guide">🛒 주문 접수 → <b>입금 계좌 문자 안내</b> → 입금 확인 후 발송 순으로 진행돼요.<br>주문하시면 안내 문자를 보내드립니다. · <button type="button" class="em-consent-link" onclick="openOverlaySafe('shippingModal')">배송·교환·반품 안내</button></p>
 <input type="text" class="hp-field" id="coHoneypot" name="website" tabindex="-1" autocomplete="off">
-<input type="text" class="em-nickname" id="coName" placeholder="이름">
-<input type="text" class="em-nickname" id="coContact" placeholder="연락처 (전화번호)">
-<input type="email" class="em-nickname" id="coEmail" placeholder="이메일">
-<input type="text" class="em-nickname" id="coAddress" placeholder="배송 주소 (우편번호 포함)">
-<textarea class="em-textarea" id="coMessage" placeholder="배송 시 요청사항이 있다면 남겨주세요 (선택)"></textarea>
+<label class="ux-field-label" for="coName">이름</label><input type="text" class="em-nickname" id="coName" autocomplete="name" placeholder="받는 분 이름">
+<label class="ux-field-label" for="coContact">연락처</label><input type="tel" class="em-nickname" id="coContact" autocomplete="tel" placeholder="주문 안내를 받을 전화번호">
+<label class="ux-field-label" for="coEmail">이메일</label><input type="email" class="em-nickname" id="coEmail" autocomplete="email" placeholder="이메일 주소">
+<label class="ux-field-label" for="coAddress">배송 주소</label><input type="text" class="em-nickname" id="coAddress" autocomplete="street-address" placeholder="우편번호와 상세 주소">
+<label class="ux-field-label" for="coMessage">배송 요청사항 (선택)</label><textarea class="em-textarea" id="coMessage" placeholder="배송 시 필요한 내용을 남겨주세요"></textarea>
 <div class="em-consent-row">
 <label><input type="checkbox" id="coConsent"> 개인정보 수집·이용에 동의합니다 (필수)</label>
 <button type="button" class="em-consent-link" onclick="openOverlaySafe('privacyModal')">자세히 보기</button>
@@ -2358,22 +2417,22 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <button type="b
 <div id="authLoginView">
 <h2 class="em-title">로그인</h2>
 <p class="em-subtitle">주문 내역을 확인하려면 로그인해주세요</p>
-<input type="email" class="em-nickname" id="authLoginEmail" placeholder="이메일">
-<input type="password" class="em-nickname" id="authLoginPassword" placeholder="비밀번호">
+<label class="ux-field-label" for="authLoginEmail">이메일</label><input type="email" class="em-nickname" id="authLoginEmail" autocomplete="username" placeholder="이메일">
+<label class="ux-field-label" for="authLoginPassword">비밀번호</label><input type="password" class="em-nickname" id="authLoginPassword" autocomplete="current-password" placeholder="비밀번호">
 <button class="em-submit-btn" id="authLoginBtn" onclick="submitLogin()">로그인</button>
-<p class="auth-switch-text">계정이 없으신가요? <span onclick="showAuthView('signup')">회원가입</span></p>
+<p class="auth-switch-text">계정이 없으신가요? <button type="button" onclick="showAuthView('signup')">회원가입</button></p>
 </div>
 
 <div id="authSignupView" class="hidden">
 <h2 class="em-title">회원가입</h2>
 <p class="em-subtitle">이메일과 비밀번호로 간단하게 가입해요</p>
-<input type="email" class="em-nickname" id="authSignupEmail" placeholder="이메일">
-<input type="password" class="em-nickname" id="authSignupPassword" placeholder="비밀번호 (6자 이상)">
+<label class="ux-field-label" for="authSignupEmail">이메일</label><input type="email" class="em-nickname" id="authSignupEmail" autocomplete="username" placeholder="이메일">
+<label class="ux-field-label" for="authSignupPassword">비밀번호 (6자 이상)</label><input type="password" class="em-nickname" id="authSignupPassword" autocomplete="new-password" placeholder="비밀번호">
 <div class="em-consent-row">
-<label><input type="checkbox" id="authMarketingConsent" checked> 신간·프로그램 소식을 이메일로 받아볼게요</label>
+<label><input type="checkbox" id="authMarketingConsent"> 신간·프로그램 소식을 이메일로 받아볼게요 (선택)</label>
 </div>
 <button class="em-submit-btn" id="authSignupBtn" onclick="submitSignup()">회원가입</button>
-<p class="auth-switch-text">이미 계정이 있으신가요? <span onclick="showAuthView('login')">로그인</span></p>
+<p class="auth-switch-text">이미 계정이 있으신가요? <button type="button" onclick="showAuthView('login')">로그인</button></p>
 </div>
 
 <div id="authResultView" class="em-result">
@@ -2446,9 +2505,9 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <button type="b
 <h2 class="em-title">오늘의 감정을 남겨주세요</h2>
 <p class="em-subtitle">오늘 당신의 마음은 어땠나요? 짧게라도 괜찮아요 :)</p>
 <input type="text" class="hp-field" id="emHoneypot" name="website" tabindex="-1" autocomplete="off">
-<textarea class="em-textarea" id="emContent" placeholder="예) 괜히 마음이 붕 떠서 아무것도 손에 안 잡히는 하루였어요"></textarea>
-<input type="text" class="em-nickname" id="emNickname" placeholder="닉네임 (선택, 비워두면 '익명'으로 남아요)">
-<p style="font-size:12px; color:#aaa; margin:-10px 0 20px;">※ 남기신 기록은 닉네임과 함께 홈페이지에 공개적으로 노출돼요.</p>
+<p class="ux-public-note" id="emotionPublicNote">남기신 기록은 닉네임과 함께 홈페이지에 공개됩니다. 연락처 등 개인 정보는 적지 말아 주세요.</p>
+<label class="ux-field-label" for="emContent">오늘의 기록</label><textarea class="em-textarea" id="emContent" aria-describedby="emotionPublicNote" placeholder="오늘의 마음을 짧게 적어주세요"></textarea>
+<label class="ux-field-label" for="emNickname">닉네임 (선택)</label><input type="text" class="em-nickname" id="emNickname" placeholder="비워두면 익명으로 남아요">
 <button class="em-submit-btn" id="emSubmitBtn" onclick="submitEmotionRecord()">기록하기</button>
 </div>
 
@@ -2472,9 +2531,9 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <button type="b
 
 <div class="em-form" id="leadForm">
 <h2 class="em-title">나의 책 씨앗 질문지</h2>
-<p class="em-subtitle">아직 책이 되지 못한 이야기를 위한, 질문 여덟 가지. 이메일로 무료 PDF를 보내드려요.</p>
+<p class="em-subtitle">아직 책이 되지 못한 이야기를 위한, 질문 여덟 가지. 신청을 마치면 이 화면에서 무료 PDF를 바로 내려받을 수 있어요.</p>
 <input type="text" class="hp-field" id="leadHoneypot" name="website" tabindex="-1" autocomplete="off">
-<input type="email" class="em-nickname" id="leadEmail" placeholder="이메일">
+<label class="ux-field-label" for="leadEmail">이메일</label><input type="email" class="em-nickname" id="leadEmail" autocomplete="email" placeholder="이메일 주소">
 <div class="em-consent-row">
 <label><input type="checkbox" id="leadConsent"> 개인정보 수집·이용에 동의합니다 (필수)</label>
 <button type="button" class="em-consent-link" onclick="openOverlaySafe('privacyModal')">자세히 보기</button>
@@ -2495,8 +2554,9 @@ Copyright © 2022 Gaeddirang. All rights reserved. &nbsp;|&nbsp; <button type="b
 </div>
 
 
+<script src="assets/public-site.js"></script>
 <script>
-const lenis=new Lenis();function raf(time){lenis.raf(time);requestAnimationFrame(raf);}requestAnimationFrame(raf);
+const lenis=typeof Lenis === 'function' ? new Lenis() : {raf(){},on(){}};function raf(time){lenis.raf(time);requestAnimationFrame(raf);}requestAnimationFrame(raf);
 const scrollInk=document.getElementById('scrollInk'), scrollPencil=document.getElementById('scrollPencil');
 lenis.on('scroll',(e)=>{
 const p=(e.scroll/(document.body.scrollHeight-window.innerHeight))*100; scrollInk.style.height=`${p}%`; scrollPencil.style.top=`${p}%`;
@@ -2506,18 +2566,26 @@ if(window.scrollY > 300) topBtn.classList.add('visible'); else topBtn.classList.
 const header=document.querySelector('header');
 window.addEventListener('scroll',()=>{if(window.scrollY>50)header.classList.add('scrolled');else header.classList.remove('scrolled');});
 const book=document.querySelector('.book-3d');
-document.addEventListener('mousemove',(e)=>{const x=(window.innerWidth/2-e.clientX)/25,y=(window.innerHeight/2-e.clientY)/25;gsap.to(book,{rotationY:-20+x,rotationX:10+y,duration:0.5});});
+document.addEventListener('mousemove',(e)=>{if(!book || typeof gsap === 'undefined')return;const x=(window.innerWidth/2-e.clientX)/25,y=(window.innerHeight/2-e.clientY)/25;gsap.to(book,{rotationY:-20+x,rotationX:10+y,duration:0.5});});
 
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function navigatePublic(event, category) {
+  if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button > 0)) return true;
+  switchView(category === 'authors' || category === 'publisher' ? category : 'main', category);
+  return false;
+}
 
 /* [★ 화면 전환형] 카테고리별로 해당 섹션만 표시. 기존 호출 호환:
    switchView('main','library') → 서재 화면 / switchView('main') → 홈 / switchView('authors'|'publisher') → 전용 컨테이너 */
 function __afterNav(){ window.scrollTo({ top:0, left:0, behavior:'auto' }); setTimeout(()=>window.dispatchEvent(new Event('resize')),100); }
 function __setActiveTab(cat){
-  document.querySelectorAll('#header .mtab, #header .gnb-sub a').forEach(a=>a.classList.remove('nav-active'));
-  const map={library:'책과 이야기',authors:'작가들',finder:'기록 도구',program:'프로그램',projects:'프로젝트',publisher:'출판사 소개',game:'게임',gaedditv:'개띠랑TV'};
-  const label=map[cat];
-  if(label) document.querySelectorAll('#header .mtab, #header .gnb-sub a').forEach(a=>{ if(a.textContent.trim()===label) a.classList.add('nav-active'); });
+  document.body.classList.toggle('interior-view',cat!=='home');
+  document.querySelectorAll('#header nav a, #mobileNavPanel a').forEach(a=>{const active=a.getAttribute('href')==='#'+cat;a.classList.toggle('nav-active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  document.querySelector('.nav-more')?.removeAttribute('open');
+  const names={library:'책·카드',authors:'작가들',finder:'기록 도구',program:'수업·모임',projects:'프로젝트',institutions:'학교·기관 의뢰',publisher:'출판사 소개',game:'게임',gaedditv:'개띠랑TV',moongori:'문고리'};
+  document.getElementById('pageTrail').hidden=cat==='home';
+  document.getElementById('pageTrailCurrent').textContent=names[cat]||'';
+  if(!location.search)document.title=names[cat]?`${names[cat]} | 개띠랑`:'개띠랑 | 책공방';
 }
 // [화면 라우팅] 카테고리 ↔ 주소(해시) 동기화 — 뒤로가기·화면 링크 공유 지원
 function __route(cat, push){
@@ -2553,7 +2621,7 @@ function switchView(viewName, targetId = null, push = true) {
 // [화면 라우팅] 주소(해시) → 화면 복원 + 뒤로가기
 function __routeFromHash(push){
   const h = (location.hash||'').replace(/^#/,'');
-  const cats = ['moongori','library','finder','program','projects','game','gaedditv'];
+  const cats = ['moongori','library','finder','program','projects','institutions','game','gaedditv'];
   if(h==='authors') switchView('authors', null, push);
   else if(h==='publisher') switchView('publisher', null, push);
   else if(cats.indexOf(h)>=0) switchView('main', h, push);
@@ -2584,21 +2652,28 @@ const found = books.find(b => b.title === title);
 return found ? found.img : '';
 }
 
-function renderBooks(filterCat) {
+let activeBookCategory = 'all';
+function renderBooks(filterCat = activeBookCategory) {
+activeBookCategory=filterCat;
 const container = document.getElementById('bookContainer');
 container.innerHTML = '';
-books.forEach(book => {
-if(filterCat === 'all' || book.cat === filterCat) {
-const card = document.createElement('div');
+const query=(document.getElementById('libraryQuery')?.value||'').trim().toLowerCase();
+const visible=books.filter(book=>(filterCat==='all'||book.cat===filterCat)&&(`${book.title} ${book.author}`.toLowerCase().includes(query)));
+visible.forEach(book => {
+const card = document.createElement('button');
+card.type = 'button';
+card.dataset.bookTitle = book.title;
 card.className = 'book-card';
 card.onclick = () => openBookDetail(book.title);
-const typeLabel = book.cat === 'card' ? 'GOODS' : 'BOOK';
-card.innerHTML = `<div class="book-img-wrap ${book.title === '이러나저러나 불편한 거야 불편한 건' ? 'no-bg' : ''}"><img src="${book.img}" class="book-img" loading="lazy" alt="${srEscape(book.title)} 표지"></div><div class="b-title">${book.title}</div><div class="b-author">${book.author} · ${typeLabel}</div>`;
+const typeLabel = book.cat === 'card' ? '카드' : '도서';
+card.innerHTML = `<span class="book-img-wrap ${book.title === '이러나저러나 불편한 거야 불편한 건' ? 'no-bg' : ''}"><img src="${srEscape(book.img||'')}" class="book-img" loading="lazy" alt="${srEscape(book.title)} 표지"></span><span class="book-type">${typeLabel}</span><span class="b-title">${srEscape(book.title)}</span><span class="b-author">${srEscape(book.author||'')}</span><span class="b-price">${book.price>0?Number(book.price).toLocaleString()+'원':'가격은 상세 안내에서 확인'}</span><span class="book-view">자세히 보기 →</span>`;
 container.appendChild(card);
-}
 });
+document.getElementById('libraryCount').textContent=`${visible.length}개`;
+document.getElementById('libraryEmpty').hidden=visible.length>0;
 }
-function filterBooks(cat) { document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active')); event.target.classList.add('active'); renderBooks(cat); }
+function filterBooks(cat, trigger) { document.querySelectorAll('.cat-btn').forEach(b=>{b.classList.toggle('active',b===trigger);b.setAttribute('aria-pressed',String(b===trigger));});renderBooks(cat); }
+function resetBookFilters(){document.getElementById('libraryQuery').value='';filterBooks('all',document.querySelector('.cat-btn'));document.getElementById('libraryQuery').focus();}
 renderBooks('all');
 
 function scrollLibrary(direction) {
@@ -2610,10 +2685,12 @@ else container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 
 // [★ NEW: 상세 모달 로직 업데이트 - SIDE LAYOUT]
 let currentOrderBook = null;
+let lastBookTrigger = null;
 function openBookDetail(title, fromUrl = false) {
 const bookData = books.find(b => b.title === title || b.title.includes(title));
 if (!bookData) return;
 currentOrderBook = bookData;
+if(!fromUrl)lastBookTrigger=document.activeElement;
 
 // [딥링크] 주소창에 ?book=제목 반영 → 공유 가능
 if (!fromUrl) {
@@ -2628,8 +2705,10 @@ document.getElementById('nmImage').alt = `${bookData.title} 표지`;
 
 // [RIGHT COLUMN]
 // 1. Title
-document.getElementById('nmTitle').innerHTML = bookData.title; // innerHTML allows <br> if needed
+document.getElementById('nmTitle').textContent = bookData.title;
 document.getElementById('nmAuthor').innerText = bookData.author;
+document.getElementById('nmPrice').textContent=bookData.price>0?Number(bookData.price).toLocaleString()+'원':'가격은 구매 안내에서 확인해 주세요';
+document.querySelector('#detailModal .nm-order-btn').disabled=!(bookData.price>0);
 
 // 2. Specs
 const specDiv = document.getElementById('nmSpecs');
@@ -2644,7 +2723,9 @@ specDiv.style.display = 'none';
 document.getElementById('nmDesc').innerHTML = bookData.desc;
 
 setBookJsonLd(bookData); // [구조화 데이터] 이 책의 상품 정보를 구글에 전달
+const wasOpen=document.getElementById('detailModal').classList.contains('active');
 document.getElementById('detailModal').classList.add('active');
+if(!wasOpen)document.querySelector('#detailModal .nm-close')?.focus();
 }
 
 /* [★ 구조화 데이터] 열린 책의 Product 스키마를 head에 주입/갱신 */
@@ -2677,11 +2758,7 @@ if (el) el.remove();
 }
 
 /* [★ 공유] 미리보기 썸네일이 뜨는 전용 페이지(/b/슬러그/) 주소를 공유 */
-function bookShareUrl(b) {
-if (!b || !b.img) return location.href;
-const slug = b.img.split('/').pop().replace(/\.(png|jpe?g|webp)$/i, '');
-return `https://gaeddirang.com/b/${slug}/`;
-}
+function bookShareUrl(b) { return GaeddirangPublic.bookShareUrl(b); }
 async function shareBook() {
 if (!currentOrderBook) return;
 const url = bookShareUrl(currentOrderBook);
@@ -2699,17 +2776,19 @@ prompt('이 링크를 복사해 공유하세요:', url);
 }
 
 const PROJECT_DETAILS = {
-forest:{type:'공공문화 · 출판교육',title:'숲숲학교 〈숲의 문장들〉',period:'2026.05–11 · 경기상상캠퍼스',intro:'숲을 읽고 걷고 쓰며 각자의 기록을 한 권의 책으로 완성하는 봄·가을 10회 과정입니다.',process:'숲 관찰과 인문 활동\n개인 글쓰기와 원고 발전\n편집과 책 만들기\n완성한 책 함께 나누기',role:'프로그램 전체 기획·운영\n기록 수업 진행\n개인 원고의 책 제작 과정 지원',result:'봄학기 10회 운영\n아홉 권의 개인 책 완성\n가을학기 2026.09.20–11.22 운영'},
+forest:{type:'공공문화 · 출판교육',title:'숲숲학교 〈숲의 문장들〉',period:'2026.05–11 · 경기상상캠퍼스',intro:'숲을 읽고 걷고 쓰며 각자의 기록을 한 권의 책으로 완성하는 봄·가을 10회 과정입니다.',process:'숲 관찰과 인문 활동\n개인 글쓰기와 원고 발전\n편집과 책 만들기\n완성한 책 함께 나누기',role:'개띠랑 팀과 아홉프레스 박지현 협업\n기록 수업과 책 만들기 과정 기획·진행\n개인 원고의 책 제작 과정 지원',result:'봄학기 10회 운영\n아홉 권의 개인 책 완성\n가을학기 안내 일정: 2026.09.20–11.22\n가을학기 결과와 추가 참여 여부는 별도 확인'},
 'dasom-programs':{type:'감정 기록 · AI 글쓰기',title:'이다솜의 감정·AI 기록 프로그램',period:'2024–2026 · 도서관·학교·평생학습·복지기관',intro:'감정을 가르치거나 AI가 글을 대신 쓰게 하지 않고, 참여자가 자기 경험을 발견해 자기 말로 기록하도록 돕는 이다솜의 프로그램군입니다.',process:'감정카드로 현재 마음 발견\n경험 속 구체적인 장면 찾기\n글·그림·관찰 ZINE으로 표현\n필요한 과정에서 생성형 AI를 보조 도구로 활용',role:'이다솜 프로그램 기획·진행\n대상과 기관에 맞춘 커리큘럼 구성\n참여자의 언어를 지키는 질문과 피드백\n감정 기록 도구와 책 만들기 연결',result:'2026 병점도서관 감정기록 3회\n향남·둥지나래 장기 과정 각 10회\n노을빛 AI 창작활동 8회\n삼괴도서관×장안여중 숲 관찰 수업\n동탄중앙·다원이음터·오산장애인복지관 등 운영'},
 daerim:{type:'도서관 · 시민기록',title:'대림도서관 기록공작소',period:'2025–2026 · 영등포구립 대림도서관',intro:'시민이 자신의 마음과 계절을 관찰하고 글과 이미지로 엮어보는 연속 기록 과정입니다.',process:'5기 〈마음기록공작소〉\n6기 〈나의 계절 도감〉\n관찰·글쓰기·이미지 기록\n완성 기록 함께 나누기',role:'두루 진행\n회차별 기록 활동 구성\n개인의 기록이 한 권의 도감으로 이어지도록 지원',result:'6기 2026.08.20–10.15\n8회 과정 운영\n완성 기록 출간기념회 예정'},
-detective:{type:'오리지널 IP · 연재',title:'개띠랑 빵!탐정',period:'2026.09– · 개띠랑 오리지널 콘텐츠',intro:'빵과 재료가 살아 움직이는 세계에서 벌어지는 가볍고 조금 이상한 미스터리 코미디입니다.',process:'세계관과 캐릭터 기획\n파일럿 에피소드 제작\n티저 순차 공개\n연재 이야기 확장',role:'오리지널 IP 기획\n스토리·캐릭터 개발\n연재 콘텐츠 제작과 채널 운영',result:'파일럿 이야기 제작\n티저 공개\n1화 2026.09.09 공개 예정'},
+detective:{type:'오리지널 IP · 연재',title:'개띠랑 빵!탐정',period:'2026.09– · 개띠랑 오리지널 콘텐츠',intro:'빵과 재료가 살아 움직이는 세계에서 벌어지는 가볍고 조금 이상한 미스터리 코미디입니다.',process:'세계관과 캐릭터 기획\n파일럿 에피소드 제작\n티저 제작\n연재 이야기 확장',role:'오리지널 IP 기획\n스토리·캐릭터 개발\n연재 콘텐츠 제작과 채널 운영',result:'파일럿·티저 제작 기록\n최신 연재 및 공개 일정은 공식 채널에서 확인'},
 'moongori-project':{type:'출판 · 음악',title:'《문고리》 출간과 북OST',period:'2026.07 · 개띠랑 출판',intro:'신태림 작가의 첫 단편소설집을 여섯 곡의 음악과 함께 경험하는 ‘읽고 듣는 소설’로 선보인 출판 프로젝트입니다.',process:'단편 원고 편집·제작\n도서 디자인과 출간\n이야기별 북OST 연결\n출간 북토크 진행',role:'출판 기획·편집·제작\n도서 유통과 소개\n북OST 경험 설계',result:'단편소설 6편 수록\n북OST 6곡 제작\n2026.07.28 출간\n출간 북토크 진행'},
 schools:{type:'학교 · 출판교육',title:'흥업초·호저초 책 만들기',period:'2026.04–07 · 문막교육도서관',intro:'〈한 학기 한 권 읽기: 출판 과정〉으로 두 학교 학생들의 감정 기록을 학교별 공동문집으로 완성한 프로젝트입니다.',process:'다섯 감정 탐색\n글쓰기와 2컷 만화\n원고 편집·디자인·인쇄\n학교별 출간기념회',role:'학교별 기록 수업 진행\n학생 원고 편집\n공동문집 디자인·제작\n출간기념회까지 과정 운영',result:'흥업초·호저초 각 수업 6회\n학교별 출간기념회 1회\n학교별 공동문집 1종\n총 두 권 출간'}
 };
 let lastProjectTrigger = null;
-function openProjectDetail(id, trigger){
+let currentProjectId = '';
+function openProjectDetail(id, trigger, fromUrl = false){
 const p=PROJECT_DETAILS[id]; if(!p)return;
-lastProjectTrigger=trigger||document.activeElement;
+if(!fromUrl)lastProjectTrigger=trigger||document.activeElement;
+currentProjectId=id;
 document.getElementById('projectDetailType').textContent=p.type;
 document.getElementById('projectDetailTitle').textContent=p.title;
 document.getElementById('projectDetailPeriod').textContent=p.period;
@@ -2717,7 +2796,7 @@ document.getElementById('projectDetailIntro').textContent=p.intro;
 document.getElementById('projectDetailProcess').textContent=p.process;
 document.getElementById('projectDetailRole').textContent=p.role;
 document.getElementById('projectDetailResult').textContent=p.result;
-history.pushState({projectModal:true},'',location.href);
+if(!fromUrl)history.pushState({projectModal:true},'',`${location.pathname}?project=${encodeURIComponent(id)}#projects`);
 document.getElementById('projectModal').classList.add('active');
 document.body.style.overflow='hidden';
 document.querySelector('#projectModal .project-detail-back')?.focus();
@@ -2726,9 +2805,17 @@ function closeProjectDetail(fromHistory=false){
 const modal=document.getElementById('projectModal'); if(!modal?.classList.contains('active'))return;
 modal.classList.remove('active'); document.body.style.overflow='';
 lastProjectTrigger?.focus?.();
-if(!fromHistory&&history.state?.projectModal)history.back();
+if(!fromHistory){
+if(history.state?.projectModal)history.back();
+else {history.replaceState({},'',`${location.pathname}#projects`);switchView('main','projects',false);}
 }
-window.addEventListener('popstate',()=>closeProjectDetail(true));
+}
+async function shareProject(){
+const url=`https://gaeddirang.com/?project=${encodeURIComponent(currentProjectId)}#projects`;
+try{await navigator.clipboard.writeText(url);alert('프로젝트 링크를 복사했어요.');}
+catch(e){prompt('이 링크를 복사해 공유하세요:',url);}
+}
+function closeProjectForInquiry(){closeProjectDetail(true);history.replaceState({},'',`${location.pathname}#institutions`);switchView('main','institutions',false);}
 
 function filterProjects(filter, trigger){
 const cards=[...document.querySelectorAll('.project-card')];
@@ -2748,10 +2835,16 @@ trigger?.scrollIntoView?.({block:'nearest',inline:'nearest'});
 let programsInfo = {}; // Supabase에서 채워짐
 let currentProgramApplyUrl = '';
 let lastProgramTrigger = null;
+let lastProgramSlug = '';
+function programReturnFocus(){
+  const card=[...document.querySelectorAll('.prog-card')].find(el=>el.dataset.program===lastProgramSlug);
+  (card||lastProgramTrigger)?.focus?.();
+}
 function openProgramModal(type, fromUrl = false, trigger = null) {
 const p = programsInfo[type];
 if (!p) return;
-lastProgramTrigger = trigger?.querySelector('button') || document.activeElement;
+if(!fromUrl)lastProgramTrigger = trigger || document.activeElement;
+lastProgramSlug = type;
 currentProgramApplyUrl = p.apply_url || '';
 document.getElementById('pmApplyBtn').textContent = p.apply_label || '신청 페이지 확인하기';
 
@@ -2786,9 +2879,10 @@ setFact('pmLocationRow', 'pmLocation', p.location);
 setFact('pmInstructorRow', 'pmInstructor', p.instructor);
 
 // 모달 열기
+const wasOpen=document.getElementById('programModal').classList.contains('active');
 document.getElementById('programModal').classList.add('active');
 document.body.style.overflow = 'hidden';
-document.querySelector('#programModal .pm-back')?.focus();
+if(!wasOpen)document.querySelector('#programModal .pm-back')?.focus();
 }
 
 function openCurrentProgramApply() {
@@ -2929,16 +3023,16 @@ document.body.classList.remove('author-modal-open');
 // 카드에서 연 프로그램은 실제 뒤로가기로 닫고, 직접 들어온 딥링크만 현재 주소를 정리한다.
 if (id === 'programModal' && location.search) {
 if (history.state?.programModalEntry) history.back();
-else history.replaceState({}, '', location.pathname);
+else {history.replaceState({}, '', `${location.pathname}#program`);switchView('main','program',false);}
 document.title = '개띠랑 | 책공방';
 } else if (id === 'detailModal' && location.search) {
-history.replaceState({}, '', location.pathname);
+history.replaceState({}, '', `${location.pathname}#library`);switchView('main','library',false);
 document.title = '개띠랑 | 책공방';
 }
-if (id === 'detailModal') clearBookJsonLd(); // [구조화 데이터] 책 닫으면 제거
-if (id === 'programModal' && lastProgramTrigger && typeof lastProgramTrigger.focus === 'function') {
+if (id === 'detailModal') {clearBookJsonLd();const card=[...document.querySelectorAll('.book-card')].find(el=>el.dataset.bookTitle===currentOrderBook?.title);(card||lastBookTrigger)?.focus?.();}
+if (id === 'programModal') {
 document.body.style.overflow = '';
-lastProgramTrigger.focus();
+programReturnFocus();
 }
 }
 
@@ -2947,14 +3041,26 @@ document.getElementById(id).classList.add('active');
 }
 
 function toggleMobileNav() {
-document.getElementById('mobileNavPanel').classList.toggle('active');
-document.getElementById('mobileNavOverlay').classList.toggle('active');
+const panel=document.getElementById('mobileNavPanel');
+const opened=panel.classList.toggle('active');
+panel.inert=!opened;panel.setAttribute('aria-hidden',String(!opened));
+document.getElementById('mobileNavOverlay').classList.toggle('active',opened);
+const button=document.querySelector('.hamburger-btn');
+button.setAttribute('aria-expanded',String(opened));button.setAttribute('aria-label',opened?'메뉴 닫기':'메뉴 열기');
+if(opened)panel.querySelector('.mobile-menu-close')?.focus();else button.focus();
+document.body.style.overflow=opened?'hidden':'';
 }
 
 /* [★ 오늘의 감정 기록] */
 const SUPABASE_URL = 'https://zrmljsyxeozcnfqmyumw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybWxqc3l4ZW96Y25mcW15dW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzkwNTAsImV4cCI6MjA5OTA1NTA1MH0.G31yEksYsiR43t2pWPwTdCrpBHcxLkZ4mYSvk5urZxQ';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const isLocalPreview = ['localhost','127.0.0.1','[::1]'].includes(location.hostname);
+const previewFetch = (input, init = {}) => {
+  const method = String(init.method || input?.method || 'GET').toUpperCase();
+  if (isLocalPreview && !['GET','HEAD'].includes(method)) return Promise.resolve(new Response(JSON.stringify({message:'로컬 미리보기에서는 접수·로그인·주문을 전송하지 않습니다.'}),{status:403,headers:{'Content-Type':'application/json'}}));
+  return fetch(input,init);
+};
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {global:{fetch:previewFetch},auth:{persistSession:!isLocalPreview,autoRefreshToken:!isLocalPreview}});
 
 // 2026-09-07 최신 운영 자료와 공개 모집 화면을 대조한 프로그램 목록.
 // 공개 모집이 재확인되지 않은 과정은 상태와 신청 버튼에 그 사실을 명시한다.
@@ -3048,10 +3154,10 @@ const CURRENT_NOTICES = [{
   body: '개띠랑 책공방은 경기도 화성시 동탄구 동탄대로5길 21, 라크몽 B동 W241호에 있습니다. 방문 전 운영 여부를 개띠랑 인스타그램 DM으로 확인해 주세요. 홈페이지 하단의 네이버 지도 링크에서 위치와 길찾기를 확인할 수 있습니다.'
 }, {
   category: 'notice',
-  title: '[신청 안내] 현재 모집 프로그램은 프로그램 카드에서 확인해 주세요',
-  date_label: '09.08',
-  published_on: '2026-09-08',
-  body: '현재 신청 가능한 프로그램의 일정, 대상, 참가비와 모집 상태는 홈페이지 프로그램 카드에서 확인할 수 있습니다. 프로그램마다 연결된 네이버 예약 또는 공식 모집 페이지에서 신청해 주세요. 종료일이 지난 과정은 모집 개수에서 자동으로 제외됩니다.'
+  title: '[신청 안내] 운영 일정과 현재 모집 여부를 구분해 확인해 주세요',
+  date_label: '09.30',
+  published_on: '2026-09-30',
+  body: '프로그램 카드에는 확인된 회차의 일정과 참가비가 표시됩니다. 지난 회차는 현재 모집 과정이 아니며, 수업이 진행 중이어도 추가 참여 가능 여부는 별도 확인이 필요합니다. 연결된 네이버 예약 또는 공식 페이지에서 최신 접수 상태를 확인해 주세요.'
 }, {
   category: 'notice',
   title: '[배송 안내] 주문·배송·교환 및 환불 안내',
@@ -3064,14 +3170,29 @@ const ARCHIVED_NOTICE_TITLES = new Set([
   '[안내] 개띠랑 유니버스, 새로운 공간으로 이전을 준비합니다',
   '[완료] 다원이음터 도서관 <내 마음을 톡! 감정 표현 교실> (이다솜 작가)',
   '[이전] 3월, 경기상상캠퍼스로 보금자리를 옮깁니다 🚚',
+  '[신청 안내] 현재 모집 프로그램은 프로그램 카드에서 확인해 주세요',
+  '[프로그램] 희로애락 마음쓰기 2기 시작 · 늦은 합류 가능',
+  '[새 연재] 개띠랑 빵!탐정 1화, 9월 9일 공개 예정',
+  '[유통] 《문고리》 교보문고·영풍문고 입고 제안 진행 중',
+  '[책공방] 엄인용 《나는 언제 웃고 있었지?》 3차 입고 준비 중',
 ]);
 
 const CURRENT_NEWS = [{
   category: 'news',
-  title: '[현장] 대림도서관 기록공작소 6기 진행 중',
+  title: '[프로젝트 기록] 흥업초·호저초, 학교별 공동문집을 만들다',
+  published_on: '2026-09-30', date_label: '09.30',
+  body: '문막교육도서관과 함께한 흥업초·호저초 출판 과정은 학교별 여섯 번의 기록 수업과 한 번의 출간기념회로 구성됐습니다. 학생들의 글과 2컷 만화를 학교별 공동문집 한 종씩, 총 두 종으로 엮었습니다. 개인별 책 제작과는 다른 공동 출판 사례입니다. 자세한 과정은 프로젝트에서 확인할 수 있습니다.'
+}, {
+  category: 'news',
+  title: '[프로젝트 기록] 숲숲학교 봄학기, 아홉 권의 개인 책',
+  published_on: '2026-09-30', date_label: '09.30',
+  body: '숲숲학교 봄학기는 숲 관찰과 글쓰기, 편집과 책 만들기를 연결한 10회 과정으로 진행됐고 아홉 권의 개인 책이 완성됐습니다. 개띠랑 팀과 아홉프레스 박지현이 함께한 과정입니다. 가을학기 운영 일정과 추가 참여 여부는 별도 공식 안내를 확인해 주세요.'
+}, {
+  category: 'news',
+  title: '[운영 일정] 대림도서관 기록공작소 6기 · 8.20–10.15',
   date_label: '09.08',
   published_on: '2026-09-08',
-  body: '영등포구립 대림도서관에서 기록공작소 6기 《나의 계절 도감》을 진행하고 있습니다. 8월 20일부터 10월 15일까지 여덟 번 만나 마음과 계절을 관찰하고, 각자의 기록을 한 권의 도감으로 엮어갑니다.'
+  body: '대림도서관 기록공작소 6기 《나의 계절 도감》은 2026년 8월 20일부터 10월 15일까지 여덟 번 만나는 과정으로 안내됐습니다. 마음과 계절을 관찰하며 글과 이미지로 기록을 엮는 과정입니다. 이 글은 운영 일정 소개이며 신규 모집 안내는 아닙니다.'
 }, {
   category: 'news',
   title: '[프로젝트] 숲숲학교 가을학기, 9월 20일 시작',
@@ -3081,6 +3202,7 @@ const CURRENT_NEWS = [{
 }, {
   category: 'news',
   title: '[프로그램] 희로애락 마음쓰기 2기 시작 · 늦은 합류 가능',
+  expires_on: '2026-09-29',
   date_label: '09.08',
   published_on: '2026-09-08',
   body: '희로애락 마음쓰기 2기가 9월 8일 시작했습니다. 9월 22일과 29일 남은 회차에 늦게 합류할 수 있습니다. 참여 범위와 준비 사항은 네이버 예약에서 신청하기 전에 확인해 주세요.'
@@ -3105,6 +3227,7 @@ const CURRENT_NEWS = [{
 }];
 
 const MOONGORI_BOOK = {
+  slug: 'moongori',
   title: '문고리',
   author: '글 신태림 · 북OST 신태림',
   cat: 'book',
@@ -3119,20 +3242,11 @@ function programPlainTitle(program) {
 }
 
 function isProgramOpen(program) {
-  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-  return program.is_open === true && (!program.end_date || program.end_date >= today);
+  return GaeddirangPublic.programStatus(program) === 'open';
 }
 
 function programForDisplay(program) {
-  if (isProgramOpen(program) || program.is_open === false) return program;
-  return {
-    ...program,
-    is_open: false,
-    badge_type: '일정 종료 · 다음 일정 확인',
-    stat2_label: '상태',
-    stat2_value: '일정 종료',
-    apply_label: '다음 일정 확인하기',
-  };
+  return GaeddirangPublic.programForDisplay(program);
 }
 
 function getOpenPrograms() {
@@ -3144,8 +3258,8 @@ function renderProgramHighlights() {
   const title = document.getElementById('homeProgramTitle');
   const summary = document.getElementById('homeProgramSummary');
   if (!title || !summary) return;
-  title.innerHTML = `지금 신청 가능한<br>프로그램 ${open.length}개`;
-  summary.innerHTML = open.map(programPlainTitle).join('<br>');
+  title.innerHTML = open.length ? `지금 신청 가능한<br>프로그램 ${open.length}개` : '나에게 맞는 수업,<br>다음 참여 일정 확인하기';
+  summary.textContent = open.length ? open.map(programPlainTitle).join(' · ') : '감정 기록 · AI 글쓰기 · 일상 글쓰기 · 숲 기록. 지난 회차와 진행 중인 과정을 살펴보고, 최신 접수 상태는 공식 페이지에서 확인해 주세요.';
 }
 
 /* [★ 콘텐츠 CMS 연동] notices/programs/podcasts/books/authors/reviews를 Supabase에서 불러와 렌더링 */
@@ -3156,24 +3270,15 @@ function renderNoticesUI(data) {
   noticeList.innerHTML = '';
   newsList.innerHTML = '';
   NOTICE_BODIES = {};
-  const today = new Date();
-  const currentTitles = new Set([...CURRENT_NOTICES, ...CURRENT_NEWS].map(n => n.title));
-  const merged = [
-    ...CURRENT_NOTICES,
-    ...CURRENT_NEWS,
-    ...(data || []).filter(n => !currentTitles.has(n.title) && !ARCHIVED_NOTICE_TITLES.has(n.title)),
-  ];
-  const visible = [
-    ...merged.filter(n => n.category !== 'news').slice(0, 3),
-    ...merged.filter(n => n.category === 'news').slice(0, 6),
-  ];
+  const visible = GaeddirangPublic.mergeNotices([...CURRENT_NOTICES,...CURRENT_NEWS],data || [],ARCHIVED_NOTICE_TITLES);
   visible.forEach(n => {
     NOTICE_BODIES[n.title] = n.body;
     const li = document.createElement('li');
     li.className = 'nb-item';
     li.dataset.title = n.title;
-    li.dataset.date = n.date_label;
-    li.dataset.body = n.body;
+    const dateLabel = GaeddirangPublic.noticeDate(n) || n.date_label || '날짜 확인 필요';
+    li.dataset.date = dateLabel;
+    li.dataset.body = n.body || '';
     li.tabIndex = 0;
     li.setAttribute('role', 'button');
     li.onclick = () => openNoticeFromEl(li);
@@ -3183,31 +3288,32 @@ function renderNoticesUI(data) {
         openNoticeFromEl(li);
       }
     };
-    const match = String(n.date_label || '').match(/^(\d{1,2})\.(\d{1,2})$/);
-    const dated = match ? new Date(today.getFullYear(), Number(match[1]) - 1, Number(match[2])) : null;
-    const isPastNews = n.category === 'news' && dated && today - dated > 120 * 86400000;
-    const displayTitle = isPastNews ? `${n.title} · 지난 소식` : n.title;
-    li.setAttribute('aria-label', `${displayTitle} ${n.date_label || ''}`.trim());
-    li.innerHTML = `<span>${displayTitle}</span><span class="nb-date">${n.date_label}</span>`;
+    li.setAttribute('aria-label', `${n.title} ${dateLabel}`);
+    li.innerHTML = `<span>${srEscape(n.title)}</span><span class="nb-date">${srEscape(dateLabel)}</span>`;
     (n.category === 'news' ? newsList : noticeList).appendChild(li);
   });
 }
 
+let activeProgramCategory='all';
+function filterPrograms(category,trigger){activeProgramCategory=category;document.querySelectorAll('.program-filters button').forEach(b=>{b.classList.toggle('active',b===trigger);b.setAttribute('aria-pressed',String(b===trigger));});renderProgramsUI(CURRENT_PROGRAMS);}
 function renderProgramsUI(data) {
   const grid = document.getElementById('progGrid');
   if (!grid) return;
   programsInfo = {};
-  grid.innerHTML = (data || []).map(program => {
-    const p = programForDisplay(program);
-    programsInfo[p.slug] = p;
-    const noStr = String(p.sort_no).padStart(2, '0');
-    const stars = p.star_rating ? '★'.repeat(p.star_rating) + '☆'.repeat(Math.max(0, 5 - p.star_rating)) : '';
-    return `<div class="prog-card" role="button" tabindex="0" aria-label="${programPlainTitle(p)} 자세히 보기" style="border-color:${p.border_color}; background:${p.bg_color};" onclick="openProgramModal('${p.slug}', false, this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProgramModal('${p.slug}', false, this)}">
-<div class="pc-header"><span>NO.${noStr}</span><span>${stars}</span></div>
-<div class="pc-img-area">${p.image_path ? `<img src="${p.image_path}" alt="${p.title.replace(/<[^>]+>/g, ' ')} 표지" loading="lazy">` : p.icon_emoji}</div>
-<div class="pc-body"><div class="pc-title">${p.title}</div><div class="pc-stat-bar"><span>${p.stat1_label}: ${p.stat1_value}</span><span>${p.stat2_label}: ${p.stat2_value}</span></div><button class="prog-btn-card">자세히 보기 ></button></div>
-</div>`;
-  }).join('');
+  const all=(data||[]).map(program=>programForDisplay(program));
+  all.forEach(p=>programsInfo[p.slug]=p);
+  const list=all.filter(p=>activeProgramCategory==='all'||(activeProgramCategory==='past'?p.status==='ended':p.status!=='ended'));
+  list.sort((a,b)=>Number(a.status==='ended')-Number(b.status==='ended')||Number(a.sort_no)-Number(b.sort_no));
+  grid.replaceChildren();
+  list.forEach(p=>{
+    const card=document.createElement('button');card.type='button';card.className='prog-card';card.dataset.program=p.slug;
+    card.setAttribute('aria-label',`${programPlainTitle(p)} 자세히 보기`);card.onclick=()=>openProgramModal(p.slug,false,card);
+    const status=p.status==='ended'?'지난 회차':p.status==='open'?'모집 중':p.status==='in_progress'?'일정 진행 중':p.status==='upcoming'?'접수 예정':p.status==='closed'?'접수 종료':'모집 확인 필요';
+    const dates=p.start_date?`${p.start_date}${p.end_date&&p.end_date!==p.start_date?' ~ '+p.end_date:''}`:'일정은 상세 안내 확인';
+    card.innerHTML=`<span class="pc-header"><span class="program-state state-${p.status}">${status}</span></span><span class="pc-img-area" aria-hidden="true">${p.image_path?`<img src="${srEscape(p.image_path)}" alt="" loading="lazy">`:srEscape(p.icon_emoji||'')}</span><span class="pc-body"><span class="pc-title">${srEscape(programPlainTitle(p))}</span><span class="pc-date">${srEscape(dates)}</span><span class="pc-instructor">${srEscape(p.instructor||'')}</span><span class="pc-enrollment">${srEscape(p.badge_type||'공식 모집 안내 확인')}</span><span class="prog-btn-card">자세히 보기 →</span></span>`;
+    grid.appendChild(card);
+  });
+  document.getElementById('programEmpty').hidden=list.length>0;
 }
 
 function renderPodcastsUI(data) {
@@ -3252,6 +3358,13 @@ function renderAuthorsUI(data) {
 }
 
 async function loadAllContent() {
+  books = [MOONGORI_BOOK];
+  renderBooks('all');
+  renderProgramsUI(CURRENT_PROGRAMS);
+  renderProgramHighlights();
+  renderNoticesUI([]);
+  renderReviewsUI([]);
+  applyDeepLink();
   try {
     const [notRes, castRes, bookRes, authRes] = await Promise.all([
       supabaseClient.from('notices').select('*').order('sort_order'),
@@ -3264,7 +3377,8 @@ async function loadAllContent() {
       MOONGORI_BOOK,
       ...(bookRes.data || []).filter(b => b.title !== MOONGORI_BOOK.title).map(b => ({ title: b.title, author: b.author, cat: b.category, img: b.img_path, spec: b.spec, desc: b.description, price: b.price })),
     ];
-    if (typeof renderBooks === 'function') renderBooks('all');
+    if (typeof renderBooks === 'function') renderBooks();
+    document.getElementById('libraryLoadState').hidden=!bookRes.error;
 
     renderAuthorsUI(authRes.data);
     if (currentAuthorId && authorData[currentAuthorId] && document.getElementById('authorModal') && document.getElementById('authorModal').classList.contains('active')) {
@@ -3285,6 +3399,7 @@ async function loadAllContent() {
     // [딥링크] 데이터 로드가 끝난 뒤 주소의 ?book / ?program 을 읽어 해당 모달 자동 오픈
     applyDeepLink();
   } catch (e) {
+    document.getElementById('libraryLoadState').hidden=false;
     console.error('콘텐츠 로딩 실패:', e);
   }
 }
@@ -3294,6 +3409,8 @@ function applyDeepLink() {
 const params = new URLSearchParams(location.search);
 const bookTitle = params.get('book');
 const progSlug = params.get('program');
+const projectId = params.get('project');
+if(!projectId)closeProjectDetail(true);
 // 현재 열려있는 딥링크 모달 정리 (주소에 파라미터가 없으면 닫기)
 const detailOpen = document.getElementById('detailModal').classList.contains('active');
 const progOpen = document.getElementById('programModal').classList.contains('active');
@@ -3303,14 +3420,16 @@ openBookDetail(bookTitle, true);
 } else if (progSlug) {
 if (detailOpen) document.getElementById('detailModal').classList.remove('active');
 openProgramModal(progSlug, true);
+} else if (projectId && PROJECT_DETAILS[projectId]) {
+document.getElementById('detailModal').classList.remove('active');
+document.getElementById('programModal').classList.remove('active');
+openProjectDetail(projectId,null,true);
 } else {
 // 파라미터 없음 → 딥링크 모달들 닫기
 document.getElementById('detailModal').classList.remove('active');
 document.getElementById('programModal').classList.remove('active');
 document.body.style.overflow = '';
-if (lastProgramTrigger && typeof lastProgramTrigger.focus === 'function') {
-setTimeout(() => lastProgramTrigger.focus(), 0);
-}
+if (lastProgramSlug && location.hash === '#program') setTimeout(programReturnFocus,0);
 document.title = '개띠랑 | 책공방';
 clearBookJsonLd();
 }
@@ -3318,7 +3437,8 @@ clearBookJsonLd();
 // 브라우저 뒤로/앞으로 가기 대응
 window.addEventListener('popstate', applyDeepLink);
 
-loadAllContent();
+// Start after all inline state (including NOTICE_BODIES) has been initialized.
+queueMicrotask(loadAllContent);
 updateCartBadge();
 
 function openEmotionModal() {
@@ -3391,7 +3511,7 @@ btn.disabled = true; btn.textContent = '접수 중...';
 
 const { error } = await supabaseClient.from('applications').insert({
 program_name: '[PDF] 나의 책 씨앗 질문지', applicant_name: '(PDF 신청)', contact: '-', email,
-participant_count: '1인', message: '리드마그넷 PDF 다운로드 신청', photo_consent: true, refund_confirmed: true
+participant_count: '1인', message: '질문지 PDF 다운로드 신청', photo_consent: false, refund_confirmed: false
 });
 
 btn.disabled = false; btn.textContent = '무료로 받기';
@@ -3415,7 +3535,7 @@ const { error } = await supabaseClient.from('book_alerts').insert({ email, book_
 
 if(error) { btn.disabled = false; btn.textContent = '소식 받기'; alert('신청에 실패했어요. 잠시 후 다시 시도해주세요.'); console.error(error); return; }
 
-document.getElementById('mgAlert').innerHTML = '<p class="mg-alert-done">신청 완료! 출간일에 만나요 🤎</p>';
+document.getElementById('mgAlert').innerHTML = '<p class="mg-alert-done">소식 신청을 접수했어요. 고맙습니다.</p>';
 }
 
 /* [★ 프로그램 신청] */
@@ -3526,7 +3646,7 @@ const existing = cart.find(i => i.title === bookData.title);
 if (existing) existing.qty += 1;
 else cart.push({ title: bookData.title, price: bookData.price || 0, img: bookData.img || '', qty: 1 });
 saveCart(cart);
-alert(`장바구니에 담았어요: ${bookData.title}`);
+if(window.announceUX)announceUX(`장바구니에 담았어요: ${bookData.title}`);else alert(`장바구니에 담았어요: ${bookData.title}`);
 }
 function changeCartQty(title, delta) {
 const cart = getCart();
@@ -3564,15 +3684,15 @@ return `<div class="cart-item">
 <p class="cart-item-title">${srEscape(item.title)}</p>
 <p class="cart-item-price">${(item.price||0).toLocaleString()}원</p>
 <div class="cart-item-qty">
-<button onclick="changeCartQty('${safeTitle}', -1)">−</button>
-<span>${item.qty}</span>
-<button onclick="changeCartQty('${safeTitle}', 1)">+</button>
+<button onclick="changeCartQty('${safeTitle}', -1)" aria-label="${srEscape(item.title)} 수량 줄이기">−</button>
+<span aria-label="수량 ${item.qty}">${item.qty}</span>
+<button onclick="changeCartQty('${safeTitle}', 1)" aria-label="${srEscape(item.title)} 수량 늘리기">+</button>
 </div>
 </div>
-<span class="cart-item-remove" onclick="removeFromCart('${safeTitle}')">✕</span>
+<button type="button" class="cart-item-remove" onclick="removeFromCart('${safeTitle}')" aria-label="${srEscape(item.title)} 장바구니에서 삭제">✕</button>
 </div>`;
 }).join('');
-document.getElementById('cartTotal').textContent = `합계: ${total.toLocaleString()}원`;
+document.getElementById('cartTotal').textContent = `상품 합계: ${total.toLocaleString()}원 (배송비 별도)`;
 }
 function openCartModal() {
 renderCart();
@@ -3586,7 +3706,11 @@ const lineTotal = (item.price||0) * item.qty;
 total += lineTotal;
 return `<div class="co-summary-row"><span>${srEscape(item.title)} × ${item.qty}</span><span>${lineTotal.toLocaleString()}원</span></div>`;
 }).join('');
-document.getElementById('coSummaryTotal').textContent = `총 합계: ${total.toLocaleString()}원`;
+const estimate = GaeddirangPublic.shippingEstimate(total);
+document.getElementById('coSummaryTotal').textContent = `상품 합계: ${total.toLocaleString()}원`;
+let note = document.getElementById('coShippingEstimate');
+if(!note){note=document.createElement('p');note.id='coShippingEstimate';note.className='co-shipping-note';document.getElementById('coSummaryTotal').after(note);}
+note.textContent = `안내 기준 예상 배송비: ${estimate.shipping.toLocaleString()}원\n예상 결제액: ${estimate.estimatedTotal.toLocaleString()}원\n상품 3만원 이상 무료 배송 · 최종 입금액은 주문 안내에서 확인해 주세요.`;
 }
 function openCheckoutForm() {
 const cart = getCart();
@@ -3781,7 +3905,7 @@ const plainDesc = (b.desc || '').replace(/<[^>]+>/g, '');
 idx.push({
 type: b.cat === 'card' ? '카드' : '도서', title: b.title, sub: b.author,
 text: (b.title + ' ' + b.author + ' ' + plainDesc).toLowerCase(),
-action: () => { openBookDetail(b.title); setTimeout(() => document.getElementById('detailModal').scrollIntoView(), 50); }
+action: () => { switchView('main','library');openBookDetail(b.title); }
 });
 });
 Object.keys(authorData).forEach(id => {
@@ -3789,7 +3913,7 @@ const a = authorData[id];
 idx.push({
 type: '작가', title: a.name, sub: a.desc,
 text: (a.name + ' ' + a.desc + ' ' + id).toLowerCase(),
-action: () => { openAuthor(id); setTimeout(() => document.getElementById('authorModal').scrollIntoView(), 50); }
+action: () => { switchView('authors');if(document.querySelector(`.ap-detail[data-author="${CSS.escape(id)}"]`))showAuthor(id); }
 });
 });
 Object.keys(programsInfo).forEach(slug => {
@@ -3799,8 +3923,14 @@ const plainDesc = (p.description || '').replace(/<[^>]+>/g, '');
 idx.push({
 type: '프로그램', title: plainTitle, sub: plainDesc,
 text: (plainTitle + ' ' + plainDesc).toLowerCase(),
-action: () => { document.getElementById('program').scrollIntoView({behavior:'smooth'}); setTimeout(() => openProgramModal(slug), 300); }
+action: () => { switchView('main','program');openProgramModal(slug); }
 });
+});
+document.querySelectorAll('.ap-detail').forEach(profile=>{
+const slug=profile.dataset.author;if(authorData[slug])return;
+const title=profile.querySelector('.ap-bio h2')?.textContent.trim()||slug;
+const sub=profile.querySelector('.ap-bio p')?.textContent.trim()||'';
+idx.push({type:'작가',title,sub,text:profile.textContent.toLowerCase(),action:()=>{switchView('authors');showAuthor(slug);}});
 });
 document.querySelectorAll('.project-card').forEach(card => {
 const title = card.querySelector('h3')?.textContent?.trim() || '프로젝트';
@@ -3809,18 +3939,15 @@ const text = `${title} ${sub} ${card.dataset.project || ''}`.toLowerCase();
 idx.push({
 type: '프로젝트', title, sub,
 text,
-action: () => { switchView('main', 'projects'); setTimeout(() => card.scrollIntoView({behavior:'smooth', block:'center'}), 100); }
+action: () => { switchView('main', 'projects');filterProjects('all',document.querySelector('.project-filters button'));card.click(); }
 });
 });
 if (typeof NOTICE_BODIES !== 'undefined') {
-Object.keys(NOTICE_BODIES).forEach(title => {
+document.querySelectorAll('.nb-item').forEach(el => {
+const title=el.dataset.title;const body=el.dataset.body||NOTICE_BODIES[title]||'';
 idx.push({
-type: '공지', title: title, sub: NOTICE_BODIES[title].slice(0, 45).replace(/\n/g, ' ') + '...',
-text: (title + ' ' + NOTICE_BODIES[title]).toLowerCase(),
-action: () => {
-const el = Array.from(document.querySelectorAll('.nb-item')).find(li => li.dataset.title === title);
-if (el) { el.click(); el.scrollIntoView({behavior:'smooth', block:'center'}); }
-}
+type: '공지·소식', title, sub:body.slice(0,65).replace(/\n/g,' '),
+text:(title+' '+body).toLowerCase(),action:()=>{switchView('main','home');el.click();}
 });
 });
 }
@@ -3839,6 +3966,16 @@ const box = document.getElementById('searchResults');
 box.classList.remove('active');
 box.innerHTML = '';
 document.getElementById('searchInput').setAttribute('aria-expanded', 'false');
+document.getElementById('searchInput').removeAttribute('aria-activedescendant');
+activeSearchOption=-1;
+}
+let activeSearchOption=-1;
+function openSiteSearch(){openOverlaySafe('siteSearchModal');document.getElementById('searchInput').focus();}
+function selectSearchResult(index){const result=searchQuery(document.getElementById('searchInput').value)[index];if(!result)return;closeOverlay('siteSearchModal');closeSearchResults();document.getElementById('searchInput').value='';result.action();}
+function handleSearchKeys(event){
+const options=[...document.querySelectorAll('#searchResults .sr-item')];
+if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();if(!options.length)return;activeSearchOption=activeSearchOption<0?(event.key==='ArrowDown'?0:options.length-1):(activeSearchOption+(event.key==='ArrowDown'?1:-1)+options.length)%options.length;options.forEach((el,i)=>el.setAttribute('aria-selected',String(i===activeSearchOption)));document.getElementById('searchInput').setAttribute('aria-activedescendant',options[activeSearchOption].id);options[activeSearchOption].scrollIntoView({block:'nearest'});}
+if(event.key==='Enter'){event.preventDefault();if(activeSearchOption>=0)selectSearchResult(activeSearchOption);else performSearch();}
 }
 
 function liveSearch() {
@@ -3846,13 +3983,15 @@ const q = document.getElementById('searchInput').value;
 const box = document.getElementById('searchResults');
 if (!q.trim()) { closeSearchResults(); return; }
 const results = searchQuery(q);
+activeSearchOption=-1;document.getElementById('searchInput').removeAttribute('aria-activedescendant');
+document.getElementById('searchCount').textContent=results.length?`${results.length}개의 결과${results.length===8?' · 최대 8개 표시':''}`:'검색 결과가 없어요. 다른 검색어를 입력해 주세요.';
 document.getElementById('searchInput').setAttribute('aria-expanded', 'true');
 if (results.length === 0) {
 box.innerHTML = '<div class="sr-empty">검색 결과가 없어요. 다른 키워드로 찾아보세요!</div>';
 } else {
 box.innerHTML = results.map((r, i) => `<div class="sr-item" role="option" id="sr-opt-${i}" data-idx="${i}"><span class="sr-badge">${srEscape(r.type)}</span><div class="sr-text"><div class="sr-title">${srEscape(r.title)}</div><div class="sr-sub">${srEscape(r.sub || '')}</div></div></div>`).join('');
 box.querySelectorAll('.sr-item').forEach(el => {
-el.addEventListener('click', () => { results[Number(el.dataset.idx)].action(); closeSearchResults(); document.getElementById('searchInput').value = ''; });
+el.addEventListener('click', () => selectSearchResult(Number(el.dataset.idx)));
 });
 }
 box.classList.add('active');
@@ -3860,16 +3999,14 @@ box.classList.add('active');
 
 function performSearch() {
 const query = document.getElementById('searchInput').value.trim();
-if (!query) { alert('검색어를 입력해주세요!'); return; }
+if (!query) { document.getElementById('searchCount').textContent='검색어를 입력해 주세요.';document.getElementById('searchInput').focus();return; }
 const results = searchQuery(query);
 if (results.length === 0) {
-alert(`'${query}'에 대한 검색 결과가 없어요. 다른 키워드로 찾아보세요!`);
+liveSearch();
 return;
 }
 if (results.length === 1) {
-results[0].action();
-closeSearchResults();
-document.getElementById('searchInput').value = '';
+selectSearchResult(0);
 return;
 }
 liveSearch();
@@ -3896,6 +4033,8 @@ res = {img:'assets/books/duru_check_card1.jpg', name:'두루 마음 체크', des
 document.getElementById('resCardImg').src = res.img;
 document.getElementById('resName').innerText = res.name;
 document.getElementById('resDesc').innerText = res.desc;
+document.getElementById('resCardImg').alt=res.name;
+document.getElementById('resDetailLink').href=new URL(bookShareUrl({img:res.img,title:res.name})).pathname;
 document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
 document.getElementById('qResult').classList.add('active');
 confetti({particleCount:150,spread:70,origin:{y:0.6}});
@@ -3918,9 +4057,9 @@ const chatResponses = {
 'classes': () => {
   const open = getOpenPrograms();
   const names = open.map(p => `‘${programPlainTitle(p)}’`).join(', ');
-  return `현재 신청 가능한 프로그램은 ${open.length}개예요.<br>${names}<br><button class="chat-btn" onclick="switchView('main','program')">일정과 신청 링크 보기</button>`;
+  return (open.length ? `현재 신청 가능한 프로그램은 ${open.length}개예요.<br>${names}` : '다음 참여 일정은 공식 예약 안내에서 확인해 주세요. 지난 회차의 구성과 진행 중인 과정도 살펴볼 수 있어요.') + `<br><button class="chat-btn" onclick="switchView('main','program')">일정과 공식 안내 보기</button>`;
 },
-'apply': `현재 모집 중인 프로그램 카드를 열고 ‘네이버 예약에서 신청하기’를 누르면 날짜별 예약 화면으로 연결돼요. 책·카드 같은 상품은 스토어에서 구매하시면 됩니다.<br><button class="chat-btn" onclick="switchView('main','program')">신청하러 가기</button>`,
+'apply': `프로그램 카드에는 확인된 회차 정보가 있어요. 최신 접수 상태와 추가 참여 가능 여부는 카드에 연결된 네이버 예약·공식 안내에서 확인해 주세요. 책·카드는 스토어에서 구매할 수 있어요.<br><button class="chat-btn" onclick="switchView('main','program')">프로그램과 공식 안내 보기</button>`,
 'price': `프로그램마다 참가비가 달라서, 각 프로그램 카드를 열면 참가비와 일정이 함께 안내돼요. 책·카드 가격은 스토어에서 확인하실 수 있어요.<br><button class="chat-btn" onclick="switchView('main','program')">프로그램에서 확인</button> <button class="chat-btn" onclick="window.open('https://smartstore.naver.com/gaeddirang')">스토어에서 상품 보기</button>`,
 'location': `개띠랑 책공방은 <b>경기 화성 동탄 라크몽</b>에 있어요! 📍<br>경기도 화성시 동탄구 동탄대로5길 21, B동 W241호<br>방문 전 인스타 DM으로 한 번 확인해 주시면 더 좋아요.<br><button class="chat-btn" onclick="window.open('https://map.naver.com/p/entry/place/2052456243')">네이버 지도·길찾기</button> <button class="chat-btn" onclick="window.open('https://www.instagram.com/gaeddirangverse')">인스타로 문의</button>`,
 'blindbook': `표지 대신 키워드 카드로 만나는, 열어보기 전엔 모르는 책이에요. 지금 내 마음에 맞는 한 권을 개띠랑이 골라드리는 재미가 있죠. 어떤 게 나올지는 직접 열어보는 게 제맛이에요 🐾<br><button class="chat-btn" onclick="switchView('main','library')">서재 구경하기</button> <button class="chat-btn" onclick="switchView('main','finder')">나에게 맞는 도구 찾기</button>`,
@@ -4006,22 +4145,7 @@ document.addEventListener('click', (e)=>{
 const modal = document.getElementById('noticeModal');
 if(modal && modal.style.display === 'flex' && e.target === modal) closeNoticeModal();
 });
-// ESC로 닫기
-document.addEventListener('keydown', (e)=>{
-if(e.key === 'Escape') {
-  if (document.getElementById('programModal')?.classList.contains('active')) closeOverlay('programModal');
-  else if (document.getElementById('projectModal')?.classList.contains('active')) closeProjectDetail();
-  else closeNoticeModal();
-}
-if(e.key === 'Tab' && document.getElementById('programModal')?.classList.contains('active')) {
-  const focusable = [...document.querySelectorAll('#programModal button:not([disabled]), #programModal a[href]')];
-  if (!focusable.length) return;
-  const first = focusable[0];
-  const last = focusable[focusable.length - 1];
-  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-}
-});
+// 모든 상세창·입력창·모바일 메뉴의 키보드 처리는 site-ux.js에서 통합한다.
 document.getElementById('programModal')?.addEventListener('click', (e) => {
   if (e.target.id === 'programModal') closeOverlay('programModal');
 });
@@ -4044,35 +4168,7 @@ openNoticeModal(typeLabel, title, date, body);
 });
 });
 
-// [PROGRAM GRID] 4장 대형(간격/비율) 고정 + 전체를 스케일로만 줄여서 화면 안에 넣기
-const fitProg = ()=>{
-const wrap = document.querySelector('.prog-grid-wrap');
-const grid = document.querySelector('.prog-grid');
-if(!wrap || !grid) return;
-
-// 1) 자연 크기 측정 (transform 제거)
-grid.style.transform = 'none';
-wrap.style.height = 'auto';
-
-// 모바일에서는 스케일 축소 대신 가로 스크롤을 쓰므로 여기서 종료
-if (window.innerWidth <= 700) return;
-
-const wrapW = wrap.clientWidth;
-const naturalW = grid.scrollWidth;
-const naturalH = grid.offsetHeight || grid.getBoundingClientRect().height;
-
-// 2) 스케일 계산 (필요할 때만 축소)
-const scale = Math.min(1, (wrapW - 16) / naturalW);
-
-// 3) 적용
-grid.style.transform = `scale(${scale})`;
-
-// 4) 스케일로 줄어든 높이를 wrapper에 반영(다음 섹션 겹침 방지)
-wrap.style.height = (naturalH * scale) + 'px';
-};
-
-fitProg();
-window.addEventListener('resize', fitProg, {passive:true});
+// 프로그램 목록은 글씨를 축소하지 않고 CSS 반응형 그리드로 배치한다.
 };
 if (document.readyState !== 'loading') __initMain();
 else window.addEventListener('DOMContentLoaded', __initMain);
@@ -4084,7 +4180,7 @@ try { __routeFromHash(false); } catch(e) {}
 <!-- Notice Modal -->
 <div class="notice-modal-overlay" id="noticeModal" aria-hidden="true">
 <div class="notice-modal" role="dialog" aria-modal="true" aria-labelledby="noticeTitle">
-<div class="nm-close" onclick="closeNoticeModal()">×</div>
+<button type="button" class="nm-close" onclick="closeNoticeModal()" aria-label="공지 닫기">×</button>
 <div class="notice-meta">
 <span class="notice-badge" id="noticeBadge">공지</span>
 <span class="notice-date" id="noticeDate">--.--</span>

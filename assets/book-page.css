@@ -1,0 +1,17 @@
+/* Canonical pages stay directly readable with no JavaScript redirect. */
+.standalone-book{max-width:980px;margin:0 auto;padding:28px;font-family:system-ui,-apple-system,sans-serif;text-align:left;background:#fffcf7;color:#543c2e;line-height:1.8;box-sizing:border-box}
+.standalone-book *{box-sizing:border-box}
+.book-page-nav{display:flex;flex-wrap:wrap;gap:20px;border-bottom:1px solid #dfd0c2;padding:0 0 20px;margin-bottom:48px}
+.standalone-book a{color:#543c2e;text-underline-offset:5px}
+.book-page-nav a{display:inline-flex;align-items:center;min-height:44px;font-size:14px;font-weight:600;background:none;color:#543c2e;margin:0;padding:0;border-radius:0;text-decoration:underline}
+.standalone-book main{max-width:none}
+.standalone-book>img{float:left;width:260px;max-width:36%;height:auto;object-fit:contain;margin:0 48px 40px 0;border-radius:8px}
+.standalone-book main>img{float:left;width:260px;max-width:36%;height:auto;object-fit:contain;margin:0 48px 40px 0;border-radius:8px}
+.standalone-book h1{font-size:32px;line-height:1.45;word-break:keep-all;margin:0 0 18px}
+.standalone-book>p{font-size:16px;margin:16px 0}
+.standalone-book .book-desc{max-width:none;font-size:16px;color:#665447;line-height:1.95;word-break:keep-all}
+.standalone-book>p:last-of-type a{display:inline-block;min-height:48px;padding:12px 20px;border-radius:12px;background:#543c2e;color:#fff;text-decoration:none;font-weight:600;margin:10px 0}
+.book-page-help{clear:both;border-top:1px solid #dfd0c2;padding:24px 0;margin-top:48px;font-size:14px}
+.book-page-help a{display:inline-flex;min-height:44px;align-items:center;margin-right:20px}
+.standalone-book a:focus-visible{outline:3px solid #285943;outline-offset:4px}
+@media(max-width:600px){.standalone-book{padding:20px}.book-page-nav{gap:12px;font-size:13px;margin-bottom:28px}.standalone-book>img,.standalone-book main>img{float:none;display:block;max-width:70%;width:200px;margin:0 auto 28px}.standalone-book h1{font-size:26px}.standalone-book .book-desc{font-size:15px}.standalone-book>p:last-of-type a{display:block;text-align:center}.book-page-help{margin-top:28px}}
