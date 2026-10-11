@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const sql=fs.readFileSync(new URL('../supabase/migrations/20261011093000_integration_evidence_inbox.sql',import.meta.url),'utf8');
+const sql=fs.readFileSync(new URL('../supabase/migrations/20261011025140_integration_evidence_inbox.sql',import.meta.url),'utf8');
 const pgTap=fs.readFileSync(new URL('../supabase/tests/integration_evidence_inbox_rls.test.sql',import.meta.url),'utf8');
 
 test('evidence inbox is admin-only metadata and cannot directly mutate business ledgers',()=>{
