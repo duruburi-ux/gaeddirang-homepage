@@ -14,6 +14,7 @@ test('관리 메뉴는 오늘·처리·운영·기록으로 묶이고 모바일�
   assert.match(html,/id="mobileNav"[\s\S]+addEventListener\('change'/);
   assert.ok(css.includes('@media(max-width:700px)'));
   assert.ok(css.includes('.tabs{display:none}.mobile-nav-wrap{display:block}'));
+  assert.match(css,/\.tab,\.tab-link\{[^}]*white-space:nowrap;flex:0 0 auto/);
 });
 
 test('핵심 목록은 제목·표시 라벨·검색·정렬·조건 초기화·결과 수를 제공한다',()=>{
