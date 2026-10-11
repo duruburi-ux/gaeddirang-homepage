@@ -34,6 +34,9 @@ test('integration browser scripts parse and require a reviewed server import',()
   assert.ok(js.includes('/functions/v1/scm-sales-import'));
   assert.ok(js.includes('/functions/v1/royalty-read'));
   assert.ok(js.includes('/functions/v1/integration-ingest'));
+  assert.ok(js.includes('collectorStatuses'));
+  assert.match(js,/setInterval\(\(\)=>\{[^}]*tab-integration[^}]*refresh\(true\)[^}]*\},60000\)/);
+  assert.match(js,/visibilitychange[^\n]*tab-integration[^\n]*refresh\(true\)/);
   assert.ok(js.includes('ledger'));
   assert.ok(js.includes("confirm('검사된 판매 수량"));
   assert.ok(!js.includes('SCM_GOOGLE_SERVICE_ACCOUNT'));
