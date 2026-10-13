@@ -27,7 +27,7 @@
 13. 업무 찾기
 14. 견적·정산·서류
 
-서류실에서는 견적서, 거래명세서, B2B 진행, 거래처, 품목표, 기관 제출 서류, 명단·출석부, 사례비 지급 명세, 작가 정산, 정산 자료실, 링크 모음을 확인했다.
+서류실에서는 견적서, 거래명세서, B2B 진행, 거래처, 품목표, 기관 제출 서류, 명단·출석부, 사례비 지급 명세, 작가 정산, 정산 자료실, 링크 모음 11개를 확인했다. 총 점검 범위는 관리실 14개와 서류실 11개를 합친 25개 업무 화면이다.
 
 각 화면에서 다음을 공통 점검했다.
 
@@ -107,7 +107,7 @@
 - `npm test`: 180/180 통과
 - `node --test tests/integration-ingest-handler.test.mjs`: 7/7 통과
 - `npm run qa:visual`: 51개 중 50개 통과, 1개 건너뜀
-  - 건너뜀은 승인된 비공개 HWP fixture가 로컬에 있을 때만 실행되는 선택 테스트다.
+  - 건너뜀은 실제 인물 정보가 담긴 비공개 HWP fixture가 해당 로컬 경로에 있을 때만 실행되는 선택 테스트다. 이번 작업에서는 실제 내용을 로그나 공개 테스트에 노출하지 않기 위해 파일이 없는 상태를 그대로 유지했다. 같은 파서·교체·오류 차단 경로는 합성 HWP/PDF fixture와 브라우저 회귀로 검증했다.
 - 관리실·서류실 집중 회귀: 37개 중 36개 통과, 같은 선택 테스트 1개 건너뜀
 - 데스크톱 1440px, 모바일 360px에서 가로 넘침, 검색·필터·초기화, 저장 취소, 뒤로가기, 반복 클릭, 세션 만료를 가상 데이터로 검증했다.
 - `git diff --check`: 통과
@@ -136,17 +136,31 @@
 ## 아직 운영 반영하지 않은 항목
 
 1. 이 브랜치의 GitHub Pages 배포와 Supabase Edge Function 배포는 하지 않았다. 특히 Edge 함수는 코드 회귀만 통과했으며 운영 수집 재검증 전 별도 배포 승인이 필요하다.
-2. 운영 Edge 배포 뒤에만 MoneyPin 4건과 Google Chat 5건을 같은 배치로 다시 넣어 중복 저장, 성공 이력, 마지막 성공 시각, 원장 불변을 확인해야 한다.
-3. PayHere 공식 상세 파일은 안정적인 결제 ID가 없고 시간이 분 단위다. 별도 어댑터 결과를 서버의 SKU·중복·가격·재고 검사와 명시 승인 흐름에 연결하기 전까지 자동 반영하면 안 된다.
-4. MoneyPin 공식 내보내기는 이메일 전송 방식이다. 현재 확인된 안전 경로는 지정 메일 → IMAP allowlist → 해시·기간·스키마 검사이며, 무인 정기화에는 세션·수신함·민감자료 전송 설계 승인이 더 필요하다.
-5. PayHere/SmartStore 수량이 창고 총보유인지 본점 즉시판매가능인지 운영 규칙이 확정되지 않았다. 이 기준과 실물 수량 확인 전에는 과거 차이와 교환품을 자동 보정하지 않는다.
-6. `scmsync` 실패 전파 래퍼는 격리 테스트를 통과했지만 운영 경로·LaunchAgent에는 설치하지 않았다. 설치·수동 실행·최근 exit 확인은 별도 운영 변경이다.
-7. 인증·RLS·민감정보 경계는 코드, 마이그레이션, 가상 요청과 읽기 경로로 검증했다. 실데이터 쓰기나 권한 확대 시험은 하지 않았다.
+2. Edge 함수를 배포하지 않아도 새 관리실 화면 자체는 열린다. 다만 근거 수집 뒤 `integration_sync_runs` 기록이 계속 DB 시간·상태 제약에 막힐 수 있어 통합 운영실의 마지막 성공 시각이 낡게 남고, 자동 확인 단계가 `검토 필요`로 유지되며 `RUN_HISTORY_WRITE_FAILED` 경고가 계속될 수 있다. 따라서 MoneyPin·Google Chat 운영 수집 검증은 Edge 배포 전 실행하지 않는다.
+3. 운영 Edge 배포 뒤에만 MoneyPin 4건과 Google Chat 5건을 같은 배치로 다시 넣어 중복 저장, 성공 이력, 마지막 성공 시각, 원장 불변을 확인해야 한다.
+4. PayHere 공식 상세 파일은 안정적인 결제 ID가 없고 시간이 분 단위다. 별도 어댑터 결과를 서버의 SKU·중복·가격·재고 검사와 명시 승인 흐름에 연결하기 전까지 자동 반영하면 안 된다.
+5. MoneyPin 공식 내보내기는 이메일 전송 방식이다. 현재 확인된 안전 경로는 지정 메일 → IMAP allowlist → 해시·기간·스키마 검사이며, 무인 정기화에는 세션·수신함·민감자료 전송 설계 승인이 더 필요하다.
+6. 재고 기준 장소는 이미 `실제 책공방 보유·즉시 판매가능`으로 확정돼 추가 장소 선택이 필요하지 않다. 앞서 “기준 장소 미확정”이라고 적은 것은 잘못이었다. 남은 일은 같은 책공방 기준으로 확인 대상 7종과 교환품 1종의 실물 수량 근거를 채우는 것, 그리고 향후 SmartStore/PayHere 게시 수량에 예약·안전재고 버퍼를 별도로 둘지 정하는 채널 배분 규칙이다. 이는 장소 선택이 아니라 채널 수량 정책이다.
+7. `scmsync` 실패 전파 래퍼는 격리 테스트를 통과했지만 운영 경로·LaunchAgent에는 설치하지 않았다. 설치·수동 실행·최근 exit 확인은 별도 운영 변경이다.
+8. 인증·RLS·민감정보 경계는 코드, 마이그레이션, 가상 요청과 읽기 경로로 검증했다. 실데이터 쓰기나 권한 확대 시험은 하지 않았다.
+
+## 배포에 필요한 파일
+
+GitHub Pages 화면 개선 배포 대상은 다음 정적 파일 15개다.
+
+- `admin/index.html`, `admin/admin-ux.css`
+- `admin/book-finder.js`, `admin/book-finder.css`
+- `admin/scm.js`, `admin/scm.css`
+- `admin/work.js`, `admin/work.css`
+- `admin/operations.js`, `admin/integration.js`, `admin/finance-dashboard.js`
+- `admin/docs.html`, `admin/docs-royalty-accounts.js`, `admin/docs-settlement-archive.js`, `admin/settlement-document-model.js`
+
+감사이력 수리는 GitHub Pages와 별개로 `supabase/functions/integration-ingest/handler.mjs`를 Edge Function에 배포해야 한다. `supabase/migrations/20261011061528_register_evidence_connectors.sql`은 이미 운영 적용된 버전을 저장소 이력에 복구한 파일이므로 다시 적용하지 않는다. `tests/`와 `artifacts/`는 검증·보고 자료이며 운영 배포 대상이 아니다.
 
 ## 배포 전 결정 항목
 
 - GitHub Pages 관리실 변경과 Supabase `integration-ingest` Edge 함수 변경을 각각 승인할지
-- 매장 판매가능의 기준 장소와 채널 수량 정의를 무엇으로 확정할지
+- 책공방 즉시 판매가능을 채널에 게시할 때 예약·안전재고 버퍼를 별도로 둘지
 - PayHere 공식 상세 어댑터를 기존 검토형 가져오기에 연결할지
 - `scmsync` 실패 전파 래퍼를 운영 주기 작업에 설치할지
 
