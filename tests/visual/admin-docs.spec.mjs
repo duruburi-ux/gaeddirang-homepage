@@ -130,7 +130,7 @@ test('admin docs: existing instructor profile file fills the profile form locall
   const chooser = await chooserPromise;
   await chooser.setFiles({
     name:'기존_강사프로필.txt', mimeType:'text/plain', buffer:Buffer.from([
-      '성명: 이진이',
+      '성명: 김가상',
       '한 줄 소개: 그림책과 감정 기록을 잇는 글쓰기 강사',
       '강사 소개',
       '그림책과 질문으로 자신의 마음을 기록하도록 돕습니다.',
@@ -142,7 +142,7 @@ test('admin docs: existing instructor profile file fills the profile form locall
       '2026.05 수원시립도서관 · 감정 기록 워크숍 (4회)',
     ].join('\n')),
   });
-  await expect(page.locator('[data-f="profile.name"]')).toHaveValue('이진이');
+  await expect(page.locator('[data-f="profile.name"]')).toHaveValue('김가상');
   await expect(page.locator('[data-f="profile.careers"]')).toHaveValue(/개띠랑유니버스 대표/);
   await expect(page.locator('[data-f="profile.works"]')).toHaveValue(/마음의 문고리/);
   await expect(page.locator('[data-f="profile.lectures"]')).toHaveValue(/수원시립도서관/);
@@ -200,7 +200,7 @@ test('admin docs: confirmed replacement clears optional fields missing from the 
   await expect(page.locator('[data-f="profile.name"]')).toHaveValue('김바다');
 });
 
-test('admin docs: manual real HWP profile fixture can be inspected', async ({ page }) => {
+test('admin docs: private HWP profile fixture can be validated without logging its contents', async ({ page }) => {
   const fixture = process.env.PROFILE_HWP_FIXTURE;
   test.skip(!fixture, 'Set PROFILE_HWP_FIXTURE only when checking a private real HWP locally.');
   await page.goto('/admin/docs.html?preview#kit', { waitUntil:'domcontentloaded' });
@@ -220,7 +220,8 @@ test('admin docs: manual real HWP profile fixture can be inspected', async ({ pa
     works:document.querySelector('[data-f="profile.works"]')?.value || '',
     lectures:document.querySelector('[data-f="profile.lectures"]')?.value || '',
   }));
-  console.log('REAL_HWP_RESULT', JSON.stringify(result));
+  expect(result.note).not.toContain('읽는 중');
+  expect(Object.values(result).join(' ').length).toBeGreaterThan(0);
 });
 
 test('admin docs: long instructor profile splits by whole rows and repeats its identity', async ({ page }) => {

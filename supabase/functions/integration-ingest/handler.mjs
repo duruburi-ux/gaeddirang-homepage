@@ -46,7 +46,8 @@ export function makeHandler({env,fetcher=fetch,now=()=>Date.now(),cryptoImpl=cry
     return rows;
   }
   async function recordRun(base,h,batch,status,counts,error=''){
-    const row={connector_code:batch.connectorCode,external_run_id:batch.runId,status,records_received:counts.received,records_applied:counts.applied,records_rejected:counts.rejected,completed_at:new Date(now()).toISOString(),metadata:{kind:'evidence_inbox',dry_run:batch.dryRun,error:error||undefined}};
+    const completedAt=new Date(now()).toISOString();
+    const row={connector_code:batch.connectorCode,external_run_id:batch.runId,status,records_received:counts.received,records_applied:counts.applied,records_rejected:counts.rejected,started_at:completedAt,completed_at:completedAt,metadata:{kind:'evidence_inbox',dry_run:batch.dryRun,error:error||undefined}};
     const response=await request(base+'/rest/v1/integration_sync_runs',{method:'POST',headers:{...h,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(row)}).catch(()=>null);
     return Boolean(response?.ok);
   }
@@ -86,7 +87,7 @@ export function makeHandler({env,fetcher=fetch,now=()=>Date.now(),cryptoImpl=cry
       try{
         result=await rpc(base,h,'ingest_integration_evidence',{p_connector_code:batch.connectorCode,p_run_id:batch.runId,p_rows:rows});
       }catch(error){
-        await recordRun(base,h,batch,'failure',{received:rows.length,applied:0,rejected:rows.length},error.message||'INGEST_FAILED');
+        await recordRun(base,h,batch,'failed',{received:rows.length,applied:0,rejected:rows.length},error.message||'INGEST_FAILED');
         throw error;
       }
       const items=Array.isArray(result)?result:[],counts={received:rows.length,applied:items.filter(row=>row.result==='inserted').length,rejected:items.filter(row=>row.result==='conflict').length};

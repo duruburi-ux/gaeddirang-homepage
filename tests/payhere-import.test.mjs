@@ -18,7 +18,7 @@ const sheets={
 };
 
 test('Payhere export becomes two stock candidates and one non-stock payment',()=>{
-  const report=M.parseSheets(sheets,'payhere.xlsx'),plan=M.planImport(report,{inventory:[{sku:'GDR-B-0027',name:'불편한거야불편한건 이다솜',price:15000},{sku:'GDR-B-0025',name:'우울의바깥을향하며 두루',price:13000}]});
+  const report=M.parseSheets(sheets,'payhere.xlsx'),plan=M.planImport(report,{inventory:[{sku:'GDR-B-0027',name:'가상 도서 A',price:15000},{sku:'GDR-B-0025',name:'가상 도서 B',price:13000}]});
   assert.equal(report.gross,153000);assert.equal(report.net,151700);assert.equal(report.period.start,'2026-08-06');assert.equal(report.period.end,'2026-09-06');
   assert.equal(plan.ready.length,2);assert.equal(plan.excluded.length,1);assert.equal(plan.blocked.length,0);
   assert.deepEqual(plan.ready.map(x=>x.mapped.sku).sort(),['GDR-B-0025','GDR-B-0027']);

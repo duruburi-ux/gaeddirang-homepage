@@ -24,7 +24,7 @@
     SOURCE_REQUIRED:'정보 출처를 선택해 주세요.',
     SOURCE_DATE_REQUIRED:'출처를 확인한 날짜를 입력해 주세요.',
   };
-  const S={author:'',row:null,full:null,loading:false,saving:false,showForm:false,rev:0,timer:null};
+  const S={author:'',row:null,full:null,loading:false,error:'',saving:false,showForm:false,rev:0,timer:null};
   const e=v=>String(v==null?'':v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const date=v=>v?new Date(v).toLocaleString('ko-KR',{year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'없음';
   const isoToday=()=>new Date().toLocaleDateString('sv-SE');
@@ -53,6 +53,7 @@
     if(!S.author)return '<div class="ry-account-summary"><span class="hint">작가·도서를 선택하면 지급계좌 확인 상태를 볼 수 있어요.</span></div>';
     if(!modeReady())return '<div class="ry-account-summary"><span class="hint">관리자 로그인 후에만 마스킹된 계좌 목록을 불러옵니다. 미리보기 모드에서는 계좌 저장소를 호출하지 않아요.</span></div>';
     if(S.loading)return '<div class="ry-account-summary"><span class="hint">마스킹된 계좌 정보를 불러오는 중…</span></div>';
+    if(S.error)return `<div class="ry-account-summary"><div class="top"><b>${e(S.author)}</b><span class="ry-account-status">확인 실패</span></div><p class="ry-account-warn">저장된 계좌가 없는 것이 아닙니다. 지급계좌를 불러오지 못해 등록·수정을 막았습니다.</p><div class="btns"><button class="btn-sm" id="ryAccountReload">다시 불러오기</button></div></div>`;
     if(!S.row)return `<div class="ry-account-summary"><div class="top"><b>${e(S.author)}</b><span class="ry-account-status">등록 전</span></div><p class="meta">저장된 지급계좌가 없습니다.</p><div class="btns"><button class="btn-sm" id="ryAccountAdd">안전하게 등록</button><button class="btn-link" id="ryAccountReload">다시 불러오기</button></div></div>`;
     const r=S.row,verified=r.verification_status==='verified';
     const access=r.last_access_at?`${r.last_access_action==='copied'?'복사':'조회'} ${date(r.last_access_at)}`:'조회·복사 기록 없음';
@@ -104,13 +105,13 @@
   }
 
   async function reload(){
-    clearFull();S.showForm=false;
+    clearFull();S.showForm=false;S.error='';
     if(!modeReady()||!S.author){S.row=null;render();return;}
     const rev=++S.rev;S.loading=true;render();
     const {data,error}=await sb.rpc('list_royalty_payment_accounts',{p_author_name:S.author});
     if(rev!==S.rev)return;
     S.loading=false;
-    if(error){S.row=null;render();toast(ERRORS[error.message]||'지급계좌를 불러오지 못했어요',true);return;}
+    if(error){S.row=null;S.error=ERRORS[error.message]||'지급계좌를 불러오지 못했어요';render();toast(S.error,true);return;}
     S.row=Array.isArray(data)?data[0]||null:null;render();
   }
 
@@ -171,10 +172,10 @@
   function selectAuthor(author){
     const next=String(author||'').trim();
     if(next===S.author&&(S.row||S.loading))return;
-    ++S.rev;S.author=next;S.row=null;S.loading=false;S.showForm=false;clearFull();render();
+    ++S.rev;S.author=next;S.row=null;S.loading=false;S.error='';S.showForm=false;clearFull();render();
     if(modeReady()&&next)reload();
   }
 
-  window.RoyaltyAccountUI={selectAuthor,reload,state:()=>({author:S.author,row:S.row,full:!!S.full})};
+  window.RoyaltyAccountUI={selectAuthor,reload,state:()=>({author:S.author,row:S.row,full:!!S.full,error:S.error})};
   render();
 })();

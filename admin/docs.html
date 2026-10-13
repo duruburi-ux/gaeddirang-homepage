@@ -102,6 +102,7 @@
   .toast.sticky{background:#8f3b22;cursor:pointer;width:max-content;max-width:min(92vw,560px);line-height:1.55}
   .toast button{margin-left:10px;background:#fff;color:var(--ink);border:none;border-radius:7px;padding:4px 10px;font-size:12.5px;font-weight:700}
   .toast .x{margin-left:10px;opacity:.75;font-size:12px;white-space:nowrap}
+  button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid rgba(209,113,70,.38);outline-offset:3px}
 
   /* ---- 품목 입력 ---- */
   .saved-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:11px 14px;margin-bottom:13px;box-shadow:0 3px 12px rgba(63,43,29,.03)}
@@ -639,7 +640,7 @@
 
 <datalist id="catList"></datalist>
 <div id="printArea"></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script src="settlement-statement-model.js?v=20261008-1"></script>
 <script>
@@ -705,6 +706,7 @@ let LINKS = [];
 let ITEMS = [];             // 견적서 탭 품목
 let CURRENT = null;         // 견적서 탭에서 고치는 중인 저장된 견적
 let CURRENT_INQUIRY = null; // 문의에서 넘어왔으면 문의 id
+let INQUIRIES_ERROR = '';
 let CURRENT_VIEW = 'quote';
 let SEAL = null;            // 도장 이미지 (관리자 로그인 후 DB에서 받음)
 let USE_SEAL = true;
@@ -720,7 +722,8 @@ function toast(msg, opt){
   const t = $('#toast'); clearTimeout(t._t);
   const sticky = opt === true, act = opt && opt.action ? opt : null;
   t.className = 'toast show' + (sticky ? ' sticky' : '') + (act ? ' act' : '');
-  t.innerHTML = esc(msg) + (act ? ` <button type="button">${esc(act.action)}</button>` : '') + (sticky ? ' <span class="x">닫기 ✕</span>' : '');
+  t.setAttribute('role',sticky?'alert':'status');
+  t.innerHTML = esc(msg) + (act ? ` <button type="button">${esc(act.action)}</button>` : '') + (sticky ? ' <button type="button" class="x">닫기 ✕</button>' : '');
   t.onclick = e => { if(act && e.target.tagName==='BUTTON') act.onAction(); if(sticky || act) t.classList.remove('show'); };
   if(!sticky) t._t = setTimeout(()=>t.classList.remove('show'), act ? 6000 : 2200);
 }
@@ -1467,7 +1470,7 @@ function refreshStatementForm(){
   $('#tsPrintBtn').textContent = (MODE==='db' && direct) ? '저장하고 PDF' : 'PDF 저장';
   $('#tsTip').textContent = (MODE!=='db' ? '미리보기 모드에서는 PDF만 뽑고 기록은 남지 않습니다.'
     : direct ? '「저장하고 PDF」를 누르면 번호가 매겨지고 기록 탭에 「거래명세서만」으로 남습니다.'
-    : saveNeeded ? '저장된 견적으로 뽑으면 그 견적이 「수주」로 바뀌고 거래일자가 기록됩니다.'
+    : saveNeeded ? '저장된 견적을 가져와 PDF만 만듭니다. 견적 상태와 거래일자는 바꾸지 않습니다.'
     : '견적서 탭에서 저장하지 않은 견적이면 기록은 남지 않고 PDF만 나옵니다.') + PRINT_CLEAN_GUIDE;
   renderStatement();
 }
@@ -1528,20 +1531,6 @@ async function printStatement(){
     renderRecords(); refreshStatementForm(); s = renderStatement();
     TS_BASE = tsSnap();
     toast(`${TS_EDIT.number} 거래명세서를 ${isNew?'저장했어요':'고쳤어요'}`);
-  } else if(MODE==='db' && s.row){
-    const patch = { statement_date: s.date };
-    if(['작성','보냄'].includes(s.row.status)) patch.status = '수주';
-    let req = sb.from('quotes').update(patch).eq('id', s.row.id);
-    if(s.row.updated_at) req = req.eq('updated_at', s.row.updated_at);
-    const { data, error } = await req.select().maybeSingle();
-    if(error){ toast('견적 기록을 고치지 못했어요. ' + friendlyError(error), true); return; }
-    if(!data){ toast('그 사이 다른 곳에서 이 견적을 고쳤어요. 최신 기록을 다시 연 뒤 PDF를 만들어 주세요.', true); return; }
-    else {
-      Object.assign(s.row, data); QUOTES = QUOTES.map(x=>x.id===data.id?s.row:x);
-      if(CURRENT && CURRENT.id===data.id){ CURRENT = s.row; renderSavedBar(); }
-      renderRecords();
-      if(patch.status) toast(`${data.number} → 수주`);
-    }
   }
   printHtml(s.html, [s.number, '거래명세서', s.toName].filter(Boolean).join('_'));
 }
@@ -1902,9 +1891,9 @@ const shortDate = d => d ? String(d).slice(5,10).replace('-','/') : '';
 function renderTodoBar(){
   const bar = $('#recTodo'), fs = $('#rStatus').value;
   if(MODE!=='db'){ bar.innerHTML = ''; return; }
-  const counts = { inquiry: pendingInquiries().length, waiting: QUOTES.filter(TODO.waiting).length, unpaid: QUOTES.filter(TODO.unpaid).length, invoice: QUOTES.filter(TODO.invoice).length };
+  const counts = { inquiry: INQUIRIES_ERROR?null:pendingInquiries().length, waiting: QUOTES.filter(TODO.waiting).length, unpaid: QUOTES.filter(TODO.unpaid).length, invoice: QUOTES.filter(TODO.invoice).length };
   bar.innerHTML = [['inquiry','견적 안 한 기관 문의'],['waiting','보낸 지 7일 넘은 견적'],['unpaid','입금 확인 전'],['invoice','계산서 발행 전']]
-    .map(([k,l]) => `<button class="todo${counts[k]?' on':''}${fs==='todo:'+k?' sel':''}" data-k="${k}"><b>${counts[k]}</b><span>${l}</span></button>`).join('');
+    .map(([k,l]) => `<button class="todo${counts[k]?' on':''}${fs==='todo:'+k?' sel':''}" data-k="${k}"${counts[k]==null?' disabled aria-label="기관 문의 확인 실패"':''}><b>${counts[k]??'—'}</b><span>${l}${counts[k]==null?' · 확인 실패':''}</span></button>`).join('');
   bar.querySelectorAll('.todo').forEach(b => b.onclick = () => {
     const v = 'todo:' + b.dataset.k;
     $('#rStatus').value = fs===v ? '' : v; renderRecords();
@@ -1988,9 +1977,10 @@ function renderRecords(){
   const rows = todo==='inquiry' ? [] : QUOTES.filter(r => (!fk || (r.kind||'quote')===fk) &&
     (!fs || (todo ? TODO[todo](r) : fs==='가견적' ? r.is_draft : r.status===fs)) &&
     (!qt || [r.number, r.to_name, r.title, r.to_manager, r.memo].join(' ').toLowerCase().includes(qt)));
-  const inq = (!fs || todo==='inquiry') && fk!=='statement'
+  const inq = !INQUIRIES_ERROR&&(!fs || todo==='inquiry') && fk!=='statement'
     ? pendingInquiries().filter(i => !qt || [i.org_name, i.manager_name, i.program_wanted, i.inquiry_type].join(' ').toLowerCase().includes(qt)) : [];
-  $('#rCount').textContent = `${rows.length}건${inq.length?` · 기관 문의 ${inq.length}건`:''}`;
+  $('#rCount').textContent = `${rows.length}건${INQUIRIES_ERROR?' · 기관 문의 확인 실패':inq.length?` · 기관 문의 ${inq.length}건`:''}`;
+  if(INQUIRIES_ERROR&&!rows.length){host.innerHTML='<div class="empty"><b>기관 문의를 불러오지 못했어요.</b><br>0건이 아닙니다. 위의 「새로고침」으로 다시 확인해 주세요.</div>';return;}
   if(!rows.length && !inq.length){ host.innerHTML = `<div class="empty">${QUOTES.length||INQUIRIES.length?'조건에 맞는 기록이 없어요.':'아직 저장된 기록이 없어요. 견적서·거래명세서를 저장하면 여기에 쌓입니다.'}</div>`; return; }
   host.innerHTML = '';
   inq.forEach(i => host.appendChild(inquiryCard(i)));
@@ -2174,23 +2164,37 @@ async function refreshQuotes(force){
   ]);
   if(qu.error){ QUOTES_AT = 0; toast('기록을 새로 읽지 못했어요. ' + friendlyError(qu.error), true); return; }
   QUOTES = qu.data;
-  if(!iq.error) INQUIRIES = iq.data;
-  if(CURRENT){ const fresh = QUOTES.find(x=>x.id===CURRENT.id); if(fresh) CURRENT = fresh; }
-  if(TS_EDIT){ const fresh = QUOTES.find(x=>x.id===TS_EDIT.id); if(fresh) TS_EDIT = fresh; }
+  if(!iq.error){ INQUIRIES = iq.data; INQUIRIES_ERROR=''; }
+  else INQUIRIES_ERROR='기관 문의를 새로 읽지 못했습니다.';
+  const quoteChanged=CURRENT&&QUOTES.find(x=>x.id===CURRENT.id)?.updated_at!==CURRENT.updated_at;
+  const statementChanged=TS_EDIT&&QUOTES.find(x=>x.id===TS_EDIT.id)?.updated_at!==TS_EDIT.updated_at;
+  if(quoteChanged||statementChanged)toast('열어 둔 문서가 다른 곳에서 바뀌었습니다. 현재 입력은 유지했으며, 저장하면 충돌을 확인합니다.',true);
   if(CURRENT_VIEW==='records') renderRecords();
   return true;
 }
-function switchView(name){
+function prepareDocTabs(){
+  const tabs=[...document.querySelectorAll('#docTabs .doc-tab[data-view]')],host=$('#docTabs');host.setAttribute('role','tablist');host.setAttribute('aria-label','서류실 업무');
+  host.querySelectorAll('.tab-group,.tab-anchor').forEach(node=>node.setAttribute('role','presentation'));
+  tabs.forEach((tab,index)=>{
+    const view=tab.dataset.view,panel=$('#view-'+view);tab.setAttribute('role','tab');tab.id='docs-tab-'+view;tab.setAttribute('aria-controls','view-'+view);
+    if(panel){panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',tab.id);}
+    if(tab.dataset.keyboardReady)return;tab.dataset.keyboardReady='1';
+    tab.addEventListener('keydown',event=>{let next=null;if(event.key==='ArrowRight')next=(index+1)%tabs.length;if(event.key==='ArrowLeft')next=(index-1+tabs.length)%tabs.length;if(event.key==='Home')next=0;if(event.key==='End')next=tabs.length-1;if(next==null)return;event.preventDefault();tabs[next].focus();switchView(tabs[next].dataset.view);});
+  });
+}
+function switchView(name,historyMode='push'){
   if(!VIEWS.includes(name)) name = 'quote';
+  prepareDocTabs();
   CURRENT_VIEW = name;
   let activeTab = null;
   document.querySelectorAll('#docTabs .doc-tab[data-view]').forEach(t=>{
     const on = t.dataset.view===name;
     t.classList.toggle('active', on);
+    t.setAttribute('aria-selected',String(on));t.tabIndex=on?0:-1;
     if(on) activeTab = t;
   });
   VIEWS.forEach(v=>$('#view-'+v).classList.toggle('hidden', v!==name));
-  if(location.hash !== '#'+name) history.replaceState(null, '', location.pathname + location.search + '#' + name);
+  if(location.hash !== '#'+name){const url=location.pathname+location.search+'#'+name;if(historyMode==='none'){}else if(!history.state?.docsView||historyMode==='replace')history.replaceState({docsView:name},'',url);else history.pushState({docsView:name},'',url);}
   if(name==='quote') update();
   if(name==='statement'){
     fillStatementSelect();
@@ -2303,6 +2307,7 @@ $('#iAddBtn').onclick = ()=>{
 $('#lAddBtn').onclick = addLink;
 document.querySelectorAll('.sealToggle').forEach(cb=>cb.onchange=e=>onSealToggle(e.target.checked));
 document.querySelectorAll('#docTabs .doc-tab[data-view]').forEach(t=>t.onclick=()=>switchView(t.dataset.view));
+window.addEventListener('popstate',()=>switchView((location.hash||'#quote').slice(1),'none'));
 window.addEventListener('resize', rerenderCurrent);
 refreshCatalogList();
 
@@ -2322,7 +2327,8 @@ async function loadDb(){
   if(it.data.length) CATALOG = it.data.map(fromDbItem);
   QUOTES = qu.data; LINKS = li.data; QUOTES_AT = Date.now();
   const iq = await sb.from('inquiries').select('id,org_name,manager_name,inquiry_type,program_wanted,headcount,status,created_at').order('created_at', { ascending:false }).limit(300);
-  if(!iq.error) INQUIRIES = iq.data;
+  if(!iq.error){INQUIRIES = iq.data;INQUIRIES_ERROR='';}
+  else INQUIRIES_ERROR='기관 문의를 읽지 못했습니다.';
   const seal = await sb.from('doc_assets').select('data_url').eq('key', 'seal').maybeSingle();
   if(!seal.error && seal.data) setSeal(seal.data.data_url);
   refreshCatalogList();
@@ -2341,7 +2347,7 @@ function startEditor(userLabel, bannerText){
 }
 function lockExpiredEditor(){
   if(MODE==='preview'||MODE==='locked')return;
-  MODE='locked';CURRENT=null;CURRENT_INQUIRY=null;ITEMS=[];QUOTES=[];INQUIRIES=[];LINKS=[];SEAL=null;
+  MODE='locked';CURRENT=null;CURRENT_INQUIRY=null;ITEMS=[];QUOTES=[];INQUIRIES=[];INQUIRIES_ERROR='';LINKS=[];SEAL=null;
   window.RoyaltyAccountUI?.selectAuthor('');
   const app=$('#appView');
   app.classList.add('hidden');
@@ -2448,9 +2454,9 @@ window.__docs = { parseRequest, parseItems, matchCatalog, calcLine, buildQuote, 
 window.addEventListener('DOMContentLoaded', boot);
 </script>
 <script src="royalty-account-model.js?v=20261010-1"></script>
-<script src="docs-royalty-accounts.js?v=20261010-2"></script>
-<script src="settlement-document-model.js?v=20261010-2"></script>
-<script src="docs-settlement-archive.js?v=20261010-2"></script>
+<script src="docs-royalty-accounts.js?v=20261013-1"></script>
+<script src="settlement-document-model.js?v=20261013-1"></script>
+<script src="docs-settlement-archive.js?v=20261013-1"></script>
 <script src="docs-kit.js?v=20260916-6"></script>
 <script src="profile-import-model.js?v=20260916-6"></script>
 <script src="docs-profile-import.js?v=20260916-6"></script>

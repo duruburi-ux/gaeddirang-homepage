@@ -17,7 +17,7 @@ test('HWP CFB의 전체 경로에서 BodyText 섹션을 찾는다', () => {
 
 test('강사 프로필의 명시된 항목을 양식 필드로 나눈다', () => {
   const result = model.parseProfile(`
-성명: 이진이
+성명: 김가상
 한 줄 소개: 그림책과 감정 기록을 잇는 글쓰기 강사
 
 강사 소개
@@ -33,7 +33,7 @@ test('강사 프로필의 명시된 항목을 양식 필드로 나눈다', () =>
 주요 출강 이력
 2026.05 수원시립도서관 · 감정 기록 워크숍 (4회)
 `, ['기존프로필.pdf']);
-  assert.equal(result.name, '이진이');
+  assert.equal(result.name, '김가상');
   assert.match(result.headline, /글쓰기 강사/);
   assert.match(result.intro, /마음을 기록/);
   assert.match(result.careers, /개띠랑유니버스 대표/);
@@ -165,7 +165,7 @@ test('한글 HWP 전용 체크표시와 반복 날짜가 있는 합성 이력서
 
 test('PDF 표의 강연·행사·모임과 기타 자격 머리말을 구분한다', () => {
   const result = model.parseProfile(`
-이다솜
+박가상
 ▶ 느껴온 감정을 기록하고 표현하는 <감정 기록가>
 ▶ 학력 : 한국대학교 문예창작학과 졸업
 ▶ 연락처 : 010-0000-0000
@@ -192,7 +192,7 @@ test('PDF 표의 강연·행사·모임과 기타 자격 머리말을 구분한�
 화성시 시민강사 자격 인증
 `);
   assert.equal(result.blockedReason, '');
-  assert.equal(result.name, '이다솜');
+  assert.equal(result.name, '박가상');
   assert.equal(result.headline, '감정 기록가');
   assert.match(result.intro, /종합 콘텐츠 크리에이터/);
   assert.match(result.intro, /불편 감정 카드 등\)를 개발/);
@@ -214,14 +214,14 @@ test('맥북처럼 이름과 강연 표제가 한 줄로 합쳐져도 파일명�
 2025.06 에세이 <감정 기록의 시작>
 강연 / 행사 / 모임 기간 활동 내용 주최 주관 진행
 2026.01 감정 표현 교실 강연 화성 다원이음터도서관
-`, ['이다솜 이력서 (260205).pdf']);
+`, ['박가상 이력서 (260205).pdf']);
   assert.equal(result.blockedReason, '');
-  assert.equal(result.name, '이다솜');
+  assert.equal(result.name, '박가상');
   assert.match(result.lectures, /다원이음터도서관/);
 });
 
 test('맥북 NFD 파일명에서 직함을 건너뛰고 사람 이름을 찾는다', () => {
-  const decomposed = '[이력서] 감정기록가 이다솜.pdf'.normalize('NFD');
+  const decomposed = '[이력서] 감정기록가 박가상.pdf'.normalize('NFD');
   const result = model.parseProfile(`
 감정을 기록하고 표현하는 사람
 경력
@@ -232,7 +232,7 @@ test('맥북 NFD 파일명에서 직함을 건너뛰고 사람 이름을 찾는�
 2026.01 감정 표현 교실 강연 화성 다원이음터도서관
 `, [decomposed]);
   assert.equal(result.blockedReason, '');
-  assert.equal(result.name, '이다솜');
+  assert.equal(result.name, '박가상');
   assert.match(result.lectures, /다원이음터도서관/);
 });
 
@@ -246,14 +246,14 @@ test('표 머리말을 이름으로 오인하지 않고 파일명에서 이름�
 2025.06 에세이 <감정 기록의 시작>
 강연 / 행사 / 모임
 2026.01 감정 표현 교실 강연 화성 다원이음터도서관
-`, ['[이력서] 감정기록가 이다솜.pdf'.normalize('NFD')]);
-  assert.equal(result.name, '이다솜');
+`, ['[이력서] 감정기록가 박가상.pdf'.normalize('NFD')]);
+  assert.equal(result.name, '박가상');
   assert.equal(result.headline, '감정 기록가');
 });
 
 test('PDF 표가 날짜 열 다음 활동 열 순서로 풀려도 경력 행을 다시 짝짓는다', () => {
   const result = model.parseProfile(`
-이다솜
+박가상
 경력
 기간
 2020.01~2022.01
@@ -267,7 +267,7 @@ tvN <커피 프렌즈>
 2025.06 에세이 <감정 기록의 시작>
 강연 / 행사 / 모임
 2026.01 감정 표현 교실 강연 화성 다원이음터도서관
-`, ['이다솜 이력서.pdf']);
+`, ['박가상 이력서.pdf']);
   assert.match(result.careers, /2020\.01~2022\.01 KBS/);
   assert.match(result.careers, /2019\.08~2019\.10 MBN/);
   assert.match(result.careers, /2018\.09~2019\.03 tvN/);
@@ -276,7 +276,7 @@ tvN <커피 프렌즈>
 
 test('PDF 강연 표에서 날짜 위아래로 갈라진 프로그램명과 기관을 한 행으로 묶는다', () => {
   const result = model.parseProfile(`
-이다솜
+박가상
 경력
 2020.01~2022.01 KBS 방송작가
 저서
@@ -297,7 +297,7 @@ test('PDF 강연 표에서 날짜 위아래로 갈라진 프로그램명과 기�
   assert.doesNotMatch(result.lectures, /^감정을 다채롭게 표현하는$/m);
 });
 
-test('실제 이다솜 작가 HWP의 방송작가 경력과 월 단위 강연 날짜를 복원한다', () => {
+test('합성 작가 HWP의 방송작가 경력과 월 단위 강연 날짜를 복원한다', () => {
   const result = model.parseProfile(`
 ▶10년간 예능 방송작가로 활동 (KBS, tvN, MBN...)
 ▶現) 독립출판을 비롯한 다양한 콘텐츠를 제작하는 콘텐츠 크리에이터로 활동 중
@@ -308,10 +308,10 @@ test('실제 이다솜 작가 HWP의 방송작가 경력과 월 단위 강연 �
 KBS<슈퍼맨이 돌아왔다>
 2019.08~2019.10
 MBN<사인히어>
-[이다솜 작가] 이 력 서
+[박가상 작가] 이 력 서
  저서
 2024.06
-에세이 <나에게도 빵빵한 하루가 필요해!> (개띠랑, 이다솜, 두루 공저)
+에세이 <가상 에세이> (가상출판사, 박가상, 김가상 공저)
  강연 / 행사 / 모임
 2024.
 6월~10월
@@ -320,15 +320,15 @@ MBN<사인히어>
 2024.08
 전주 한옥마을도서관
 <잡았다, 내 감정! - 나만의 감정카드 만들기> 강연
-`, ['[이력서] 이다솜 작가.hwp']);
+`, ['[이력서] 박가상 작가.hwp']);
   assert.equal(result.blockedReason, '');
-  assert.equal(result.name, '이다솜');
+  assert.equal(result.name, '박가상');
   assert.equal(result.headline, '방송작가 · 콘텐츠 크리에이터');
   assert.match(result.intro, /10년간 예능 방송작가/);
   assert.match(result.careers, /2020\.01~2022\.01 KBS/);
   assert.match(result.careers, /2019\.08~2019\.10 MBN/);
   assert.doesNotMatch(result.works, /KBS|MBN/);
-  assert.match(result.works, /개띠랑, 이다솜, 두루 공저/);
+  assert.match(result.works, /가상출판사, 박가상, 김가상 공저/);
   assert.match(result.lectures, /2024\.06~2024\.10/);
   assert.match(result.lectures, /2024\.08/);
 });
@@ -342,8 +342,8 @@ test('기관명이 앞선 긴 파일명에서도 사람 이름은 오른쪽에�
 2024.06 에세이 <마음 기록>
 강연 / 모임
 2025.08 여름독서교실 감정 기록 워크숍
-`, ['[여름독서교실] 독서연계 논술_이다솜 이력서.hwp']);
-  assert.equal(result.name, '이다솜');
+`, ['[여름독서교실] 독서연계 논술_박가상 이력서.hwp']);
+  assert.equal(result.name, '박가상');
 });
 
 test('예시 양식과 여러 사람 포트폴리오는 기존 입력을 지키도록 차단한다', () => {
@@ -356,7 +356,7 @@ test('예시 양식과 여러 사람 포트폴리오는 기존 입력을 지키�
 2024.01 <예시 책>
 강연
 2024.01 예시 도서관
-`, ['이다솜 강사 이력서 복사본.hwp']);
+`, ['박가상 강사 이력서 복사본.hwp']);
   assert.match(example.blockedReason, /예시 문구/);
 
   const group = model.parseProfile(`

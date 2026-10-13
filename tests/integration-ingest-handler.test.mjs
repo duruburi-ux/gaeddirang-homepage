@@ -56,6 +56,7 @@ test('write uses hashed evidence, records a run, and never changes the ledger',a
   assert.equal(response.status,200);assert.equal(body.inserted,1);assert.equal(body.runRecorded,true);assert.equal(body.warning,null);
   const call=source.calls.find(row=>row.path==='/rest/v1/rpc/ingest_integration_evidence');assert.match(call.body.p_rows[0].content_hash,/^[a-f0-9]{64}$/);
   assert.deepEqual(call.body.p_rows[0].candidate_payload,{canonical_sku:null,quantity:null,unit_amount:12000,reverses_event_id:null});
+  const run=source.calls.find(row=>row.path==='/rest/v1/integration_sync_runs');assert.equal(run.body.started_at,run.body.completed_at);
   assert.equal(source.calls.filter(row=>row.path==='/rest/v1/integration_sync_runs').length,1);
   assert.equal(source.calls.some(row=>/inventory|settlement_entries/.test(row.path)),false);
 });
@@ -64,7 +65,7 @@ test('review marks evidence only and failed ingest is visible as a failed run',a
   const source=backend(),handler=handlerFor(source),review=await handler(request({action:'review',evidenceId:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',decision:'reviewed'}));
   assert.equal(review.status,200);assert.equal((await review.json()).ledgerChanged,false);
   const failedSource=backend({ingestFailure:true}),failed=await handlerFor(failedSource)(request({action:'collect',connectorCode:'homepage',runId,dryRun:false}));
-  assert.equal(failed.status,503);const run=failedSource.calls.find(row=>row.path==='/rest/v1/integration_sync_runs');assert.equal(run.body.status,'failure');assert.equal(run.body.records_rejected,1);
+  assert.equal(failed.status,503);const run=failedSource.calls.find(row=>row.path==='/rest/v1/integration_sync_runs');assert.equal(run.body.status,'failed');assert.equal(run.body.records_rejected,1);
 });
 
 test('a saved inbox item never pretends its missing run history was recorded',async()=>{

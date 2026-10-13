@@ -10,7 +10,8 @@ const css=readFileSync(new URL('../admin/book-finder.css',import.meta.url),'utf8
 
 test('책 찾기는 기존 관리자 경계 안의 별도 모바일 메뉴다',()=>{
   assert.ok(html.indexOf('id="appView"')<html.indexOf('id="tab-finder"'));
-  assert.match(html,/data-tab="finder">책공방/);assert.match(html,/<option value="finder">책공방/);
+  assert.match(html,/data-tab="finder">매장 판매가능/);assert.match(html,/<option value="finder">매장 판매가능/);
+  assert.match(html,/data-tab="scm">전체 상품 원장/);assert.match(html,/<option value="scm">전체 상품 원장/);
   assert.match(html,/window\.BookFinder\?\.init/);assert.match(html,/window\.BookFinder\?\.clear\(\)/);
   assert.match(html,/const TABS=\[[^\]]*'finder'/);
 });
@@ -36,16 +37,23 @@ test('예약·입고·구매 후보는 통합 원본을 표시하되 주문·입
   assert.match(js,/비공개 원본 설정 대기/);assert.match(js,/SmartStore 매핑 후보/);
 });
 
+test('판매 상태 필터는 판매가능·품절 확정과 미확인을 장부 수량과 섞지 않는다',()=>{
+  for(const value of ['sellable','soldout','review','reserved','incoming'])assert.ok(html.includes(`<option value="${value}">`));
+  assert.match(js,/sellableConfirmed===0&&row\.hasPhysicalEvidence/);
+  assert.match(js,/row\.sellableConfirmed==null\|\|row\.hasConflict/);
+  assert.match(js,/예약[^<]*판매가능 차감/);assert.match(js,/입고예정[^<]*실입고 전 미반영/);
+});
+
 test('현장 검색을 먼저 보여 주고 경고 상세와 버튼 줄바꿈을 제어한다',()=>{
   assert.ok(html.indexOf('id="book-finder-query"')<html.indexOf('class="finder-trust"'));
-  assert.match(html,/<details class="finder-trust"><summary>판매 가능 수량은 실사 확정값만 안내합니다/);
+  assert.match(html,/<details class="finder-trust"><summary>판매가능은 매장 실사 근거가 있는 값만 표시합니다/);
   assert.match(css,/finder-search-row button[^}]*white-space:nowrap/);
   assert.match(css,/@media\(max-width:520px\)[^\n]*finder-results\{grid-template-columns:1fr/);
 });
 
-test('카드는 실물 근거 없는 0을 확정하지 않고 시스템 장부를 매장 실물과 구분한다',()=>{
+test('카드는 실물 근거 없는 0을 확정하지 않고 전체 장부를 매장 실물과 구분한다',()=>{
   assert.match(js,/row\.hasPhysicalEvidence\?'<span class="finder-badge">매장 실사 근거 확인/);
-  assert.match(js,/시스템 장부/);assert.match(js,/매장 실물 합계 아님/);
+  assert.match(js,/전체 장부/);assert.match(js,/매장 실물 합계 아님/);
   assert.doesNotMatch(js,/실사 정보 미등록/);
 });
 

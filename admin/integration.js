@@ -8,7 +8,7 @@
   const directions={inbound:'가져오기',outbound:'보내기',two_way:'양방향',reference_only:'참고만'};
   const rowLabels={ready:'반영 후보',excluded:'재고 제외',unmapped:'상품 연결 필요',ambiguous:'거래 연결 필요',price_mismatch:'가격 확인 필요',duplicate:'이미 반영',applicable:'반영 가능',blocked:'확인 필요',applied:'반영 완료'};
   const importRequestStorageKey='gaeddirang.payhere.import-request.v1';
-  let config,client,onDenied,connectors=[],mappings=[],inventory=[],collectorStatuses=[],syncRuns=[],evidenceInbox=[],hub=null,loaded=false,loading=false,generation=0,fileGeneration=0,stats={mappings:null,movements:null,issues:null,settlements:null},scmState={available:false,stale:false,error:''},royaltyState={available:false,stale:false,error:'',bookCount:null},connectorsState={stale:false,error:''},syncRunsState={stale:false,error:''},evidenceState={stale:false,error:''};
+  let config,client,onDenied,connectors=[],mappings=[],inventory=[],collectorStatuses=[],syncRuns=[],evidenceInbox=[],hub=null,loaded=false,loading=false,generation=0,fileGeneration=0,stats={mappings:null,movements:null,issues:null,settlements:null},scmState={available:false,stale:false,error:''},mappingsState={available:false,stale:false,error:''},royaltyState={available:false,stale:false,error:'',bookCount:null},connectorsState={stale:false,error:''},syncRunsState={stale:false,error:''},evidenceState={stale:false,error:''};
   let importFile=null,importHash='',importPlan=null,dryResult=null,importBusy=false,importRequestId='';
   let evidencePreview=null,evidenceRunId='',evidenceBusy=false;
   let collectorBatch=null,collectorPreview=null,collectorBusy=false,collectorFileGeneration=0;
@@ -59,7 +59,8 @@
     const warning=evidenceState.error?`<p class="integration-inline-warning">검토함 조회에 실패했습니다. ${evidenceState.stale?'아래는 이전 확인본입니다.':'건수를 미확인으로 둡니다.'}</p>`:'';
     $('#integration-evidence-list').innerHTML=warning+(rows.length?rows.map(row=>{
       const actionable=['pending','conflict'].includes(row.review_status);
-      return `<article class="integration-evidence-item ${esc(row.review_status)}"><div class="integration-evidence-item-head"><div><span>${esc(evidenceConnectorLabels[row.connector_code]||row.connector_code)}</span><b>${esc(row.summary)}</b></div><span class="integration-evidence-state">${esc(evidenceStatusLabels[row.review_status]||row.review_status)}</span></div><p>${esc(evidenceTypeLabels[row.candidate_type]||row.candidate_type)} · ${esc(formatTime(row.occurred_at))}</p>${row.review_reason?`<small>${esc(row.review_reason)}</small>`:''}${actionable?`<div class="integration-evidence-row-actions"><button type="button" data-evidence-id="${esc(row.id)}" data-evidence-decision="reviewed">근거 확인</button><button type="button" data-evidence-id="${esc(row.id)}" data-evidence-decision="rejected">반려</button></div>`:''}</article>`;
+      const itemName=String(row.summary||'근거').slice(0,60);
+      return `<article class="integration-evidence-item ${esc(row.review_status)}"><div class="integration-evidence-item-head"><div><span>${esc(evidenceConnectorLabels[row.connector_code]||row.connector_code)}</span><b>${esc(row.summary)}</b></div><span class="integration-evidence-state">${esc(evidenceStatusLabels[row.review_status]||row.review_status)}</span></div><p>${esc(evidenceTypeLabels[row.candidate_type]||row.candidate_type)} · ${esc(formatTime(row.occurred_at))}</p>${row.review_reason?`<small>${esc(row.review_reason)}</small>`:''}${actionable?`<div class="integration-evidence-row-actions"><button type="button" data-evidence-id="${esc(row.id)}" data-evidence-decision="reviewed" aria-label="${esc(itemName)} 근거 확인으로 표시">근거 확인</button><button type="button" data-evidence-id="${esc(row.id)}" data-evidence-decision="rejected" aria-label="${esc(itemName)} 반려">반려</button></div>`:''}</article>`;
     }).join(''):'<p class="integration-empty-state">이 상태의 근거가 없습니다. 원천 전체 확인 완료를 뜻하지는 않습니다.</p>');
     $('#integration-collect-preview').disabled=evidenceBusy;
     $('#integration-collect-apply').disabled=evidenceBusy||!evidencePreview||!evidencePreview.received;
@@ -103,7 +104,7 @@
       const results=[['연결 목록',co],['상품 연결표',ma],['입출고 기록',mv],['불일치',issues],['정산',se],['실행 이력',runs],['근거 검토함',evidence],['SCM',scm],['인세 원본',royalty]],failed=results.filter(([,r])=>r.error);
       const denied=failed.find(([,r])=>r.error?.code==='PGRST301'||/jwt|auth/i.test(r.error?.message||''));if(denied){onDenied?.();return}
       if(!co.error){connectors=co.data||[];connectorsState={stale:false,error:''}}else connectorsState={stale:connectors.length>0,error:co.error?.message||'연결 목록 조회 실패'};
-      if(!ma.error)mappings=ma.data||[];if(!runs.error){syncRuns=runs.data||[];syncRunsState={stale:false,error:''}}else syncRunsState={stale:syncRuns.length>0,error:runs.error?.message||'실행 이력 조회 실패'};
+      if(!ma.error){mappings=ma.data||[];mappingsState={available:true,stale:false,error:''}}else mappingsState={available:mappings.length>0,stale:mappings.length>0,error:'상품 연결표 조회 실패'};if(!runs.error){syncRuns=runs.data||[];syncRunsState={stale:false,error:''}}else syncRunsState={stale:syncRuns.length>0,error:runs.error?.message||'실행 이력 조회 실패'};
       if(!evidence.error){evidenceInbox=evidence.data||[];evidenceState={stale:false,error:''}}else evidenceState={stale:evidenceInbox.length>0,error:evidence.error?.message||'근거 검토함 조회 실패'};
       if(!scm.error){inventory=scm.data.inventory;collectorStatuses=scm.data.connections;scmState={available:true,stale:!!scm.meta?.stale,error:'',fetchedAt:scm.meta?.fetchedAt||''}}else scmState={...scmState,stale:scmState.available,error:'SCM 조회 실패'};
       if(!royalty.error)royaltyState={available:true,stale:!!royalty.meta?.stale,error:'',fetchedAt:royalty.meta?.fetchedAt||'',bookCount:royalty.data?.bookCount??null};else royaltyState={...royaltyState,stale:royaltyState.available,error:'인세 원본 조회 실패'};
@@ -149,7 +150,7 @@
     try{const result=await integrationRequest({action:'collect',connectorCode:'homepage',runId:evidenceRunId,dryRun:false}),historyWarning=result.runRecorded===false?' · 실행 이력 저장 실패':'';evidenceStatus(`저장 ${result.inserted||0}건 · 중복 ${result.duplicates||0}건 · 충돌 ${result.conflicts||0}건${historyWarning}`,Boolean(result.conflicts)||result.runRecorded===false,!result.conflicts&&result.runRecorded!==false);evidencePreview=null;evidenceRunId='';await refresh(true)}catch(error){console.error(error);evidenceStatus('저장 결과를 확인하지 못했습니다. 같은 미리보기로 다시 시도하면 중복 저장하지 않습니다.',true)}finally{evidenceBusy=false;renderEvidence()}
   }
   async function reviewEvidence(id,decision){
-    if(evidenceBusy)return;evidenceBusy=true;renderEvidence();evidenceStatus(decision==='reviewed'?'근거 확인 상태를 저장하고 있어요.':'반려 상태를 저장하고 있어요.');
+    if(evidenceBusy)return;const row=evidenceInbox.find(item=>String(item.id)===String(id)),label=String(row?.summary||'선택한 근거').slice(0,80);if(!confirm(`「${label}」을(를) ${decision==='reviewed'?'근거 확인':'반려'} 상태로 저장할까요? 이 작업은 SCM·정산·지급 원장에는 반영하지 않습니다.`))return;evidenceBusy=true;renderEvidence();evidenceStatus(decision==='reviewed'?'근거 확인 상태를 저장하고 있어요.':'반려 상태를 저장하고 있어요.');
     try{await integrationRequest({action:'review',evidenceId:id,decision});evidenceStatus(decision==='reviewed'?'근거 확인으로 표시했습니다. 원장에는 반영하지 않았습니다.':'반려했습니다. 원장에는 반영하지 않았습니다.',false,true);await refresh(true)}catch(error){console.error(error);evidenceStatus('검토 상태를 저장하지 못했습니다. 다시 시도해 주세요.',true)}finally{evidenceBusy=false;renderEvidence()}
   }
 
@@ -160,7 +161,7 @@
     if(!importPlan){$('#payhere-review').hidden=true;return}
     $('#payhere-review').hidden=false;
     const quantity=importPlan.ready.reduce((sum,row)=>sum+row.quantity,0),period=importPlan.period.start?`${importPlan.period.start} ~ ${importPlan.period.end}`:'기간 확인 필요';
-    $('#payhere-summary').innerHTML=[['판매 기간',period],['할인 반영 매출액',money(importPlan.net)],['재고 반영 후보',quantity+'권/개'],['재고에서 제외',importPlan.excluded.reduce((s,x)=>s+x.quantity,0)+'건']].map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('');
+    $('#payhere-summary').innerHTML=[['선택 파일',importPlan.fileName||'미확인'],['매장',importPlan.merchant||'미확인'],['파일 지문',importHash?importHash.slice(0,12)+'…':'확인 중'],['판매 기간',period],['할인 반영 매출액',money(importPlan.net)],['SCM 차감 후보',quantity+'권/개'],['재고에서 제외',importPlan.excluded.reduce((s,x)=>s+x.quantity,0)+'건']].map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('');
     $('#payhere-rows').innerHTML=importPlan.rows.map(row=>{
       const server=serverRow(row),state=rowState(row),sku=row.mapped?.sku||'—',detail=server?.message||row.message;
       const stock=server&&Number.isInteger(server.currentStock)?`<small>현재 ${server.currentStock} → 반영 후 ${server.afterStock}</small>`:'';
@@ -168,7 +169,8 @@
     }).join('');
     const blockers=importPlan.blocked.length,duplicates=dryResult?.results?.filter(x=>x.status==='duplicate').length||0,applicable=dryResult?.results?.filter(x=>x.status==='applicable').length||0,repairs=dryResult?.results?.filter(x=>x.repairControl).length||0;
     $('#payhere-review-note').textContent=dryResult?`최종 검사: 재고 반영 ${applicable}개 · 이미 반영 ${duplicates}개${repairs?` · 기록 복구 ${repairs}개`:''} · 확인 필요 ${dryResult.results.filter(x=>x.status==='blocked').length}개`:`1차 검사: 반영 후보 ${importPlan.ready.length}개 · 재고 제외 ${importPlan.excluded.length}개 · 확인 필요 ${blockers}개`;
-    const canApply=!!dryResult?.canApply&&(applicable>0||repairs>0)&&!blockers&&!importBusy;
+    const sourcesCurrent=mappingsState.available&&!mappingsState.stale&&!mappingsState.error&&scmState.available&&!scmState.stale&&!scmState.error;
+    const canApply=sourcesCurrent&&!!dryResult?.canApply&&(applicable>0||repairs>0)&&!blockers&&!importBusy;
     $('#payhere-confirm').disabled=!canApply;$('#payhere-apply').disabled=!canApply||!$('#payhere-confirm').checked;
   }
 
@@ -176,6 +178,7 @@
     const run=++fileGeneration;
     importFile=file;importPlan=null;dryResult=null;importHash='';importRequestId='';$('#payhere-confirm').checked=false;renderImport();
     if(!file)return importStatus('파일을 선택하면 화면 안에서 먼저 검사합니다.');
+    if(!mappingsState.available||mappingsState.stale||mappingsState.error||!scmState.available||scmState.stale||scmState.error){importFile=null;$('#payhere-file').value='';return importStatus('최신 상품 연결표와 SCM 원장을 모두 확인한 뒤 파일을 검사할 수 있습니다. 위의 「지금 확인」을 다시 눌러 주세요.',true)}
     importStatus('엑셀을 읽고 상품을 연결하고 있어요.');
     try{
       const model=window.PayhereImportModel;if(!model)throw Error('IMPORT_READER_MISSING');
@@ -186,12 +189,13 @@
       importPlan=model.planImport(report,{mappings,inventory});
       renderImport();
       const bad=importPlan.blocked.length>0;importStatus(bad?'상품 연결이나 거래일시를 확인해야 합니다. 아직 재고는 바뀌지 않았습니다.':'1차 검사가 끝났습니다. 중복까지 최종 검사해 주세요.',bad,!bad);
-    }catch(error){if(run!==fileGeneration)return;console.error(error);importStatus(error.message==='PAYHERE_SHEETS_MISSING'?'페이히어 매출내역 엑셀이 아닙니다. ‘매출 내역’과 ‘상품별’ 시트가 필요해요.':'파일을 읽지 못했습니다. 페이히어에서 새로 받은 .xlsx 파일인지 확인해 주세요.',true)}
+    }catch(error){if(run!==fileGeneration)return;console.error(error);importStatus(error.message==='PAYHERE_SHEETS_MISSING'?'이 화면은 구형 ‘매출 내역’과 ‘상품별’ 2시트 파일만 지원합니다. 공식 ‘결제 내역 조회(상세)’ 파일은 결제 ID가 없어 별도 검토 변환 전에는 반영할 수 없습니다.':'파일을 읽지 못했습니다. 지원 형식과 파일 구조를 확인해 주세요.',true)}
   }
 
   function requestRows(){return importPlan.ready.map(row=>({canonicalSku:row.mapped.sku,productName:row.mapped.title||row.name,payhereName:row.name,quantity:row.quantity,unitAmount:row.unitPrice,grossAmount:row.gross,occurredAt:row.occurredAt,externalEventId:row.externalEventId}))}
   async function callImport(dryRun){
     if(importBusy||!importPlan||!importHash)return;
+    if(!mappingsState.available||mappingsState.stale||mappingsState.error||!scmState.available||scmState.stale||scmState.error){importStatus('상품 연결표 또는 SCM 원장이 최신 상태가 아니어서 검사를 중단했습니다. 다시 확인해 주세요.',true);return}
     const run=fileGeneration,file=importFile,hash=importHash,plan=importPlan;importBusy=true;$('#payhere-file').disabled=true;dryResult=null;renderImport();importStatus(dryRun?'중복과 현재 재고를 확인하고 있어요.':'SCM 원장에 반영하고 있어요.');
     try{
       const {data,error}=await client.auth.getSession();if(error||!data.session){onDenied?.();return}
@@ -206,7 +210,7 @@
   }
 
   function open(kind){const filter=$('#integration-filter');filter.value=kind==='connected'?'connected':'';renderCards();if(kind==='needs')$('#integration-queue').scrollIntoView({behavior:'smooth',block:'start'});else $('#integration-pipeline').scrollIntoView({behavior:'smooth',block:'start'})}
-  function clear(){generation++;fileGeneration++;collectorFileGeneration++;connectors=[];mappings=[];inventory=[];collectorStatuses=[];syncRuns=[];evidenceInbox=[];hub=null;loaded=false;loading=false;importBusy=false;evidenceBusy=false;collectorBusy=false;evidencePreview=null;evidenceRunId='';collectorBatch=null;collectorPreview=null;stats={mappings:null,movements:null,issues:null,settlements:null};scmState={available:false,stale:false,error:''};royaltyState={available:false,stale:false,error:'',bookCount:null};connectorsState={stale:false,error:''};syncRunsState={stale:false,error:''};evidenceState={stale:false,error:''};$('#integration-content').hidden=true;for(const id of ['integration-metrics','integration-pipeline','integration-queue','integration-runs','integration-sources','integration-connectors','integration-ledger-stats','integration-evidence-list'])$('#'+id).replaceChildren();$('#integration-queue-count').textContent='';$('#integration-status').textContent='로그인한 관리자만 통합 운영실을 볼 수 있습니다.';$('#integration-status').classList.remove('bad');importFile=null;importHash='';importRequestId='';importPlan=null;dryResult=null;$('#payhere-file').value='';$('#payhere-file').disabled=false;$('#payhere-confirm').checked=false;$('#integration-collector-file').value='';$('#integration-collector-confirm').checked=false;collectorStatus('파일을 고르면 브라우저 안에서 형식과 민감 필드를 먼저 검사합니다. 검사 버튼을 누르기 전에는 서버 전송이 없습니다.');renderCollectorBatch();renderImport();emit(false)}
+  function clear(){generation++;fileGeneration++;collectorFileGeneration++;connectors=[];mappings=[];inventory=[];collectorStatuses=[];syncRuns=[];evidenceInbox=[];hub=null;loaded=false;loading=false;importBusy=false;evidenceBusy=false;collectorBusy=false;evidencePreview=null;evidenceRunId='';collectorBatch=null;collectorPreview=null;stats={mappings:null,movements:null,issues:null,settlements:null};scmState={available:false,stale:false,error:''};mappingsState={available:false,stale:false,error:''};royaltyState={available:false,stale:false,error:'',bookCount:null};connectorsState={stale:false,error:''};syncRunsState={stale:false,error:''};evidenceState={stale:false,error:''};$('#integration-content').hidden=true;for(const id of ['integration-metrics','integration-pipeline','integration-queue','integration-runs','integration-sources','integration-connectors','integration-ledger-stats','integration-evidence-list'])$('#'+id).replaceChildren();$('#integration-queue-count').textContent='';$('#integration-status').textContent='로그인한 관리자만 통합 운영실을 볼 수 있습니다.';$('#integration-status').classList.remove('bad');importFile=null;importHash='';importRequestId='';importPlan=null;dryResult=null;$('#payhere-file').value='';$('#payhere-file').disabled=false;$('#payhere-confirm').checked=false;$('#integration-collector-file').value='';$('#integration-collector-confirm').checked=false;collectorStatus('파일을 고르면 브라우저 안에서 형식과 민감 필드를 먼저 검사합니다. 검사 버튼을 누르기 전에는 서버 전송이 없습니다.');renderCollectorBatch();renderImport();emit(false)}
   function init(options){
     config=options;client=options.client;onDenied=options.onDenied;$('#integration-refresh').onclick=()=>refresh(true);$('#integration-filter').onchange=renderCards;
     $('#integration-evidence-filter').onchange=renderEvidence;$('#integration-collect-preview').onclick=previewHomepage;$('#integration-collect-apply').onclick=applyHomepage;
@@ -214,7 +218,7 @@
     $('#integration-collector-file').onchange=event=>chooseCollectorBatch(event.target.files?.[0]);$('#integration-collector-preview').onclick=()=>callCollectorBatch(true);$('#integration-collector-confirm').onchange=renderCollectorBatch;
     $('#integration-collector-apply').onclick=()=>{if(!$('#integration-collector-confirm').checked||!collectorPreview)return;if(confirm('검사된 비식별 메타데이터만 검토함에 저장할까요? 재고·정산·지급·원문·첨부는 바뀌거나 전송되지 않습니다.'))callCollectorBatch(false)};
     $('#payhere-file').onchange=e=>chooseFile(e.target.files?.[0]);$('#payhere-dry-run').onclick=()=>callImport(true);$('#payhere-confirm').onchange=renderImport;
-    $('#payhere-apply').onclick=()=>{if(!$('#payhere-confirm').checked)return;if(confirm('검사된 판매 수량을 SCM 원장에 반영할까요? 이 작업은 재고를 차감합니다.'))callImport(false)};
+    $('#payhere-apply').onclick=()=>{if(!$('#payhere-confirm').checked)return;if(confirm('검사된 판매 수량을 SCM 장부에서 차감할까요? 파일·기간·상품·중복 결과를 다시 확인해 주세요.'))callImport(false)};
     client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'||event==='USER_UPDATED')clear()});
     setInterval(()=>{if(!document.hidden&&!$('#appView').classList.contains('hidden')&&!$('#tab-integration').classList.contains('hidden'))refresh(true)},60000);
     document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('#appView').classList.contains('hidden')&&!$('#tab-integration').classList.contains('hidden'))refresh(true)});

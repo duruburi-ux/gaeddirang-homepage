@@ -71,7 +71,6 @@ main{max-width:1160px;padding:24px 20px 42px}
 .dash-signals .dash-work-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-signals .dash-work-preview{grid-template-columns:1fr}.dash-signals .dash-work-preview button:nth-child(n+3){display:none}
 .dash-signals .dash-integration{background:#fbf7ed}.dash-signals .dash-stock{background:var(--brand-forest)}
 .dash-shortcuts .dash-quick{grid-template-columns:repeat(4,minmax(0,1fr))}.dash-shortcuts .dash-quick button{min-height:68px}
-.dash-shortcuts .dash-quick button:nth-child(n+5){display:none}
 .dash-summary{background:#fbfaf6}.dash-foot{margin-top:4px}
 
 /* 상세·입력 패널 */
@@ -102,7 +101,7 @@ main{max-width:1160px;padding:24px 20px 42px}
   main{padding:18px 12px 34px}.page-intro{align-items:flex-start;flex-direction:column;margin-bottom:14px}.page-intro .page-primary{width:100%}
   .filter-panel{grid-template-columns:1fr 1fr;padding:12px}.filter-control,.filter-control.search,.filter-control.wide{grid-column:span 1}.filter-control.search{grid-column:1/-1}.filter-meta{align-items:flex-start}.filter-meta .count-note{font-size:12px}
   .row{align-items:flex-start;padding:14px}.row .amt{max-width:38%}
-  .dash-top{grid-template-columns:1fr;gap:15px}.dash-top h1{font-size:29px}.dash .todo-grid{grid-template-columns:1fr}.dash .todo,.dash .todo:first-child{grid-column:auto}.dash-signals{grid-template-columns:1fr}.dash-signals>.dash-work{grid-column:auto}.dash-shortcuts .dash-quick{grid-template-columns:1fr 1fr}.dash-shortcuts .dash-quick button:nth-child(n+5){display:none}
+  .dash-top{grid-template-columns:1fr;gap:15px}.dash-top h1{font-size:29px}.dash .todo-grid{grid-template-columns:1fr}.dash .todo,.dash .todo:first-child{grid-column:auto}.dash-signals{grid-template-columns:1fr}.dash-signals>.dash-work{grid-column:auto}.dash-shortcuts .dash-quick{grid-template-columns:1fr 1fr}
   .panel:not(:has(.panel-shell)){padding:18px 14px}.panel-head{padding-left:16px}.panel-body{padding:15px 14px 24px}.form-grid{grid-template-columns:1fr}.form-control.full{grid-column:auto}
 }
 

@@ -3,7 +3,7 @@
   const M=window.SettlementDocumentModel;
   if(!host||!M)return;
   const BUCKET='settlement-documents';
-  const S={rows:[],loaded:false,loading:false,uploading:false,showForm:false,category:'',status:'',query:''};
+  const S={rows:[],loaded:false,loading:false,error:'',uploading:false,showForm:false,category:'',status:'',query:''};
   const errorText={
     ADMIN_REQUIRED:'기존 관리자만 정산 자료실을 사용할 수 있어요.',
     DOCUMENT_FILE_NOT_FOUND:'업로드 파일을 확인하지 못했어요. 다시 선택해 주세요.',
@@ -32,12 +32,13 @@
   }
   function listHtml(){
     if(S.loading)return '<div class="empty">비공개 자료 목록을 불러오는 중…</div>';
+    if(S.error&&!S.rows.length)return '<div class="empty"><b>정산자료 목록을 불러오지 못했어요.</b><br>빈 자료실이 아닙니다. 「새로고침」으로 다시 확인해 주세요.</div>';
     const groups=M.groupRows(filtered());
     const html=Object.entries(M.CATEGORIES).map(([key,label])=>{
       const rows=groups[key];
       return `<section class="archive-group"><h3>${e(label)} <span class="hint">${rows.length}개 버전</span></h3>${rows.length?rows.map(rowHtml).join(''):'<p class="archive-empty">조건에 맞는 문서가 없습니다.</p>'}</section>`;
     }).join('');
-    return html||'<div class="empty">등록된 문서가 없습니다.</div>';
+    return (S.error?'<div class="archive-safe">목록 새로고침에 실패해 마지막 확인본을 표시합니다.</div>':'')+(html||'<div class="empty">등록된 문서가 없습니다.</div>');
   }
   function replacementOptions(){
     const rows=S.rows.filter(row=>row.status!=='superseded');
@@ -88,15 +89,15 @@
   }
   async function load(force=false){
     if(MODE==='preview'){
-      S.rows=M.previewRows();S.loaded=true;S.loading=false;render();return;
+      S.rows=M.previewRows();S.loaded=true;S.loading=false;S.error='';render();return;
     }
-    if(MODE!=='db'){S.rows=[];S.loaded=true;render();return;}
+    if(MODE!=='db'){S.rows=[];S.loaded=true;S.error='';render();return;}
     if(S.loading||(!force&&S.loaded))return;
     S.loading=true;render();
     const {data,error}=await sb.rpc('list_settlement_documents');
     S.loading=false;S.loaded=true;
-    if(error){S.rows=[];render();toast(errorText[error.message]||'정산자료 목록을 불러오지 못했어요',true);return;}
-    S.rows=(Array.isArray(data)?data:[]).map(M.normalizeRow);render();
+    if(error){S.error=errorText[error.message]||'정산자료 목록을 불러오지 못했어요';render();toast(S.error,true);return;}
+    S.error='';S.rows=(Array.isArray(data)?data:[]).map(M.normalizeRow);render();
   }
   async function sha256(file){
     const bytes=await file.arrayBuffer();
@@ -166,6 +167,6 @@
     if(window.__docs?.openSettlementTemplate)window.__docs.openSettlementTemplate(kind);
   }
   document.querySelectorAll('[data-settlement-template]').forEach(button=>button.addEventListener('click',()=>openTemplate(button.dataset.settlementTemplate)));
-  window.SettlementArchiveUI={show:()=>load(false),reload:()=>load(true),state:()=>({rows:S.rows.slice(),loaded:S.loaded})};
+  window.SettlementArchiveUI={show:()=>load(false),reload:()=>load(true),state:()=>({rows:S.rows.slice(),loaded:S.loaded,error:S.error})};
   render();
 })();

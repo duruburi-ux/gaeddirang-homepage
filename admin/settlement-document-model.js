@@ -86,7 +86,8 @@
   function groupRows(rows){
     const out={external_author:[],internal_team:[],company_report:[]};
     (rows||[]).map(normalizeRow).forEach(row=>{if(out[row.category])out[row.category].push(row);});
-    Object.values(out).forEach(group=>group.sort((a,b)=>String(b.period_label).localeCompare(String(a.period_label),'ko')||String(a.subject).localeCompare(String(b.subject),'ko')||b.version_no-a.version_no));
+    const chronology=row=>String(row.period_end||row.period_start||row.created_at||'');
+    Object.values(out).forEach(group=>group.sort((a,b)=>chronology(b).localeCompare(chronology(a))||String(b.period_label).localeCompare(String(a.period_label),'ko')||String(a.subject).localeCompare(String(b.subject),'ko')||b.version_no-a.version_no));
     return out;
   }
   function previewRows(){

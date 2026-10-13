@@ -22,18 +22,29 @@ window.BookFinder=(()=>{
 
   function filteredResult(){
     const result=window.BookFinderModel.searchBooks({inventory:data?.inventory,counts:data?.counts,bookshop:data?.bookshop,query,fetchedAt:meta?.fetchedAt});
-    result.items=result.items.filter(row=>filter==='all'||(filter==='recorded'?Number.isInteger(row.recordedStock)&&row.recordedStock>0:filter==='zero'?row.recordedStock===0:filter==='conflict'?row.hasConflict:row.sellableConfirmed==null));
+    if(!query&&filter!=='all')result.items=window.BookFinderModel.bookRows(data?.inventory||[],data?.counts||[],meta?.fetchedAt,data?.bookshop);
+    result.items=result.items.filter(row=>filter==='all'||(
+      filter==='sellable'?Number.isInteger(row.sellableConfirmed)&&row.sellableConfirmed>0:
+      filter==='soldout'?row.sellableConfirmed===0&&row.hasPhysicalEvidence:
+      filter==='review'?row.sellableConfirmed==null||row.hasConflict:
+      filter==='reserved'?Number.isInteger(row.reserved)&&row.reserved>0:
+      Number.isInteger(row.incoming)&&row.incoming>0
+    ));
     return result;
+  }
+
+  function quantity(label,value,note=''){
+    return `<span><small>${esc(label)}</small><strong>${esc(Number.isInteger(value)?`${value}권`:'미확인')}</strong>${note?`<em>${esc(note)}</em>`:''}</span>`;
   }
 
   function resultCard(row){
     const warning=row.hasConflict?`<span class="finder-badge danger">${esc(row.conflicts.join(' · '))}</span>`:row.hasPhysicalEvidence?'<span class="finder-badge">매장 실사 근거 확인</span>':'<span class="finder-badge caution">판매 가능 확인 필요</span>';
-    const facts=[['예약',row.reserved],['입고 예정',row.incoming],['YES24 후보',row.purchaseCandidate]].filter(([,value])=>Number.isInteger(value)&&value>0).map(([label,value])=>`<span>${esc(label)} ${value}권</span>`).join('');
+    const facts=[['YES24 구매 후보',row.purchaseCandidate]].filter(([,value])=>Number.isInteger(value)&&value>0).map(([label,value])=>`<span>${esc(label)} ${value}권 · 구매 미실행</span>`).join('');
     const cover=row.coverUrl?`<img src="${esc(row.coverUrl)}" alt="" loading="lazy">`:'<span>표지<br>미등록</span>';
     return `<button type="button" class="finder-result ${view==='list'?'list':''}" data-book-sku="${esc(row.sku)}">
       <span class="finder-cover" aria-hidden="true">${cover}</span>
-      <span class="finder-result-copy"><span class="finder-title">${esc(row.title)}</span><span class="finder-author">${esc(row.author)}</span>
-      <span class="finder-stock">${esc(row.sellableLabel)}</span><span class="finder-proof">시스템 장부 ${esc(row.recordedStock??'미확인')}권 · 예약 차감 ${esc(row.calculatedAvailable??'미확인')}권</span>${facts?`<span class="finder-facts">${facts}</span>`:''}<span class="finder-identifiers">ISBN ${esc(row.isbn)} · SKU ${esc(row.sku||'미등록')}</span>
+      <span class="finder-result-copy"><span class="finder-title">${esc(row.title)}</span><span class="finder-author">${esc(row.author)} · 소유 ${esc(row.owner)}</span>
+      <span class="finder-stock">${esc(row.sellableLabel)}</span><span class="finder-quantity-grid">${quantity('판매가능',row.sellableConfirmed,row.hasPhysicalEvidence?'실사 확정':'확인 필요')}${quantity('장부',row.recordedStock,'실물 합계 아님')}${quantity('예약',row.reserved,'판매가능 차감')}${quantity('입고예정',row.incoming,'실입고 전 미반영')}</span><span class="finder-proof">장부−예약 참고 ${esc(Number.isInteger(row.calculatedAvailable)?row.calculatedAvailable+'권':'미확인')} · 판매가능 확정값 아님</span>${facts?`<span class="finder-facts">${facts}</span>`:''}<span class="finder-identifiers">ISBN ${esc(row.isbn)} · SKU ${esc(row.sku||'미등록')}</span>
       ${row.sameTitleCount>1?`<span class="finder-edition">동명 도서 ${row.sameTitleCount}개 · ISBN·SKU 확인</span>`:''}${warning}</span>
     </button>`;
   }
@@ -42,16 +53,16 @@ window.BookFinder=(()=>{
     if(!data)return;
     const result=filteredResult(),host=$('#book-finder-results');
     all('[data-finder-view]').forEach(button=>{const active=button.dataset.finderView===view;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
-    if(!query){
+    if(!query&&filter==='all'){
       host.innerHTML='<div class="finder-empty"><strong>손님이 물어본 제목·저자·ISBN을 검색하세요.</strong><p>검색 전에는 전체 목록을 펼치지 않습니다. ISBN은 하이픈과 공백을 빼고도 찾을 수 있어요.</p></div>';
       $('#book-finder-summary').textContent=`등록 도서 ${result.total}종 · 수량 충돌 ${result.conflictTotal}건 · 검색 결과를 재고 확답으로 사용하지 마세요.`;
       return;
     }
     if(!result.items.length){
-      host.innerHTML=`<div class="finder-empty"><strong>‘${esc(query)}’와 일치하는 등록을 찾지 못했습니다.</strong><p>검색 결과 없음은 품절을 뜻하지 않습니다. 철자·ISBN·SCM 등록 여부를 확인하세요.</p><button type="button" id="book-finder-clear-empty">검색어 지우기</button></div>`;
-      $('#book-finder-clear-empty').onclick=()=>{query='';$('#book-finder-query').value='';render();$('#book-finder-query').focus()};
+      host.innerHTML=`<div class="finder-empty"><strong>${query?`‘${esc(query)}’와 일치하는 등록을 찾지 못했습니다.`:'선택한 판매 상태에 해당하는 책이 없습니다.'}</strong><p>검색 결과 없음은 품절을 뜻하지 않습니다. 검색어·필터·원장 등록 여부를 확인하세요.</p><button type="button" id="book-finder-clear-empty">조건 지우기</button></div>`;
+      $('#book-finder-clear-empty').onclick=()=>{query='';filter='all';$('#book-finder-query').value='';$('#book-finder-filter').value='all';render();$('#book-finder-query').focus()};
     }else host.innerHTML=result.items.map(resultCard).join('');
-    $('#book-finder-summary').textContent=`${result.exactIsbn?'정확한 ISBN 우선 · ':''}${result.items.length}종 표시 · 전체 도서 ${result.total}종 · 수량 충돌 ${result.conflictTotal}건`;
+    $('#book-finder-summary').textContent=`${result.exactIsbn?'정확한 ISBN 우선 · ':''}${result.items.length}종 표시 · 전체 도서 ${result.total}종 · 수량 충돌 ${result.conflictTotal}건${filter!=='all'?' · 판매 상태 필터 적용':''}`;
     all('[data-book-sku]').forEach(button=>button.onclick=()=>openDetail(button.dataset.bookSku,button));
   }
 
@@ -62,7 +73,7 @@ window.BookFinder=(()=>{
     const sourceNote=summary?(sourceMeta?.stale?'지난 조회 기록':'통합 재고 원본'):(sourceMeta?.error==='BOOKSHOP_SOURCE_NOT_CONFIGURED'?'비공개 원본 설정 대기':'원본 조회 필요');
     const ledgerValue=summary?`${summary.sourceItems}종${Number.isInteger(summary.ledgerQuantity)?` · ${summary.ledgerQuantity.toLocaleString('ko-KR')}권`:''}`:`${rows.length}종`;
     $('#book-finder-supplement').innerHTML=[
-      ['시스템 장부',ledgerValue,summary?`${sourceMeta?.stale?'지난 조회 기록 · ':''}매장 실물 합계 아님`:sourceNote],
+      ['전체 장부',ledgerValue,summary?`${sourceMeta?.stale?'지난 조회 기록 · ':''}매장 실물 합계 아님`:sourceNote],
       ['예약 근거',summary?`${summary.reservations.titles}종 · ${summary.reservations.quantity}권`:'미등록',summary?'예약은 판매 가능 계산에서만 차감':'수량 확인 필요 '+needs+'종'],
       ['입고 예정',summary?`${summary.pendingInbound.titles}종 · ${summary.pendingInbound.quantity}권`:'미등록',summary?'실입고 전 재고 미반영':'원본 조회 필요'],
       ['YES24 구매 후보',summary?`${summary.purchase.titles}종 · ${summary.purchase.quantity}권`:'미등록',summary?`공급가 합계 ${money(summary.purchase.supplyTotal)} · 구매 미실행`:'구매 실행 없음'],
@@ -96,7 +107,7 @@ window.BookFinder=(()=>{
     data=next;meta=nextMeta||{};$('#book-finder-content').hidden=false;$('#book-finder-retry').hidden=true;
     const result=window.BookFinderModel.searchBooks({inventory:data.inventory,counts:data.counts,bookshop:data.bookshop,query:'',fetchedAt:meta.fetchedAt});
     const historical=!!meta.stale||freshnessState(meta.fetchedAt)!=='fresh';
-    status(`${historical?'지난 조회 기록':'SCM 읽기 완료'} · ${result.total}종 · 수량 충돌 ${result.conflictTotal}건 · ${formatTime(meta.fetchedAt)}${historical?' · 실물 재고 확정 아님':''}`,historical);
+    status(`${historical?'지난 조회 기록':'원장 읽기 완료'} · 마지막 성공 ${formatTime(meta.fetchedAt)} · ${result.total}종 · 수량 충돌 ${result.conflictTotal}건${historical?' · 판매가능 확정에 사용하지 마세요':''}`,historical);
     renderSupplement();render();
   }
 
@@ -121,6 +132,7 @@ window.BookFinder=(()=>{
     config=options;$('#book-finder-form').onsubmit=event=>{event.preventDefault();query=$('#book-finder-query').value.trim();render()};
     $('#book-finder-query').oninput=event=>{query=event.target.value.trim();render()};
     $('#book-finder-filter').onchange=event=>{filter=event.target.value;render()};
+    $('#book-finder-reset').onclick=()=>{query='';filter='all';$('#book-finder-query').value='';$('#book-finder-filter').value='all';render();$('#book-finder-query').focus()};
     $('#book-finder-refresh').onclick=refresh;$('#book-finder-retry').onclick=refresh;
     all('[data-finder-view]').forEach(button=>button.onclick=()=>{view=button.dataset.finderView;render()});
     $('#book-finder-detail-close').onclick=()=>{if(history.state?.bookFinderDetail)history.back();else closeDetail()};

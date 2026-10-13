@@ -36,7 +36,7 @@ test('상세 패널은 키보드 초점·Escape·브라우저 뒤로가기를 �
 test('직접 입력 폼은 필수·선택, 계산 의미, 화면 안 오류와 재시도를 안내한다',()=>{
   for(const id of ['naFormError','paFormError','naTotalPreview','naNote','paNote'])assert.match(html,new RegExp(`id="${id}"`));
   assert.match(html,/실제 입금 여부는 상태에서 별도 확인/);
-  assert.match(html,/입력 내용을 유지했으니 잠시 후 다시 시도해 주세요/);
+  assert.match(html,/같은 내용으로 다시 시도해도 중복 신청은 생기지 않습니다/);
   assert.match(html,/aria-invalid/);
 });
 
