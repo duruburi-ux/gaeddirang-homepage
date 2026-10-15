@@ -1535,18 +1535,7 @@ background: rgba(0, 0, 0, 0.5);
 
 <link rel="stylesheet" href="assets/public-site.css">
 <link rel="stylesheet" href="assets/site-ux.css">
-<link rel="stylesheet" href="assets/bookshop.css?v=photo-20261015a">
-<style>
-.home-bookshop-entry{margin:18px 0 0;font-size:14px;line-height:1.7}
-.home-bookshop-entry a{color:#47623e;text-decoration:underline;text-underline-offset:4px}
-#bookshop{padding:20px max(16px,3vw) 64px;scroll-margin-top:100px}
-@media(max-width:520px){#bookshop{padding:10px 8px 40px}}
-</style>
 <script src="assets/site-ux.js" defer></script>
-<script src="assets/bookshop-catalog.js" defer></script>
-<script src="assets/bookshop-scene.js?v=photo-20261015a" defer></script>
-<script src="assets/bookshop-app.js?v=photo-20261015a" defer></script>
-<script src="assets/bookshop-host.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#page-main">본문으로 바로 가기</a>
@@ -1567,7 +1556,6 @@ background: rgba(0, 0, 0, 0.5);
 <a href="#authors" onclick="return navigatePublic(event,'authors')">작가들</a>
 <a href="#publisher" onclick="return navigatePublic(event,'publisher')">출판사 소개</a>
 <a href="#finder" onclick="return navigatePublic(event,'finder')">나에게 맞는 기록 도구</a>
-<a href="#bookshop" onclick="return navigatePublic(event,'bookshop')">가상 책방 산책</a>
 <a href="#game" onclick="return navigatePublic(event,'game')">게임</a>
 <a href="#gaedditv" onclick="return navigatePublic(event,'gaedditv')">개띠랑TV</a>
 </nav></details>
@@ -1582,7 +1570,6 @@ background: rgba(0, 0, 0, 0.5);
 <button type="button" class="mobile-menu-close" onclick="toggleMobileNav()" aria-label="메뉴 닫기">✕ 닫기</button>
 <a href="#" onclick="toggleMobileNav();return navigatePublic(event,'home')">홈</a>
 <a href="#library" onclick="toggleMobileNav();return navigatePublic(event,'library')">책·카드</a>
-<a href="#bookshop" onclick="toggleMobileNav();return navigatePublic(event,'bookshop')">가상 책방 산책</a>
 <a href="#program" onclick="toggleMobileNav();return navigatePublic(event,'program')">수업·모임</a>
 <a href="#projects" onclick="toggleMobileNav();return navigatePublic(event,'projects')">프로젝트</a>
 <a href="#institutions" onclick="toggleMobileNav();return navigatePublic(event,'institutions')">학교·기관 의뢰</a>
@@ -1650,7 +1637,6 @@ background: rgba(0, 0, 0, 0.5);
 <a class="btn-core" href="#program" onclick="return navigatePublic(event,'program')">수업·모임 참여하기 →</a>
 <a class="btn-core" href="#institutions" onclick="return navigatePublic(event,'institutions')">학교·기관 의뢰하기 →</a>
 </div>
-<p class="home-bookshop-entry"><a href="#bookshop" onclick="return navigatePublic(event,'bookshop')">잠깐 책방에 들를까요? 가상 책방 산책 →</a></p>
 </div>
 <article class="stage" id="moongori">
 <div class="stage-text">
@@ -1790,9 +1776,6 @@ background: rgba(0, 0, 0, 0.5);
 </div>
 </section>
 
-<section data-cat="bookshop" id="bookshop" aria-label="개띠랑 가상 책방" style="display:none">
-<div id="virtualBookshop"><p role="status">가상 책방의 문을 열고 있어요…</p><a href="#library" onclick="return navigatePublic(event,'library')">책 목록으로 바로 보기</a></div>
-</section>
 <section data-cat="library" class="sec-common" id="library" style="background:#fff;">
 <div class="pg-head">
 <div class="img-slot filled"><img src="assets/images/library-open-book.webp" alt="펼쳐진 책과 새싹" loading="lazy"></div>
@@ -1808,7 +1791,6 @@ background: rgba(0, 0, 0, 0.5);
 <button class="cat-btn" aria-pressed="false" onclick="filterBooks('card',this)">카드</button>
 </div>
 <div class="library-tools"><label for="libraryQuery">제목·저자로 찾기</label><input type="search" id="libraryQuery" placeholder="예: 감정, 두루" oninput="renderBooks()"><span id="libraryCount" role="status" aria-live="polite"></span></div>
-<a class="library-finder" href="#bookshop" onclick="return navigatePublic(event,'bookshop')">책장 사이를 걸으며 골라볼까요? 가상 책방에 놀러 가기 →</a>
 <div id="libraryLoadState" class="load-state" hidden><span>책 목록을 모두 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</span><button type="button" onclick="loadAllContent()">다시 불러오기</button></div>
 <div class="library-wrapper">
 <div class="ranking-scroll" id="bookContainer"></div>
@@ -2609,7 +2591,7 @@ function __setActiveTab(cat){
   document.body.classList.toggle('interior-view',cat!=='home');
   document.querySelectorAll('#header nav a, #mobileNavPanel a').forEach(a=>{const active=a.getAttribute('href')==='#'+cat;a.classList.toggle('nav-active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   document.querySelector('.nav-more')?.removeAttribute('open');
-  const names={library:'책·카드',bookshop:'가상 책방 산책',authors:'작가들',finder:'기록 도구',program:'수업·모임',projects:'프로젝트',institutions:'학교·기관 의뢰',publisher:'출판사 소개',game:'게임',gaedditv:'개띠랑TV',moongori:'문고리'};
+  const names={library:'책·카드',authors:'작가들',finder:'기록 도구',program:'수업·모임',projects:'프로젝트',institutions:'학교·기관 의뢰',publisher:'출판사 소개',game:'게임',gaedditv:'개띠랑TV',moongori:'문고리'};
   document.getElementById('pageTrail').hidden=cat==='home';
   document.getElementById('pageTrailCurrent').textContent=names[cat]||'';
   if(!location.search)document.title=names[cat]?`${names[cat]} | 개띠랑`:'개띠랑 | 책공방';
@@ -2644,12 +2626,11 @@ function switchView(viewName, targetId = null, push = true) {
   __setActiveTab(cat);
   __route(cat, push);
   __afterNav();
-  window.dispatchEvent(new CustomEvent('gaeddirang:routechange',{detail:{category:cat}}));
 }
 // [화면 라우팅] 주소(해시) → 화면 복원 + 뒤로가기
 function __routeFromHash(push){
   const h = (location.hash||'').replace(/^#/,'');
-  const cats = ['moongori','library','bookshop','finder','program','projects','institutions','game','gaedditv'];
+  const cats = ['moongori','library','finder','program','projects','institutions','game','gaedditv'];
   if(h==='authors') switchView('authors', null, push);
   else if(h==='publisher') switchView('publisher', null, push);
   else if(cats.indexOf(h)>=0) switchView('main', h, push);
@@ -2673,9 +2654,6 @@ window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
 
 /* [★ NEW: 도서 데이터 (요청하신 목록 15권만 유지)] */
 let books = []; // Supabase에서 채워짐
-let bookshopSourceBooks = [];
-let bookshopCatalogState = {loading:true,verified:false,error:''};
-function notifyBookshopCatalog() { window.dispatchEvent(new Event('gaeddirang:catalogchange')); }
 
 // Helper to get image by exact title match from the main 'books' array
 function getBookImage(title) {
@@ -3392,8 +3370,6 @@ function renderAuthorsUI(data) {
 }
 
 async function loadAllContent() {
-  bookshopCatalogState = {loading:true,verified:false,error:''};
-  notifyBookshopCatalog();
   books = [MOONGORI_BOOK];
   renderBooks('all');
   renderProgramsUI(CURRENT_PROGRAMS);
@@ -3413,13 +3389,6 @@ async function loadAllContent() {
       MOONGORI_BOOK,
       ...(bookRes.data || []).filter(b => b.title !== MOONGORI_BOOK.title).map(b => ({ title: b.title, author: b.author, cat: b.category, img: b.img_path, spec: b.spec, desc: b.description, price: b.price })),
     ];
-    if (!bookRes.error && Array.isArray(bookRes.data)) {
-      bookshopSourceBooks = bookRes.data.map(b=>({...b,cat:b.category,img:b.img_path,desc:b.description}));
-      bookshopCatalogState = {loading:false,verified:true,error:''};
-    } else {
-      bookshopCatalogState = {loading:false,verified:false,error:'실제 상품 정보를 확인하지 못했어요. 다시 불러온 뒤 책을 담아주세요.'};
-    }
-    notifyBookshopCatalog();
     if (typeof renderBooks === 'function') renderBooks();
     document.getElementById('libraryLoadState').hidden=!bookRes.error;
 
@@ -3442,8 +3411,6 @@ async function loadAllContent() {
     // [딥링크] 데이터 로드가 끝난 뒤 주소의 ?book / ?program 을 읽어 해당 모달 자동 오픈
     applyDeepLink();
   } catch (e) {
-    bookshopCatalogState = {loading:false,verified:false,error:'상품 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'};
-    notifyBookshopCatalog();
     document.getElementById('libraryLoadState').hidden=false;
     console.error('콘텐츠 로딩 실패:', e);
   }
@@ -3687,7 +3654,6 @@ if (!badge) return;
 const count = getCart().reduce((sum, i) => sum + i.qty, 0);
 badge.textContent = count;
 badge.style.display = count > 0 ? 'flex' : 'none';
-window.dispatchEvent(new Event('gaeddirang:cartchange'));
 }
 function addToCart(bookData) {
 if (!bookData) return;
@@ -4209,17 +4175,6 @@ document.getElementById('projectModal')?.addEventListener('click', (e) => {
 });
 
 // 리스트 아이템에 클릭 바인딩 (data-속성 우선)
-window.GaeddirangVirtualBookshopSource = {
-  getRawCatalog:()=>bookshopSourceBooks,
-  getCatalogState:()=>({...bookshopCatalogState}),
-  readCart:getCart,
-  writeCart:saveCart,
-  openCart:openCartModal,
-  browse:()=>switchView('main','library'),
-  program:()=>switchView('main','program'),
-  retry:async()=>{await loadAllContent();return {ok:bookshopCatalogState.verified,message:bookshopCatalogState.verified?'현재 상품 정보를 다시 불러왔어요.':'상품 정보를 확인하지 못했어요. 잠시 후 다시 시도해주세요.'};},
-  isPreview:isLocalPreview
-};
 const __initMain = ()=>{
 document.querySelectorAll('.nb-col').forEach(col=>{
 const label = (col.dataset && col.dataset.label) ? col.dataset.label : (col.querySelector('.nb-title')?.textContent || '').trim();
