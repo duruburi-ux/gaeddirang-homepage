@@ -43,15 +43,19 @@ window.supabase = {createClient: (url, key, options) => ({
 })};`;
 
 test.use({ launchOptions: { args: ['--enable-unsafe-swiftshader'] } });
+// trace is a worker fixture in this Playwright version and cannot be changed
+// inside describe(). A separate test type keeps the other fourteen traces on.
+const walkingTest = test.extend({trace: 'off'});
 
-async function prepare(page, { books = publicBooks, error = null, engine = 'fallback' } = {}) {
+async function prepare(page, { books = publicBooks, error = null, engine = 'fallback', motionClock = false } = {}) {
   const errors = [];
   const blockedWrites = [];
   const blockedSupabase = [];
   const requests = [];
   page.on('pageerror', exception => errors.push(exception.message));
   page.on('request', request => requests.push({url: request.url(), method: request.method(), body: request.postData()}));
-  await page.clock.setFixedTime(new Date('2026-10-15T03:00:00Z'));
+  if (motionClock) await page.clock.install({time: new Date('2026-10-15T03:00:00Z')});
+  else await page.clock.setFixedTime(new Date('2026-10-15T03:00:00Z'));
   await page.addInitScript(({ books, error }) => {
     window.__bookshopFixture = { books, error };
     window.__bookshopSdkReads = [];
@@ -383,6 +387,216 @@ for (const width of [1440, 320]) {
     expect(await page.evaluate(() => getCart())).toEqual([]);
     expect(await page.evaluate(() => ({local: {...localStorage}, session: {...sessionStorage}, writes: window.__bookshopStorageWrites.length}))).toEqual(before);
     expect(run.requests.filter(request => !['GET', 'HEAD'].includes(request.method))).toEqual([]);
+    await assertSafe(run, page);
+  });
+}
+
+// Layout relationships below come from the root agent's photo observations and
+// the scene's agreed semantic contract, not an independent photo measurement.
+const photoLandmarkIds = [
+  'floor-gray-tile', 'front-black-glazing', 'back-black-glazing',
+  'entrance-white-carousel', 'center-lightwood-table', 'center-darkwood-table',
+  'right-tall-grid-shelves', 'right-slim-blind-shelf',
+  'back-low-faceout-left', 'back-low-faceout-right', 'right-bench', 'back-white-counter'
+];
+const sceneTargetIds = ['heart', 'story', 'travel', 'keeper', 'counter', 'table', 'guest-reader', 'guest-traveler'];
+const sceneState = page => page.evaluate(() => document.getElementById('virtualBookshop').__gaeddirangBookshop.getSceneState());
+const distanceXZ = (a, b) => Math.hypot(a[0] - b[0], a[2] - b[2]);
+const rgb = color => {
+  expect(color).toMatch(/^#[0-9a-f]{6}$/i);
+  return color.slice(1).match(/../g).map(channel => Number.parseInt(channel, 16));
+};
+
+function expectPhotoLayout(state) {
+  expect(state.layout).toBe('photo-reference-v1');
+  expect(state.room.measured).toBe(false);
+  expect(state.room.width).toBeGreaterThan(0);
+  expect(state.room.length).toBeGreaterThan(state.room.width * 1.3);
+  expect(state.landmarks.map(landmark => landmark.id)).toEqual(expect.arrayContaining(photoLandmarkIds));
+  expect(state.targets.map(target => target.id).sort()).toEqual([...sceneTargetIds].sort());
+  expect(state.targets.every(target => target.approachClear === true)).toBe(true);
+  const byId = Object.fromEntries(state.landmarks.map(landmark => [landmark.id, landmark]));
+  for (const landmark of state.landmarks) {
+    expect(landmark.position).toHaveLength(3);
+    expect(landmark.position.every(Number.isFinite)).toBe(true);
+    expect(typeof landmark.kind).toBe('string');
+    expect(Number.isFinite(landmark.screen.x) && Number.isFinite(landmark.screen.y)).toBe(true);
+    expect(landmark.material.roughness).toBeGreaterThanOrEqual(0);
+    expect(landmark.material.roughness).toBeLessThanOrEqual(1);
+  }
+  const front = byId['front-black-glazing'];
+  const back = byId['back-black-glazing'];
+  expect(front.position[2]).toBeGreaterThan(back.position[2]);
+  for (const glazing of [front, back]) expect(Math.max(...rgb(glazing.material.color))).toBeLessThan(100);
+  const floor = rgb(byId['floor-gray-tile'].material.color);
+  expect(Math.max(...floor) - Math.min(...floor)).toBeLessThanOrEqual(35);
+  expect(Math.max(...floor)).toBeLessThan(180);
+  expect(byId['floor-gray-tile'].material.roughness).toBeGreaterThanOrEqual(0.6);
+  const carousel = byId['entrance-white-carousel'];
+  expect(carousel.position[0]).toBeLessThan(0);
+  expect(carousel.position[2]).toBeGreaterThan((front.position[2] + back.position[2]) / 2);
+  expect(Math.min(...rgb(carousel.material.color))).toBeGreaterThan(190);
+  const tables = [byId['center-lightwood-table'], byId['center-darkwood-table']];
+  expect(distanceXZ(tables[0].position, tables[1].position)).toBeGreaterThan(1);
+  for (const table of tables) {
+    expect(Math.abs(table.position[0])).toBeLessThan(state.room.width * 0.3);
+    expect(table.position[2]).toBeGreaterThan(back.position[2]);
+    expect(table.position[2]).toBeLessThan(front.position[2]);
+  }
+  expect(rgb(tables[0].material.color).reduce((sum, channel) => sum + channel, 0))
+    .toBeGreaterThan(rgb(tables[1].material.color).reduce((sum, channel) => sum + channel, 0));
+  for (const id of ['right-tall-grid-shelves', 'right-slim-blind-shelf', 'right-bench']) expect(byId[id].position[0]).toBeGreaterThan(0);
+  expect(Math.max(...rgb(byId['right-slim-blind-shelf'].material.color))).toBeLessThan(100);
+  for (const id of ['back-low-faceout-left', 'back-low-faceout-right', 'back-white-counter']) {
+    expect(byId[id].position[2]).toBeLessThan((front.position[2] + back.position[2]) / 2);
+  }
+  expect(byId['back-low-faceout-left'].position[0]).toBeLessThan(byId['back-low-faceout-right'].position[0]);
+}
+
+async function selectSceneTarget(page, id) {
+  if (['heart', 'story', 'travel'].includes(id)) {
+    await app(page).locator(`.vbs-shelf-nav [data-vbs-action="category"][data-category="${id}"]`).click();
+  } else if (id === 'keeper') {
+    await app(page).locator('.vbs-place-nav [data-vbs-action="talk"]').click();
+  } else if (id === 'counter') {
+    await app(page).locator('.vbs-topbar [data-vbs-action="bag"]').click();
+  } else if (id === 'table') {
+    await app(page).locator('.vbs-place-nav [data-vbs-action="program"]').click();
+  } else {
+    await app(page).locator('.vbs-place-nav [data-vbs-action="guests"]').click();
+    await app(page).locator(`.vbs-guest-picker [data-vbs-action="guest"][data-guest="${id}"]`).click();
+  }
+  const expectedTitle = {
+    heart: '마음과 기록', story: '작가의 서재', travel: '빵과 여행', keeper: '책방에 온 걸 환영해요',
+    counter: '내 책가방', table: '마음 단어 테이블', 'guest-reader': '모모와 이야기하기', 'guest-traveler': '보리와 이야기하기'
+  }[id];
+  await expect(app(page).locator('.vbs-panel-title')).toHaveText(expectedTitle);
+  // Mobile panels scroll themselves into view. Put the renderer back on screen
+  // before advancing time because its IntersectionObserver pauses hidden scenes.
+  await app(page).locator('[data-vbs-world] canvas').scrollIntoViewIfNeeded();
+  await expect.poll(async () => (await sceneState(page)).inView).toBe(true);
+}
+
+async function advanceSceneToTarget(page, id) {
+  const state = await sceneState(page);
+  const target = state.targets.find(target => target.id === id);
+  expect(target).toBeDefined();
+  expect(target.approachClear).toBe(true);
+  expect(state.target).toBe(id);
+  const speed = state.movementSpeed ?? 2.3;
+  // Preserve every real animation frame, but sample inside the browser instead
+  // of adding locator/evaluation/trace round trips and assertions to each frame.
+  const budgetMs = Math.ceil(2 * (state.room.width + state.room.length) / speed * 1000) + 1500;
+  await page.evaluate(({id, speed}) => {
+    const read = () => document.getElementById('virtualBookshop').__gaeddirangBookshop.getSceneState();
+    const initial = read();
+    const walk = window.__bookshopWalk = {
+      id, done: false, violations: [], frames: 0, travelled: 0,
+      previous: {time: performance.now(), position: initial.player},
+      samples: [{position: initial.player, clear: initial.playerClear, visible: initial.inView, moving: initial.moving}],
+      final: null
+    };
+    function sample(time) {
+      const current = read();
+      const step = Math.hypot(current.player[0] - walk.previous.position[0], current.player[2] - walk.previous.position[2]);
+      const allowedStep = speed * Math.min(Math.max(0, time - walk.previous.time) / 1000, 0.085) + 0.08;
+      walk.frames += 1;
+      walk.travelled += step;
+      walk.samples.push({position: current.player, clear: current.playerClear, visible: current.inView, moving: current.moving});
+      if (!current.playerClear) walk.violations.push('player intersects an expanded furniture collider');
+      if (!current.inView) walk.violations.push('renderer became invisible while advancing a route');
+      if (step > allowedStep) walk.violations.push('avatar jumped farther than its speed and frame delta allow');
+      walk.previous = {time, position: current.player};
+      walk.final = {player: current.player, target: current.target, lastArrived: current.lastArrived, moving: current.moving};
+      if (current.lastArrived === id && !current.moving) walk.done = true;
+      else if (!current.moving) walk.violations.push('motion stopped before the requested actual arrival');
+      if (!walk.done && !walk.violations.length) requestAnimationFrame(sample);
+    }
+    requestAnimationFrame(sample);
+  }, {id, speed});
+  for (let elapsed = 0; elapsed < budgetMs;) {
+    // Each fastForward executes one capped physics frame. Keep its 85ms step
+    // and collect every RAF in-page, but query progress only once per batch.
+    for (let frame = 0; frame < 10 && elapsed < budgetMs; frame += 1) {
+      await page.clock.fastForward(85);
+      elapsed += 85;
+    }
+    const progress = await page.evaluate(() => ({done: window.__bookshopWalk.done, violations: window.__bookshopWalk.violations}));
+    if (progress.done || progress.violations.length) break;
+  }
+  const walk = await page.evaluate(() => window.__bookshopWalk);
+  expect(walk.violations, `${id}: frame-by-frame movement invariants`).toEqual([]);
+  expect(walk.samples.every(sample => sample.clear && sample.visible), `${id}: the entire route must remain clear and rendered`).toBe(true);
+  expect(walk.done, `${id}: arrive within the room-perimeter walking budget`).toBe(true);
+  expect(walk.frames).toBeGreaterThan(0);
+  expect(walk.final.lastArrived).toBe(id);
+  expect(walk.final.moving).toBe(false);
+  expect(distanceXZ(walk.final.player, target.approach), `${id}: actual arrival position`).toBeLessThan(0.09);
+  return walk;
+}
+
+for (const width of [1440, 320]) {
+  test(`${width}px: photo-reference landmarks reproduce the observed room relationships and fit the rendered scene`, async ({page}, testInfo) => {
+    test.setTimeout(45_000);
+    await page.setViewportSize({width, height: 950});
+    await page.emulateMedia({reducedMotion: 'reduce'});
+    const run = await prepare(page, {engine: 'ready'});
+    await app(page).locator('[data-vbs-world] canvas').scrollIntoViewIfNeeded();
+    const state = await sceneState(page);
+    expectPhotoLayout(state);
+    for (const id of ['entrance-white-carousel', 'center-lightwood-table', 'center-darkwood-table', 'right-tall-grid-shelves', 'right-slim-blind-shelf']) {
+      const landmark = state.landmarks.find(landmark => landmark.id === id);
+      expect(landmark.screen.visible, `${id} must fit the default scene framing`).toBe(true);
+      expect(landmark.screen.x).toBeGreaterThanOrEqual(0);
+      expect(landmark.screen.x).toBeLessThanOrEqual(state.width);
+      expect(landmark.screen.y).toBeGreaterThanOrEqual(0);
+      expect(landmark.screen.y).toBeLessThanOrEqual(state.height);
+    }
+    const canvas = app(page).locator('[data-vbs-world] canvas');
+    const buffer = await canvas.evaluate(canvas => ({width: canvas.width, height: canvas.height}));
+    expect(buffer.width).toBeGreaterThanOrEqual(Math.floor(state.width));
+    expect(buffer.width).toBeLessThanOrEqual(Math.ceil(state.width * 2));
+    expect(buffer.height).toBeGreaterThan(0);
+    await noOverflow(page);
+    await page.screenshot({path: testInfo.outputPath(`photo-layout-${width}-default.png`)});
+    await action(page, 'rotate').click();
+    await expect.poll(async () => Math.abs((await sceneState(page)).camera.azimuth - state.camera.azimuth)).toBeGreaterThan(0.05);
+    const rotated = await sceneState(page);
+    expectPhotoLayout(rotated);
+    expect(rotated.player).toEqual(state.player);
+    await page.screenshot({path: testInfo.outputPath(`photo-layout-${width}-rotated.png`)});
+    await assertSafe(run, page);
+  });
+
+  walkingTest(`${width}px: photo-reference room lets the avatar reach all eight UI targets without furniture collisions`, async ({page, trace}, testInfo) => {
+    test.setTimeout(240_000);
+    expect(trace).toBe('off');
+    await page.setViewportSize({width, height: 950});
+    await page.emulateMedia({reducedMotion: 'reduce'});
+    const run = await prepare(page, {engine: 'ready', motionClock: true});
+    // Original full-resolution framing is covered by the two landmark tests.
+    // Keep the 1440/320 CSS viewport and real physics, reducing only GPU pixels.
+    await page.addStyleTag({content: '#virtualBookshop .vbs-stage {max-width:384px !important;height:280px !important;}'});
+    await app(page).locator('[data-vbs-world] canvas').scrollIntoViewIfNeeded();
+    await expect.poll(async () => {
+      const current = await sceneState(page);
+      return current.width <= 384 && current.height === 280;
+    }).toBe(true);
+    expectPhotoLayout(await sceneState(page));
+    // install() starts at 03:00 before navigation. A fixed future pause avoids
+    // sending Date.now()+100ms back after a slow WebGL/trace round trip.
+    await page.clock.pauseAt(new Date('2026-10-15T04:00:00Z'));
+    // Cross the room in both directions so reaching a nearby first shelf cannot
+    // mask a disconnected aisle around the newly modelled central tables.
+    const walks = [];
+    for (const id of ['heart', 'travel', 'counter', 'story', 'guest-reader', 'table', 'keeper', 'guest-traveler']) {
+      await selectSceneTarget(page, id);
+      walks.push(await advanceSceneToTarget(page, id));
+      console.info(`photo walk ${width}px ${id}: ${walks.at(-1).frames} frames, arrived collision-free`);
+      await noOverflow(page);
+    }
+    await testInfo.attach(`photo-room-walks-${width}`, {body: JSON.stringify(walks), contentType: 'application/json'});
+    expect(await page.evaluate(() => getCart())).toEqual([]);
     await assertSafe(run, page);
   });
 }
