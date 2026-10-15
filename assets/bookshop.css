@@ -1,0 +1,260 @@
+#virtualBookshop {
+  --vbs-paper: #fffaf0;
+  --vbs-cream: #f4ecdc;
+  --vbs-ink: #473e31;
+  --vbs-muted: #7b7665;
+  --vbs-line: #e7dcc7;
+  --vbs-leaf: #526f48;
+  --vbs-leaf-soft: #e7eddc;
+  --vbs-clay: #b97d64;
+  color: var(--vbs-ink);
+  font: 400 14px/1.65 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+  text-align: left;
+  max-width: 1220px;
+  margin: 0 auto;
+  min-width: 0;
+}
+#virtualBookshop *, #virtualBookshop *::before, #virtualBookshop *::after { box-sizing: border-box; }
+#virtualBookshop [hidden] { display: none !important; }
+#virtualBookshop :is(h2,h3,h4,p) { margin: 0; }
+#virtualBookshop button, #virtualBookshop input, #virtualBookshop textarea { font: inherit; }
+#virtualBookshop button { color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#virtualBookshop button:disabled { opacity: .5; cursor: not-allowed; }
+#virtualBookshop :is(button,input,textarea):focus-visible { outline: 3px solid #9aab70; outline-offset: 3px; }
+#virtualBookshop svg { display: inline-block; width: 19px; height: 19px; vertical-align: middle; flex: 0 0 auto; }
+#virtualBookshop .vbs-shell { position: relative; border: 1px solid var(--vbs-line); border-radius: 30px; overflow: hidden; background: var(--vbs-paper); box-shadow: 0 18px 50px #55482a0d; }
+#virtualBookshop .vbs-topbar { position: relative; inset: auto; z-index: auto; width: auto; height: auto; margin: 0; transform: none; backdrop-filter: none; transition: none; background: var(--vbs-paper); display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 21px 25px; border-bottom: 1px solid var(--vbs-line); }
+#virtualBookshop .vbs-brand { display: flex; gap: 12px; align-items: center; }
+#virtualBookshop .vbs-brand-mark { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 17px 17px 17px 7px; color: var(--vbs-leaf); background: var(--vbs-leaf-soft); }
+#virtualBookshop .vbs-brand-mark svg { width: 24px; height: 24px; }
+#virtualBookshop .vbs-eyebrow { display: block; color: var(--vbs-muted); font-size: 10px; font-weight: 600; letter-spacing: .08em; margin-bottom: 2px; }
+#virtualBookshop .vbs-brand h2 { font: 800 24px/1.3 'Gowun Batang', serif; letter-spacing: -.5px; }
+#virtualBookshop .vbs-top-actions { display: flex; gap: 7px; }
+#virtualBookshop .vbs-button { display: inline-flex; justify-content: center; align-items: center; gap: 7px; min-height: 44px; border: 1px solid var(--vbs-line); border-radius: 13px; padding: 9px 13px; background: var(--vbs-paper); color: var(--vbs-ink); font-size: 12px; font-weight: 600; line-height: 1.5; text-align: center; transition: background .15s, border-color .15s, transform .15s; }
+#virtualBookshop .vbs-button:hover:not(:disabled) { background: var(--vbs-cream); border-color: #c4c4a3; }
+#virtualBookshop .vbs-button:active:not(:disabled) { transform: translateY(1px); }
+#virtualBookshop .vbs-primary { background: var(--vbs-leaf); color: #fff9ec; border-color: var(--vbs-leaf); }
+#virtualBookshop .vbs-primary:hover:not(:disabled) { background: #415b39; color: #fff9ec; border-color: #415b39; }
+#virtualBookshop .vbs-button[aria-pressed='true'] { color: #3e5c34; background: var(--vbs-leaf-soft); border-color: #a0b28a; }
+#virtualBookshop .vbs-top-actions strong { background: var(--vbs-leaf-soft); color: var(--vbs-leaf); font-size: 11px; border-radius: 7px; padding: 1px 6px; min-width: 19px; }
+#virtualBookshop .vbs-layout { display: grid; grid-template-columns: minmax(0,1.65fr) minmax(320px,1fr); align-items: stretch; }
+#virtualBookshop .vbs-play-column { min-width: 0; padding: 12px 12px 0; background: #f7f5eb; }
+#virtualBookshop .vbs-stage { position: relative; width: 100%; height: 500px; background: #e8ece0; border-radius: 21px; overflow: hidden; isolation: isolate; }
+#virtualBookshop .vbs-world { position: absolute; inset: 0; }
+#virtualBookshop .vbs-world canvas { display: block; width: 100%; height: 100%; touch-action: pan-y; }
+#virtualBookshop .vbs-fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+#virtualBookshop [data-engine='loading'] .vbs-fallback { filter: blur(3px) saturate(.7); opacity: .65; }
+#virtualBookshop .vbs-stage-top { position: absolute; left: 13px; right: 13px; top: 13px; display: flex; gap: 8px; align-items: center; justify-content: space-between; pointer-events: none; }
+#virtualBookshop .vbs-scene-tag { display: inline-flex; gap: 6px; align-items: center; background: #fffaf0ed; padding: 8px 11px; border-radius: 11px; color: #65765c; font-size: 10px; box-shadow: 0 2px 5px #4d3f2510; }
+#virtualBookshop .vbs-scene-tag svg { width: 13px; height: 13px; }
+#virtualBookshop .vbs-avatar-button { display: inline-flex; gap: 4px; align-items: center; min-height: 44px; padding: 4px 10px 4px 5px; border: 1px solid #d9d9bc; border-radius: 15px; background: #fffaf0f5; font-size: 11px; box-shadow: 0 3px 0 #4a422714; pointer-events: auto; }
+#virtualBookshop .vbs-avatar-thumb, #virtualBookshop .vbs-avatar-preview, #virtualBookshop .vbs-keeper-portrait, #virtualBookshop .vbs-guest-avatar { background-image: url('/assets/bookshop/portraits.webp'); background-repeat: no-repeat; background-size: 300% 300%; background-position: var(--vbs-avatar-x,0%) var(--vbs-avatar-y,0%); }
+#virtualBookshop [data-animal='cat'] { --vbs-avatar-y: 0%; }
+#virtualBookshop [data-animal='bear'] { --vbs-avatar-y: 50%; }
+#virtualBookshop [data-animal='rabbit'] { --vbs-avatar-y: 100%; }
+#virtualBookshop [data-shirt='forest'] { --vbs-avatar-x: 0%; }
+#virtualBookshop [data-shirt='bread'] { --vbs-avatar-x: 50%; }
+#virtualBookshop [data-shirt='rose'] { --vbs-avatar-x: 100%; }
+#virtualBookshop .vbs-avatar-thumb { display: inline-block; width: 34px; height: 37px; }
+#virtualBookshop .vbs-avatar-preview { width: 122px; height: 134px; margin: 12px auto 22px; filter: drop-shadow(0 4px 3px #5f452b17); }
+#virtualBookshop .vbs-stage-bottom { position: absolute; left: 13px; right: 13px; bottom: 12px; display: flex; align-items: center; gap: 6px; pointer-events: none; }
+#virtualBookshop .vbs-stage-bottom .vbs-button { padding: 9px; background: #fffaf0ed; box-shadow: 0 2px 4px #4d3f2510; pointer-events: auto; }
+#virtualBookshop .vbs-movement-hint { font-size: 10px; color: #59664f; padding: 7px 9px; margin-left: auto; border-radius: 9px; background: #fffaf0d9; }
+#virtualBookshop .vbs-engine-message { position: absolute; bottom: 68px; left: 20px; right: 20px; text-align: center; font-size: 12px; color: #4d5e45; background: #fffaf0ed; border-radius: 14px; padding: 11px; box-shadow: 0 2px 10px #4d3f2510; }
+#virtualBookshop .vbs-engine-message:empty { display: none; }
+#virtualBookshop .vbs-engine-message .vbs-button { margin-left: 8px; }
+#virtualBookshop .vbs-shelf-nav { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; margin-top: 11px; }
+#virtualBookshop .vbs-shelf-nav .vbs-button { min-width: 0; padding: 10px 5px; border-radius: 12px; background: #eaeadd; font-size: 12px; }
+#virtualBookshop .vbs-shelf-nav .vbs-button[data-category='heart'] { background: #f0e1d9; }
+#virtualBookshop .vbs-shelf-nav .vbs-button[data-category='travel'] { background: #f0e8cd; }
+#virtualBookshop .vbs-shelf-nav .vbs-button[aria-pressed='true'] { border-color: var(--vbs-leaf); box-shadow: inset 0 0 0 1px var(--vbs-leaf); }
+#virtualBookshop .vbs-shelf-nav svg { width: 16px; height: 16px; }
+#virtualBookshop .vbs-place-nav { display: flex; gap: 7px; flex-wrap: wrap; padding-top: 10px; }
+#virtualBookshop .vbs-place-nav .vbs-button { font-size: 11px; padding: 8px 11px; background: #fdfaf2; }
+#virtualBookshop .vbs-place-nav svg { width: 15px; height: 15px; }
+#virtualBookshop .vbs-scene-status { color: var(--vbs-muted); font-size: 11px; min-height: 41px; padding: 9px 4px 10px; }
+#virtualBookshop .vbs-panel { min-width: 0; padding: 25px 23px 27px; border-left: 1px solid var(--vbs-line); max-height: 710px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #c2c6ad transparent; overscroll-behavior-y: contain; }
+#virtualBookshop .vbs-panel-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 20px; }
+#virtualBookshop .vbs-panel-head > div { min-width: 0; }
+#virtualBookshop .vbs-panel-head > .vbs-button { flex: 0 0 44px; padding: 10px; }
+#virtualBookshop .vbs-panel-title { font: 700 21px/1.5 'Gowun Batang', serif; letter-spacing: -.6px; word-break: keep-all; overflow-wrap: anywhere; outline: none; }
+#virtualBookshop .vbs-muted { color: var(--vbs-muted); font-size: 11px; line-height: 1.7; margin-top: 5px; }
+#virtualBookshop .vbs-keeper-intro { display: flex; gap: 12px; align-items: center; padding-bottom: 20px; }
+#virtualBookshop .vbs-keeper-portrait { flex: 0 0 61px; width: 61px; height: 67px; background-position: 100% 50%; filter: drop-shadow(0 2px 2px #48351e1c); }
+#virtualBookshop .vbs-speaker { display: inline-block; background: #e9dfca; color: #84664d; font-size: 10px; padding: 3px 9px; border-radius: 7px; margin-bottom: 5px; }
+#virtualBookshop .vbs-keeper-intro .vbs-panel-title { font-size: 19px; }
+#virtualBookshop .vbs-dialogue { border: 1px solid #e6dcc9; background: #f7f1e5; padding: 19px 17px; border-radius: 4px 20px 20px; }
+#virtualBookshop .vbs-dialogue > p { font-size: 14px; line-height: 1.95; word-break: keep-all; }
+#virtualBookshop .vbs-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 15px; }
+#virtualBookshop .vbs-dialogue .vbs-actions { display: grid; grid-template-columns: minmax(0,1fr); gap: 7px; }
+#virtualBookshop .vbs-dialogue .vbs-button { justify-content: flex-start; text-align: left; padding: 10px 12px; }
+#virtualBookshop .vbs-guest-picker { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+#virtualBookshop .vbs-guest-picker .vbs-button { min-width: 0; display: flex; flex-direction: column; gap: 7px; padding: 18px 10px 15px; background: var(--vbs-cream); }
+#virtualBookshop .vbs-guest-avatar { display: inline-block; flex: 0 0 auto; width: 70px; height: 77px; filter: drop-shadow(0 3px 3px #48351e1c); }
+#virtualBookshop .vbs-guest-name { font: 700 18px/1.4 'Gowun Batang', serif; }
+#virtualBookshop .vbs-guest-tag { display: inline-block; padding: 3px 8px; border-radius: 7px; background: var(--vbs-leaf-soft); color: var(--vbs-leaf); font-size: 11px; font-weight: 500; }
+#virtualBookshop .vbs-guest-theme { font-size: 11px; font-weight: 400; line-height: 1.7; color: var(--vbs-muted); word-break: keep-all; }
+#virtualBookshop .vbs-guest-invite { display: inline-flex; align-items: center; gap: 5px; padding-top: 3px; font-size: 11px; color: var(--vbs-leaf); }
+#virtualBookshop .vbs-guest-invite svg { width: 14px; height: 14px; }
+#virtualBookshop .vbs-guest-intro { display: flex; align-items: center; gap: 13px; margin: -4px 0 16px; }
+#virtualBookshop .vbs-guest-intro .vbs-guest-avatar { width: 58px; height: 64px; }
+#virtualBookshop .vbs-guest-recommendation { display: grid; grid-template-columns: 50px minmax(0,1fr); gap: 13px; align-items: center; margin-top: 17px; padding-top: 15px; border-top: 1px solid var(--vbs-line); }
+#virtualBookshop .vbs-guest-recommendation .vbs-cover { width: 50px; max-height: 76px; }
+#virtualBookshop .vbs-guest-recommendation h4 { font-size: 13px; line-height: 1.65; word-break: keep-all; overflow-wrap: anywhere; }
+#virtualBookshop .vbs-guest-recommendation .vbs-muted { margin-top: 0; }
+#virtualBookshop .vbs-small-divider { height: 1px; width: 42px; background: var(--vbs-line); margin: 23px 0 17px; }
+#virtualBookshop .vbs-tabs { display: flex; gap: 5px; margin-bottom: 16px; }
+#virtualBookshop .vbs-tab { min-width: 0; flex: 1; border: 1px solid var(--vbs-line); border-radius: 10px; background: var(--vbs-cream); color: var(--vbs-muted); min-height: 44px; font-size: 11px; font-weight: 600; padding: 7px 4px; }
+#virtualBookshop .vbs-tab[aria-selected='true'] { background: var(--vbs-leaf); border-color: var(--vbs-leaf); color: #fff9ec; }
+#virtualBookshop .vbs-search { display: flex; gap: 8px; align-items: center; border: 1px solid var(--vbs-line); background: #fffdf7; border-radius: 11px; padding: 9px 11px; margin-bottom: 20px; color: #96987f; }
+#virtualBookshop .vbs-search input { border: 0; outline: 0; width: 100%; min-width: 0; color: var(--vbs-ink); background: transparent; font-size: 13px; }
+#virtualBookshop .vbs-search:focus-within { border-color: #a7b68a; box-shadow: 0 0 0 2px #b3bd951e; }
+#virtualBookshop .vbs-search input:focus-visible { outline: none; }
+#virtualBookshop .vbs-notice { margin: 12px 0 18px; padding: 12px; background: #f3e8d6; border-radius: 12px; font-size: 12px; line-height: 1.8; }
+#virtualBookshop .vbs-notice .vbs-actions { margin-top: 8px; }
+#virtualBookshop .vbs-book-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px 14px; }
+#virtualBookshop .vbs-book-card { min-width: 0; display: flex; flex-direction: column; }
+#virtualBookshop .vbs-book-open { display: block; width: 100%; padding: 0; border: 0; border-radius: 5px; background: transparent; }
+#virtualBookshop .vbs-cover { display: block; width: 100%; aspect-ratio: .72; object-fit: contain; object-position: center bottom; filter: drop-shadow(3px 5px 3px #4e35151c); border-radius: 2px 5px 5px 2px; }
+#virtualBookshop .vbs-cover-missing { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 9px; background: #ece8dd; border: 1px dashed #cfc9b6; border-radius: 8px; color: #918d7c; font-size: 10px; filter: none; }
+#virtualBookshop .vbs-cover-missing svg { width: 28px; height: 28px; }
+#virtualBookshop .vbs-book-meta { padding-top: 13px; display: flex; flex-direction: column; flex: 1; }
+#virtualBookshop .vbs-book-meta h4 { font-size: 13px; line-height: 1.65; font-weight: 700; word-break: keep-all; overflow-wrap: anywhere; }
+#virtualBookshop .vbs-book-meta .vbs-muted { margin-top: 3px; font-size: 10px; }
+#virtualBookshop .vbs-price { display: block; margin-top: 6px; font-size: 12px; font-weight: 700; }
+#virtualBookshop .vbs-stock { font-size: 10px; line-height: 1.7; color: var(--vbs-muted); margin-top: 5px; }
+#virtualBookshop .vbs-book-buttons { display: flex; gap: 5px; margin-top: auto; padding-top: 11px; }
+#virtualBookshop .vbs-book-buttons .vbs-button:first-child { flex: 1; min-width: 0; padding: 7px 5px; font-size: 10px; word-break: keep-all; }
+#virtualBookshop .vbs-book-buttons .vbs-button:last-child { flex: 0 0 36px; padding: 7px; }
+#virtualBookshop .vbs-book-buttons .vbs-button:last-child svg { width: 16px; height: 16px; }
+#virtualBookshop .vbs-detail { display: grid; grid-template-columns: 100px minmax(0,1fr); gap: 17px; align-items: start; }
+#virtualBookshop .vbs-cover-large { max-width: 150px; }
+#virtualBookshop .vbs-author { font-size: 12px; color: var(--vbs-muted); }
+#virtualBookshop .vbs-detail-note { font-size: 12px; line-height: 1.9; margin-top: 11px; white-space: pre-line; overflow-wrap: anywhere; }
+#virtualBookshop .vbs-detail-price { font-size: 18px; font-weight: 700; margin-top: 14px; }
+#virtualBookshop .vbs-detail .vbs-actions { display: grid; gap: 6px; }
+#virtualBookshop .vbs-detail .vbs-button { padding: 9px 6px; font-size: 11px; }
+#virtualBookshop .vbs-cart-list { display: grid; gap: 18px; }
+#virtualBookshop .vbs-cart-row { display: grid; grid-template-columns: 52px minmax(0,1fr); gap: 13px; align-items: start; }
+#virtualBookshop .vbs-cart-row > img { width: 52px; height: 73px; object-fit: contain; object-position: top; }
+#virtualBookshop .vbs-cart-row h4 { font-size: 13px; line-height: 1.65; word-break: keep-all; }
+#virtualBookshop .vbs-cart-placeholder { display: grid; place-items: center; width: 52px; height: 73px; background: var(--vbs-cream); border-radius: 5px; color: var(--vbs-muted); }
+#virtualBookshop .vbs-quantity { display: flex; gap: 5px; align-items: center; margin-top: 8px; }
+#virtualBookshop .vbs-quantity .vbs-button { min-width: 35px; min-height: 36px; padding: 4px 7px; font-size: 11px; }
+#virtualBookshop .vbs-quantity > span { min-width: 18px; font-size: 12px; text-align: center; }
+#virtualBookshop .vbs-quantity .vbs-button:last-child { margin-left: auto; }
+#virtualBookshop .vbs-cart-total { border-top: 1px solid var(--vbs-line); padding-top: 17px; margin-top: 23px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; }
+#virtualBookshop .vbs-cart-total strong { font-size: 19px; }
+#virtualBookshop .vbs-cart-total small { display: block; font-size: 10px; color: var(--vbs-muted); }
+#virtualBookshop .vbs-order-note { margin-top: 17px; }
+#virtualBookshop .vbs-label { display: block; font-size: 12px; font-weight: 600; margin: 18px 0 9px; }
+#virtualBookshop .vbs-choice-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+#virtualBookshop .vbs-choice-grid .vbs-button { min-width: 0; font-size: 11px; padding: 9px 5px; }
+#virtualBookshop .vbs-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1px #0000000d; }
+#virtualBookshop .vbs-swatch-forest { background: #718a63; }
+#virtualBookshop .vbs-swatch-bread { background: #d2a362; }
+#virtualBookshop .vbs-swatch-rose { background: #c68e83; }
+#virtualBookshop .vbs-word-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 19px; }
+#virtualBookshop .vbs-word-grid .vbs-button { min-height: 65px; border-radius: 4px 17px 17px 17px; font: 700 18px/1.4 'Gowun Batang', serif; background: #f1e7d4; }
+#virtualBookshop .vbs-word-grid .vbs-button:nth-child(2) { background: #eee0d8; }
+#virtualBookshop .vbs-word-grid .vbs-button:nth-child(3) { background: #e4e8d6; }
+#virtualBookshop .vbs-word-grid .vbs-button:nth-child(4) { background: #e1e8e2; }
+#virtualBookshop .vbs-word-grid .vbs-button[aria-pressed='true'] { border-color: var(--vbs-leaf); box-shadow: inset 0 0 0 1px var(--vbs-leaf); color: #3e5c34; }
+#virtualBookshop .vbs-word-pill { display: inline-block; padding: 6px 11px; border-radius: 8px; color: var(--vbs-leaf); background: var(--vbs-leaf-soft); font-size: 11px; }
+#virtualBookshop .vbs-textarea { display: block; width: 100%; min-height: 133px; resize: vertical; padding: 13px; border: 1px solid var(--vbs-line); border-radius: 13px; background: #fffdf7; color: var(--vbs-ink); font-size: 16px; line-height: 1.8; }
+#virtualBookshop .vbs-note-card { padding: 24px 20px; background: #f2ead9; border-radius: 4px 21px 21px; margin: 15px 0 20px; }
+#virtualBookshop .vbs-note-card > span { font-size: 11px; color: #98816a; }
+#virtualBookshop .vbs-note-card p { font: 500 19px/1.9 'Gowun Batang', serif; margin-top: 15px; overflow-wrap: anywhere; white-space: pre-wrap; }
+#virtualBookshop .vbs-empty { display: flex; flex-direction: column; align-items: center; gap: 15px; text-align: center; color: var(--vbs-muted); font-size: 12px; padding: 35px 10px; }
+#virtualBookshop .vbs-empty > svg { width: 33px; height: 33px; color: #a0aa8c; }
+#virtualBookshop .vbs-footer { position: relative; inset: auto; z-index: auto; width: auto; margin: 0; transform: none; padding: 13px 25px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--vbs-line); color: var(--vbs-muted); font-size: 10px; background: #f5f0e6; }
+#virtualBookshop .vbs-footer button { border: 0; background: transparent; padding: 6px 0; color: var(--vbs-leaf); font-size: 11px; }
+#virtualBookshop .vbs-footer svg { width: 14px; height: 14px; margin-left: 5px; }
+#virtualBookshop .vbs-toast { position: absolute; z-index: 6; left: 50%; bottom: 62px; transform: translateX(-50%); width: max-content; max-width: calc(100% - 30px); padding: 12px 18px; border-radius: 13px; color: #fffaf0; background: #4a6145f5; font-size: 12px; text-align: center; box-shadow: 0 6px 20px #3b4b3229; pointer-events: none; }
+@media (max-width: 1050px) {
+  #virtualBookshop .vbs-layout { grid-template-columns: minmax(0,1.4fr) minmax(300px,1fr); }
+  #virtualBookshop .vbs-stage { height: 455px; }
+  #virtualBookshop .vbs-panel { padding: 22px 18px; }
+  #virtualBookshop .vbs-scene-tag { display: none; }
+  #virtualBookshop .vbs-stage-top { justify-content: flex-end; }
+}
+@media (max-width: 899px) {
+  #virtualBookshop .vbs-layout { grid-template-columns: minmax(0,1fr); }
+  #virtualBookshop .vbs-stage { height: clamp(320px,62vw,500px); }
+  #virtualBookshop .vbs-panel { border-left: 0; border-top: 1px solid var(--vbs-line); max-height: none; overflow: visible; padding: 24px; }
+  #virtualBookshop .vbs-scene-tag { display: inline-flex; }
+  #virtualBookshop .vbs-stage-top { justify-content: space-between; }
+  #virtualBookshop .vbs-book-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 25px 18px; }
+  #virtualBookshop .vbs-detail { grid-template-columns: 150px minmax(0,1fr); gap: 23px; }
+  #virtualBookshop .vbs-detail .vbs-actions { display: flex; }
+  #virtualBookshop .vbs-dialogue .vbs-actions { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  #virtualBookshop .vbs-guest-dialogue .vbs-actions { grid-template-columns: minmax(0,1fr); }
+  #virtualBookshop .vbs-keeper-intro { padding-bottom: 14px; }
+  #virtualBookshop .vbs-topbar { padding: 18px 22px; }
+  #virtualBookshop .vbs-cart-list { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; }
+}
+@media (max-width: 520px) {
+  #virtualBookshop { font-size: 13px; }
+  #virtualBookshop .vbs-shell { border-radius: 22px; }
+  #virtualBookshop .vbs-topbar { padding: 15px 14px; gap: 8px; }
+  #virtualBookshop .vbs-brand { gap: 8px; }
+  #virtualBookshop .vbs-brand-mark { width: 34px; height: 36px; border-radius: 12px; }
+  #virtualBookshop .vbs-brand-mark svg { width: 20px; height: 20px; }
+  #virtualBookshop .vbs-brand h2 { font-size: 20px; }
+  #virtualBookshop .vbs-eyebrow { font-size: 9px; }
+  #virtualBookshop .vbs-top-actions { gap: 5px; }
+  #virtualBookshop .vbs-top-actions .vbs-button { font-size: 10px; padding: 8px; gap: 5px; }
+  #virtualBookshop .vbs-top-actions .vbs-button:first-child { padding: 8px 9px; }
+  #virtualBookshop .vbs-top-actions svg { width: 17px; height: 17px; }
+  #virtualBookshop .vbs-play-column { padding: 7px 7px 0; }
+  #virtualBookshop .vbs-stage { height: clamp(305px,83vw,365px); border-radius: 16px; }
+  #virtualBookshop .vbs-stage-top { left: 9px; right: 9px; top: 9px; }
+  #virtualBookshop .vbs-scene-tag { font-size: 9px; gap: 4px; padding: 7px 8px; }
+  #virtualBookshop .vbs-avatar-button { padding: 3px 7px 3px 3px; font-size: 10px; gap: 2px; }
+  #virtualBookshop .vbs-avatar-thumb { width: 30px; height: 33px; }
+  #virtualBookshop .vbs-stage-bottom { left: 9px; right: 9px; bottom: 9px; gap: 5px; }
+  #virtualBookshop .vbs-stage-bottom .vbs-button { min-height: 40px; padding: 8px; }
+  #virtualBookshop .vbs-stage-bottom svg { width: 17px; height: 17px; }
+  #virtualBookshop .vbs-movement-hint { max-width: 159px; padding: 6px 8px; font-size: 9px; }
+  #virtualBookshop .vbs-shelf-nav { gap: 5px; margin-top: 8px; }
+  #virtualBookshop .vbs-shelf-nav .vbs-button { padding: 8px 4px; font-size: 10px; gap: 4px; min-height: 44px; }
+  #virtualBookshop .vbs-shelf-nav svg { width: 13px; height: 13px; }
+  #virtualBookshop .vbs-place-nav { gap: 5px; padding-top: 7px; }
+  #virtualBookshop .vbs-place-nav .vbs-button { font-size: 10px; min-height: 42px; padding: 7px 9px; gap: 5px; }
+  #virtualBookshop .vbs-scene-status { padding: 8px 6px 9px; font-size: 10px; }
+  #virtualBookshop .vbs-panel { padding: 21px 16px 24px; }
+  #virtualBookshop .vbs-panel-title { font-size: 20px; }
+  #virtualBookshop .vbs-keeper-portrait { flex-basis: 51px; width: 51px; height: 56px; }
+  #virtualBookshop .vbs-keeper-intro { gap: 10px; }
+  #virtualBookshop .vbs-keeper-intro .vbs-panel-title { font-size: 18px; }
+  #virtualBookshop .vbs-dialogue { padding: 17px 15px; }
+  #virtualBookshop .vbs-dialogue > p { font-size: 13px; }
+  #virtualBookshop .vbs-dialogue .vbs-actions { grid-template-columns: minmax(0,1fr); }
+  #virtualBookshop .vbs-actions { gap: 6px; }
+  #virtualBookshop .vbs-actions .vbs-button { font-size: 11px; padding: 9px 11px; }
+  #virtualBookshop .vbs-book-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 23px 13px; }
+  #virtualBookshop .vbs-book-buttons .vbs-button:first-child { font-size: 10px; }
+  #virtualBookshop .vbs-detail { grid-template-columns: 94px minmax(0,1fr); gap: 16px; }
+  #virtualBookshop .vbs-detail .vbs-actions { display: grid; }
+  #virtualBookshop .vbs-cart-list { grid-template-columns: minmax(0,1fr); }
+  #virtualBookshop .vbs-footer { padding: 12px 16px; }
+  #virtualBookshop .vbs-toast { position: fixed; bottom: 24px; width: max-content; max-width: calc(100% - 32px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #virtualBookshop *, #virtualBookshop *::before, #virtualBookshop *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+#virtualBookshop .vbs-eyebrow,
+#virtualBookshop .vbs-speaker,
+#virtualBookshop .vbs-scene-tag,
+#virtualBookshop .vbs-movement-hint,
+#virtualBookshop .vbs-stock,
+#virtualBookshop .vbs-footer,
+#virtualBookshop .vbs-book-meta .vbs-muted,
+#virtualBookshop .vbs-cart-total small { font-size:11px; }
+#virtualBookshop .vbs-panel { scroll-margin-top:90px; }
+#virtualBookshop .vbs-book-buttons .vbs-button:first-child,
+#virtualBookshop .vbs-shelf-nav .vbs-button,
+#virtualBookshop .vbs-place-nav .vbs-button { font-size:11px; }
+@media(pointer:coarse){
+  #virtualBookshop .vbs-quantity .vbs-button{min-width:44px;min-height:44px}
+}
