@@ -20,8 +20,8 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
   renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab';
   host.appendChild(renderer.domElement);
   const camera = new THREE.OrthographicCamera(-10, 10, 7, -7, .1, 100);
-  const cameraTarget = new THREE.Vector3(0, 1.8, -.25);
-  const cameraHome = { azimuth: .43, elevation: .62 };
+  const cameraTarget = new THREE.Vector3(0, 2, .5);
+  const cameraHome = { azimuth: -.56, elevation: .65 };
   let azimuth = cameraHome.azimuth;
   let elevation = cameraHome.elevation;
   let targetAzimuth = azimuth;
@@ -230,102 +230,122 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
   }
   function obstacle(x, z, halfW, halfD) { colliders.push({ x, z, halfW, halfD }); }
 
+  // The photographs establish the furniture and circulation, not measured
+  // dimensions. These proportions leave a little room for game characters.
   const room = group(scene);
-  box(room, 15.2, .48, 10.7, palette.oakEdge, 0, -.32, -.1, .2);
-  box(room, 15.05, .15, 10.55, palette.oakLight, 0, -.095, -.1, .09);
-  // Separate beveled floorboards catch the sunlight and make the floor tangible.
-  for (let row = 0; row < 20; row++) {
-    const z = -5.15 + row * .51;
-    for (let col = 0; col < 4; col++) {
-      const x = -5.63 + col * 3.76;
-      const plank = box(room, 3.735, .045, .486, (row + col) % 4 === 0 ? palette.floorAlt : palette.floor, x, -.017, z, .015);
-      plank.castShadow = false;
-    }
+  const layoutLandmarks = [];
+  let lastArrived = null;
+  function landmark(id, kind, position, mat) {
+    layoutLandmarks.push({ id, kind, position: new THREE.Vector3(...position), material: mat || palette.ivory });
   }
-  box(room, 15.2, 5.45, .2, palette.plaster, 0, 2.58, -5.45, .05);
-  box(room, .2, 5.45, 10.65, palette.plaster, -7.52, 2.58, -.1, .05);
-  box(room, 15.05, .24, .16, palette.oakLight, 0, .12, -5.29, .025);
-  box(room, .16, .24, 10.3, palette.oakLight, -7.36, .12, -.1, .025);
-  box(room, 15.2, .24, .34, palette.oakLight, 0, 5.17, -5.39, .07);
-  box(room, .33, .24, 10.65, palette.oakLight, -7.5, 5.17, -.1, .07);
-  box(room, .2, 5.45, .22, palette.oakEdge, -7.38, 2.58, 5.08, .04);
-
-  const hemi = new THREE.HemisphereLight('#fff5db', '#9ba082', 2.1);
+  const tile = material('#62686b', { roughness: .94 });
+  const tileAlt = material('#596166', { roughness: .94 });
+  const grout = material('#434b50', { roughness: 1 });
+  const white = material('#f3f2ec', { roughness: .88 });
+  const black = material('#252b29', { roughness: .56 });
+  const brown = material('#805b3e', { roughness: .78 });
+  const darkWood = material('#70513c', { roughness: .8 });
+  const yellow = material('#e3bf4c', { roughness: .73 });
+  const orange = material('#df7944', { roughness: .72 });
+  scene.background.set('#e9e9e2');
+  scene.fog.color.copy(scene.background);
+  box(room, 8.95, .26, 15.15, white, 0, -.2, 0, .1);
+  box(room, 8.8, .045, 15, grout, 0, -.045, 0, .008);
+  const tileGeo = new THREE.BoxGeometry(1.083, .03, 1.054);
+  geometries.set('photo-floor-tile', tileGeo);
+  for (let row = 0; row < 14; row++) for (let col = 0; col < 8; col++) {
+    const mesh = new THREE.Mesh(tileGeo, (row + col * 3) % 7 === 0 ? tileAlt : tile);
+    mesh.position.set(-3.85 + col * 1.1, -.012, -6.955 + row * 1.07);
+    mesh.receiveShadow = true;
+    room.add(mesh);
+  }
+  landmark('floor-gray-tile', 'gray-tile-floor', [0, .01, .5], tile);
+  // White walls are cut away on the viewing side; no ceiling hides the room.
+  box(room, .15, .82, 15.1, white, -4.47, .41, 0, .025);
+  box(room, .15, 4.7, 12.6, white, 4.47, 2.35, -1.2, .025);
+  box(room, .15, 1.0, 2.5, white, 4.47, .5, 6.35, .025);
+  box(room, 8.95, 1.08, .15, white, 0, .54, -7.55, .025);
+  box(room, 8.95, .3, .18, white, 0, 4.55, -7.55, .025);
+  box(room, .15, .13, 15, white, -4.37, .085, 0, .015);
+  box(room, .15, .13, 15, white, 4.37, .085, 0, .015);
+  const hemi = new THREE.HemisphereLight('#fff6e5', '#a4a69d', 2.2);
   scene.add(hemi);
-  const sun = new THREE.DirectionalLight('#fff0cb', 3.4);
-  sun.position.set(-5, 12, 8);
-  sun.target.position.set(0, 0, -1);
+  const sun = new THREE.DirectionalLight('#fff2d9', 3.25);
+  sun.position.set(-6, 11, 8);
+  sun.target.position.set(0, 0, -.5);
   sun.castShadow = true;
   const shadowResolution = host.clientWidth < 600 ? 1024 : 2048;
   sun.shadow.mapSize.set(shadowResolution, shadowResolution);
-  sun.shadow.camera.left = -12;
-  sun.shadow.camera.right = 12;
-  sun.shadow.camera.top = 12;
-  sun.shadow.camera.bottom = -12;
-  sun.shadow.camera.near = 1;
-  sun.shadow.camera.far = 35;
+  Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 13, bottom: -13, near: 1, far: 36 });
   sun.shadow.bias = -.0004;
-  sun.shadow.normalBias = .028;
+  sun.shadow.normalBias = .025;
   sun.shadow.radius = 4;
   scene.add(sun, sun.target);
-  const fill = new THREE.DirectionalLight('#d7e7de', .9);
-  fill.position.set(8, 6, -1);
+  const fill = new THREE.DirectionalLight('#e6ece6', .9);
+  fill.position.set(6, 7, -4);
   scene.add(fill);
   const warmLights = [];
-  const lampGlow = material('#fff3b8', { emissive: '#ffcf6c', emissiveIntensity: .7, roughness: .48 });
-  const glass = material('#cfe1c2', { roughness: .22, transparent: true, opacity: .3 });
-
-  // An arched, deeply recessed window opens onto a tiny green landscape.
-  const windowGroup = group(room, -7.35, 0, -.4);
-  windowGroup.rotation.y = Math.PI / 2;
-  const archShape = new THREE.Shape();
-  archShape.moveTo(-1.3, 1.25);
-  archShape.lineTo(1.3, 1.25);
-  archShape.lineTo(1.3, 3.4);
-  archShape.absarc(0, 3.4, 1.3, 0, Math.PI, false);
-  archShape.lineTo(-1.3, 1.25);
-  const archGeo = new THREE.ShapeGeometry(archShape, 40);
-  geometries.set('windowArch', archGeo);
-  const sky = material('#b6d9c4', { roughness: 1, emissive: '#a6cdbc', emissiveIntensity: .14 });
-  const skyMesh = new THREE.Mesh(archGeo, sky);
-  skyMesh.position.z = .02;
-  windowGroup.add(skyMesh);
-  const hillMat = material('#86a878');
-  sphere(windowGroup, 1.4, .75, .065, hillMat, -.45, 1.7, .05);
-  sphere(windowGroup, .7, .85, .055, palette.sage, .74, 1.7, .08);
-  sphere(windowGroup, .45, .31, .08, material('#e6eee0'), -.54, 3.4, .065);
-  sphere(windowGroup, .43, .28, .075, material('#e6eee0'), -.2, 3.39, .06);
-  sphere(windowGroup, .33, .22, .07, material('#e6eee0'), .14, 3.4, .06);
-  const smallTree = group(windowGroup, .78, 1.6, .15);
-  cylinder(smallTree, .035, .045, 1.1, palette.oakEdge, 0, .38);
-  sphere(smallTree, .43, .5, .09, palette.moss, 0, 1.0, 0);
-  const glassMesh = new THREE.Mesh(archGeo, glass);
-  glassMesh.position.z = .19;
-  windowGroup.add(glassMesh);
-  box(windowGroup, .13, 2.19, .22, palette.oakLight, -1.35, 2.3, .21, .04);
-  box(windowGroup, .13, 2.19, .22, palette.oakLight, 1.35, 2.3, .21, .04);
-  const archRim = torus(windowGroup, 1.35, .075, palette.oakLight, 0, 3.4, .2, Math.PI);
-  box(windowGroup, 2.86, .18, .48, palette.oakLight, 0, 1.24, .24, .045);
-  box(windowGroup, .07, 3.36, .11, palette.oakLight, 0, 2.92, .31, .02);
-  box(windowGroup, 2.65, .075, .11, palette.oakLight, 0, 2.76, .31, .02);
-  // Folded linen curtains, rather than billboard illustrations.
-  const curtain = material('#e8ddbf', { roughness: 1 });
-  for (const side of [-1, 1]) {
-    for (let fold = 0; fold < 5; fold++) {
-      const x = side * (1.28 + fold * .075);
-      const mesh = cylinder(windowGroup, .067, .081, 2.94, curtain, x, 2.85, .43, 16);
-      mesh.rotation.z = side * -.065;
-    }
-    box(windowGroup, .35, .08, .25, palette.sage, side * 1.39, 2.18, .46, .02);
+  const lampGlow = material('#fff2b8', { emissive: '#ffd78e', emissiveIntensity: .7, roughness: .45 });
+  const sky = material('#9ca5a0', { roughness: .62, emissive: '#78867d', emissiveIntensity: .07 });
+  const glass = material('#b9ceca', { roughness: .18, transparent: true, opacity: .13, metalness: .04 });
+  function imageDecal(parent, url, w, h, x, y, z) {
+    if (!url) return;
+    const mat = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, alphaTest: .03, side: THREE.DoubleSide });
+    materials.push(mat);
+    const geo = new THREE.PlaneGeometry(w, h);
+    geometries.set('photo-decal-' + geometries.size, geo);
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, y, z);
+    parent.add(mesh);
+    new THREE.TextureLoader().load(url, tex => {
+      if (disposed) { tex.dispose(); return; }
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+      textures.push(tex);
+      mat.map = tex;
+      mat.needsUpdate = true;
+    }, undefined, () => {});
+    return mesh;
   }
-  cylinder(windowGroup, .045, .045, 3.5, palette.brass, 0, 4.66, .42).rotation.z = Math.PI / 2;
+  // The actual back window is flat, with black rectangular glazing.
+  const backWindow = group(room, 0, 0, -7.44);
+  box(backWindow, 8.55, 3.24, .055, sky, 0, 2.73, -.055, .008);
+  for (const x of [-4.3, 0, 4.3]) box(backWindow, .075, 3.42, .13, black, x, 2.75, .02, .012);
+  for (const y of [1.08, 2.43, 4.43]) box(backWindow, 8.67, .075, .13, black, 0, y, .025, .012);
+  for (const x of [-3.5, -2.9, 1.4, 2.05]) {
+    const reflection = box(backWindow, .09, 2.7, .012, material('#e1e8df', { transparent: true, opacity: .18, roughness: .3 }), x, 2.77, .018, .003);
+    reflection.rotation.z = -.08;
+  }
+  const brandMarkUrl = options.brandMarkUrl || '/assets/images/brand/gd-universe-logomark.png';
+  const brandLogoUrl = options.brandLogoUrl || '/assets/images/brand/gd-universe-logo.png';
+  imageDecal(backWindow, brandMarkUrl, .83, .83, -2.15, 3.2, .106);
+  imageDecal(backWindow, brandMarkUrl, .83, .83, 2.15, 3.2, .106);
+  landmark('back-black-glazing', 'black-framed-window', [0, 2.75, -7.4], black);
+  // The storefront is also black glass. Its open left door stays outside the
+  // navigation bounds; the front fixed pane is cut low for the game camera.
+  const entrance = group(room, 0, 0, 7.48);
+  for (const x of [-4.3, 4.3]) box(entrance, .09, 4.48, .13, black, x, 2.24, 0, .014);
+  box(entrance, 8.7, .11, .14, black, 0, 4.45, 0, .018);
+  box(entrance, 5.1, .07, .11, black, 1.75, .12, 0, .012);
+  box(entrance, 5.05, .87, .025, glass, 1.75, .59, -.018, .003);
+  box(entrance, 5.1, .055, .1, black, 1.75, 1.03, 0, .01);
+  const door = group(entrance, -4.23, 0, .02);
+  door.rotation.y = -1.02;
+  for (const x of [0, 1.9]) box(door, .065, 4.24, .09, black, x, 2.12, 0, .012);
+  for (const y of [.07, 1.03, 4.21]) box(door, 1.95, .065, .09, black, .95, y, 0, .012);
+  box(door, 1.81, 4.07, .022, glass, .95, 2.13, -.015, .003);
+  box(door, .045, .6, .075, black, 1.69, 1.72, .07, .01);
+  const shopSign = group(entrance, 0, 4.77, .025);
+  box(shopSign, 3.4, .49, .095, white, 0, 0, 0, .045);
+  label(shopSign, '개띠랑 책공방', '', 3.1, 0, 0, .055, '#f6f1e4');
+  const yellowSign = group(room, -1.9, 0, 7.74);
+  for (const x of [-.62, .62]) box(yellowSign, .045, .94, .05, black, x, .47, -.035, .009);
+  box(yellowSign, 1.62, 1.08, .085, yellow, 0, 1.28, 0, .045);
+  imageDecal(yellowSign, brandLogoUrl, 1.39, .391, 0, 1.43, .052);
+  label(yellowSign, '책공방 안내', '', 1.21, 0, 1.03, .055, '#e4bf4b');
+  landmark('front-black-glazing', 'black-framed-open-door', [-1.2, 2.35, 7.5], black);
 
-  const bookMats = ['#6f8c6d', '#ba7d69', '#dbb56b', '#7d9895', '#958ca0', '#e3cfb0', '#698087', '#c1a36f', '#bbaca0'].map(c => material(c));
-  const shelfBookMats = {
-    heart: ['#b7958e', '#a78073', '#819579', '#d8c2ad', '#a4aba0', '#c9b19d'].map(c => material(c)),
-    story: ['#788b88', '#a98877', '#69786e', '#d9c5a9', '#998a7b', '#a4aea1'].map(c => material(c)),
-    travel: ['#d0ae61', '#91a488', '#c2996e', '#d5cfac', '#8fa5a0', '#c4ac7f'].map(c => material(c)),
-  };
+  const bookMats = ['#79917c', '#c48f80', '#d1b66d', '#8da49e', '#b7a7ae', '#e1d2b9', '#768c96', '#c4a582'].map(c => material(c));
   const bookCoverTextures = new Map();
   Object.entries(options.bookCovers || {}).forEach(([id, url]) => {
     new THREE.TextureLoader().load(url, tex => {
@@ -336,319 +356,231 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
       bookCoverTextures.set(id, tex);
       scene.traverse(child => {
         if (child.userData.bookId === id && child.userData.coverFace) {
-          child.material.map = tex;
-          child.material.color.set('#ffffff');
-          child.material.needsUpdate = true;
+          child.material.map = tex; child.material.color.set('#ffffff'); child.material.needsUpdate = true;
         }
       });
-    });
+    }, undefined, () => {});
   });
   function uprightBook(parent, width, height, depth, mat, x, y, z, tilt = 0) {
-    const book = group(parent, x, y, z);
-    book.rotation.z = tilt;
-    box(book, width, height, depth, mat, 0, height / 2, 0, .025);
-    box(book, width * .69, height - .11, depth - .085, palette.page, .011, height / 2, -.037, .012);
-    box(book, width + .012, .035, depth + .02, mat, 0, .03, 0, .012);
-    box(book, width + .012, .035, depth + .02, mat, 0, height - .03, 0, .012);
-    box(book, width * .7, .035, .009, palette.ivory, 0, height * .23, depth / 2 + .007, .004);
-    box(book, width * .7, .035, .009, palette.ivory, 0, height * .73, depth / 2 + .007, .004);
+    const book = group(parent, x, y, z); book.rotation.z = tilt;
+    box(book, width, height, depth, mat, 0, height / 2, 0, .014);
+    box(book, width * .72, height - .065, depth - .045, palette.page, .005, height / 2, -.012, .006);
+    box(book, width * .65, .017, .006, white, 0, height * .24, depth / 2 + .005, .002);
     return book;
   }
-  function displayBook(parent, id, mat, x, y, z, rotation = 0, featured = false) {
-    const display = group(parent, x, y, z);
-    display.rotation.y = rotation;
-    display.rotation.x = -.1;
-    const width = featured ? .68 : .58;
-    const height = featured ? .86 : .79;
-    box(display, width, height, .11, mat, 0, height / 2, 0, .025);
-    const coverMat = material(mat.color, { map: bookCoverTextures.get(id) || null });
-    const coverGeo = new THREE.PlaneGeometry(width - .065, height - .08);
-    geometries.set('cover' + geometries.size, coverGeo);
-    const cover = new THREE.Mesh(coverGeo, coverMat);
-    cover.position.set(0, height / 2, .059);
-    cover.userData.bookId = id;
-    cover.userData.coverFace = true;
-    display.add(cover);
-    if (!options.bookCovers || !options.bookCovers[id]) {
-      // The cover decoration consists of actual raised, printed-looking objects.
-      sphere(display, .13, .13, .006, palette.ivory, 0, .48, .067);
-      box(display, .27, .022, .011, palette.ivory, 0, .22, .067, .002);
-      box(display, .2, .016, .011, palette.ivory, 0, .17, .067, .002);
-    }
-    box(parent, width + .1, .09, .35, palette.oakLight, x, y + .03, z + .075, .025);
-    return display;
+  function faceoutBook(parent, id, x, y, z, width = .46, height = .64) {
+    if (!options.bookCovers || !options.bookCovers[id]) return null;
+    const book = group(parent, x, y, z); book.rotation.x = -.12;
+    box(book, width, height, .075, bookMats[2], 0, height / 2, 0, .012);
+    const mat = material('#ffffff', { map: bookCoverTextures.get(id) || null });
+    const geo = new THREE.PlaneGeometry(width - .035, height - .035);
+    geometries.set('photo-cover-' + geometries.size, geo);
+    const face = new THREE.Mesh(geo, mat);
+    face.position.set(0, height / 2, .042);
+    face.userData.bookId = id; face.userData.coverFace = true;
+    book.add(face);
+    return book;
   }
-  const shelfConfigs = [
-    { id: 'heart', x: -4.7, title: '마음과 기록', sub: '마음이 쉬어가는 책', tint: '#ead4c5', coverIds: ['outside', 'feeling', 'night'] },
-    { id: 'story', x: 0, title: '작가의 서재', sub: '이야기가 자라는 자리', tint: '#e2e8cd', coverIds: ['uncomfortable', 'someday', 'door'] },
-    { id: 'travel', x: 4.7, title: '빵과 여행', sub: '호기심을 따라 걷기', tint: '#eee2bf', coverIds: ['breadful', 'bread2', 'bread1'] },
-  ];
-  for (const config of shelfConfigs) {
-    const shelf = interact(group(room, config.x, 0, -4.59), config.id);
-    obstacle(config.x, -4.54, 1.89, .62);
-    softShadow(room, 2.2, .86, .28, config.x, -4.4);
-    box(shelf, 3.8, 3.5, .2, palette.oakEdge, 0, 1.95, -.46, .09);
-    box(shelf, 3.48, 3.25, .075, material('#c7aa7c'), 0, 1.93, -.34, .02);
-    for (const x of [-1.79, 1.79]) box(shelf, .18, 3.72, .92, palette.oakLight, x, 1.92, 0, .065);
-    box(shelf, 3.85, .2, 1.04, palette.oakLight, 0, 3.72, .02, .065);
-    box(shelf, 3.73, .34, .91, palette.oakLight, 0, .34, 0, .055);
-    for (const y of [.62, 1.6, 2.58]) box(shelf, 3.61, .11, .92, palette.oakLight, 0, y, 0, .028);
-    box(shelf, 3.28, .6, .13, palette.oakLight, 0, 4.08, .04, .1);
-    label(shelf, config.title, config.sub, 3.02, 0, 4.08, .115, config.tint);
-    for (const x of [-1.12, 1.12]) {
-      cylinder(shelf, .026, .026, .2, palette.brass, x, 3.88, .045);
+  function bookStack(parent, x, y, z, count = 3, width = .62, depth = .45) {
+    for (let i = 0; i < count; i++) {
+      const stack = group(parent, x + i * .009, y + i * .095, z);
+      stack.rotation.y = (i % 3 - 1) * .055;
+      box(stack, width, .085, depth, bookMats[i % bookMats.length], 0, .042, 0, .012);
+      box(stack, width - .05, .05, .009, palette.page, 0, .043, depth / 2 + .004, .004);
     }
-    for (let row = 0; row < 3; row++) {
-      let cursor = -1.52;
-      const rowY = .685 + row * .98;
-      const hasActualCover = Boolean(options.bookCovers?.[config.coverIds[row]]);
-      const bookCount = hasActualCover ? 6 : row === 2 ? 7 : 10;
-      for (let i = 0; i < bookCount; i++) {
-        const width = .14 + random() * .13;
-        const height = .56 + random() * .29;
-        const mat = shelfBookMats[config.id][(i + row * 2) % shelfBookMats[config.id].length];
-        uprightBook(shelf, width, height, .47 + random() * .08, mat, cursor + width / 2, rowY, .12, i === bookCount - 1 ? -.11 : (random() - .5) * .025);
-        cursor += width + .035;
-      }
-      if (hasActualCover || row === 2) displayBook(shelf, config.coverIds[row], shelfBookMats[config.id][0], 1.02, rowY, .17, -.07, row === 2);
-      if (row === 0 && !hasActualCover) {
-        const stack = group(shelf, 1.1, rowY, .16);
-        for (let i = 0; i < 3; i++) {
-          const horizontalBook = box(stack, .64 - i * .025, .1, .44, bookMats[(i + 4) % bookMats.length], i * .01, .052 + i * .108, 0, .02);
-          horizontalBook.rotation.y = (i - 1) * .04;
-          box(stack, .55, .06, .012, palette.page, i * .01, .052 + i * .108, .225, .007);
-        }
-      }
-      if (row === 1) {
-        const bookend = group(shelf, hasActualCover ? .45 : 1.13, rowY, .11);
-        sphere(bookend, .18, .15, .16, palette.ceramic, 0, .14, 0);
-        sphere(bookend, .16, .16, .14, palette.ceramic, 0, .33, .035);
-        sphere(bookend, .045, .08, .04, palette.ceramic, -.1, .47, .025);
-        sphere(bookend, .045, .08, .04, palette.ceramic, .1, .47, .025);
-        sphere(bookend, .018, .021, .012, palette.dark, -.055, .34, .165);
-        sphere(bookend, .018, .021, .012, palette.dark, .055, .34, .165);
-        sphere(bookend, .019, .018, .009, palette.pink, 0, .285, .173);
-      }
-    }
-    // Each category has a different physical silhouette at the shelf's crown.
-    const categoryProp = group(shelf, -1.27, 3.84, .32);
-    if (config.id === 'heart') {
-      const notebook = material('#bf928b', { roughness: .95 });
-      box(categoryProp, .54, .065, .37, notebook, 0, .035, 0, .025);
-      box(categoryProp, .48, .042, .32, palette.page, 0, .072, 0, .009);
-      box(categoryProp, .54, .025, .37, notebook, 0, .106, 0, .012);
-      box(categoryProp, .028, .012, .38, palette.sage, .16, .123, 0, .005);
-      const letter = group(categoryProp, -.03, .13, -.045);
-      letter.rotation.z = -.11;
-      box(letter, .44, .29, .045, palette.ivory, 0, .145, 0, .018);
-      curveTube(letter, [[-.195, .267, .027], [0, .118, .029], [.195, .267, .027]], .004, palette.oakLight);
-      sphere(letter, .028, .027, .009, palette.pink, 0, .129, .034);
-    } else if (config.id === 'story') {
-      box(categoryProp, .57, .06, .39, palette.page, 0, .034, 0, .009);
-      const manuscript = box(categoryProp, .56, .016, .38, palette.ivory, .012, .074, .014, .007);
-      manuscript.rotation.y = -.08;
-      for (let i = 0; i < 5; i++) box(categoryProp, .33 - i % 2 * .06, .002, .006, palette.oakEdge, -.04, .084, -.12 + i * .044, .001).castShadow = false;
-      const pencilCup = cylinder(categoryProp, .11, .095, .19, palette.darkSage, .13, .173, -.045, 24);
-      for (let i = 0; i < 3; i++) {
-        const pen = cylinder(categoryProp, .013, .013, .32, i === 1 ? palette.brass : palette.oakLight, .08 + i * .05, .4, -.05, 10);
-        pen.rotation.z = (i - 1) * .13;
-        cylinder(categoryProp, 0, .013, .045, palette.dark, .08 + i * .05 + (1 - i) * .02, .576, -.05, 10);
-      }
-    } else {
-      const breadCrust = material('#cfa263', { roughness: 1 });
-      const breadScore = material('#f1d2a0', { roughness: 1 });
-      const basket = material('#af8754', { roughness: 1 });
-      box(categoryProp, .59, .13, .42, basket, 0, .066, 0, .075);
-      box(categoryProp, .51, .025, .35, palette.linen, 0, .14, 0, .04);
-      const loaf = sphere(categoryProp, .25, .16, .17, breadCrust, 0, .238, 0);
-      loaf.rotation.y = -.12;
-      for (let i = 0; i < 3; i++) {
-        const x = -.13 + i * .13;
-        curveTube(categoryProp, [[x - .024, .339, -.09], [x, .378, 0], [x + .024, .34, .09]], .014, breadScore);
-      }
-      for (const side of [-1, 1]) {
-        const handle = torus(categoryProp, .097, .014, basket, side * .294, .11, 0, Math.PI);
-        handle.rotation.y = Math.PI / 2;
-      }
-    }
-    for (const x of [-1.68, 1.68]) box(shelf, .19, .15, .74, palette.oakEdge, x, .105, 0, .04);
   }
-
-  function plant(parent, x, z, size = 1, potColor = palette.terracotta) {
+  function flowerCard(parent, x, y, z, w = .38, h = .51, tint = palette.pink) {
+    const card = group(parent, x, y, z);
+    box(card, w, h, .018, white, 0, 0, 0, .012);
+    curveTube(card, [[0, -h * .3, .016], [.015, 0, .02], [0, h * .18, .02]], .006, palette.sage);
+    for (let i = 0; i < 5; i++) {
+      const a = i * Math.PI * .4;
+      const petal = sphere(card, w * .12, h * .075, .012, tint, Math.sin(a) * w * .13, h * .14 + Math.cos(a) * h * .105, .027);
+      petal.rotation.z = -a;
+    }
+    sphere(card, .025, .025, .014, yellow, 0, h * .14, .04);
+    return card;
+  }
+  function plant(parent, x, z, size = 1) {
     const p = group(parent, x, 0, z);
-    cylinder(p, .33 * size, .24 * size, .54 * size, potColor, 0, .27 * size);
-    const rim = torus(p, .32 * size, .045 * size, potColor, 0, .54 * size, 0);
-    rim.rotation.x = Math.PI / 2;
-    cylinder(p, .295 * size, .295 * size, .025, material('#645940'), 0, .55 * size);
-    const leafMat = material('#719567', { roughness: .8 });
-    const leafLight = material('#a3b887', { roughness: .84 });
-    for (let stemIndex = 0; stemIndex < 8; stemIndex++) {
-      const a = stemIndex * Math.PI * .77;
-      const end = [.3 * Math.sin(a) * size, (.96 + random() * .54) * size, .3 * Math.cos(a) * size];
-      curveTube(p, [[0, .55 * size, 0], [end[0] * .65, end[1] * .7, end[2] * .65], end], .014 * size, palette.darkSage);
-      const leaf = sphere(p, .15 * size, .36 * size, .055 * size, stemIndex % 2 ? leafMat : leafLight, ...end);
-      leaf.rotation.z = -.65 * Math.sin(a);
-      leaf.rotation.x = .7 * Math.cos(a);
-      leaf.rotation.y = a;
+    cylinder(p, .25 * size, .19 * size, .4 * size, palette.terracotta, 0, .2 * size);
+    cylinder(p, .224 * size, .224 * size, .014, darkWood, 0, .406 * size);
+    for (let i = 0; i < 6; i++) {
+      const a = i * 2.4;
+      const end = [.24 * Math.sin(a) * size, (.82 + i % 3 * .16) * size, .24 * Math.cos(a) * size];
+      curveTube(p, [[0, .4 * size, 0], [end[0] * .5, end[1] * .65, end[2] * .5], end], .012 * size, palette.sage);
+      const leaf = sphere(p, .12 * size, .29 * size, .04 * size, i % 2 ? palette.sage : palette.moss, ...end);
+      leaf.rotation.z = -.65 * Math.sin(a); leaf.rotation.x = .6 * Math.cos(a); leaf.rotation.y = a;
     }
-    softShadow(parent, .5 * size, .5 * size, .24, x, z);
-    return p;
+    softShadow(parent, .42 * size, .42 * size, .22, x, z);
   }
-  plant(room, -6.48, -2.8, .95);
-  obstacle(-6.48, -2.8, .4, .4);
-  plant(room, 6.45, -2.85, 1.15, palette.ceramic);
-  obstacle(6.45, -2.85, .5, .5);
-  plant(room, -6.48, 4.06, 1.15);
-  obstacle(-6.48, 4.06, .5, .5);
-  plant(room, 6.35, 3.84, .76, palette.ceramic);
-  obstacle(6.35, 3.84, .4, .4);
+  plant(room, -3.78, 6.55, .85);
+  obstacle(-3.78, 6.55, .34, .34);
+  plant(room, 3.95, -6.57, .62);
 
-  // Thick tufted rugs ground the furniture without hiding the wood floor.
-  const rug = box(room, 4.7, .04, 3.4, palette.linen, 3.2, .025, 1.05, .55);
-  rug.castShadow = false;
-  const rugInside = box(room, 4.43, .016, 3.13, material('#c8d1b1'), 3.2, .054, 1.05, .45);
-  rugInside.castShadow = false;
-  for (let i = 0; i < 15; i++) {
-    for (const end of [-1, 1]) {
-      const fringe = box(room, .025, .025, .19, palette.linen, 1.23 + i * .28, .043, 1.05 + end * 1.78, .01);
-      fringe.rotation.y = (i % 3 - 1) * .15;
-      fringe.castShadow = false;
+  // Entrance-left: a white circular rotating shelf, six separate tiers.
+  const carousel = interact(group(room, -2.65, 0, 3.0), 'heart');
+  cylinder(carousel, .4, .48, .14, white, 0, .1);
+  cylinder(carousel, .075, .075, 3.2, white, 0, 1.76);
+  for (let tier = 0; tier < 6; tier++) {
+    const y = .45 + tier * .48;
+    cylinder(carousel, .79, .79, .065, white, 0, y);
+    for (let i = 0; i < 8; i++) {
+      const angle = i * Math.PI / 4;
+      const book = uprightBook(carousel, .22, .34 + (i % 2) * .03, .2, bookMats[(i + tier) % bookMats.length], Math.sin(angle) * .57, y + .04, Math.cos(angle) * .57);
+      book.rotation.y = angle;
     }
   }
-  const welcomeMat = material('#bd9777', { roughness: 1 });
-  box(room, 2.65, .035, 1.2, welcomeMat, -.4, .026, 4.24, .22).castShadow = false;
-  const doormat = label(room, '어서 와요', '', 1.85, -.4, .05, 4.24, '#b99475');
-  doormat.rotation.x = -Math.PI / 2;
+  cylinder(carousel, .8, .8, .075, white, 0, 3.34);
+  label(carousel, '마음과 기록', '', .9, 0, 3.4, .055, '#f3f2ec');
+  obstacle(-2.65, 3, .75, .75);
+  softShadow(room, .98, .98, .23, -2.65, 3);
+  landmark('entrance-white-carousel', 'six-tier-white-carousel', [-2.65, 1.8, 3], white);
 
-  function cup(parent, x, y, z, mat = palette.ceramic) {
-    cylinder(parent, .12, .09, .2, mat, x, y + .1, z);
-    const top = cylinder(parent, .105, .105, .007, material('#835d3d'), x, y + .201, z);
-    const handle = torus(parent, .081, .025, mat, x + .135, y + .11, z);
-    handle.rotation.y = Math.PI / 2;
-    cylinder(parent, .175, .175, .022, mat, x, y + .009, z);
-    return { top, handle };
+  // Two adjoining exhibition tables: light wood on the left, projecting
+  // slightly farther towards the entrance than the dark table on the right.
+  function exhibitionTable(x, z, width, depth, mat) {
+    const t = interact(group(room, x, 0, z), 'table');
+    box(t, width, .13, depth, mat, 0, 1.18, 0, .045);
+    for (const lx of [-width / 2 + .13, width / 2 - .13]) for (const lz of [-depth / 2 + .16, depth / 2 - .16]) box(t, .105, 1.12, .105, mat, lx, .56, lz, .025);
+    box(t, width - .13, .075, depth - .12, mat, 0, .25, 0, .025);
+    obstacle(x, z, width / 2, depth / 2);
+    softShadow(room, width * .65, depth * .57, .24, x, z);
+    return t;
   }
-  const table = interact(group(room, 3.18, 0, .94), 'table');
-  obstacle(3.18, .94, 1.57, 1.34);
-  cylinder(table, 1.32, 1.38, .18, palette.oakLight, 0, 1.31);
-  cylinder(table, .5, .7, .16, palette.oak, 0, .16);
-  cylinder(table, .22, .33, 1.04, palette.oak, 0, .69);
-  softShadow(room, 1.7, 1.6, .3, 3.18, .94);
-  const tablecloth = cylinder(table, .74, .74, .017, palette.linen, -.05, 1.409, .03);
-  cup(table, .59, 1.415, .43);
-  cup(table, -.63, 1.415, -.19, palette.sage);
-  cylinder(table, .36, .36, .025, palette.ceramic, -.19, 1.427, .46);
+  const lightTable = exhibitionTable(-.7, -1.05, 1.5, 4.5, palette.oakLight);
+  const darkTable = exhibitionTable(.88, -1.4, 1.6, 3.7, darkWood);
+  landmark('center-lightwood-table', 'lightwood-exhibition-table', [-.7, 1.18, -1.05], palette.oakLight);
+  landmark('center-darkwood-table', 'darkwood-exhibition-table', [.88, 1.18, -1.4], darkWood);
+  [[-.25, -.95], [.24, .1], [-.2, 1.15], [.22, -1.65]].forEach((p, i) => bookStack(lightTable, p[0], 1.255, p[1], 2 + i % 2, .55, .44));
+  [[-.35, -.8], [.32, .55], [.3, -.12]].forEach((p, i) => bookStack(darkTable, p[0], 1.255, p[1], 3, .54, .43));
+  [[-.27, 1.86], [-.27, -1.8], [.25, -.72], [.25, .78]].forEach((p, i) => bookStack(lightTable, p[0], 1.255, p[1], 2 + i % 2, .5, .38));
+  [[-.34, .08], [-.31, 1.36]].forEach(p => bookStack(darkTable, p[0], 1.255, p[1], 3, .51, .4));
+  faceoutBook(lightTable, 'night', -.22, 1.265, 1.02, .36, .5);
+  faceoutBook(darkTable, 'breadful', .3, 1.265, .59, .37, .51);
+  for (const x of [-.38, .32]) box(lightTable, .51, .025, .36, white, x, 1.265, .42, .006);
+  box(lightTable, .09, .19, .08, yellow, .38, 1.36, .42, .009);
+  box(lightTable, .64, .37, .77, material('#ddd9cd'), -.17, .47, -.6, .035);
+  box(darkTable, .65, .42, .71, material('#b3a28b'), .18, .5, .3, .035);
+  const storageBasket = group(room, -2.05, 0, -3.89);
+  box(storageBasket, .73, .08, .63, white, 0, .23, 0, .025);
+  for (const x of [-.34, .34]) for (let j = 0; j < 5; j++) box(storageBasket, .018, .55, .018, white, x, .55, -.26 + j * .13, .004);
+  for (const z of [-.28, .28]) for (let j = 0; j < 5; j++) box(storageBasket, .018, .55, .018, white, -.29 + j * .145, .55, z, .004);
+  for (const y of [.29, .54, .8]) { box(storageBasket, .74, .018, .018, white, 0, y, -.28, .003); box(storageBasket, .74, .018, .018, white, 0, y, .28, .003); }
+  for (const x of [-.26, .26]) for (const z of [-.21, .21]) sphere(storageBasket, .055, .065, .055, black, x, .09, z);
+  bookStack(storageBasket, 0, .26, 0, 3, .49, .37);
+  obstacle(-2.05, -3.89, .38, .33);
+  landmark('center-white-mesh-cart', 'white-wire-storage-cart', [-2.05, .48, -3.89], white);
+
+  // Right near the entrance: tall brown grid shelves and their opaque side.
+  function tallGridShelf(z) {
+    const shelf = interact(group(room, 3.88, 0, z), 'story'); shelf.rotation.y = -Math.PI / 2;
+    box(shelf, 2.22, 3.43, .095, brown, 0, 1.8, -.38, .035);
+    for (const x of [-1.11, -.37, .37, 1.11]) box(shelf, .075, 3.6, .8, brown, x, 1.83, 0, .025);
+    for (const y of [.1, .95, 1.8, 2.65, 3.58]) box(shelf, 2.32, .09, .84, brown, 0, y, 0, .025);
+    for (let row = 0; row < 4; row++) for (let cell = 0; cell < 3; cell++) for (let i = 0; i < 3; i++) {
+      uprightBook(shelf, .13, .46 + (i % 2) * .1, .3, bookMats[(row * 2 + cell + i) % bookMats.length], -.94 + cell * .74 + i * .17, .16 + row * .85, .12);
+    }
+    obstacle(3.88, z, .43, 1.16);
+    return shelf;
+  }
+  tallGridShelf(3.87); tallGridShelf(1.35);
+  const partition = interact(group(room, 3.67, 0, 5.09), 'story');
+  box(partition, 1.28, 3.55, .085, brown, 0, 1.79, 0, .035);
+  for (let i = 0; i < 6; i++) flowerCard(partition, (i % 2 ? .3 : -.3), 1.05 + Math.floor(i / 2) * .72, .052, .49, .59, i % 3 ? palette.pink : yellow);
+  obstacle(3.67, 5.09, .65, .06);
+  landmark('right-tall-grid-shelves', 'brown-grid-shelves-with-opaque-side', [3.85, 1.85, 3.1], brown);
+  landmark('right-flower-partition', 'opaque-flower-patchwork-panel', [3.67, 1.8, 5.09], brown);
+
+  const slimShelf = interact(group(room, 3.93, 0, -.8), 'travel'); slimShelf.rotation.y = -Math.PI / 2;
+  for (const x of [-.84, .84]) box(slimShelf, .045, 3.4, .055, black, x, 1.75, -.08, .01);
+  for (let i = 0; i < 13; i++) box(slimShelf, 1.65, .055, .055, palette.oakLight, 0, 1.01 + i * .17, -.1, .012);
+  for (const y of [.58, 1.35, 2.15, 2.98]) box(slimShelf, 1.74, .055, .34, palette.oakLight, 0, y, .06, .015);
   for (let i = 0; i < 3; i++) {
-    const cookie = cylinder(table, .095, .095, .043, material('#c99953'), -.34 + i * .16, 1.46, .46, 24);
-    for (let chip = 0; chip < 3; chip++) sphere(table, .01, .006, .01, palette.oakEdge, cookie.position.x + (random() - .5) * .09, 1.484, .46 + (random() - .5) * .1);
+    const packet = box(slimShelf, .37, .52, .045, yellow, -.53 + i * .51, 1.64, .11, .015);
+    packet.rotation.x = -.1;
+    box(slimShelf, .21, .1, .008, white, -.53 + i * .51, 1.62, .142, .003);
   }
-  const openBook = group(table, .2, 1.431, -.43);
-  openBook.rotation.y = -.35;
-  box(openBook, .64, .035, .45, palette.sage, 0, 0, 0, .018);
-  for (const side of [-1, 1]) {
-    const pages = box(openBook, .3, .028, .42, palette.page, side * .154, .025, 0, .007);
-    pages.rotation.z = side * -.07;
-    for (let line = 0; line < 7; line++) box(openBook, .21, .002, .006, material('#9e9c85'), side * .16, .047, -.13 + line * .044, .001).castShadow = false;
+  torus(slimShelf, .2, .055, orange, .38, 2.44, .11);
+  faceoutBook(slimShelf, 'bread1', -.37, 2.19, .11, .34, .48);
+  obstacle(3.93, -.8, .23, .89);
+  landmark('right-slim-blind-shelf', 'black-frame-slim-blind-book-shelf', [3.93, 1.85, -.8], black);
+  const bench = group(room, 3.75, 0, -3.75); bench.rotation.y = -Math.PI / 2;
+  box(bench, 2.9, .15, .74, darkWood, 0, .65, 0, .045);
+  box(bench, 2.9, .52, .11, darkWood, 0, 1.06, -.31, .035);
+  for (const x of [-1.17, 1.17]) for (const z of [-.24, .24]) box(bench, .09, .58, .09, darkWood, x, .3, z, .015);
+  obstacle(3.75, -3.75, .43, 1.48);
+  for (let i = 0; i < 4; i++) {
+    const card = group(room, 4.35, 2.19, -4.8 + i * .63); card.rotation.y = -Math.PI / 2;
+    flowerCard(card, 0, 0, 0, .38, .53, i % 2 ? yellow : palette.pink);
   }
-  const flowerVase = cylinder(table, .075, .13, .23, palette.ceramic, -.19, 1.545, -.08);
-  for (let i = 0; i < 3; i++) {
-    const fx = -.19 + (i - 1) * .07;
-    curveTube(table, [[-.19, 1.66, -.08], [fx, 1.89, -.1], [fx, 1.95, -.1]], .006, palette.sage);
-    sphere(table, .046, .034, .046, i % 2 ? palette.pink : palette.ivory, fx, 1.98, -.1);
-  }
-  function stool(x, z, rotation) {
-    const s = group(room, x, 0, z);
-    s.rotation.y = rotation;
-    cylinder(s, .47, .48, .16, palette.oakLight, 0, .62);
-    cylinder(s, .405, .405, .12, material('#93a27a', { roughness: 1 }), 0, .735);
-    for (const [lx, lz] of [[-.25, -.25], [.25, -.25], [-.25, .25], [.25, .25]]) {
-      const leg = cylinder(s, .042, .067, .61, palette.oak, lx, .32, lz, 16);
-      leg.rotation.z = -lx * .28;
-      leg.rotation.x = lz * .28;
+  landmark('right-bench', 'long-brown-bench-with-flower-cards', [3.75, .7, -3.75], darkWood);
+
+  const backCounter = interact(group(room, 0, 0, -6.95), 'counter');
+  box(backCounter, 6.92, .09, .62, white, 0, 1.44, 0, .025);
+  for (const x of [-3.26, 0, 3.26]) box(backCounter, .07, 1.4, .48, white, x, .7, 0, .012);
+  box(backCounter, 6.77, .06, .4, white, 0, .18, 0, .012);
+  obstacle(0, -6.95, 3.46, .31);
+  const backChair = group(room, -1.0, 0, -6.28);
+  for (const x of [-.2, .2]) for (const z of [-.18, .18]) box(backChair, .035, .7, .035, black, x, .35, z, .007);
+  box(backChair, .5, .08, .45, white, 0, .71, 0, .055);
+  box(backChair, .5, .53, .055, white, 0, 1.0, .2, .055);
+  landmark('back-white-counter', 'narrow-white-window-counter-and-chair', [0, 1.44, -6.95], white);
+  function lowFaceout(x, id, coverIds, landmarkId) {
+    const shelf = interact(group(room, x, 0, -5.2), id);
+    box(shelf, 3.1, 1.84, .08, palette.oakLight, 0, 1.03, -.24, .035);
+    for (const sx of [-1.5, 1.5]) box(shelf, .09, 1.97, .65, palette.oakLight, sx, 1.0, 0, .025);
+    for (let row = 0; row < 3; row++) {
+      const y = .17 + row * .57;
+      box(shelf, 3.04, .075, .69, palette.oakLight, 0, y, .035, .02);
+      box(shelf, 3.0, .13, .055, palette.oakLight, 0, y + .065, .35, .012);
+      for (let col = 0; col < 2; col++) {
+        const book = faceoutBook(shelf, coverIds[row * 2 + col], col ? .7 : -.7, y + .05, .13, .39, .51);
+        if (!book) bookStack(shelf, col ? .7 : -.7, y + .06, .08, 2, .45, .31);
+      }
     }
-    softShadow(room, .57, .57, .2, x, z);
-    obstacle(x, z, .41, .41);
-    return s;
+    obstacle(x, -5.2, 1.55, .36);
+    softShadow(room, 1.8, .64, .2, x, -5.2);
+    landmark(landmarkId, 'two-column-three-tier-low-faceout-shelf', [x, 1.05, -5.2], palette.oakLight);
   }
-  stool(3.18, -.79, 0);
-  stool(4.88, 1.27, .6);
-  stool(2.96, 2.74, -.1);
+  lowFaceout(-.95, 'heart', ['night','feeling','outside','someday','uncomfortable','night'], 'back-low-faceout-left');
+  lowFaceout(2.15, 'travel', ['bread1','bread2','breadful','bread1','feeling','someday'], 'back-low-faceout-right');
 
-  // The bookseller's oak counter has real joinery, drawers and a wrapping station.
-  const counter = interact(group(room, -4.65, 0, 1.36), 'counter');
-  obstacle(-4.65, 1.36, 1.7, .73);
-  box(counter, 3.28, 1.36, 1.31, palette.oak, 0, .78, 0, .12);
-  box(counter, 3.57, .19, 1.52, palette.oakLight, 0, 1.5, .015, .09);
-  box(counter, 3.06, 1.12, .025, palette.oakLight, 0, .82, .669, .04);
-  for (const x of [-.96, 0, .96]) {
-    box(counter, .85, .85, .045, palette.oak, x, .82, .7, .065);
-    box(counter, .68, .67, .03, palette.oakLight, x, .82, .728, .05);
+  // The lamps have distinct shapes seen in the photos, without a ceiling rig.
+  function pointLamp(parent, x, y, z, strength = 6) {
+    const light = new THREE.PointLight('#ffe1ac', strength, 6, 2); light.position.set(x, y, z); parent.add(light); warmLights.push(light);
   }
-  box(counter, 3.22, .13, .16, palette.oakEdge, 0, .16, .67, .03);
-  for (const x of [-1.27, 1.27]) box(counter, .23, .19, 1.08, palette.oakEdge, x, .11, 0, .04);
-  softShadow(room, 2.1, 1.04, .28, -4.65, 1.36);
-  const checkout = group(counter, -.78, 1.615, -.03);
-  box(checkout, .52, .095, .45, palette.darkSage, 0, .045, 0, .06);
-  const display = box(checkout, .49, .41, .075, palette.darkSage, 0, .28, -.08, .055);
-  display.rotation.x = -.24;
-  const displayScreen = box(checkout, .405, .3, .013, material('#bed4b3', { roughness: .2, emissive: '#93ae83', emissiveIntensity: .12 }), 0, .282, -.027, .03);
-  displayScreen.rotation.x = -.24;
-  box(counter, .88, .2, .63, material('#c99a68'), .66, 1.699, .01, .03);
-  box(counter, .035, .211, .65, palette.ivory, .66, 1.707, .01, .007);
-  box(counter, .9, .21, .03, palette.ivory, .66, 1.707, .02, .006);
-  const bow = torus(counter, .08, .02, palette.ivory, .61, 1.82, .01);
-  bow.rotation.x = Math.PI / 2;
-  const bow2 = torus(counter, .08, .02, palette.ivory, .74, 1.82, .01);
-  bow2.rotation.x = Math.PI / 2;
-  cup(counter, -1.37, 1.603, -.33, palette.sage);
-  const counterSign = group(counter, 1.36, 1.601, .35);
-  box(counterSign, .36, .31, .03, palette.oakLight, 0, .155, 0, .025);
-  counterSign.rotation.x = -.1;
-  label(counterSign, '계산대', '', .31, 0, .155, .02);
-
-  const sofa = group(room, -5.94, 0, -1.2);
-  sofa.rotation.y = Math.PI / 2;
-  box(sofa, 2.04, .31, .84, palette.sage, 0, .43, 0, .16);
-  box(sofa, 2.04, .94, .29, palette.sage, 0, .97, -.39, .17);
-  for (const side of [-1, 1]) {
-    box(sofa, .25, .61, .9, palette.sage, side * .99, .71, 0, .11);
-    box(sofa, .14, .29, .14, palette.oakEdge, side * .77, .17, .24, .04);
-    box(sofa, .14, .29, .14, palette.oakEdge, side * .77, .17, -.27, .04);
+  const yellowLamp = group(room, 2.76, 0, 5.55);
+  cylinder(yellowLamp, .28, .31, .07, black, 0, .055);
+  cylinder(yellowLamp, .025, .025, 2.74, black, 0, 1.4);
+  for (let i = 0; i < 3; i++) {
+    const x = (i - 1) * .38; const y = 2.35 + i * .22; const z = (i % 2 ? -.16 : .14);
+    curveTube(yellowLamp, [[0, 1.82, 0], [x * .65, y + .08, z], [x, y, z]], .02, black);
+    const shade = cylinder(yellowLamp, .11, .23, .27, yellow, x, y - .11, z); shade.rotation.z = (1 - i) * .18;
+    cylinder(yellowLamp, .19, .19, .025, lampGlow, x, y - .25, z);
+    pointLamp(yellowLamp, x, y - .31, z, 5);
   }
-  for (const side of [-1, 1]) box(sofa, .84, .19, .67, material('#90a381'), side * .45, .66, .035, .09);
-  const cushion = box(sofa, .47, .5, .19, material('#e8c3a1'), -.54, 1.0, -.23, .13);
-  cushion.rotation.z = -.16;
-  const cushion2 = box(sofa, .47, .5, .19, palette.linen, .61, 1.0, -.23, .13);
-  cushion2.rotation.z = .17;
-  obstacle(-5.94, -1.2, .69, 1.12);
-  softShadow(room, .8, 1.35, .23, -5.94, -1.2);
-
-  function pendant(x, z, height = 4.52) {
-    const lamp = group(room, x, height, z);
-    cylinder(lamp, .017, .017, .65, palette.brass, 0, .33);
-    cylinder(lamp, .055, .36, .29, palette.sage, 0, -.16);
-    cylinder(lamp, .315, .315, .04, lampGlow, 0, -.317);
-    cylinder(lamp, .062, .07, .095, palette.brass, 0, .005);
-    const light = new THREE.PointLight('#ffd998', 9, 7, 2);
-    light.position.set(0, -.51, 0);
-    lamp.add(light);
-    warmLights.push(light);
-  }
-  pendant(-4.59, 1.37, 4.26);
-  pendant(3.18, .94, 4.45);
-
-  const wallClock = group(room, 6.91, 4.56, -5.27);
-  cylinder(wallClock, .31, .31, .12, palette.oakEdge).rotation.x = Math.PI / 2;
-  cylinder(wallClock, .261, .261, .014, palette.ivory, 0, 0, .069).rotation.x = Math.PI / 2;
-  for (let hour = 0; hour < 12; hour++) {
-    const a = hour * Math.PI / 6;
-    const tick = box(wallClock, .018, hour % 3 === 0 ? .044 : .027, .012, palette.oakEdge, Math.sin(a) * .216, Math.cos(a) * .216, .079, .003);
-    tick.rotation.z = -a;
-  }
-  const shortHand = box(wallClock, .016, .135, .015, palette.dark, -.035, .049, .088, .004);
-  shortHand.rotation.z = -.55;
-  box(wallClock, .016, .19, .015, palette.dark, .047, .062, .097, .004).rotation.z = -.7;
-  sphere(wallClock, .025, .025, .012, palette.brass, 0, 0, .105);
+  obstacle(2.76, 5.55, .25, .25);
+  landmark('entrance-yellow-three-head-lamp', 'yellow-three-head-floor-lamp', [2.76, 2.35, 5.55], yellow);
+  const banker = group(lightTable, .3, 1.25, -1.65);
+  cylinder(banker, .18, .21, .035, palette.brass, 0, .025);
+  cylinder(banker, .024, .024, .47, palette.brass, 0, .27);
+  box(banker, .62, .22, .28, material('#457862', { roughness: .33 }), 0, .56, 0, .09);
+  box(banker, .52, .035, .23, lampGlow, 0, .46, 0, .015);
+  pointLamp(banker, 0, .4, 0, 4);
+  landmark('green-banker-lamp', 'green-bankers-lamp', [-.4, 1.8, -2.7], palette.sage);
+  const taskLamp = group(darkTable, .4, 1.25, -1.2);
+  cylinder(taskLamp, .17, .18, .035, white, 0, .025);
+  curveTube(taskLamp, [[0, .04, 0], [.09, .51, -.02], [-.1, .76, -.06]], .022, white);
+  cylinder(taskLamp, .06, .2, .19, white, -.1, .68, -.06);
+  cylinder(taskLamp, .17, .17, .022, lampGlow, -.1, .576, -.06);
+  pointLamp(taskLamp, -.1, .52, -.06, 4);
+  const creamLamp = group(lightTable, -.23, 1.25, -.43);
+  cylinder(creamLamp, .13, .16, .025, white, 0, .025);
+  cylinder(creamLamp, .018, .018, .43, palette.brass, 0, .245);
+  cylinder(creamLamp, .12, .27, .3, palette.ivory, 0, .55);
+  cylinder(creamLamp, .22, .22, .02, lampGlow, 0, .392);
+  pointLamp(creamLamp, 0, .34, 0, 4);
 
   function triangularEar(parent, side, furMat, innerMat) {
     const earShape = new THREE.Shape();
@@ -780,12 +712,13 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
     return { root, body, head, eyes, leftArm, rightArm, leftLeg, rightLeg, torso, shadow, keeper };
   }
   let player = makeCharacter('cat', 'forest');
-  player.root.position.set(.06, 0, 3.14);
-  player.root.rotation.y = .1;
+  player.root.position.set(-.1, 0, 6.2);
+  player.root.rotation.y = -.3;
   const keeper = makeCharacter('bear', 'bread', true);
-  keeper.root.position.set(-4.6, 0, -.03);
-  keeper.root.rotation.y = .13;
+  keeper.root.position.set(-2.65, 0, -.55);
+  keeper.root.rotation.y = -.3;
   interact(keeper.root, 'keeper');
+  obstacle(-2.65, -.55, .26, .26);
   // A tiny floating leaf marks the NPC and remains visible above the counter.
   const keeperMarker = group(keeper.root, 0, 2.63, 0);
   const marker = sphere(keeperMarker, .16, .22, .042, palette.sage);
@@ -819,12 +752,12 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
   greetingBubble.scale.set(1.92, .64, 1);
   greetingBubble.visible = false;
   keeper.root.add(greetingBubble);
-  const namePlate = group(room, -4.58, 2.14, -.15);
+  const namePlate = group(room, -2.65, 2.14, -.55);
   box(namePlate, 1.14, .31, .065, palette.ivory, 0, 0, 0, .1);
   label(namePlate, '책방지기 두루', '', 1.06, 0, 0, .04);
 
   // These are authored bookstore NPCs, not connected or remotely controlled
-  // visitors. They use existing seating / an empty room edge, not a new layout.
+  // visitors. The reader uses the photographed bench; Bori stays by the entry.
   function guestNameBadge(character, name, height) {
     const canvas = document.createElement('canvas');
     canvas.width = 384;
@@ -909,8 +842,8 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
     });
   }
   const reader = makeCharacter('rabbit', 'rose');
-  reader.root.position.set(-5.86, .34, -.62);
-  reader.root.rotation.y = Math.PI / 3;
+  reader.root.position.set(3.67, .34, -3.75);
+  reader.root.rotation.y = -Math.PI / 3;
   reader.root.scale.setScalar(.84);
   reader.leftLeg.rotation.x = reader.rightLeg.rotation.x = -1.15;
   reader.leftArm.rotation.x = reader.rightArm.rotation.x = -.72;
@@ -927,8 +860,8 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
   const readerBadge = guestNameBadge(reader, '모모', 2.95);
 
   const traveler = makeCharacter('bear', 'bread');
-  traveler.root.position.set(5.87, 0, 2.45);
-  traveler.root.rotation.y = -.52;
+  traveler.root.position.set(-2.75, 0, 5.25);
+  traveler.root.rotation.y = .15;
   traveler.root.scale.setScalar(.88);
   traveler.leftArm.rotation.x = -.5;
   const rolledMap = cylinder(traveler.body, .055, .055, .43, palette.page, -.24, .69, .31, 20);
@@ -936,9 +869,9 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
   const mapBand = cylinder(traveler.body, .059, .059, .032, palette.sage, -.24, .69, .31, 20);
   mapBand.rotation.z = Math.PI / 2;
   interact(traveler.root, 'guest-traveler');
-  // The reader sits within the sofa's existing obstacle. Only the standing
+  // The reader sits within the bench's existing obstacle. Only the standing
   // guest gets a small collision footprint, outside the central walking aisle.
-  obstacle(5.87, 2.45, .37, .35);
+  obstacle(-2.75, 5.25, .37, .35);
   batchGuestBody(traveler);
   const travelerBadge = guestNameBadge(traveler, '보리', 2.58);
   const guests = [
@@ -947,18 +880,18 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
   ];
 
   const targets = {
-    heart: new THREE.Vector3(-4.68, 0, -3.12),
-    story: new THREE.Vector3(0, 0, -3.12),
-    travel: new THREE.Vector3(4.64, 0, -3.12),
-    keeper: new THREE.Vector3(-2.68, 0, -.12),
-    counter: new THREE.Vector3(-4.62, 0, 2.64),
-    table: new THREE.Vector3(1.32, 0, .99),
-    'guest-reader': new THREE.Vector3(-4.45, 0, -1.14),
-    'guest-traveler': new THREE.Vector3(4.84, 0, 3.0),
+    heart: new THREE.Vector3(-1.18, 0, 3),
+    story: new THREE.Vector3(2.5, 0, 3.8),
+    travel: new THREE.Vector3(2.4, 0, -4.05),
+    keeper: new THREE.Vector3(-2.65, 0, .75),
+    counter: new THREE.Vector3(0, 0, -6.1),
+    table: new THREE.Vector3(.9, 0, 1.75),
+    'guest-reader': new THREE.Vector3(2.45, 0, -3.75),
+    'guest-traveler': new THREE.Vector3(-1.48, 0, 5.25),
   };
   const facingTargets = {
-    heart: new THREE.Vector3(-4.7, 0, -4.4), story: new THREE.Vector3(0, 0, -4.4), travel: new THREE.Vector3(4.7, 0, -4.4),
-    keeper: keeper.root.position, counter: new THREE.Vector3(-4.65, 0, 1.36), table: new THREE.Vector3(3.18, 0, .94),
+    heart: carousel.position, story: new THREE.Vector3(3.88, 0, 3.87), travel: new THREE.Vector3(2.15, 0, -5.2),
+    keeper: keeper.root.position, counter: backCounter.position, table: darkTable.position,
     'guest-reader': reader.root.position, 'guest-traveler': traveler.root.position,
   };
   const destinationRing = group(room);
@@ -977,7 +910,7 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
     motes.push({ mesh: mote, base: mote.position.clone(), phase: random() * Math.PI * 2 });
   }
 
-  const nav = { minX: -6.9, maxX: 6.9, minZ: -4.9, maxZ: 4.67, step: .32, radius: .34 };
+  const nav = { minX: -3.92, maxX: 3.92, minZ: -7.08, maxZ: 6.95, step: .28, radius: .34 };
   const gridW = Math.floor((nav.maxX - nav.minX) / nav.step) + 1;
   const gridH = Math.floor((nav.maxZ - nav.minZ) / nav.step) + 1;
   function blocked(x, z) {
@@ -1107,6 +1040,7 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
     return simplified;
   }
   function navigate(point, interactionId = null, shouldInteract = true) {
+    lastArrived = null;
     pendingInteraction = shouldInteract ? interactionId : null;
     activeTarget = interactionId;
     currentPath = pathTo(point);
@@ -1123,6 +1057,7 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
     destinationRing.visible = false;
     if (activeTarget) {
       const id = activeTarget;
+      lastArrived = id;
       const shouldInteract = pendingInteraction !== null;
       pendingInteraction = null;
       if (facingTargets[id]) {
@@ -1164,7 +1099,7 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
       const dy = event.clientY - pointerStart.y;
       dragDistance = Math.hypot(dx, dy);
       if (dragDistance > 6 && (pointerStart.pointerType !== 'touch' || Math.abs(dx) > Math.abs(dy) + 5)) {
-        targetAzimuth = THREE.MathUtils.clamp(pointerStart.azimuth - dx * .0034, -.28, .85);
+        targetAzimuth = THREE.MathUtils.clamp(pointerStart.azimuth - dx * .0034, -.92, -.14);
         if (pointerStart.pointerType !== 'touch') targetElevation = THREE.MathUtils.clamp(pointerStart.elevation + dy * .0022, .43, .82);
       }
       return;
@@ -1201,7 +1136,7 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, width < 600 ? 1.45 : 1.8));
     renderer.setSize(width, height, false);
     const aspect = width / height;
-    const viewHeight = Math.max(12.8, 19.3 / aspect);
+    const viewHeight = Math.max(15.8, 17.0 / aspect);
     camera.left = -viewHeight * aspect / 2;
     camera.right = viewHeight * aspect / 2;
     camera.top = viewHeight / 2;
@@ -1393,22 +1328,22 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
     setLighting(mode) {
       dayMode = mode === 'evening' ? 'evening' : 'day';
       const evening = dayMode === 'evening';
-      scene.background.set(evening ? '#d8d9ce' : '#e8ece0');
+      scene.background.set(evening ? '#dcddd7' : '#e9e9e2');
       scene.fog.color.copy(scene.background);
       hemi.color.set(evening ? '#ecd8bc' : '#fff5db');
-      hemi.intensity = evening ? 1.38 : 2.1;
+      hemi.intensity = evening ? 1.5 : 2.2;
       sun.color.set(evening ? '#ffbf83' : '#fff0cb');
-      sun.intensity = evening ? 1.8 : 3.4;
-      sun.position.set(evening ? -9 : -5, evening ? 6 : 12, 8);
+      sun.intensity = evening ? 1.7 : 3.25;
+      sun.position.set(evening ? -9 : -6, evening ? 6 : 11, 8);
       fill.intensity = evening ? .65 : .9;
-      warmLights.forEach(light => { light.intensity = evening ? 16 : 9; });
+      warmLights.forEach(light => { light.intensity = evening ? 10 : 5; });
       lampGlow.emissiveIntensity = evening ? 1.1 : .7;
-      sky.color.set(evening ? '#c4b6ac' : '#b6d9c4');
+      sky.color.set(evening ? '#7a827b' : '#9ca5a0');
       renderer.toneMappingExposure = evening ? 1.04 : 1.05;
       renderer.shadowMap.needsUpdate = true;
     },
     rotateCamera() {
-      targetAzimuth = targetAzimuth > .55 ? -.13 : targetAzimuth < .1 ? .43 : .76;
+      targetAzimuth = targetAzimuth < -.7 ? -.18 : targetAzimuth > -.3 ? -.56 : -.87;
     },
     resetCamera() { targetAzimuth = cameraHome.azimuth; targetElevation = cameraHome.elevation; },
     dispose() {
@@ -1429,12 +1364,23 @@ function createBookshopScene(THREE, RoundedBoxGeometry, options) {
       canvas.remove();
     },
     getDebugState() {
+      function project(point) {
+        const projected = point.clone().project(camera);
+        return { x: (projected.x + 1) * host.clientWidth / 2, y: (1 - projected.y) * host.clientHeight / 2, visible: projected.x >= -1 && projected.x <= 1 && projected.y >= -1 && projected.y <= 1 && projected.z >= -1 && projected.z <= 1 };
+      }
       const guestInfo = guests.map(guest => {
         const projected = new THREE.Vector3(0, 1.5, .38).applyMatrix4(guest.character.root.matrixWorld).project(camera);
         const target = targets[guest.id];
         return { id: guest.id, name: guest.name, kind: 'scripted-npc', animal: guest.character.root.userData.animal, shirt: guest.character.root.userData.shirt, position: guest.character.root.position.toArray(), approach: target.toArray(), approachClear: !blocked(target.x, target.z), screen: { x: (projected.x + 1) * host.clientWidth / 2, y: (1 - projected.y) * host.clientHeight / 2 } };
       });
-      return { mode: 'real-3d', avatar: player.root.userData.animal, shirt: player.root.userData.shirt, player: player.root.position.toArray(), target: activeTarget, moving: currentPath.length > 0, pendingInteraction, lighting: dayMode, meshCount: renderer.info.render.calls, camera: { azimuth, elevation }, width: host.clientWidth, height: host.clientHeight, inView, reducedMotion, guests: guestInfo };
+      return {
+        mode: 'real-3d', layout: 'photo-reference-v1',
+        room: { width: 8.8, length: 15, measured: false, bounds: { minX: -4.4, maxX: 4.4, minZ: -7.5, maxZ: 7.5 } },
+        landmarks: layoutLandmarks.map(item => ({ id: item.id, kind: item.kind, position: item.position.toArray(), screen: project(item.position), material: { color: '#' + item.material.color.getHexString(), roughness: item.material.roughness } })),
+        targets: Object.entries(targets).map(([id, point]) => ({ id, approach: point.toArray(), approachClear: !blocked(point.x, point.z), screen: project(point) })),
+        lastArrived, playerClear: !blocked(player.root.position.x, player.root.position.z), movementSpeed: 2.3,
+        avatar: player.root.userData.animal, shirt: player.root.userData.shirt, player: player.root.position.toArray(), target: activeTarget, moving: currentPath.length > 0, pendingInteraction, lighting: dayMode, meshCount: renderer.info.render.calls, camera: { azimuth, elevation }, width: host.clientWidth, height: host.clientHeight, inView, reducedMotion, guests: guestInfo,
+      };
     },
   };
 }

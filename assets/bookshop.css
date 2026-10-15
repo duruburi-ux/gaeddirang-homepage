@@ -73,6 +73,7 @@
 #virtualBookshop .vbs-place-nav .vbs-button { font-size: 11px; padding: 8px 11px; background: #fdfaf2; }
 #virtualBookshop .vbs-place-nav svg { width: 15px; height: 15px; }
 #virtualBookshop .vbs-scene-status { color: var(--vbs-muted); font-size: 11px; min-height: 41px; padding: 9px 4px 10px; }
+#virtualBookshop .vbs-layout-note { color: var(--vbs-muted); font-size: 11px; line-height: 1.7; padding: 9px 4px 0; overflow-wrap: anywhere; }
 #virtualBookshop .vbs-panel { min-width: 0; padding: 25px 23px 27px; border-left: 1px solid var(--vbs-line); max-height: 710px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #c2c6ad transparent; overscroll-behavior-y: contain; }
 #virtualBookshop .vbs-panel-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 20px; }
 #virtualBookshop .vbs-panel-head > div { min-width: 0; }

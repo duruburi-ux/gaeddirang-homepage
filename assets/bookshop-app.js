@@ -235,6 +235,10 @@
     var stage = root.querySelector('.vbs-stage');
     var world = root.querySelector('[data-vbs-world]');
     var fallback = root.querySelector('[data-vbs-fallback]');
+    fallback.src = '/assets/bookshop/room.webp?v=photo-20261015a';
+    fallback.alt = '실제 책공방 사진을 참고한 회전 책장과 중앙 진열대가 있는 입체 책방';
+    stage.insertAdjacentHTML('afterend', '<p class="vbs-layout-note">실제 책공방 사진을 바탕으로 만들었어요. 비율과 통로는 산책하기 좋게 조금 조정했어요.</p>');
+    root.querySelector('.vbs-place-nav [data-vbs-action="program"]').textContent = '모임 맛보기';
     var toast = root.querySelector('[data-vbs-toast]');
     function announce(message) { if (disposed || !message) return; clearTimeout(announcementTimer); toast.textContent = String(message); toast.hidden = false; announcementTimer = global.setTimeout(function () { toast.hidden = true; }, 4500); }
     function renderPanel(focusHeading) {
@@ -364,6 +368,8 @@
         var covers = sceneCovers(); sceneSignature = JSON.stringify(covers);
         scene = global.createBookshopScene(modules[0], modules[1].RoundedBoxGeometry, {
           container: world, woodTextureUrl: '/assets/bookshop/oak.webp', bookCovers: covers,
+          brandLogoUrl: '/assets/images/brand/gd-universe-logo.png',
+          brandMarkUrl: '/assets/images/brand/gd-universe-logomark.png',
           onInteract: interact,
           onStatus: function (text) { if (!disposed) root.querySelector('[data-vbs-scene-status]').textContent = String(text); },
           onReady: function () { if (disposed || generation !== loadGeneration) return; engine = 'ready'; stage.dataset.engine = 'ready'; fallback.hidden = true; root.querySelector('[data-vbs-engine-message]').textContent = ''; }
@@ -385,6 +391,7 @@
     initScene();
     var api = {
       refresh: refresh,
+      getSceneState: function () { return scene && typeof scene.getDebugState === 'function' ? scene.getDebugState() : null; },
       dispose: function () {
         disposed = true; loadGeneration += 1; global.clearTimeout(announcementTimer);
         if (scene) scene.dispose();
