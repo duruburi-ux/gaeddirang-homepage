@@ -8,6 +8,7 @@
   const SOURCE_EXPECTATIONS=[
     {id:'naver_mail',label:'네이버 메일',scope:'영수증·첨부 근거 후보',aliases:['naver_mail','naver-mail','네이버메일']},
     {id:'google_chat',label:'Google Chat',scope:'업무 메모 근거 · 거래 확정 아님',aliases:['google_chat','google-chat','googlechat','구글챗']},
+    {id:'google_calendar',label:'Google 캘린더',scope:'일정 조회 · 등록·수정 권한 별도 확인',aliases:['google_calendar','google-calendar','googlecalendar','구글캘린더']},
     {id:'smartstore',label:'스마트스토어',scope:'주문 수집 · 채널 재고 쓰기 별도',aliases:['smartstore','smart-store','스마트스토어']},
     {id:'payhere',label:'PayHere',scope:'매출 파일 검토 · 예약 API 미연결',aliases:['payhere','페이히어']},
     {id:'naver_settlement',label:'네이버 정산 후보',scope:'정산 후보 보고 · 은행 확정 아님',aliases:['naver_settlement','settlement_candidate','네이버정산']},
@@ -130,7 +131,7 @@
     for(const source of sources){
       if(source.state==='failed')rows.push({level:'failed',title:`${source.label} 재시도`,detail:source.detail,action:source.nextAction||'같은 실행 키로 마지막 실패 단계부터 다시 확인합니다.'});
       else if(source.state==='review')rows.push({level:'review',title:`${source.label} 확인`,detail:source.detail,action:source.nextAction||'원본과 마지막 성공·실패 시각을 대조합니다.'});
-      else if(source.state==='waiting'&&['naver_mail','google_chat','smartstore','payhere','naver_settlement'].includes(source.id))rows.push({level:'waiting',title:`${source.label} 수집 대기`,detail:source.detail,action:source.nextAction||'읽기 범위·권한·주기를 승인한 뒤 연결합니다.'});
+      else if(source.state==='waiting'&&['naver_mail','google_chat','google_calendar','smartstore','payhere','naver_settlement'].includes(source.id))rows.push({level:'waiting',title:`${source.label} 수집 대기`,detail:source.detail,action:source.nextAction||'읽기 범위·권한·주기를 승인한 뒤 연결합니다.'});
     }
     if(Number(stats.issues)>0)rows.push({level:'review',title:`열린 불일치 ${stats.issues}건`,detail:'확정 매출·재고·정산으로 자동 승격하지 않았습니다.',action:'원천 증빙과 SKU·거래 종류를 대조합니다.'});
     if(scm.stale)rows.push({level:'review',title:'SCM 이전 정상본 확인',detail:'최근 원본 조회가 실패해 마지막 정상 값을 표시합니다.',action:'원본 연결을 복구한 뒤 다시 불러옵니다.'});

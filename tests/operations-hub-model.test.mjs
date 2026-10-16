@@ -7,6 +7,18 @@ const source=fs.readFileSync(new URL('../admin/operations-hub-model.js',import.m
 const sandbox={};vm.runInNewContext(source,sandbox);const M=sandbox.OperationsHubModel;
 const now=Date.parse('2026-10-11T06:00:00Z');
 
+test('캘린더는 연결 근거가 없으면 수집 대기이며 최근 성공과 오래된 기록을 구분한다',()=>{
+  const empty=M.buildOperationsHub({now});
+  const missing=empty.sources.find(row=>row.id==='google_calendar');
+  assert.equal(missing.state,'waiting');
+  assert.match(missing.scope,/등록·수정 권한 별도/);
+  assert.ok(empty.queue.some(row=>row.title==='Google 캘린더 수집 대기'));
+  const connected={code:'google_calendar',status:'connected',last_success_at:'2026-10-11T05:00:00Z'};
+  assert.equal(M.buildSources([connected],[],now).find(row=>row.id==='google_calendar').state,'healthy');
+  assert.equal(M.buildSources([connected],[],now+27*60*60*1000).find(row=>row.id==='google_calendar').state,'review');
+  assert.equal(M.buildSources([connected],[],now,true).find(row=>row.id==='google_calendar').state,'review');
+});
+
 test('통합 운영 모델은 최근 실패를 성공으로 덮지 않고 미연결 원천을 수집 대기로 둔다',()=>{
   const model=M.buildOperationsHub({
     now,

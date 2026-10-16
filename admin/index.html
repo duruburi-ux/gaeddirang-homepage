@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="./book-finder.css?v=20261013-1" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script src="./admin-core-model.js?v=20261010-1"></script>
-<script src="./operations-hub-model.js?v=20261011-3"></script>
+<script src="./operations-hub-model.js?v=20261016-1"></script>
 <script src="./book-finder-model.js?v=20261011-3"></script>
 <style>
   :root{
@@ -348,7 +348,7 @@
       <nav class="ops-shortcuts" aria-label="관리실 바로가기"><button data-ops-tab="orders">주문 처리 →</button><button data-ops-tab="apps">수업 신청 확인 →</button><button data-ops-tab="inquiries">기관 문의 확인 →</button><button data-ops-tab="finder">매장 판매가능 조회 →</button><button data-ops-tab="scm">전체 상품 원장 →</button></nav>
       <p id="ops-count" class="ops-note" role="status" aria-live="polite"></p><div id="ops-areas" class="ops-grid"></div>
       <section class="ops-workflow" aria-labelledby="ops-flow-title"><h2 id="ops-flow-title">일을 이어갈 때는 이 순서로</h2><ol><li><a href="https://app.notion.com/p/4c2e4d57dd17435c9fd78f15688ed84b" target="_blank" rel="noopener noreferrer">결정할 일 확인 ↗</a><p>대표 결정이 필요한 내용은 결정함에서.</p></li><li><a href="https://app.notion.com/p/04370efc79da44b397d338a6b917f55a" target="_blank" rel="noopener noreferrer">실행할 일 정리 ↗</a><p>담당자·기한·다음 행동은 원본에서.</p></li><li><a href="https://app.notion.com/p/3ba251c556d081ad8e22e4ebd98e96cb" target="_blank" rel="noopener noreferrer">AI 협업·인수인계 ↗</a><p>끝낸 일과 남은 일을 함께 기록.</p></li></ol></section>
-      <aside class="ops-connections"><h2>연결 범위, 정확하게 보기</h2><dl><div><dt>홈페이지 주문·신청·문의</dt><dd>기존 관리 메뉴로 이동합니다. 해당 메뉴에서 조회·처리해요.</dd></div><div><dt>SCM 전체 상품 원장</dt><dd>조회 전용 화면입니다. 상품·가격·소유·장부 수량과 마지막 성공 시각을 확인해요. 손님에게 안내할 수량은 매장 판매가능 화면에서 따로 확인합니다.</dd></div><div><dt>노션 진행 업무</dt><dd>업무 영역·실행 업무·프로젝트·결정함의 상태를 관리자 화면으로 자동 조회합니다. 수정은 노션 원본에서 해요.</dd></div><div><dt>페이히어</dt><dd>메일로 받은 매출 엑셀을 연결 현황에서 검사한 뒤 승인하면 SCM에 반영합니다.</dd></div><div><dt>스마트스토어·스마트플레이스</dt><dd>계정 인증 전이라 아직 자동 동기화되지 않습니다.</dd></div></dl><p>노션 기록이 오래됐거나 원본 상태가 틀리면 이 화면에도 그대로 보입니다. 자동 조회가 자동 완료 판정이나 업무 전수 확인을 뜻하지는 않습니다.</p></aside>
+      <aside class="ops-connections"><h2>연결 범위, 정확하게 보기</h2><dl><div><dt>홈페이지 주문·신청·문의</dt><dd>기존 관리 메뉴로 이동합니다. 해당 메뉴에서 조회·처리해요.</dd></div><div><dt>SCM 전체 상품 원장</dt><dd>조회 전용 화면입니다. 상품·가격·소유·장부 수량과 마지막 성공 시각을 확인해요. 손님에게 안내할 수량은 매장 판매가능 화면에서 따로 확인합니다.</dd></div><div><dt>노션 진행 업무</dt><dd>업무 영역·실행 업무·프로젝트·결정함의 상태를 관리자 화면으로 자동 조회합니다. 수정은 노션 원본에서 해요.</dd></div><div><dt>페이히어</dt><dd>메일로 받은 매출 엑셀을 연결 현황에서 검사한 뒤 승인하면 SCM에 반영합니다.</dd></div><div><dt>스마트스토어·스마트플레이스</dt><dd>연결 상태와 최근 읽기 성공 이력은 통합 운영실에서 확인합니다. 조회 성공이 채널 재고 자동 반영을 뜻하지 않습니다.</dd></div><div><dt>Google 캘린더</dt><dd>일정 연결 기록과 최근 조회 성공은 통합 운영실에서 확인합니다. 승인과 연결이 확인되기 전에는 일정을 자동으로 등록·수정하지 않습니다.</dd></div></dl><p>노션 기록이 오래됐거나 원본 상태가 틀리면 이 화면에도 그대로 보입니다. 자동 조회가 자동 완료 판정이나 업무 전수 확인을 뜻하지는 않습니다.</p></aside>
     </section>
     <section id="tab-finder" class="book-finder hidden" aria-label="매장 판매가능 조회">
       <div class="inventory-mode-guide" aria-label="재고 화면 선택"><div class="active"><strong>손님에게 지금 팔 수 있나?</strong><span>매장 판매가능 · 실사와 예약 반영</span></div><button type="button" data-inventory-tab="scm"><strong>상품·가격·소유를 찾나?</strong><span>전체 상품 원장 · 장부 수량</span></button></div>
