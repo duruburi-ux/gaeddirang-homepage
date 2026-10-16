@@ -32,9 +32,17 @@
         const links=element('div','ops-links');
         for(const [title,id] of area.links){const a=element('a','',`${title} ↗`);a.href=notion(id);a.target='_blank';a.rel='noopener noreferrer';links.append(a);}
         if(area.tab){const button=element('button','ops-internal','관리실에서 확인 →');button.type='button';button.addEventListener('click',()=>navigate(area.tab));links.append(button);}
+        if(area.id==='finance'){
+          for(const [title,hash] of [['월별 정산자료','settlements'],['작가 정산서 작성','royalty']]){
+            const link=element('a','ops-internal',title+' →');link.href='docs.html#'+hash;links.append(link);
+          }
+        }
         card.append(links);host.append(card);
       }
-      if(!found.length)host.append(element('p','ops-empty','찾는 업무가 없어요. 다른 검색어를 입력하거나 노션 운영 허브를 확인해 주세요.'));
+      if(!found.length){
+        const empty=element('p','ops-empty','찾는 업무가 없어요. 검색어를 지우고 전체 업무를 확인해 보세요.');
+        const reset=element('button','','검색 지우고 전체 보기');reset.type='button';reset.addEventListener('click',()=>{input.value='';render();input.focus();});empty.append(reset);host.append(empty);
+      }
     }
     input.addEventListener('input',render);
     document.querySelectorAll('[data-ops-tab]').forEach(button=>button.addEventListener('click',()=>navigate(button.dataset.opsTab)));

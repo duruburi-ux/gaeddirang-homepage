@@ -31,6 +31,18 @@ test('shortcuts and card actions use existing tab navigation',()=>{
 test('dashboard search can narrow the shared work directory',()=>{
   const {api,nodes}=setup();api.init({navigate:()=>{}});api.setQuery('정산');assert.equal(nodes['ops-search'].value,'정산');assert.equal(nodes['ops-search'].focused,true);assert.equal(nodes['ops-areas'].children.length,1);assert.match(nodes['ops-areas'].children[0].children[1].textContent,/재무/);
 });
+test('정산 검색은 월별 자료와 작가 작성 양식으로 직접 연결한다',()=>{
+  const {api,nodes}=setup();api.init({navigate:()=>{}});api.setQuery('정산');
+  const links=nodes['ops-areas'].children[0].children[3].children;
+  assert.ok(links.some(link=>link.href==='docs.html#settlements'));
+  assert.ok(links.some(link=>link.href==='docs.html#royalty'));
+});
+test('없는 업무 검색은 검색 지우기로 복구하고 입력 초점을 돌려준다',()=>{
+  const {api,nodes}=setup();api.init({navigate:()=>{}});api.setQuery('아무것도없음');
+  const reset=nodes['ops-areas'].children[0].children[0];reset.events.click();
+  assert.equal(nodes['ops-search'].value,'');assert.equal(nodes['ops-search'].focused,true);
+  assert.equal(nodes['ops-areas'].children.length,11);
+});
 test('directory is inside existing gated app and includes explicit sync boundaries',()=>{
   const html=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');assert.ok(html.indexOf('id="appView"')<html.indexOf('id="tab-operations"'));assert.ok(html.includes('await checkAdmin()'));assert.ok(html.includes("if(!TABS.includes(name))return;"));assert.match(html,/상태를 관리자 화면으로 자동 조회합니다/);assert.match(html,/메일로 받은 매출 엑셀을 연결 현황에서 검사한 뒤 승인하면 SCM에 반영합니다/);assert.match(html,/스마트스토어·스마트플레이스/);
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(ids.filter(id=>id==='tab-operations').length,1);

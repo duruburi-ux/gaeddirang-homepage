@@ -74,6 +74,12 @@ main{max-width:1160px;padding:24px 20px 42px}
 .dash-summary{background:#fbfaf6}.dash-foot{margin-top:4px}
 
 /* 상세·입력 패널 */
+.daily-tools{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px;padding:10px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.daily-tools button,.daily-tools a{display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid transparent;border-radius:9px;background:#f5f4ef;color:var(--brand-forest);font:inherit;font-size:13px;font-weight:750;text-decoration:none;cursor:pointer}
+.daily-tools [aria-current="page"]{background:var(--brand-forest);color:#fff}.daily-tools :focus-visible{outline:3px solid #bd4d38;outline-offset:2px}
+.dash-search button{flex:0 0 auto;min-width:64px;min-height:44px;white-space:nowrap}
+.ops-empty button{display:block;margin-top:12px;min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--brand-forest);font:inherit;cursor:pointer}
+@media(max-width:700px){.daily-tools{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:7px}.daily-tools button,.daily-tools a{padding:8px;font-size:12px;min-width:0}}
 .backdrop{background:rgba(28,36,31,.48)}.panel{max-width:510px;background:#f8f5ef;padding:0;animation:slide .18s ease}
 .panel:not(:has(.panel-shell)){padding:22px}
 .panel-shell{min-height:100%;display:flex;flex-direction:column}.panel-head{position:sticky;top:0;z-index:2;background:rgba(248,245,239,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:17px 54px 15px 20px}

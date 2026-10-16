@@ -86,6 +86,7 @@ async function installVirtualAdmin(page){
       if(name==='list_settlement_documents')return {data:[{id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',title:'가상 최종 정산서',period_label:'2026년 9월',version_no:3,status:'confirmed',storage_path:'virtual/document.pdf',file_name:'virtual-document.pdf'}],error:null};
       if(name==='record_settlement_document_access')return {data:'virtual/document.pdf',error:null};
       if(name==='create_admin_order_v1'){
+        if(window.__failOrderSave)return {data:null,error:{message:'virtual save failure'}};
         window.__adminOrderRpcCalls++;
         const fingerprint=JSON.stringify(args),prior=window.__orderRequests.get(args.p_request_id);
         if(prior){return prior.fingerprint===fingerprint?{data:clone(prior.result),error:null}:{data:null,error:{message:'IDEMPOTENCY_KEY_REUSED'}}}
@@ -134,6 +135,29 @@ async function openAdmin(page,viewport){
 async function goTab(page,viewport,value,name){
   if(viewport.width<=700)await page.locator('#mobileNav').selectOption(value);
   else await page.getByRole('tab',{name}).click();
+}
+
+for(const width of [320,360,1440]){
+  test(`admin daily tools ${width}: direct access, history and empty-search recovery`,async({page})=>{
+    await openAdmin(page,{width,height:900});
+    const tools=page.getByRole('navigation',{name:'매일 쓰는 핵심 업무'});
+    await expect(tools.getByRole('link',{name:'월별 정산자료'})).toHaveAttribute('href','docs.html#settlements');
+    await tools.getByRole('button',{name:'판매가능 확인'}).click();await expect(page.locator('#tab-finder')).toBeVisible();
+    await expect(tools.getByRole('button',{name:'판매가능 확인'})).toHaveAttribute('aria-current','page');
+    await tools.getByRole('button',{name:'팀·개인 재정'}).click();await expect(page.locator('#finance-content')).toBeVisible();
+    await page.goBack();await expect(page.locator('#tab-finder')).toBeVisible();
+    await tools.getByRole('button',{name:'오늘 할 일'}).click();
+    await page.locator('#dashSearch').fill('정산');await page.locator('#dashSearchForm button').click();
+    await expect(page.locator('#ops-areas a[href="docs.html#settlements"]')).toBeVisible();
+    await page.locator('#ops-search').fill('없는가상업무');
+    await page.getByRole('button',{name:'검색 지우고 전체 보기'}).click();
+    await expect(page.locator('#ops-search')).toHaveValue('');await expect(page.locator('#ops-search')).toBeFocused();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    await tools.getByRole('button',{name:'오늘 할 일'}).click();
+    await page.evaluate(()=>window.dispatchEvent(new CustomEvent('scm:summary',{detail:{stale:true,fetchedAt:'2026-09-30T04:00:00Z'}})));
+    await expect(page.locator('#dashScmStatus')).toContainText('마지막 성공');await expect(page.locator('#dashScmStatus')).toContainText('9. 30.');
+    await page.screenshot({path:`test-results/admin-daily-tools-${width}-after.png`,fullPage:true});
+  });
 }
 
 for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',width:360,height:780}]){
@@ -308,6 +332,21 @@ test('admin core: list search, sort, reset and browser-back detail flow',async({
   await page.locator('#oSearch').fill('없는 주문');await expect(page.locator('#ordersList .empty-state')).toContainText('조건에 맞는 주문이 없어요');await expect(page.locator('#ordersCount')).toContainText('전체 2건 중 0건');
   await page.getByRole('button',{name:'조건 지우고 전체 보기'}).click();await expect(page.locator('#ordersCount')).toHaveText('2건');await expect(page.locator('#oSearch')).toBeFocused();
   const row=page.locator('#ordersList .row').first();await row.click();await expect(page.locator('#panelHost .panel')).toBeVisible();await page.goBack();await expect(page.locator('#panelHost .panel')).toBeHidden();await expect(row).toBeFocused();
+});
+
+test('admin order: cancel changes nothing and failed save keeps input for retry',async({page})=>{
+  await openAdmin(page,{width:360,height:780});await page.locator('#mobileNav').selectOption('orders');
+  await page.locator('#oAddBtn').click();await page.locator('#naName').fill('가상 취소');
+  await page.locator('#panelHost .p-close').click();await expect(page.locator('#panelHost .panel')).toBeHidden();
+  expect(await page.evaluate(()=>window.__db.orders.length)).toBe(2);
+  await page.locator('#oAddBtn').click();await page.locator('#naChannel').selectOption('기타');
+  await page.locator('#naName').fill('가상 재시도');await page.locator('#naContact').fill('010-0000-0000');
+  await page.locator('#naItem').fill('가상 책');await page.locator('#naQty').fill('1');await page.locator('#naAmt').fill('1000');
+  await page.evaluate(()=>{window.__failOrderSave=true});await page.locator('#naSave').click();
+  await expect(page.locator('#panelHost')).toContainText('저장하지 못했습니다');await expect(page.locator('#naSave')).toBeEnabled();
+  await expect(page.locator('#naName')).toHaveValue('가상 재시도');expect(await page.evaluate(()=>window.__db.orders.length)).toBe(2);
+  await page.screenshot({path:'test-results/admin-save-failure-mobile.png',fullPage:true});
+  await page.evaluate(()=>{window.__failOrderSave=false});await page.locator('#naSave').click();await expect(page.locator('#ordersCount')).toHaveText('3건');
 });
 
 for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'mobile',width:360,height:780}]){

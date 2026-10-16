@@ -153,7 +153,7 @@
     .panel{padding:18px 14px}.row{align-items:flex-start}.row .amt{max-width:32%}
   }
 </style>
-<link rel="stylesheet" href="./admin-ux.css?v=20261012-1" />
+<link rel="stylesheet" href="./admin-ux.css?v=20261016-2" />
 </head>
 <body>
 
@@ -216,6 +216,12 @@
     </div>
   </header>
   <main>
+    <nav class="daily-tools" aria-label="매일 쓰는 핵심 업무">
+      <button type="button" data-nav-tab="home">오늘 할 일</button>
+      <button type="button" data-nav-tab="finder">판매가능 확인</button>
+      <button type="button" data-nav-tab="finance">팀·개인 재정</button>
+      <a href="docs.html#settlements">월별 정산자료 ↗</a>
+    </nav>
     <div id="coreBanner" class="core-banner hidden" role="alert"><span id="coreBannerText"></span><button id="coreRetry" type="button">다시 불러오기</button></div>
     <section id="tab-work" class="work hidden" aria-label="노션 진행 업무">
       <div class="work-head"><div><p class="work-eyebrow">NOTION / READ ONLY</p><h1>지금 하는 일, 한곳에서</h1><p>업무 영역·실행 업무·프로젝트·결정할 일을 최신 순서로 모아 봅니다.</p></div><button id="work-refresh" class="work-btn">지금 확인</button></div>
@@ -669,7 +675,7 @@ function renderHome(){
   const sr=$('#statRow'); sr.innerHTML='';
   stats.forEach(s=>{const b=el('button','stat',`<div class="n">${s.n}</div><div class="l">${s.l}</div>`);b.onclick=()=>switchTab(s.tab);sr.appendChild(b)});
   const dataStatus=$('#dashDataStatus');
-  dataStatus.textContent=CORE_SYNC.ok?`연결됨 · ${CORE_SYNC.at.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}`:`일부 확인 필요 · ${CORE_SYNC.failed.map(x=>x.label).join('·')}`;
+  dataStatus.textContent=CORE_SYNC.ok?`연결됨 · ${CORE_SYNC.at.toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}`:`일부 확인 필요 · ${CORE_SYNC.failed.map(x=>x.label).join('·')}`;
   dataStatus.classList.toggle('bad',!CORE_SYNC.ok);
 }
 function openPriority(item){
@@ -682,8 +688,8 @@ function openPriority(item){
 $('#dashSearchForm').onsubmit=e=>{e.preventDefault();const q=$('#dashSearch').value.trim();switchTab('operations');window.Operations?.setQuery(q);};
 document.querySelectorAll('[data-dash-tab]').forEach(b=>b.onclick=()=>switchTab(b.dataset.dashTab));
 document.querySelectorAll('[data-inventory-tab]').forEach(b=>b.onclick=()=>switchTab(b.dataset.inventoryTab));
-window.addEventListener('scm:summary',e=>{const d=e.detail||{},time=d.fetchedAt?new Date(d.fetchedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}):'시각 미확인';$('#dashScmStatus').textContent=d.stale?'최근 재고 확인이 늦어지고 있어요.':`재고 연결됨 · ${time}`;$('#dashScmStatus').classList.toggle('bad',!!d.stale);$('#dashScmMetrics').innerHTML=`<button data-dash-scm="attention"><strong>${d.attention??'—'}</strong><span>확인 필요</span></button><button data-dash-scm="checks"><strong>${d.warnings??'—'}</strong><span>장부 경고</span></button>`;document.querySelectorAll('[data-dash-scm]').forEach(b=>b.onclick=()=>{switchTab('scm');window.SCM?.open(b.dataset.dashScm)})});
-window.addEventListener('work:summary',e=>{const d=e.detail||{},time=d.fetchedAt?new Date(d.fetchedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}):'시각 미확인';$('#dashWorkStatus').textContent=d.stale?'최근 팀 업무 확인이 늦어지고 있어요.':`팀 업무 원본 연결됨 · ${time}`;$('#dashWorkStatus').classList.toggle('bad',!!d.stale);$('#dashWorkMetrics').innerHTML=`<button data-dash-work="active"><strong>${d.active??'—'}</strong><span>진행 업무</span></button><button data-dash-work="attention"><strong>${d.attention??'—'}</strong><span>확인할 것</span></button><button data-dash-work="approval"><strong>${d.approvals??'—'}</strong><span>승인할 것</span></button><button data-dash-work="blocked"><strong>${d.blocked??'—'}</strong><span>막힌 것</span></button>`;setBadge('bWork',d.attention||0);$('#dashWorkPreview').innerHTML=(d.preview||[]).map(x=>`<button data-dash-work-item="${esc(x.id)}"><span>${esc(x.kindLabel)}</span><b>${esc(x.title)}</b><small>${esc(x.status)}${x.stale?' · 오래됨':''}</small></button>`).join('')||'<p>표시할 진행 업무가 없어요.</p>';document.querySelectorAll('[data-dash-work]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.open(b.dataset.dashWork)});document.querySelectorAll('[data-dash-work-item]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.focus(b.dataset.dashWorkItem)})});
+window.addEventListener('scm:summary',e=>{const d=e.detail||{},time=d.fetchedAt?new Date(d.fetchedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'시각 미확인';$('#dashScmStatus').textContent=d.stale?`최근 재고 조회 확인 필요 · 마지막 성공 ${time}`:`재고 연결됨 · ${time}`;$('#dashScmStatus').classList.toggle('bad',!!d.stale);$('#dashScmMetrics').innerHTML=`<button data-dash-scm="attention"><strong>${d.attention??'—'}</strong><span>확인 필요</span></button><button data-dash-scm="checks"><strong>${d.warnings??'—'}</strong><span>장부 경고</span></button>`;document.querySelectorAll('[data-dash-scm]').forEach(b=>b.onclick=()=>{switchTab('scm');window.SCM?.open(b.dataset.dashScm)})});
+window.addEventListener('work:summary',e=>{const d=e.detail||{},time=d.fetchedAt?new Date(d.fetchedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'시각 미확인';$('#dashWorkStatus').textContent=d.stale?`팀 업무 최신 조회 확인 필요 · 마지막 성공 ${time}`:`팀 업무 원본 연결됨 · ${time}`;$('#dashWorkStatus').classList.toggle('bad',!!d.stale);$('#dashWorkMetrics').innerHTML=`<button data-dash-work="active"><strong>${d.active??'—'}</strong><span>진행 업무</span></button><button data-dash-work="attention"><strong>${d.attention??'—'}</strong><span>확인할 것</span></button><button data-dash-work="approval"><strong>${d.approvals??'—'}</strong><span>승인할 것</span></button><button data-dash-work="blocked"><strong>${d.blocked??'—'}</strong><span>막힌 것</span></button>`;setBadge('bWork',d.attention||0);$('#dashWorkPreview').innerHTML=(d.preview||[]).map(x=>`<button data-dash-work-item="${esc(x.id)}"><span>${esc(x.kindLabel)}</span><b>${esc(x.title)}</b><small>${esc(x.status)}${x.stale?' · 오래됨':''}</small></button>`).join('')||'<p>표시할 진행 업무가 없어요.</p>';document.querySelectorAll('[data-dash-work]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.open(b.dataset.dashWork)});document.querySelectorAll('[data-dash-work-item]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.focus(b.dataset.dashWorkItem)})});
 window.addEventListener('integration:summary',e=>{const d=e.detail||{},known=[d.review,d.failed,d.waiting].every(Number.isFinite),needs=known?d.review+d.failed+d.waiting:null;$('#dashIntegrationStatus').textContent=d.ok?`운영 원본 확인 · 자동 ${d.healthy??0}단계 / 확인 ${needs??'—'}단계`:'운영 원본 일부를 확인하지 못했어요.';$('#dashIntegrationStatus').classList.toggle('bad',!d.ok||(d.failed||0)>0);$('#dashIntegrationMetrics').innerHTML=`<button data-dash-integration="connected"><strong>${d.healthy??'—'}</strong><span>자동 확인 단계</span></button><button data-dash-integration="needs"><strong>${needs??'—'}</strong><span>검토·재시도</span></button>`;setBadge('bIntegration',needs||0);document.querySelectorAll('[data-dash-integration]').forEach(b=>b.onclick=()=>{switchTab('integration');window.Integration?.open(b.dataset.dashIntegration)})});
 
 /* ---------- 주문 탭 ---------- */
@@ -1135,6 +1141,7 @@ function switchTab(name,historyMode='push'){
   document.querySelectorAll('.tab[data-tab]').forEach(x=>{const active=x.dataset.tab===name;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active));x.tabIndex=active?0:-1;});
   TABS.forEach(t=>{const panel=$('#tab-'+t),active=t===name;panel.classList.toggle('hidden',!active);panel.setAttribute('role','tabpanel');panel.setAttribute('tabindex','0');});
   $('#mobileNav').value=name;
+  document.querySelectorAll('.daily-tools [data-nav-tab]').forEach(button=>{if(button.dataset.navTab===name)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
   if(name==='finder'&&!$('#book-finder-detail').open)window.BookFinder?.refresh();
   if(name==='scm')window.SCM?.refresh();
   if(name==='work')window.Work?.refresh();
@@ -1156,7 +1163,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./book-finder.js?v=20261013-1"></script>
 <script src="./scm.js?v=20261013-1"></script>
 <script src="./work.js?v=20261013-1"></script>
-<script src="./operations.js"></script>
+<script src="./operations.js?v=20261016-2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="./payhere-import.js?v=20260906-1"></script>
 <script src="./evidence-batch-import.js?v=20261011-1"></script>
