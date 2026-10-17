@@ -26,7 +26,7 @@ function table(range,required){
 
 function count(value){
   const raw=text(value);
-  if(!raw||MISSING_COUNTS.has(raw))return null;
+  if(!raw||MISSING_COUNTS.has(raw)||/^최소\s*\d+$/.test(raw))return null;
   const normalized=raw.replaceAll(',','').replace(/[원권]/g,'').trim();
   const parsed=Number(normalized);
   if(!Number.isSafeInteger(parsed)||parsed<0)throw Error('BOOKSHOP_SCHEMA_CHANGED');
@@ -80,6 +80,7 @@ export function buildBookshop(raw){
   const positive=key=>items.filter(item=>(item[key]??0)>0).length;
   return {
     items,
+    sourceStatement:text(raw.inventory?.values?.find(row=>row[0]==='수집 시각(KST)')?.[2]).slice(0,600),
     purchaseCandidates:[...byIsbn].map(([value,quantity])=>({isbn:value,quantity})),
     summary:{
       sourceItems:items.length,

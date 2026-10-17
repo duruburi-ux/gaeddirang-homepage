@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="./finance-dashboard.css?v=20261012-2" />
 <link rel="stylesheet" href="./dashboard.css" />
 <link rel="stylesheet" href="./book-finder.css?v=20261013-1" />
+<link rel="stylesheet" href="./operations-read.css?v=20261017-1" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script src="./admin-core-model.js?v=20261010-1"></script>
 <script src="./operations-hub-model.js?v=20261016-1"></script>
@@ -193,6 +194,7 @@
       <button class="tab" data-tab="apps">수업 신청<span class="badge hidden" id="bApps"></span></button>
       <button class="tab" data-tab="inquiries">기관 문의<span class="badge hidden" id="bInq"></span></button>
       <span class="nav-label">운영</span>
+      <button class="tab" data-tab="read">운영 읽기</button>
       <button class="tab" data-tab="finder">매장 판매가능</button>
       <button class="tab" data-tab="scm">전체 상품 원장</button>
       <button class="tab" data-tab="integration">통합 운영실<span class="badge hidden" id="bIntegration"></span></button>
@@ -209,7 +211,7 @@
       <select id="mobileNav" aria-label="관리실 메뉴 선택">
         <optgroup label="오늘"><option value="home">대시보드</option><option value="work">팀 업무</option></optgroup>
         <optgroup label="처리"><option value="orders">주문</option><option value="apps">수업 신청</option><option value="inquiries">기관 문의</option></optgroup>
-        <optgroup label="운영"><option value="finder">매장 판매가능</option><option value="scm">전체 상품 원장</option><option value="integration">통합 운영실</option><option value="finance">재정 현황</option><option value="cohorts">프로그램</option></optgroup>
+        <optgroup label="운영"><option value="read">운영 읽기</option><option value="finder">매장 판매가능</option><option value="scm">전체 상품 원장</option><option value="integration">통합 운영실</option><option value="finance">재정 현황</option><option value="cohorts">프로그램</option></optgroup>
         <optgroup label="기록"><option value="members">고객 이력</option><option value="alerts">출간 알림</option><option value="operations">업무 찾기</option></optgroup>
         <option value="docs">견적·정산·서류</option>
       </select>
@@ -223,6 +225,13 @@
       <a href="docs.html#settlements">월별 정산자료 ↗</a>
     </nav>
     <div id="coreBanner" class="core-banner hidden" role="alert"><span id="coreBannerText"></span><button id="coreRetry" type="button">다시 불러오기</button></div>
+    <section id="tab-read" class="ops-read hidden" aria-label="재고·프로그램 읽기 전용">
+      <div class="page-intro"><div><p class="page-eyebrow">기존 관리자 권한 · 읽기 전용</p><h1>재고와 프로그램, 원천에서 확인</h1><p>운영 데이터만 조회합니다. 수량·신청·재정·권한 변경이나 dot 전달은 실행하지 않습니다.</p></div><button type="button" class="page-primary" id="ops-read-refresh">읽기 다시 실행</button></div>
+      <p id="ops-read-status" class="read-state" role="status" aria-live="polite">기존 관리자 확인 후 읽기만 수행합니다.</p>
+      <p class="read-help">실제 원천 조회 화면입니다. ‘조회 성공’은 실사·결제·지급의 완료 판정이 아닙니다. 표는 좁은 화면에서 좌우로 이동할 수 있습니다.</p>
+      <div class="read-controls"><label>재고 검색 <input id="ops-read-query" type="search" placeholder="도서명 · ISBN · SKU" autocomplete="off"></label><label>재고 보기 <select id="ops-read-filter"><option value="all">전체</option><option value="zero">품절 표시</option><option value="purchase">원천 구매 후보</option><option value="unknown">판매가능 확인 필요</option></select></label></div>
+      <div id="ops-read-results"></div>
+    </section>
     <section id="tab-work" class="work hidden" aria-label="노션 진행 업무">
       <div class="work-head"><div><p class="work-eyebrow">NOTION / READ ONLY</p><h1>지금 하는 일, 한곳에서</h1><p>업무 영역·실행 업무·프로젝트·결정할 일을 최신 순서로 모아 봅니다.</p></div><button id="work-refresh" class="work-btn">지금 확인</button></div>
       <div id="work-status" class="work-notice" role="status" aria-live="polite">관리자 확인 후 최신 업무를 불러옵니다.</div>
@@ -577,7 +586,7 @@ async function boot(){
   if(session && await checkAdmin()){ enterApp(session); }
   else { if(session) await sb.auth.signOut(); showLogin(); }
 }
-function showLogin(message=''){ window.BookFinder?.clear(); window.SCM?.clear(); window.Work?.clear(); window.Integration?.clear(); window.FinanceDashboard?.clear(); clearCoreData(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); $('#pw').value=''; $('#loginMsg').style.color='var(--orange-d)'; $('#loginMsg').textContent=message; requestAnimationFrame(()=>$('#email').focus()); }
+function showLogin(message=''){ window.OperationsRead?.clear(); window.BookFinder?.clear(); window.SCM?.clear(); window.Work?.clear(); window.Integration?.clear(); window.FinanceDashboard?.clear(); clearCoreData(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); $('#pw').value=''; $('#loginMsg').style.color='var(--orange-d)'; $('#loginMsg').textContent=message; requestAnimationFrame(()=>$('#email').focus()); }
 async function enterApp(session){
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#headUser').textContent = session.user.email;
@@ -1134,7 +1143,7 @@ function resetFilters(scope){
 document.addEventListener('click',event=>{const retry=event.target.closest('[data-core-retry]');if(retry){loadAll();return;}const button=event.target.closest('[data-filter-reset]');if(button)resetFilters(button.dataset.filterReset);});
 
 /* ---------- 탭 전환 ---------- */
-const TABS=['home','work','finder','integration','finance','operations','scm','orders','apps','members','cohorts','inquiries','alerts'];
+const TABS=['home','work','finder','integration','finance','operations','scm','orders','apps','members','cohorts','inquiries','alerts','read'];
 function switchTab(name,historyMode='push'){
   if(!TABS.includes(name))return;
   const trigger=document.activeElement,triggerPanel=trigger?.closest?.('[id^="tab-"]'),hiddenTrigger=!!triggerPanel&&triggerPanel.id!==`tab-${name}`;
@@ -1147,6 +1156,7 @@ function switchTab(name,historyMode='push'){
   if(name==='work')window.Work?.refresh();
   if(name==='integration')window.Integration?.refresh();
   if(name==='finance')window.FinanceDashboard?.refresh();
+  if(name==='read')window.OperationsRead?.refresh();
   if(historyMode==='replace')history.replaceState({tab:name},'','#'+name);
   else if(historyMode==='push'&&location.hash!==`#${name}`)history.pushState({tab:name},'','#'+name);
   if(historyMode!=='none')window.scrollTo(0,0);
@@ -1160,6 +1170,8 @@ $('#mobileNav').addEventListener('change',event=>{if(event.target.value==='docs'
 window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&&!event.state?.panel)clearPanel();switchTab(TABS.includes(location.hash.slice(1))?location.hash.slice(1):'home','none');});
 
 </script>
+<script src="./operations-read-model.js?v=20261017-1"></script>
+<script src="./operations-read.js?v=20261017-1"></script>
 <script src="./book-finder.js?v=20261013-1"></script>
 <script src="./scm.js?v=20261013-1"></script>
 <script src="./work.js?v=20261013-1"></script>
@@ -1171,6 +1183,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>
 <script>
+window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.BookFinder?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});

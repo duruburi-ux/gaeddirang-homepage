@@ -130,12 +130,25 @@ async function installVirtualAdmin(page){
 }
 
 async function openAdmin(page,viewport){
-  await page.setViewportSize(viewport);await installVirtualAdmin(page);await page.goto('/admin/#home',{waitUntil:'domcontentloaded'});await expect(page.locator('#appView')).toBeVisible();await expect(page.locator('#priorityTotal')).toContainText('5건');
+  await page.setViewportSize(viewport);await installVirtualAdmin(page);await page.goto('/admin/#home',{waitUntil:'domcontentloaded'});await expect(page.locator('#appView')).toBeVisible();await expect(page.locator('#priorityTotal')).toContainText('5건');await expect.poll(()=>page.evaluate(()=>history.state?.tab)).toBe('home');
 }
 async function goTab(page,viewport,value,name){
   if(viewport.width<=700)await page.locator('#mobileNav').selectOption(value);
   else await page.getByRole('tab',{name}).click();
 }
+
+test('admin read-only workspace: missing session blocks before source reads',async({page})=>{await openAdmin(page,{width:360,height:780});await page.evaluate(()=>{sb.auth.getSession=async()=>({data:{session:null},error:null});});await page.locator('#mobileNav').selectOption('read');await expect(page.locator('#loginView')).toBeVisible();await expect(page.locator('#ops-read-results')).toBeEmpty();});
+
+test('admin read-only workspace: real contracts, failure, old source, re-entry and revoked role',async({page})=>{
+ await openAdmin(page,{width:360,height:780});await page.evaluate(()=>{for(const a of window.__db.applications)a.cohort_id=window.__db.cohorts[0]?.id;});await page.locator('#mobileNav').selectOption('read');
+ await expect(page.locator('#ops-read-results')).toContainText('가상 마음 산책');await expect(page.locator('#ops-read-results')).toContainText('결제대기');
+ await expect(page.locator('#ops-read-results')).not.toContainText('010-0000');await expect(page.locator('#ops-read-results')).not.toContainText('가상 고객');
+ await expect(page.locator('#ops-read-status')).toContainText('원본 변경 없음');await page.locator('#ops-read-query').fill('매칭없는가상검색');await expect(page.locator('#ops-read-results')).toContainText('표시할 항목이 없습니다');await expect(page.locator('#ops-read-results')).toContainText('결제대기');await page.locator('#ops-read-query').fill('');
+ await page.evaluate(()=>{window.__failScmRead=true;window.__failTable='applications';});await page.locator('#ops-read-refresh').click();await expect(page.locator('#ops-read-results')).toContainText('조회 실패');await expect(page.locator('#ops-read-results')).not.toContainText('가상 마음 산책');
+ await page.evaluate(()=>{window.__failScmRead=false;window.__failTable='';window.__scmFetchedAt='2020-01-01T00:00:00Z';});await page.locator('#ops-read-refresh').click();await expect(page.locator('#ops-read-results')).toContainText('오래된 자료');await expect(page.locator('#ops-read-results')).toContainText('확인 필요');
+ await page.screenshot({path:'test-results/operations-read-mobile-synthetic.png',fullPage:true});
+ await page.evaluate(()=>{const rpc=sb.rpc;sb.rpc=async(name,args)=>name==='is_admin'?{data:false,error:null}:rpc(name,args);});await page.locator('#ops-read-refresh').click();await expect(page.locator('#loginView')).toBeVisible();await expect(page.locator('#ops-read-results')).toBeEmpty();
+});
 
 for(const width of [320,360,1440]){
   test(`admin daily tools ${width}: direct access, history and empty-search recovery`,async({page})=>{
