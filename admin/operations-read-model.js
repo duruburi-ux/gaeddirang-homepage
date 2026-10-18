@@ -26,5 +26,58 @@
   const rows=[...groups].map(([id,c])=>{const list=apps.filter(a=>String(a.cohort_id)===id&&!test(a));return {key:id,title:[c.program_slug,c.cohort_name].filter(Boolean).join(' · ')||'프로그램 미확인',capacity:number(c.capacity),seatsLeft:number(c.seats_left),total:list.length,waiting:list.filter(a=>a.status==='입금대기').length,newCount:list.filter(a=>!a.status||a.status==='신규').length,confirmed:list.filter(a=>a.status==='확정').length,cancelled:list.filter(a=>['취소','환불'].includes(a.status)).length,other:list.filter(a=>a.status&&!['신규','입금대기','확정','취소','환불'].includes(a.status)).length};});
   return {status:'queried',sourceAt:null,queriedAt,rows,unmatched:apps.filter(a=>!test(a)&&!matched(a)).length,testRecords:apps.filter(test).length,possiblyTruncated:apps.length>=1000||cohorts.length>=1000};
  }
- return {freshness,inventory,programs};
+ function operationsHome({scm=null,programs=null,core={}}={}){
+  const value=(ready,n)=>ready&&Number.isSafeInteger(n)&&n>=0?n:null;
+  const tasks=[];
+  if(scm&&scm.status!=='failed'){
+   for(const row of scm.rows||[]){
+    if(row.stockState&&(/품절|확인 필요|불일치/.test(row.stockState)||Number(row.purchase)>0))tasks.push({kind:'inventory',key:row.sku,title:row.name,detail:[row.stockState,Number(row.purchase)>0?`재주문 후보 ${row.purchase}권`:row.purchaseState].filter(Boolean).join(' · '),level:/확인 필요|불일치/.test(row.stockState)?'review':'action'});
+   }
+  }
+  if(programs&&programs.status!=='failed')for(const row of programs.rows||[]){
+   if(row.newCount>0)tasks.push({kind:'programs',key:row.key,title:row.title,detail:`신규 신청 ${row.newCount}건`,level:'action'});
+   if(row.waiting>0)tasks.push({kind:'programs',key:row.key,title:row.title,detail:`결제대기 ${row.waiting}건 · 입금 확인은 별도`,level:'action'});
+  }
+  const addCore=(ready,n,kind,title,detail)=>{if(ready&&n>0)tasks.push({kind,key:kind,title,detail:`${detail} ${n}건`,level:'action'});};
+  addCore(core.ordersKnown,core.newOrders,'orders','새 주문 확인','신규');addCore(core.ordersKnown,core.toShip,'orders','발송 준비 확인','처리 대기');addCore(core.inquiriesKnown,core.newInquiries,'inquiries','기관 문의 답변','신규');
+  const allRequiredKnown=Boolean(scm&&scm.status!=='failed'&&programs&&programs.status!=='failed'&&core.ok!==false&&core.ordersKnown&&core.inquiriesKnown);
+  return {tasks,metrics:{tasks:allRequiredKnown?tasks.length:null,knownTasks:tasks.length,allRequiredKnown,stockAttention:scm&&scm.status!=='failed'?tasks.filter(x=>x.kind==='inventory').length:null,programWaiting:programs&&programs.status!=='failed'?(programs.rows||[]).reduce((n,row)=>n+row.waiting,0):null,newOrders:value(core.ordersKnown,core.newOrders),newInquiries:value(core.inquiriesKnown,core.newInquiries)},sources:{inventory:scm?.status||'unknown',programs:programs?.status||'unknown',core:core.ok===true?'current':core.ok===false?'failed':'unknown',finance:'separate',calendar:'not_connected'}};
+ }
+ const REQUEST_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+ function hasSensitiveContact(body){
+  if(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/.test(body))return true;
+  return /(?:^|[^\d])(?:\+?82[\s().-]*0?[\s().-]*|0)(?:1[016789]|2|3[1-3]|4[1-4]|5[0-5]|6[1-4]|70|80)[\s().-]*\d{3,4}[\s().-]*\d{4}(?:[^\d]|$)/.test(body);
+ }
+ function requestDraft({id,sourceKind,sourceId,sourceTitle,text,owner,due,createdAt}={}){
+  const body=String(text||'').trim();
+  if(!REQUEST_ID.test(String(id||'')))throw Error('REQUEST_ID_INVALID');
+  if(!sourceKind||!sourceId||!sourceTitle||!body)throw Error('REQUEST_REQUIRED');
+  if(hasSensitiveContact(body))throw Error('REQUEST_SENSITIVE');
+  return {id:String(id),sourceKind:String(sourceKind),sourceId:String(sourceId),sourceTitle:String(sourceTitle),text:body,owner:String(owner||'팀 미지정'),due:String(due||''),createdAt:String(createdAt||''),status:'draft',delivery:'not_connected'};
+ }
+ function transitionRequest(row,next){
+  const allowed={draft:['ready','held'],ready:['manual_delivered','held'],manual_delivered:['done','held'],held:['ready'],done:[]};
+  if(!row||!allowed[row.status]?.includes(next))throw Error('REQUEST_TRANSITION_INVALID');
+  return {...row,status:next,delivery:next==='manual_delivered'?'self_reported_manual':row.delivery};
+ }
+ function requestText(row){return [`[책공방 운영 요청] ${row.sourceTitle}`,`원천: ${row.sourceKind} / ${row.sourceId}`,`담당: ${row.owner}`,`기한: ${row.due||'미지정'}`,`요청: ${row.text}`,'주의: 이 전달문은 구매·송금·재고/일정 변경 승인이 아닙니다.'].join('\n');}
+ const BACKUP_HEADER='BOOKSHOP_REQUEST_BACKUP_V1';
+ function exportRequests(rows=[]){
+  if(!Array.isArray(rows)||rows.length>100)throw Error('BACKUP_INVALID');
+  const requests=rows.map(row=>({...requestDraft(row),status:row.status,delivery:row.delivery}));
+  return BACKUP_HEADER+'\n'+JSON.stringify({version:1,exportedAt:new Date().toISOString(),requests},null,2);
+ }
+ function importRequests(text,existing=[]){
+  const raw=String(text||'');if(raw.length>200000||!raw.startsWith(BACKUP_HEADER+'\n'))throw Error('BACKUP_INVALID');
+  let parsed;try{parsed=JSON.parse(raw.slice(BACKUP_HEADER.length+1));}catch{throw Error('BACKUP_INVALID');}
+  if(parsed?.version!==1||!Array.isArray(parsed.requests)||parsed.requests.length>100)throw Error('BACKUP_INVALID');
+  const statuses=new Set(['draft','ready','manual_delivered','held','done']),current=new Map(existing.map(row=>[row.id,row])),added=[];let skipped=0;
+  for(const rawRow of parsed.requests){
+   const row={...requestDraft(rawRow),status:rawRow.status,delivery:rawRow.delivery};
+   if(!statuses.has(row.status)||!['not_connected','self_reported_manual'].includes(row.delivery))throw Error('BACKUP_INVALID');
+   const prior=current.get(row.id);if(prior){if(JSON.stringify(prior)!==JSON.stringify(row))throw Error('BACKUP_ID_CONFLICT');skipped++;continue;}current.set(row.id,row);added.push(row);
+  }
+  return {rows:[...existing,...added],added:added.length,skipped};
+ }
+ return {freshness,inventory,programs,operationsHome,requestDraft,transitionRequest,requestText,exportRequests,importRequests,BACKUP_HEADER};
 });

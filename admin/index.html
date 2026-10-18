@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="./finance-dashboard.css?v=20261012-2" />
 <link rel="stylesheet" href="./dashboard.css" />
 <link rel="stylesheet" href="./book-finder.css?v=20261013-1" />
-<link rel="stylesheet" href="./operations-read.css?v=20261017-1" />
+<link rel="stylesheet" href="./operations-read.css?v=20261018-1" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script src="./admin-core-model.js?v=20261010-1"></script>
 <script src="./operations-hub-model.js?v=20261016-1"></script>
@@ -225,11 +225,11 @@
       <a href="docs.html#settlements">월별 정산자료 ↗</a>
     </nav>
     <div id="coreBanner" class="core-banner hidden" role="alert"><span id="coreBannerText"></span><button id="coreRetry" type="button">다시 불러오기</button></div>
-    <section id="tab-read" class="ops-read hidden" aria-label="재고·프로그램 읽기 전용">
-      <div class="page-intro"><div><p class="page-eyebrow">기존 관리자 권한 · 읽기 전용</p><h1>재고와 프로그램, 원천에서 확인</h1><p>운영 데이터만 조회합니다. 수량·신청·재정·권한 변경이나 dot 전달은 실행하지 않습니다.</p></div><button type="button" class="page-primary" id="ops-read-refresh">읽기 다시 실행</button></div>
+    <section id="tab-read" class="ops-read hidden" aria-label="책공방 통합 운영판">
+      <div class="page-intro"><div><p class="page-eyebrow">세 사람이 함께 보는 운영 홈 · 기존 관리자 읽기 권한</p><h1>오늘 할 일부터 요청 전달까지</h1><p>실제 원천을 읽되 수량·신청·재정·일정은 바꾸지 않습니다. 요청은 이 화면에서 초안만 만들고 사람이 직접 전달합니다.</p></div><button type="button" class="page-primary" id="ops-read-refresh">원천 다시 확인</button></div>
       <p id="ops-read-status" class="read-state" role="status" aria-live="polite">기존 관리자 확인 후 읽기만 수행합니다.</p>
-      <p class="read-help">실제 원천 조회 화면입니다. ‘조회 성공’은 실사·결제·지급의 완료 판정이 아닙니다. 표는 좁은 화면에서 좌우로 이동할 수 있습니다.</p>
-      <div class="read-controls"><label>재고 검색 <input id="ops-read-query" type="search" placeholder="도서명 · ISBN · SKU" autocomplete="off"></label><label>재고 보기 <select id="ops-read-filter"><option value="all">전체</option><option value="zero">품절 표시</option><option value="purchase">원천 구매 후보</option><option value="unknown">판매가능 확인 필요</option></select></label></div>
+      <nav class="ops-read-nav" aria-label="통합 운영판 보기"><button type="button" data-read-view="home" aria-current="page">오늘</button><button type="button" data-read-view="inventory">책·재고</button><button type="button" data-read-view="programs">프로그램</button><button type="button" data-read-view="requests">요청함 <span id="ops-request-count"></span></button></nav>
+      <div class="read-controls" id="ops-read-controls" hidden><label>재고 검색 <input id="ops-read-query" type="search" placeholder="도서명 · ISBN · SKU" autocomplete="off"></label><label>재고 보기 <select id="ops-read-filter"><option value="all">전체</option><option value="zero">품절 표시</option><option value="purchase">원천 구매 후보</option><option value="unknown">판매가능 확인 필요</option></select></label><button type="button" id="ops-read-reset">조건 지우기</button></div>
       <div id="ops-read-results"></div>
     </section>
     <section id="tab-work" class="work hidden" aria-label="노션 진행 업무">
@@ -1146,6 +1146,7 @@ document.addEventListener('click',event=>{const retry=event.target.closest('[dat
 const TABS=['home','work','finder','integration','finance','operations','scm','orders','apps','members','cohorts','inquiries','alerts','read'];
 function switchTab(name,historyMode='push'){
   if(!TABS.includes(name))return;
+  if(name!=='read'&&!$('#tab-read').classList.contains('hidden')&&!window.OperationsRead?.confirmLeave?.()){$('#mobileNav').value='read';return;}
   const trigger=document.activeElement,triggerPanel=trigger?.closest?.('[id^="tab-"]'),hiddenTrigger=!!triggerPanel&&triggerPanel.id!==`tab-${name}`;
   document.querySelectorAll('.tab[data-tab]').forEach(x=>{const active=x.dataset.tab===name;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active));x.tabIndex=active?0:-1;});
   TABS.forEach(t=>{const panel=$('#tab-'+t),active=t===name;panel.classList.toggle('hidden',!active);panel.setAttribute('role','tabpanel');panel.setAttribute('tabindex','0');});
@@ -1170,8 +1171,9 @@ $('#mobileNav').addEventListener('change',event=>{if(event.target.value==='docs'
 window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&&!event.state?.panel)clearPanel();switchTab(TABS.includes(location.hash.slice(1))?location.hash.slice(1):'home','none');});
 
 </script>
-<script src="./operations-read-model.js?v=20261017-1"></script>
-<script src="./operations-read.js?v=20261017-1"></script>
+<script src="./operations-read-model.js?v=20261018-1"></script>
+<script src="./operations-request-sync-model.js?v=20261018-2"></script>
+<script src="./operations-read.js?v=20261018-2"></script>
 <script src="./book-finder.js?v=20261013-1"></script>
 <script src="./scm.js?v=20261013-1"></script>
 <script src="./work.js?v=20261013-1"></script>
@@ -1183,7 +1185,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>
 <script>
-window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
+window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,requestSyncEndpoint:SUPABASE_URL+'/functions/v1/operations-requests',requestSyncOrigin:SUPABASE_URL,onDenied:showLogin,navigate:switchTab,getContext:()=>{const p=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});return {ok:CORE_SYNC.ok,queriedAt:CORE_SYNC.at?.toISOString?.()||null,ordersKnown:sourceKnown('orders'),inquiriesKnown:sourceKnown('inquiries'),newOrders:p.newOrders.length,toShip:p.toShip.length,newInquiries:p.newInquiries.length};}});
 window.BookFinder?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
