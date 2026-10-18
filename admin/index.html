@@ -13,9 +13,9 @@
 <link rel="stylesheet" href="./finance-dashboard.css?v=20261012-2" />
 <link rel="stylesheet" href="./dashboard.css" />
 <link rel="stylesheet" href="./book-finder.css?v=20261013-1" />
-<link rel="stylesheet" href="./operations-read.css?v=20261018-4" />
+<link rel="stylesheet" href="./operations-read.css?v=20261018-8" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
-<script src="./admin-core-model.js?v=20261010-1"></script>
+<script src="./admin-core-model.js?v=20261018-7"></script>
 <script src="./operations-hub-model.js?v=20261016-1"></script>
 <script src="./book-finder-model.js?v=20261011-3"></script>
 <style>
@@ -523,10 +523,10 @@ let CORE_SYNC={ok:null,at:null,failed:[],succeeded:[]},CORE_LOAD=null,CORE_CONFI
 const $ = s => document.querySelector(s);
 const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-const fmtDate = s => { if(!s)return'-'; const d=new Date(s); return `${d.getMonth()+1}/${d.getDate()}`; };
-const fmtDT = s => s?new Date(s).toLocaleString('ko-KR'):'-';
+const fmtDate = s => {const key=Core?.koreanDayKey(s);if(!key)return'-';const [,month,day]=key.split('-');return `${Number(month)}/${Number(day)}`;};
+const fmtDT = s => s&&Number.isFinite(Date.parse(s))?new Date(s).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}):'-';
 const won = n => Number.isFinite(Number(n))&&n!==null&&n!==''?Number(n).toLocaleString('ko-KR')+'원':'미확인';
-const isToday = s => { if(!s)return false; const d=new Date(s),n=new Date(); return d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth()&&d.getDate()===n.getDate(); };
+const isToday = s => Core?.isSameKoreanDay(s,new Date())||false;
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800);}
 function copyText(txt,label){ navigator.clipboard.writeText(txt).then(()=>toast((label||'복사')+' 완료')).catch(()=>toast('복사 실패')); }
 function setBadge(id,n){ const b=$('#'+id); if(!b)return; if(n>0){ b.textContent=n; b.classList.remove('hidden'); } else b.classList.add('hidden'); }
@@ -624,12 +624,12 @@ async function loadAll(){
   const button=$('#reloadBtn'),buttonLabel=button.querySelector('.button-label'),oldLabel=buttonLabel?.textContent||'최신 자료 확인';button.disabled=true;if(buttonLabel)buttonLabel.textContent='확인 중…';
   CORE_LOAD=(async()=>{
     const [applications,cohorts,orders,orderItems,inquiries,alerts]=await Promise.all([
-      sb.from('applications').select('*').order('created_at',{ascending:false}),
-      sb.from('cohorts').select('*').order('sort'),
-      sb.from('orders').select('*').order('created_at',{ascending:false}),
-      sb.from('order_items').select('*'),
-      sb.from('inquiries').select('*').order('created_at',{ascending:false}),
-      sb.from('book_alerts').select('*').order('created_at',{ascending:false}),
+      Core.readAll(sb,'applications','*',{order:[['created_at',{ascending:false}],['id',{ascending:false}]]}),
+      Core.readAll(sb,'cohorts','*',{order:[['sort',{ascending:true}],['id',{ascending:true}]]}),
+      Core.readAll(sb,'orders','*',{order:[['created_at',{ascending:false}],['id',{ascending:false}]]}),
+      Core.readAll(sb,'order_items','*',{order:[['order_id',{ascending:true}],['id',{ascending:true}]]}),
+      Core.readAll(sb,'inquiries','*',{order:[['created_at',{ascending:false}],['id',{ascending:false}]]}),
+      Core.readAll(sb,'book_alerts','*',{order:[['created_at',{ascending:false}],['id',{ascending:false}]]}),
     ]);
     const results={applications,cohorts,orders,orderItems,inquiries,alerts};
     const denied=Object.values(results).find(r=>r.error&&Core?.isAuthError(r.error));if(denied){authFailure(denied.error);return false;}
@@ -651,8 +651,8 @@ function refreshBadges(){
 async function loadOperationsCore(){
   const queriedAt=new Date().toISOString();
   const [orders,inquiries]=await Promise.all([
-    sb.from('orders').select('id,status,created_at',{count:'exact'}).order('created_at',{ascending:false}),
-    sb.from('inquiries').select('id,status,created_at',{count:'exact'}).order('created_at',{ascending:false}),
+    Core.readAll(sb,'orders','id,status,created_at',{order:[['created_at',{ascending:false}],['id',{ascending:false}]]}),
+    Core.readAll(sb,'inquiries','id,status,created_at',{order:[['created_at',{ascending:false}],['id',{ascending:false}]]}),
   ]);
   if([orders.error,inquiries.error].some(error=>error&&Core.isAuthError(error)))return {denied:true};
   const complete=result=>!result.error&&Array.isArray(result.data)&&Number.isSafeInteger(result.count)&&result.count===result.data.length;
@@ -1187,7 +1187,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 </script>
 <script src="./operations-read-model.js?v=20261018-6"></script>
 <script src="./operations-request-sync-model.js?v=20261018-2"></script>
-<script src="./operations-read.js?v=20261018-6"></script>
+<script src="./operations-read.js?v=20261018-8"></script>
 <script src="./book-finder.js?v=20261013-1"></script>
 <script src="./scm.js?v=20261013-1"></script>
 <script src="./work.js?v=20261013-1"></script>
@@ -1199,7 +1199,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>
 <script>
-window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,requestSyncEndpoint:SUPABASE_URL+'/functions/v1/operations-requests',requestSyncOrigin:SUPABASE_URL,onDenied:showLogin,navigate:switchTab,loadCore:loadOperationsCore,getContext:()=>{const p=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});return {ok:CORE_SYNC.ok,queriedAt:CORE_SYNC.at?.toISOString?.()||null,ordersKnown:sourceKnown('orders'),inquiriesKnown:sourceKnown('inquiries'),newOrders:p.newOrders.length,toShip:p.toShip.length,newInquiries:p.newInquiries.length};}});
+window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,requestSyncEndpoint:SUPABASE_URL+'/functions/v1/operations-requests',requestSyncOrigin:SUPABASE_URL,onDenied:showLogin,navigate:switchTab,loadCore:loadOperationsCore,readAll:(table,columns,options)=>Core.readAll(sb,table,columns,options),getContext:()=>{const p=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});return {ok:CORE_SYNC.ok,queriedAt:CORE_SYNC.at?.toISOString?.()||null,ordersKnown:sourceKnown('orders'),inquiriesKnown:sourceKnown('inquiries'),newOrders:p.newOrders.length,toShip:p.toShip.length,newInquiries:p.newInquiries.length};}});
 window.BookFinder?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
