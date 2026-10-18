@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="./finance-dashboard.css?v=20261012-2" />
 <link rel="stylesheet" href="./dashboard.css" />
 <link rel="stylesheet" href="./book-finder.css?v=20261013-1" />
-<link rel="stylesheet" href="./operations-read.css?v=20261018-3" />
+<link rel="stylesheet" href="./operations-read.css?v=20261018-4" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script src="./admin-core-model.js?v=20261010-1"></script>
 <script src="./operations-hub-model.js?v=20261016-1"></script>
@@ -648,6 +648,19 @@ function refreshBadges(){
   setBadge('bInq', sourceKnown('inquiries')?INQ.filter(i=>!i.status||i.status==='신규').length:0);
 }
 
+async function loadOperationsCore(){
+  const queriedAt=new Date().toISOString();
+  const [orders,inquiries]=await Promise.all([
+    sb.from('orders').select('id,status,created_at',{count:'exact'}).order('created_at',{ascending:false}),
+    sb.from('inquiries').select('id,status,created_at',{count:'exact'}).order('created_at',{ascending:false}),
+  ]);
+  if([orders.error,inquiries.error].some(error=>error&&Core.isAuthError(error)))return {denied:true};
+  const complete=result=>!result.error&&Array.isArray(result.data)&&Number.isSafeInteger(result.count)&&result.count===result.data.length;
+  const ordersKnown=complete(orders),inquiriesKnown=complete(inquiries);
+  const priorities=Core.derivePriorities({orders:ordersKnown?orders.data:[],inquiries:inquiriesKnown?inquiries.data:[]});
+  return {ok:ordersKnown&&inquiriesKnown,queriedAt,ordersKnown,inquiriesKnown,newOrders:ordersKnown?priorities.newOrders.length:null,toShip:ordersKnown?priorities.toShip.length:null,newInquiries:inquiriesKnown?priorities.newInquiries.length:null};
+}
+
 /* ---------- 홈(요약) ---------- */
 function renderHome(){
   const priorities=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});
@@ -1172,9 +1185,9 @@ $('#mobileNav').addEventListener('change',event=>{if(event.target.value==='docs'
 window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&&!event.state?.panel)clearPanel();switchTab(TABS.includes(location.hash.slice(1))?location.hash.slice(1):'read','none');});
 
 </script>
-<script src="./operations-read-model.js?v=20261018-3"></script>
+<script src="./operations-read-model.js?v=20261018-6"></script>
 <script src="./operations-request-sync-model.js?v=20261018-2"></script>
-<script src="./operations-read.js?v=20261018-3"></script>
+<script src="./operations-read.js?v=20261018-6"></script>
 <script src="./book-finder.js?v=20261013-1"></script>
 <script src="./scm.js?v=20261013-1"></script>
 <script src="./work.js?v=20261013-1"></script>
@@ -1186,7 +1199,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>
 <script>
-window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,requestSyncEndpoint:SUPABASE_URL+'/functions/v1/operations-requests',requestSyncOrigin:SUPABASE_URL,onDenied:showLogin,navigate:switchTab,getContext:()=>{const p=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});return {ok:CORE_SYNC.ok,queriedAt:CORE_SYNC.at?.toISOString?.()||null,ordersKnown:sourceKnown('orders'),inquiriesKnown:sourceKnown('inquiries'),newOrders:p.newOrders.length,toShip:p.toShip.length,newInquiries:p.newInquiries.length};}});
+window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,requestSyncEndpoint:SUPABASE_URL+'/functions/v1/operations-requests',requestSyncOrigin:SUPABASE_URL,onDenied:showLogin,navigate:switchTab,loadCore:loadOperationsCore,getContext:()=>{const p=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});return {ok:CORE_SYNC.ok,queriedAt:CORE_SYNC.at?.toISOString?.()||null,ordersKnown:sourceKnown('orders'),inquiriesKnown:sourceKnown('inquiries'),newOrders:p.newOrders.length,toShip:p.toShip.length,newInquiries:p.newInquiries.length};}});
 window.BookFinder?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});

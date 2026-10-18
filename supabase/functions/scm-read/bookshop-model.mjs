@@ -8,6 +8,38 @@ const YES24_HEADERS=['카트분류','ISBN','도서명','수량','행합계(원)'
 const MISSING_COUNTS=new Set(['미확인','미확정','해당 없음','매핑 미확인']);
 const text=value=>value==null?'':String(value).trim();
 const isbn=value=>text(value).toUpperCase().replace(/[^0-9X]/g,'');
+const cell=(range,row,column)=>text(range?.values?.[row-1]?.[column-1]).slice(0,1200);
+const kst=(date,time)=>{
+  const value=`${date}T${time}:00+09:00`;
+  return Number.isFinite(Date.parse(value))?value:null;
+};
+const datedTime=(value,namePattern)=>{
+  const match=value.match(new RegExp(`(?:^|\\n)\\s*(?:${namePattern})\\s+(\\d{4}-\\d{2}-\\d{2})\\s+(\\d{2}:\\d{2})(?:\\s*KST)?`,'i'));
+  return match?kst(match[1],match[2]):null;
+};
+function collectionStatus(raw){
+  // The daily collector records its verified successes in these helper cells.
+  // Parse only timestamps; detailed free-form evidence and account names stay server-side.
+  const inventoryTimes=cell(raw.inventory,2,3);
+  const yes24Times=cell(raw.yes24,2,1);
+  const yesDate=yes24Times.match(/(\d{4}-\d{2}-\d{2})/)?.[1];
+  const yesOrderTime=yes24Times.match(/(?:^|[·\n])\s*주문내역\s+(\d{2}:\d{2})(?=\s*(?:·|$))/)?.[1];
+  const yesCartTime=yes24Times.match(/(?:^|[·\n])\s*장바구니\s+(\d{2}:\d{2})(?=\s*(?:·|$))/)?.[1];
+  const yesFailed=/(?:실패|미확인|오류)/.test(yes24Times);
+  const yesOrderCompletedAt=!yesFailed&&yesDate&&yesOrderTime?kst(yesDate,yesOrderTime):null;
+  const yesCartCompletedAt=!yesFailed&&yesDate&&yesCartTime?kst(yesDate,yesCartTime):null;
+  // The combined snapshot is complete only after both steps; use the later completion as its watermark.
+  const yesCompletedAt=yesOrderCompletedAt&&yesCartCompletedAt
+    ?(Date.parse(yesOrderCompletedAt)>=Date.parse(yesCartCompletedAt)?yesOrderCompletedAt:yesCartCompletedAt)
+    :null;
+  const rows=[
+    ['scm','SCM',datedTime(inventoryTimes,'SCM'),'통합 재고!C2'],
+    ['payhere','PayHere',datedTime(inventoryTimes,'PayHere|페이히어'),'통합 재고!C2'],
+    ['smartstore','SmartStore',datedTime(inventoryTimes,'SmartStore|스마트스토어'),'통합 재고!C2'],
+    ['yes24','YES24',yesCompletedAt,'YES24 확인!A2',{ordersCompletedAt:yesOrderCompletedAt,cartCompletedAt:yesCartCompletedAt}],
+  ];
+  return rows.map(([id,name,lastSuccessAt,evidenceCell,steps])=>({id,name,lastSuccessAt,status:lastSuccessAt?'success':'unknown',evidenceCell,...(steps?{steps}:{})}));
+}
 const physicalCheckComplete=(value,confirmationNote,sellable)=>{
   const status=text(value),proof=text(confirmationNote);
   if(/^(확인|완료|확정|실사 완료)$/.test(status))return true;
@@ -80,7 +112,8 @@ export function buildBookshop(raw){
   const positive=key=>items.filter(item=>(item[key]??0)>0).length;
   return {
     items,
-    sourceStatement:text(raw.inventory?.values?.find(row=>row[0]==='수집 시각(KST)')?.[2]).slice(0,600),
+    sourceStatement:cell(raw.inventory,2,3).slice(0,600),
+    collectionStatus:collectionStatus(raw),
     purchaseCandidates:[...byIsbn].map(([value,quantity])=>({isbn:value,quantity})),
     summary:{
       sourceItems:items.length,
