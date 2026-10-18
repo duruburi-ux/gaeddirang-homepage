@@ -43,6 +43,37 @@
   const allRequiredKnown=Boolean(scm&&scm.status!=='failed'&&programs&&programs.status!=='failed'&&core.ok!==false&&core.ordersKnown&&core.inquiriesKnown);
   return {tasks,metrics:{tasks:allRequiredKnown?tasks.length:null,knownTasks:tasks.length,allRequiredKnown,stockAttention:scm&&scm.status!=='failed'?tasks.filter(x=>x.kind==='inventory').length:null,programWaiting:programs&&programs.status!=='failed'?(programs.rows||[]).reduce((n,row)=>n+row.waiting,0):null,newOrders:value(core.ordersKnown,core.newOrders),newInquiries:value(core.inquiriesKnown,core.newInquiries)},sources:{inventory:scm?.status||'unknown',programs:programs?.status||'unknown',core:core.ok===true?'current':core.ok===false?'failed':'unknown',finance:'separate',calendar:'not_connected'}};
  }
+ function dashboardCharts({scm=null,programs=null}={}){
+  let inventoryChart={state:'unavailable',total:null,reorder:null,rows:[]};
+  if(scm&&scm.status!=='failed'){
+   const counts={soldout:0,review:0,available:0,excluded:0};
+   for(const row of scm.rows||[]){
+    if(/^반품·비활성/.test(row.stockState||''))counts.excluded++;
+    else if(scm.shopStatus!=='current'||row.sellable===null||/불일치|확인 필요/.test(row.stockState||''))counts.review++;
+    else if(row.sellable===0)counts.soldout++;
+    else counts.available++;
+   }
+   inventoryChart={state:'ready',total:(scm.rows||[]).length,reorder:(scm.rows||[]).filter(row=>Number(row.purchase)>0).length,rows:[
+    {id:'soldout',label:'판매가능 품절',value:counts.soldout,tone:'urgent'},
+    {id:'review',label:'실사·연결 확인',value:counts.review,tone:'review'},
+    {id:'available',label:'판매가능 확인',value:counts.available,tone:'ok'},
+    {id:'excluded',label:'반품·비활성',value:counts.excluded,tone:'muted'},
+   ]};
+  }
+  let programChart={state:'unavailable',total:null,rows:[]};
+  if(programs&&programs.status!=='failed'){
+   const rows=programs.rows||[],counts={new:0,waiting:0,confirmed:0,other:programs.unmatched||0,cancelled:0};
+   for(const row of rows){counts.new+=row.newCount||0;counts.waiting+=row.waiting||0;counts.confirmed+=row.confirmed||0;counts.other+=row.other||0;counts.cancelled+=row.cancelled||0;}
+   programChart={state:'ready',total:Object.values(counts).reduce((a,b)=>a+b,0),rows:[
+    {id:'new',label:'신규',value:counts.new,tone:'review'},
+    {id:'waiting',label:'결제대기',value:counts.waiting,tone:'urgent'},
+    {id:'confirmed',label:'확정',value:counts.confirmed,tone:'ok'},
+    {id:'other',label:'연결·상태 확인',value:counts.other,tone:'muted'},
+    {id:'cancelled',label:'취소·환불',value:counts.cancelled,tone:'muted'},
+   ]};
+  }
+  return {inventory:inventoryChart,programs:programChart};
+ }
  const REQUEST_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
  function hasSensitiveContact(body){
   if(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/.test(body))return true;
@@ -79,5 +110,5 @@
   }
   return {rows:[...existing,...added],added:added.length,skipped};
  }
- return {freshness,inventory,programs,operationsHome,requestDraft,transitionRequest,requestText,exportRequests,importRequests,BACKUP_HEADER};
+ return {freshness,inventory,programs,operationsHome,dashboardCharts,requestDraft,transitionRequest,requestText,exportRequests,importRequests,BACKUP_HEADER};
 });

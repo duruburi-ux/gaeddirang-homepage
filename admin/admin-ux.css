@@ -116,3 +116,16 @@ main{max-width:1160px;padding:24px 20px 42px}
 }
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* 책공방 운영을 앞에 두고 드문 메뉴는 한곳에 접는다. */
+@media(min-width:701px){
+  .tabs{overflow:visible}
+  .ops-more-nav{position:relative;align-self:stretch;display:flex;align-items:center;margin-left:auto}
+  .ops-more-nav>summary{list-style:none;display:flex;align-items:center;gap:6px;min-height:45px;padding:0 11px;color:var(--muted);font-size:13px;font-weight:750;cursor:pointer}
+  .ops-more-nav>summary::-webkit-details-marker{display:none}
+  .ops-more-nav[open]>summary,.ops-more-nav.has-active>summary{color:var(--brand-forest);background:#fffaf6}
+  .ops-more-menu{position:absolute;z-index:30;top:calc(100% - 2px);right:0;display:grid;grid-template-columns:repeat(2,minmax(170px,1fr));width:390px;padding:8px;border:1px solid #ddd3ca;border-radius:13px;background:#fff;box-shadow:0 16px 38px rgba(42,35,28,.16)}
+  .ops-more-menu .tab,.ops-more-menu .tab-link{justify-content:flex-start;min-height:42px!important;border:0!important;border-radius:8px;text-align:left}
+  .ops-more-menu .tab.active{background:var(--brand-coral-soft)}
+}
+@media(max-width:700px){.daily-tools{display:none}}
