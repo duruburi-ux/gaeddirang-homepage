@@ -9,17 +9,17 @@
 <link rel="stylesheet" href="./scm.css?v=20261013-1" />
 <link rel="stylesheet" href="./work.css?v=20261025-1" />
 <link rel="stylesheet" href="./operations.css" />
-<link rel="stylesheet" href="./integration.css?v=20261011-3" />
+<link rel="stylesheet" href="./integration.css?v=20261026-4" />
 <link rel="stylesheet" href="./finance-dashboard.css?v=20261012-2" />
 <link rel="stylesheet" href="./dashboard.css" />
 <link rel="stylesheet" href="./book-finder.css?v=20261013-1" />
 <link rel="stylesheet" href="./operations-read.css?v=20261025-1" />
-<link rel="stylesheet" href="./personal-plan.css?v=20261026-6" />
+<link rel="stylesheet" href="./personal-plan.css?v=20261026-7" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script src="./admin-core-model.js?v=20261018-7"></script>
 <script src="./operations-hub-model.js?v=20261016-1"></script>
 <script src="./book-finder-model.js?v=20261011-3"></script>
-<script src="./personal-plan-model.js?v=20261025-1"></script>
+<script src="./personal-plan-model.js?v=20261026-2"></script>
 <style>
   :root{
     --orange:#F26D4F; --orange-d:#d9583c; --ink:#2b2622; --muted:#8a817a;
@@ -581,6 +581,7 @@ const Core=window.AdminCoreModel;
 let APPS=[], COHORTS=[], ORDERS=[], OITEMS={}, INQ=[], ALERTS=[];
 let CORE_DATA={applications:[],cohorts:[],orders:[],orderItems:[],inquiries:[],alerts:[]};
 let CORE_SYNC={ok:null,at:null,failed:[],succeeded:[]},CORE_LOAD=null,CORE_CONFIRMED=new Set();
+let AUTH_GENERATION=0,ACTIVE_USER_ID='',PENDING_USER_ID='',AUTH_VERIFY=null;
 
 const $ = s => document.querySelector(s);
 const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
@@ -645,17 +646,28 @@ async function checkAdmin(){
 }
 async function boot(){
   const { data:{ session } } = await sb.auth.getSession();
-  if(session && await checkAdmin()){ enterApp(session); }
-  else { if(session) await sb.auth.signOut(); showLogin(); }
+  if(session)await startSessionVerification(session);
+  else showLogin();
 }
-function showLogin(message=''){ window.PersonalPlanner?.deactivate(); window.OperationsRead?.clear(); window.BookFinder?.clear(); window.SCM?.clear(); window.Work?.clear(); window.OperationsSourcesDashboard?.clear(); window.Integration?.clear(); window.FinanceDashboard?.clear(); clearCoreData(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); $('#pw').value=''; $('#loginMsg').style.color='var(--orange-d)'; $('#loginMsg').textContent=message; requestAnimationFrame(()=>$('#email').focus()); }
-async function enterApp(session){
+function clearPrivateUi(message=''){CORE_LOAD=null;window.PersonalPlanner?.deactivate();window.OperationsRead?.clear();window.BookFinder?.clear();window.SCM?.clear();window.Work?.clear();window.OperationsSourcesDashboard?.clear();window.Integration?.clear();window.FinanceDashboard?.clear();clearCoreData();$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');$('#pw').value='';$('#loginMsg').style.color='var(--orange-d)';$('#loginMsg').textContent=message;requestAnimationFrame(()=>$('#email').focus())}
+function showLogin(message=''){AUTH_GENERATION++;ACTIVE_USER_ID='';PENDING_USER_ID='';AUTH_VERIFY=null;clearPrivateUi(message)}
+async function startSessionVerification(session){
+  const userId=String(session?.user?.id||'');if(!userId){showLogin();return false}
+  if(ACTIVE_USER_ID===userId&&!$('#appView').classList.contains('hidden'))return true;
+  if(PENDING_USER_ID===userId&&AUTH_VERIFY)return AUTH_VERIFY;
+  const run=++AUTH_GENERATION;ACTIVE_USER_ID='';PENDING_USER_ID=userId;clearPrivateUi('관리 권한을 확인하고 있습니다.');
+  const verify=(async()=>{const admin=await checkAdmin(),current=await sb.auth.getSession(),currentSession=current.data?.session,currentId=String(currentSession?.user?.id||'');if(run!==AUTH_GENERATION||PENDING_USER_ID!==userId||current.error||currentId!==userId)return false;if(!admin){showLogin('이 계정은 관리 권한이 없어요.');await sb.auth.signOut();return false}ACTIVE_USER_ID=userId;PENDING_USER_ID='';await enterApp(currentSession,run);return run===AUTH_GENERATION&&ACTIVE_USER_ID===userId})();
+  AUTH_VERIFY=verify.finally(()=>{if(run===AUTH_GENERATION)AUTH_VERIFY=null});return AUTH_VERIFY;
+}
+async function enterApp(session,run=AUTH_GENERATION){
+  const userId=String(session?.user?.id||'');if(!userId||run!==AUTH_GENERATION||ACTIVE_USER_ID!==userId)return false;
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#headUser').textContent = session.user.email;$('#personalPlanUser').textContent=session.user.email;
-  window.PersonalPlanner?.activate(session.user.id);
-  await loadAll();
+  window.PersonalPlanner?.activate(userId);
+  await loadAll(run,userId);if(run!==AUTH_GENERATION||ACTIVE_USER_ID!==userId)return false;
   const requestedTab=location.hash.slice(1);
   switchTab(TABS.includes(requestedTab)?requestedTab:'read','replace');
+  return true;
 }
 $('#loginBtn').onclick = async () => {
   const btn=$('#loginBtn'), msg=$('#loginMsg');
@@ -664,8 +676,7 @@ $('#loginBtn').onclick = async () => {
   btn.disabled=true; btn.textContent='확인 중…'; msg.textContent='';
   const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
   if(error){ msg.textContent='로그인 정보가 올바르지 않아요.'; btn.disabled=false; btn.textContent='로그인'; return; }
-  if(!(await checkAdmin())){ msg.textContent='이 계정은 관리 권한이 없어요.'; await sb.auth.signOut(); btn.disabled=false; btn.textContent='로그인'; return; }
-  enterApp(data.session); btn.disabled=false; btn.textContent='로그인';
+  const entered=await startSessionVerification(data.session);if(!entered&&data.session){msg.textContent=msg.textContent||'이 계정은 관리 권한을 확인하지 못했어요.';}btn.disabled=false;btn.textContent='로그인';
 };
 $('#pw').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
 $('#resetLink').onclick = async () => {
@@ -678,10 +689,11 @@ $('#resetLink').onclick = async () => {
 $('#logoutBtn').onclick = async () => { await sb.auth.signOut(); location.reload(); };
 $('#reloadBtn').onclick = async () => { const ok=await loadAll(); if(!$('#tab-finance').classList.contains('hidden'))await window.FinanceDashboard?.refresh(true); toast(ok?'최신 자료를 확인했어요':'일부 자료를 불러오지 못했습니다'); };
 $('#coreRetry').onclick=()=>loadAll();
-sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'&&!$('#appView').classList.contains('hidden'))showLogin('로그인 시간이 끝났어요. 다시 로그인해 주세요.');});
+sb.auth.onAuthStateChange((event,session)=>{const nextId=String(session?.user?.id||''),knownId=ACTIVE_USER_ID||PENDING_USER_ID;if(event==='SIGNED_OUT'){showLogin(knownId?'로그인 시간이 끝났어요. 다시 로그인해 주세요.':'');return}if(!nextId)return;if(event==='USER_UPDATED'||nextId!==knownId||(!knownId&&event==='SIGNED_IN'))startSessionVerification(session);});
 
 /* ---------- 데이터 로드 ---------- */
-async function loadAll(){
+async function loadAll(expectedGeneration=AUTH_GENERATION,expectedUserId=ACTIVE_USER_ID){
+  if(expectedGeneration!==AUTH_GENERATION||!expectedUserId||expectedUserId!==ACTIVE_USER_ID)return false;
   if(CORE_LOAD)return CORE_LOAD;
   $('main').setAttribute('aria-busy','true');
   const button=$('#reloadBtn'),buttonLabel=button.querySelector('.button-label'),oldLabel=buttonLabel?.textContent||'최신 자료 확인';button.disabled=true;if(buttonLabel)buttonLabel.textContent='확인 중…';
@@ -694,7 +706,7 @@ async function loadAll(){
       Core.readAll(sb,'inquiries','*',{order:[['created_at',{ascending:false}],['id',{ascending:false}]]}),
       Core.readAll(sb,'book_alerts','*',{order:[['created_at',{ascending:false}],['id',{ascending:false}]]}),
     ]);
-    const results={applications,cohorts,orders,orderItems,inquiries,alerts};
+    if(expectedGeneration!==AUTH_GENERATION||expectedUserId!==ACTIVE_USER_ID)return false;const results={applications,cohorts,orders,orderItems,inquiries,alerts};
     const denied=Object.values(results).find(r=>r.error&&Core?.isAuthError(r.error));if(denied){authFailure(denied.error);return false;}
     const confirmedPrevious=Object.fromEntries(Object.entries(CORE_DATA).filter(([key])=>CORE_CONFIRMED.has(key)));
     const merged=Core.mergeCoreResults(confirmedPrevious,results,new Date());CORE_DATA=merged.data;CORE_SYNC=merged.sync;for(const key of CORE_SYNC.succeeded)CORE_CONFIRMED.add(key);
@@ -702,7 +714,7 @@ async function loadAll(){
     OITEMS={};CORE_DATA.orderItems.forEach(it=>{(OITEMS[it.order_id]=OITEMS[it.order_id]||[]).push(it);});
     buildFilters();renderHome();renderOrders();renderApps();renderMembers();renderCohorts();renderInquiries();renderAlerts();refreshBadges();showCoreBanner();
     window.SCM?.refresh();window.Work?.refresh();window.Integration?.refresh();return CORE_SYNC.ok;
-  })().catch(error=>{if(!authFailure(error)){CORE_SYNC={ok:false,at:new Date(),failed:Object.entries(Core.SOURCES).map(([key,label])=>({key,label,error,keptPrevious:CORE_CONFIRMED.has(key)})),succeeded:[]};showCoreBanner();}return false;}).finally(()=>{button.disabled=false;if(buttonLabel)buttonLabel.textContent=oldLabel;$('main').setAttribute('aria-busy','false');CORE_LOAD=null;});
+  })().catch(error=>{if(expectedGeneration!==AUTH_GENERATION||expectedUserId!==ACTIVE_USER_ID)return false;if(!authFailure(error)){CORE_SYNC={ok:false,at:new Date(),failed:Object.entries(Core.SOURCES).map(([key,label])=>({key,label,error,keptPrevious:CORE_CONFIRMED.has(key)})),succeeded:[]};showCoreBanner();}return false;}).finally(()=>{if(expectedGeneration===AUTH_GENERATION&&expectedUserId===ACTIVE_USER_ID){button.disabled=false;if(buttonLabel)buttonLabel.textContent=oldLabel;$('main').setAttribute('aria-busy','false');CORE_LOAD=null;}});
   return CORE_LOAD;
 }
 function refreshBadges(){
@@ -1300,7 +1312,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./operations-read-model.js?v=20261025-1"></script>
 <script src="./operations-request-sync-model.js?v=20261018-2"></script>
 <script src="./operations-read.js?v=20261025-1"></script>
-<script src="./personal-plan.js?v=20261026-7"></script>
+<script src="./personal-plan.js?v=20261026-9"></script>
 <script src="./book-finder.js?v=20261013-1"></script>
 <script src="./scm.js?v=20261013-1"></script>
 <script src="./work.js?v=20261025-1"></script>
@@ -1308,7 +1320,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="./payhere-import.js?v=20260906-1"></script>
 <script src="./evidence-batch-import.js?v=20261011-1"></script>
-<script src="./operations-sources-dashboard.js?v=20261026-1"></script>
+<script src="./operations-sources-dashboard.js?v=20261026-2"></script>
 <script src="./integration.js?v=20261011-5"></script>
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>

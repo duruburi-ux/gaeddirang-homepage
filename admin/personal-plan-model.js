@@ -21,7 +21,7 @@
   const sourceKind=SOURCE_KINDS.includes(value?.sourceKind)?value.sourceKind:'personal',sourceId=clean(value?.sourceId,160),title=clean(value?.title,200),id=clean(value?.id,120)||makeId();
   if(!title)throw Error('PLAN_TITLE_REQUIRED');
   if(sourceKind!=='personal'&&!sourceId)throw Error('PLAN_SOURCE_REQUIRED');
-  return {id,sourceKind,sourceId:sourceKind==='personal'?(sourceId||id):sourceId,sourceTitle:clean(value?.sourceTitle,200),title,project:clean(value?.project,120),plannedOn:day(value?.plannedOn),priority:PRIORITIES.includes(value?.priority)?value.priority:'normal',memo:clean(value?.memo,1200),done:Boolean(value?.done),createdAt:iso(value?.createdAt)||nowIso(now),updatedAt:iso(value?.updatedAt)||nowIso(now),localEditedAt:iso(value?.localEditedAt),baseSourceUpdatedAt:iso(value?.baseSourceUpdatedAt)};
+  return {id,sourceKind,sourceId:sourceKind==='personal'?(sourceId||id):sourceId,sourceTitle:clean(value?.sourceTitle,200),sourceTeamDue:day(value?.sourceTeamDue),sourceStatus:clean(value?.sourceStatus,80),title,project:clean(value?.project,120),plannedOn:day(value?.plannedOn),priority:PRIORITIES.includes(value?.priority)?value.priority:'normal',memo:clean(value?.memo,1200),done:Boolean(value?.done),createdAt:iso(value?.createdAt)||nowIso(now),updatedAt:iso(value?.updatedAt)||nowIso(now),localEditedAt:iso(value?.localEditedAt),baseSourceUpdatedAt:iso(value?.baseSourceUpdatedAt)};
  }
  function validateState(input,{now}={}){
   if(!input||typeof input!=='object'||Array.isArray(input)||input.version!==VERSION||!Array.isArray(input.items)||!Array.isArray(input.history))throw Error('PLAN_STATE_INVALID');
@@ -36,11 +36,11 @@
   const item=normalizeItem({...input,id:input?.id||makeId(),sourceKind:'personal',sourceId:input?.id||'',sourceTitle:''},{now});item.sourceId=item.id;item.localEditedAt=nowIso(now);state.items.push(item);record(state,'개인 할 일 추가',item,item.title,now);return item;
  }
  function importSource(state,source,{now}={}){
-  const descriptor={sourceKind:clean(source?.sourceKind,40),sourceId:clean(source?.sourceId,160),title:clean(source?.title,200),project:clean(source?.project,120),updatedAt:iso(source?.updatedAt)};
+  const descriptor={sourceKind:clean(source?.sourceKind,40),sourceId:clean(source?.sourceId,160),title:clean(source?.title,200),project:clean(source?.project,120),updatedAt:iso(source?.updatedAt),teamDue:day(String(source?.teamDue||'').slice(0,10)),status:clean(source?.status,80)};
   if(descriptor.sourceKind!=='notion_work'||!descriptor.sourceId||!descriptor.title||!descriptor.updatedAt)throw Error('PLAN_SOURCE_INVALID');
   const same=state.items.filter(item=>sourceKey(item)===`${descriptor.sourceKind}:${descriptor.sourceId}`);if(same.length>1)throw Error('PLAN_SOURCE_DUPLICATE');
   if(same.length===1)return {outcome:'duplicate',item:same[0]};
-  const item=normalizeItem({id:makeId(),sourceKind:descriptor.sourceKind,sourceId:descriptor.sourceId,sourceTitle:descriptor.title,title:descriptor.title,project:descriptor.project,plannedOn:'',priority:'normal',memo:'',baseSourceUpdatedAt:descriptor.updatedAt},{now});state.items.push(item);record(state,'원천 업무 연결',item,descriptor.title,now);return {outcome:'imported',item};
+  const item=normalizeItem({id:makeId(),sourceKind:descriptor.sourceKind,sourceId:descriptor.sourceId,sourceTitle:descriptor.title,sourceTeamDue:descriptor.teamDue,sourceStatus:descriptor.status,title:descriptor.title,project:descriptor.project,plannedOn:'',priority:'normal',memo:'',baseSourceUpdatedAt:descriptor.updatedAt},{now});state.items.push(item);record(state,'원천 업무 연결',item,descriptor.title,now);return {outcome:'imported',item};
  }
  function sourceStatus(item,source){
   if(!item||!source||sourceKey(item)!==`${source.sourceKind}:${source.sourceId}`)return {state:'missing'};
@@ -50,7 +50,7 @@
  }
  function acknowledgeSource(state,itemId,source,{now}={}){
   const item=state.items.find(row=>row.id===itemId);if(!item||sourceKey(item)!==`${source?.sourceKind}:${source?.sourceId}`)throw Error('PLAN_SOURCE_INVALID');
-  const updated=iso(source.updatedAt);if(!updated)throw Error('PLAN_SOURCE_INVALID');item.sourceTitle=clean(source.title,200)||item.sourceTitle;item.baseSourceUpdatedAt=updated;item.updatedAt=nowIso(now);record(state,'원본 갱신 확인',item,item.sourceTitle,now);return item;
+  const updated=iso(source.updatedAt);if(!updated)throw Error('PLAN_SOURCE_INVALID');item.sourceTitle=clean(source.title,200)||item.sourceTitle;item.sourceTeamDue=day(String(source.teamDue||'').slice(0,10));item.sourceStatus=clean(source.status,80);item.baseSourceUpdatedAt=updated;item.updatedAt=nowIso(now);record(state,'원본 갱신 확인',item,item.sourceTitle,now);return item;
  }
  function update(state,itemId,patch,{now}={}){
   const index=state.items.findIndex(item=>item.id===itemId);if(index<0)throw Error('PLAN_ITEM_MISSING');const current=state.items[index];
@@ -59,6 +59,10 @@
   state.items[index]=next;record(state,'개인 계획 수정',next,next.title,now);return next;
  }
  function placeToday(state,itemId,{now}={}){return update(state,itemId,{plannedOn:dayKey(new Date(now??Date.now())),done:false},{now})}
+ function scheduleBoundary(item,source){
+  const liveDue=day(String(source?.teamDue||'').slice(0,10)),snapshotDue=day(item?.sourceTeamDue),teamDue=liveDue||snapshotDue;
+  return {teamDue,fromLive:Boolean(liveDue),plannedOn:day(item?.plannedOn),afterTeamDue:Boolean(teamDue&&item?.plannedOn&&item.plannedOn>teamDue)};
+ }
  function projectSummary(state){const map=new Map();for(const item of state.items){const name=item.project||'프로젝트 없음',row=map.get(name)||{name,total:0,done:0,today:0};row.total++;if(item.done)row.done++;if(!item.done&&item.plannedOn===dayKey())row.today++;map.set(name,row)}return [...map.values()].sort((a,b)=>b.today-a.today||a.name.localeCompare(b.name,'ko'))}
- return {VERSION,PRIORITIES,SOURCE_KINDS,emptyState,validateState,normalizeItem,sourceKey,dayKey,addPersonal,importSource,sourceStatus,acknowledgeSource,update,placeToday,projectSummary};
+ return {VERSION,PRIORITIES,SOURCE_KINDS,emptyState,validateState,normalizeItem,sourceKey,dayKey,addPersonal,importSource,sourceStatus,acknowledgeSource,update,placeToday,scheduleBoundary,projectSummary};
 });
