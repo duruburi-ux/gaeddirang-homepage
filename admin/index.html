@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="./finance-dashboard.css?v=20261012-2" />
 <link rel="stylesheet" href="./dashboard.css" />
 <link rel="stylesheet" href="./book-finder.css?v=20261013-1" />
-<link rel="stylesheet" href="./operations-read.css?v=20261026-1" />
+<link rel="stylesheet" href="./operations-read.css?v=20261025-1" />
 <link rel="stylesheet" href="./personal-plan.css?v=20261026-6" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script src="./admin-core-model.js?v=20261018-7"></script>
@@ -156,7 +156,7 @@
     .panel{padding:18px 14px}.row{align-items:flex-start}.row .amt{max-width:32%}
   }
 </style>
-<link rel="stylesheet" href="./admin-ux.css?v=20261018-4" />
+<link rel="stylesheet" href="./admin-ux.css?v=20261026-1" />
 </head>
 <body>
 
@@ -192,21 +192,29 @@
       <button class="tab active" role="tab" aria-selected="true" data-tab="read">오늘과 개인 계획</button>
       <details class="ops-more-nav" id="opsMoreNav">
         <summary>관리 <span aria-hidden="true">⌄</span></summary>
-        <div class="ops-more-menu">
-          <button class="tab" data-tab="orders">주문<span class="badge hidden" id="bOrders"></span></button>
-          <button class="tab" data-tab="apps">수업 신청<span class="badge hidden" id="bApps"></span></button>
-          <button class="tab" data-tab="work">팀 업무<span class="badge hidden" id="bWork"></span></button>
-          <button class="tab" data-tab="finance">재정 현황</button>
-          <button class="tab" data-tab="home">기존 대시보드</button>
-          <button class="tab" data-tab="inquiries">기관 문의<span class="badge hidden" id="bInq"></span></button>
-          <button class="tab" data-tab="finder">매장 판매가능 원본</button>
-          <button class="tab" data-tab="scm">전체 상품 원장</button>
-          <button class="tab" data-tab="cohorts">프로그램 원본</button>
-          <button class="tab" data-tab="integration">연결 현황<span class="badge hidden" id="bIntegration"></span></button>
-          <button class="tab" data-tab="members">고객 이력</button>
-          <button class="tab" data-tab="alerts">출간 알림</button>
-          <button class="tab" data-tab="operations">업무 찾기</button>
-          <a class="tab-link" href="docs.html">견적·정산·서류 ↗</a>
+        <div class="ops-more-menu" aria-label="공방 관리 메뉴">
+          <div class="management-menu-group"><strong>처리</strong>
+            <button class="tab" data-tab="orders">주문<span class="badge hidden" id="bOrders"></span></button>
+            <button class="tab" data-tab="apps">수업 신청<span class="badge hidden" id="bApps"></span></button>
+            <button class="tab" data-tab="inquiries">기관 문의<span class="badge hidden" id="bInq"></span></button>
+          </div>
+          <div class="management-menu-group"><strong>원장</strong>
+            <button class="tab" data-tab="finder">매장 판매가능 원본</button>
+            <button class="tab" data-tab="scm">전체 상품 원장</button>
+            <button class="tab" data-tab="cohorts">프로그램 원본</button>
+          </div>
+          <div class="management-menu-group"><strong>업무·재정</strong>
+            <button class="tab" data-tab="work">팀 업무<span class="badge hidden" id="bWork"></span></button>
+            <button class="tab" data-tab="finance">재정 현황</button>
+            <button class="tab" data-tab="members">고객 이력</button>
+          </div>
+          <div class="management-menu-group"><strong>기록·고급</strong>
+            <button class="tab" data-tab="alerts">출간 알림</button>
+            <button class="tab" data-tab="integration">연결 현황<span class="badge hidden" id="bIntegration"></span></button>
+            <button class="tab" data-tab="operations">업무 찾기</button>
+            <button class="tab" data-tab="home">기존 대시보드</button>
+            <a class="tab-link" href="docs.html">견적·정산·서류 ↗</a>
+          </div>
         </div>
       </details>
     </div>
@@ -214,12 +222,19 @@
       <label for="mobileNav">이동할 업무</label>
       <select id="mobileNav" aria-label="관리실 메뉴 선택">
         <optgroup label="매일 쓰는 화면"><option value="read">오늘과 개인 계획</option></optgroup>
-        <optgroup label="관리"><option value="orders">주문</option><option value="apps">수업 신청</option><option value="work">팀 업무</option><option value="finance">재정 현황</option><option value="home">기존 대시보드</option><option value="inquiries">기관 문의</option><option value="finder">매장 판매가능 원본</option><option value="scm">전체 상품 원장</option><option value="cohorts">프로그램 원본</option><option value="integration">연결 현황</option><option value="members">고객 이력</option><option value="alerts">출간 알림</option><option value="operations">업무 찾기</option></optgroup>
-        <option value="docs">견적·정산·서류</option>
+        <optgroup label="관리 · 처리"><option value="orders">주문</option><option value="apps">수업 신청</option><option value="inquiries">기관 문의</option></optgroup>
+        <optgroup label="원장"><option value="finder">매장 판매가능 원본</option><option value="scm">전체 상품 원장</option><option value="cohorts">프로그램 원본</option></optgroup>
+        <optgroup label="업무·재정"><option value="work">팀 업무</option><option value="finance">재정 현황</option><option value="members">고객 이력</option></optgroup>
+        <optgroup label="기록·고급"><option value="alerts">출간 알림</option><option value="integration">연결 현황</option><option value="operations">업무 찾기</option><option value="home">기존 대시보드</option><option value="docs">견적·정산·서류</option></optgroup>
       </select>
     </div>
   </header>
   <main>
+    <nav id="managementContext" class="management-context hidden" aria-label="현재 관리 업무와 관련 화면">
+      <button type="button" data-nav-tab="read" class="management-back">← 작업 노트</button>
+      <div class="management-context-copy"><span id="managementGroup"></span><strong id="managementTitle"></strong><small id="managementDescription"></small></div>
+      <div id="managementRelated" class="management-related" aria-label="관련 관리 화면"></div>
+    </nav>
     <div id="coreBanner" class="core-banner hidden" role="alert"><span id="coreBannerText"></span><button id="coreRetry" type="button">다시 불러오기</button></div>
     <section id="tab-read" class="ops-read" aria-label="책공방 통합 운영판">
       <section class="personal-plan" aria-label="개인 계획">
@@ -227,8 +242,15 @@
           <a class="personal-plan-brand" href="#read" data-nav-tab="read"><span aria-hidden="true">책</span><b>개띠랑</b><small>책공방 작업 노트</small></a>
           <nav class="personal-plan-nav" aria-label="개인 계획 보기" role="tablist"><button type="button" role="tab" data-personal-view="today" aria-selected="true" aria-controls="personal-plan-results">오늘</button><button type="button" role="tab" data-personal-view="projects" aria-selected="false" aria-controls="personal-plan-results" tabindex="-1">프로젝트</button><button type="button" role="tab" data-personal-view="inbox" aria-selected="false" aria-controls="personal-plan-results" tabindex="-1">수집함</button></nav>
           <button type="button" id="personal-open-manage" class="personal-plan-manage">공방 관리</button>
-          <div class="personal-admin-menu" hidden><button type="button" id="personal-open-operations">통합 운영</button><button type="button" data-nav-tab="orders">주문</button><button type="button" data-nav-tab="apps">수업 신청</button><button type="button" data-nav-tab="work">팀 업무</button><button type="button" data-nav-tab="finance">재정 현황</button><button type="button" data-nav-tab="inquiries">기관 문의</button><button type="button" data-nav-tab="finder">매장 판매가능 원본</button><button type="button" data-nav-tab="scm">전체 상품 원장</button><button type="button" data-nav-tab="cohorts">프로그램 원본</button><button type="button" data-nav-tab="integration">연결 현황</button><button type="button" data-nav-tab="members">고객 이력</button><button type="button" data-nav-tab="alerts">출간 알림</button><button type="button" data-nav-tab="home">기존 대시보드</button><a href="docs.html">견적·정산·서류 ↗</a></div>
+          <div class="personal-admin-menu" hidden>
+            <button type="button" id="personal-open-operations">통합 운영</button>
+            <div class="personal-admin-group"><strong>처리</strong><button type="button" data-nav-tab="orders">주문</button><button type="button" data-nav-tab="apps">수업 신청</button><button type="button" data-nav-tab="inquiries">기관 문의</button></div>
+            <div class="personal-admin-group"><strong>원장</strong><button type="button" data-nav-tab="finder">매장 판매가능 원본</button><button type="button" data-nav-tab="scm">전체 상품 원장</button><button type="button" data-nav-tab="cohorts">프로그램 원본</button></div>
+            <div class="personal-admin-group"><strong>업무·재정</strong><button type="button" data-nav-tab="work">팀 업무</button><button type="button" data-nav-tab="finance">재정 현황</button><button type="button" data-nav-tab="members">고객 이력</button></div>
+            <div class="personal-admin-group"><strong>기록·고급</strong><button type="button" data-nav-tab="alerts">출간 알림</button><button type="button" data-nav-tab="integration">연결 현황</button><button type="button" data-nav-tab="operations">업무 찾기</button><button type="button" data-nav-tab="home">기존 대시보드</button><a href="docs.html">견적·정산·서류 ↗</a></div>
+          </div>
           <div class="personal-plan-sidebar-foot">
+            <span class="personal-plan-account" id="personalPlanUser"></span>
             <details class="personal-plan-info"><summary>저장·연결 정보</summary><p id="personal-plan-status" class="personal-plan-status" role="status" aria-live="polite">로그인한 뒤 개인 계획을 엽니다.</p><div class="personal-plan-boundaries" aria-label="저장과 연결 상태"><span><i>개인 계획</i><b>이 브라우저</b></span><span id="personal-source-state"><i>원본 업무</i><b>읽기 미확인</b></span><span><i>공동 요청</i><b>공유 저장</b></span><span class="off"><i>자동화 기록</i><b>화면 미연결</b></span></div></details>
             <button type="button" data-nav-tab="integration">연결 현황</button><button type="button" id="personal-plan-refresh">최신 자료 확인</button><button type="button" id="personal-plan-logout">로그아웃</button>
           </div>
@@ -277,26 +299,26 @@
     </section>
     <section id="tab-integration" class="integration hidden" aria-label="통합 운영실">
       <div class="integration-hero">
-        <div><p class="integration-kicker">ONE OPERATIONS ROOM</p><h1>수집부터 재고·정산 검토까지, 끊긴 곳도 한눈에</h1><p>성공한 단계만 초록으로 표시하고 미연결·부분 실패·사람 확인을 숨기지 않습니다.</p></div>
+        <div><p class="integration-kicker">연결 현황</p><h1>확인 필요한 연결</h1><p>마지막 성공 시각과 실패·대기 상태를 원천별로 확인합니다.</p></div>
         <button id="integration-refresh" class="integration-button">지금 확인</button>
       </div>
       <div id="integration-status" class="integration-notice" role="status" aria-live="polite">운영 시스템을 확인하고 있어요.</div>
       <div id="integration-content" hidden>
         <div id="integration-metrics" class="integration-metrics"></div>
-        <section class="integration-pipeline-wrap" aria-labelledby="integration-pipeline-title">
-          <div class="integration-section-head"><div><p class="integration-kicker">SOURCE TO REVIEW</p><h2 id="integration-pipeline-title">운영 흐름 5단계</h2></div><span>중복 거래 방지 원장 · 단계별 부분 실패 표시</span></div>
-          <div id="integration-pipeline" class="integration-pipeline"></div>
-        </section>
         <div class="integration-control-grid">
           <section class="integration-control" aria-labelledby="integration-queue-title">
-            <div class="integration-section-head"><div><p class="integration-kicker">NEXT ACTION</p><h2 id="integration-queue-title">지금 확인할 일</h2></div><span id="integration-queue-count"></span></div>
+            <div class="integration-section-head"><div><p class="integration-kicker">다음 행동</p><h2 id="integration-queue-title">지금 확인할 일</h2></div><span id="integration-queue-count"></span></div>
             <div id="integration-queue" class="integration-queue"></div>
           </section>
           <section class="integration-control" aria-labelledby="integration-runs-title">
-            <div class="integration-section-head"><div><p class="integration-kicker">AUDIT TRAIL</p><h2 id="integration-runs-title">최근 자동화 실행</h2></div><span>실행 이력이 없으면 미확인</span></div>
+            <div class="integration-section-head"><div><p class="integration-kicker">실행 기록</p><h2 id="integration-runs-title">최근 자동화 실행</h2></div><span>실행 이력이 없으면 미확인</span></div>
             <div id="integration-runs" class="integration-runs"></div>
           </section>
         </div>
+        <section class="integration-pipeline-wrap" aria-labelledby="integration-pipeline-title">
+          <div class="integration-section-head"><div><p class="integration-kicker">검토 흐름</p><h2 id="integration-pipeline-title">운영 흐름 5단계</h2></div><span>중복 거래 방지 원장 · 단계별 부분 실패 표시</span></div>
+          <div id="integration-pipeline" class="integration-pipeline"></div>
+        </section>
         <section class="integration-sources" aria-labelledby="integration-sources-title">
           <div class="integration-section-head"><div><p class="integration-kicker">EVIDENCE SOURCES</p><h2 id="integration-sources-title">원천별 범위와 신선도</h2></div><span>메일·Chat 내용은 근거이며 실행 권한이 아님</span></div>
           <div id="integration-sources" class="integration-source-grid"></div>
@@ -445,14 +467,17 @@
 
     <!-- 주문 -->
     <section id="tab-orders" class="hidden">
-      <div class="page-intro"><div class="page-intro-copy"><p class="page-eyebrow">처리</p><h1>주문 처리</h1><p>입금 확인과 발송 준비 순서로 확인하고, 주문 상세에서 상태를 저장합니다.</p></div><button class="page-primary" id="oAddBtn" type="button">주문 직접 추가</button></div>
-      <div class="filter-panel" aria-label="주문 찾기와 정렬">
-        <div class="filter-control"><label for="oChannel">주문 채널</label><select id="oChannel"><option value="">전체 채널</option></select></div>
-        <div class="filter-control"><label for="oStatus">처리 상태</label><select id="oStatus"><option value="">전체 상태</option></select></div>
-        <div class="filter-control search"><label for="oSearch">주문 찾기</label><input id="oSearch" type="search" placeholder="이름·연락처·책 이름" /></div>
-        <div class="filter-control"><label for="oSort">정렬</label><select id="oSort"><option value="newest">최근 주문순</option><option value="oldest">오래된 주문순</option><option value="amount_desc">금액 높은 순</option></select></div>
-        <div class="filter-meta"><span class="count-note" id="ordersCount" role="status" aria-live="polite"></span><button class="filter-reset" type="button" data-filter-reset="orders">조건 지우기</button></div>
-      </div>
+      <div class="page-intro compact-intro"><div class="page-intro-copy"><p class="page-eyebrow">처리</p><h1>주문</h1><p>입금 확인과 발송 준비 상태를 기록합니다.</p></div></div>
+      <div class="orders-quickbar"><label for="oSearch"><span>주문 찾기</span><input id="oSearch" type="search" placeholder="이름·연락처·책 이름" /></label><button class="page-primary" id="oAddBtn" type="button">직접 추가</button></div>
+      <details class="orders-filter-details">
+        <summary><span>필터·정렬</span><b id="ordersCount" role="status" aria-live="polite"></b></summary>
+        <div class="orders-filter-grid" aria-label="주문 필터와 정렬">
+          <div class="filter-control"><label for="oChannel">주문 채널</label><select id="oChannel"><option value="">전체 채널</option></select></div>
+          <div class="filter-control"><label for="oStatus">처리 상태</label><select id="oStatus"><option value="">전체 상태</option></select></div>
+          <div class="filter-control"><label for="oSort">정렬</label><select id="oSort"><option value="newest">최근 주문순</option><option value="oldest">오래된 주문순</option><option value="amount_desc">금액 높은 순</option></select></div>
+          <button class="filter-reset" type="button" data-filter-reset="orders">조건 지우기</button>
+        </div>
+      </details>
       <h2 class="results-title">주문 목록</h2>
       <div class="list" id="ordersList"><div class="loading">불러오는 중…</div></div>
     </section>
@@ -557,7 +582,7 @@ function copyText(txt,label){ navigator.clipboard.writeText(txt).then(()=>toast(
 function setBadge(id,n){ const b=$('#'+id); if(!b)return; if(n>0){ b.textContent=n; b.classList.remove('hidden'); } else b.classList.add('hidden'); }
 function clearCoreData(){
   APPS=[];COHORTS=[];ORDERS=[];OITEMS={};INQ=[];ALERTS=[];CORE_DATA={applications:[],cohorts:[],orders:[],orderItems:[],inquiries:[],alerts:[]};CORE_SYNC={ok:null,at:null,failed:[],succeeded:[]};CORE_CONFIRMED=new Set();
-  $('#panelHost').replaceChildren();$('#headUser').textContent='';
+  $('#panelHost').replaceChildren();$('#headUser').textContent='';$('#personalPlanUser').textContent='';
   for(const id of ['ordersList','appsList','memList','cohortList','inqList','alList','todoGrid','statRow'])$('#'+id)?.replaceChildren();
   for(const id of ['ordersCount','appsCount','memCount','cohortCount','inqCount','alCount','priorityTotal'])if($('#'+id))$('#'+id).textContent='';
   for(const id of ['oSearch','fSearch','mSearch','cSearch','iSearch','alSearch'])if($('#'+id))$('#'+id).value='';
@@ -614,7 +639,7 @@ async function boot(){
 function showLogin(message=''){ window.PersonalPlanner?.deactivate(); window.OperationsRead?.clear(); window.BookFinder?.clear(); window.SCM?.clear(); window.Work?.clear(); window.Integration?.clear(); window.FinanceDashboard?.clear(); clearCoreData(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); $('#pw').value=''; $('#loginMsg').style.color='var(--orange-d)'; $('#loginMsg').textContent=message; requestAnimationFrame(()=>$('#email').focus()); }
 async function enterApp(session){
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
-  $('#headUser').textContent = session.user.email;
+  $('#headUser').textContent = session.user.email;$('#personalPlanUser').textContent=session.user.email;
   window.PersonalPlanner?.activate(session.user.id);
   await loadAll();
   const requestedTab=location.hash.slice(1);
@@ -1182,6 +1207,48 @@ function resetFilters(scope){
 document.addEventListener('click',event=>{const retry=event.target.closest('[data-core-retry]');if(retry){loadAll();return;}const button=event.target.closest('[data-filter-reset]');if(button)resetFilters(button.dataset.filterReset);});
 
 /* ---------- 탭 전환 ---------- */
+const MANAGEMENT_ROUTES={
+  orders:{group:'처리',label:'주문',description:'입금 확인과 발송 상태를 기록합니다.',related:['apps','inquiries']},
+  apps:{group:'처리',label:'수업 신청',description:'신청·입금·확정·참석 상태를 구분합니다.',related:['cohorts','orders']},
+  inquiries:{group:'처리',label:'기관 문의',description:'상담 상태를 기록하고 견적 서류로 이어갑니다.',related:['orders']},
+  finder:{group:'원장',label:'매장 판매가능',description:'손님에게 안내할 판매가능 수량을 확인합니다.',related:['scm']},
+  scm:{group:'원장',label:'전체 상품',description:'가격·소유·SKU·장부 수량과 경고를 확인합니다.',related:['finder','integration']},
+  cohorts:{group:'원장',label:'프로그램',description:'기수별 정원과 접수 현황을 비교합니다.',related:['apps']},
+  work:{group:'업무·재정',label:'팀 업무',description:'연결된 Notion 원본을 읽기 전용으로 확인합니다.',related:['operations','finance']},
+  finance:{group:'업무·재정',label:'재정 현황',description:'확인된 근거와 미확인 범위를 나눠 봅니다.',related:['work','integration']},
+  members:{group:'업무·재정',label:'고객 이력',description:'연락처가 같은 신청 이력을 묶어 확인합니다.',related:['apps','alerts']},
+  alerts:{group:'기록·고급',label:'출간 알림',description:'책별 알림 신청 기록을 찾고 복사합니다.',related:['members']},
+  integration:{group:'기록·고급',label:'연결 현황',description:'수집·동기화·사람 확인의 경계를 점검합니다.',related:['scm','finance']},
+  operations:{group:'기록·고급',label:'관리 검색',description:'관리 화면과 원본 위치를 검색합니다.',related:['work','home']},
+  home:{group:'기록·고급',label:'전체 현황 · 기존',description:'기존 요약을 보존한 고급 현황 화면입니다.',related:['operations','integration']},
+};
+function renderManagementContext(name){
+  const context=$('#managementContext'),route=MANAGEMENT_ROUTES[name];
+  context.classList.toggle('hidden',!route);
+  document.body.classList.toggle('management-view',!!route);
+  if(!route)return;
+  $('#managementGroup').textContent=route.group;
+  $('#managementTitle').textContent=route.label;
+  $('#managementDescription').textContent=route.description;
+  const related=$('#managementRelated');related.replaceChildren();
+  route.related.forEach(key=>{const target=MANAGEMENT_ROUTES[key];if(!target)return;const button=document.createElement('button');button.type='button';button.dataset.managementTab=key;button.textContent=target.label;button.onclick=()=>switchTab(key);related.appendChild(button);});
+}
+function syncSharedShell(name){
+  const planner=$('.personal-plan'),sidebar=$('.personal-plan-sidebar'),mobileHead=$('.personal-plan-mobile-head'),main=$('main'),manage=$('#personal-open-manage');
+  if(!planner||!sidebar||!mobileHead||!main)return;
+  if(name==='read'){
+    if(sidebar.parentElement!==planner){planner.prepend(sidebar);sidebar.after(mobileHead);}
+    manage?.removeAttribute('aria-current');
+    const last=sidebar.dataset.lastPersonalView||'today';
+    sidebar.querySelectorAll('[data-personal-view]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.personalView===last)));
+    return;
+  }
+  const selected=sidebar.querySelector('[data-personal-view][aria-selected="true"]')?.dataset.personalView;if(selected)sidebar.dataset.lastPersonalView=selected;
+  sidebar.querySelectorAll('[data-personal-view]').forEach(button=>button.setAttribute('aria-selected','false'));
+  manage?.setAttribute('aria-current','page');
+  sidebar.classList.remove('mobile-menu-open','mobile-admin-open');const menu=$('.personal-admin-menu');if(menu)menu.hidden=true;
+  if(sidebar.parentElement!==main){main.prepend(mobileHead);main.prepend(sidebar);}
+}
 const TABS=['home','work','finder','integration','finance','operations','scm','orders','apps','members','cohorts','inquiries','alerts','read'];
 function switchTab(name,historyMode='push'){
   if(!TABS.includes(name))return;
@@ -1193,6 +1260,8 @@ function switchTab(name,historyMode='push'){
   const trigger=document.activeElement,triggerPanel=trigger?.closest?.('[id^="tab-"]'),hiddenTrigger=!!triggerPanel&&triggerPanel.id!==`tab-${name}`;
   document.querySelectorAll('.tab[data-tab]').forEach(x=>{const active=x.dataset.tab===name;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active));x.tabIndex=active?0:-1;});
   TABS.forEach(t=>{const panel=$('#tab-'+t),active=t===name;panel.classList.toggle('hidden',!active);panel.setAttribute('role','tabpanel');panel.setAttribute('tabindex','0');});
+  syncSharedShell(name);
+  renderManagementContext(name);
   $('#mobileNav').value=name;
   const more=$('#opsMoreNav');if(more){const secondary=!!more.querySelector(`.tab[data-tab="${name}"]`);more.open=secondary;more.classList.toggle('has-active',secondary);}
   document.querySelectorAll('.daily-tools [data-nav-tab]').forEach(button=>{if(button.dataset.navTab===name)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
@@ -1218,8 +1287,8 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 </script>
 <script src="./operations-read-model.js?v=20261025-1"></script>
 <script src="./operations-request-sync-model.js?v=20261018-2"></script>
-<script src="./operations-read.js?v=20261026-1"></script>
-<script src="./personal-plan.js?v=20261026-6"></script>
+<script src="./operations-read.js?v=20261025-1"></script>
+<script src="./personal-plan.js?v=20261026-7"></script>
 <script src="./book-finder.js?v=20261013-1"></script>
 <script src="./scm.js?v=20261013-1"></script>
 <script src="./work.js?v=20261025-1"></script>

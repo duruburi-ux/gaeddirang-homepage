@@ -135,3 +135,122 @@ body:has(#tab-read:not(.hidden)) .head-in{padding-top:8px;padding-bottom:8px}
 body:has(#tab-read:not(.hidden)) .tab,body:has(#tab-read:not(.hidden)) .tab-link{min-height:38px!important;padding-top:8px!important;padding-bottom:8px!important}
 body:has(#tab-read:not(.hidden)) main{padding-top:16px}
 @media(max-width:700px){body:has(#tab-read:not(.hidden)) .head-in{padding-top:7px;padding-bottom:7px}body:has(#tab-read:not(.hidden)) main{padding-top:12px}}
+
+/* 공방 관리도 작업 노트와 같은 제품 언어를 쓴다. 상태·오류 의미는 바꾸지 않는다. */
+:root{
+  --brand-forest:#232623;--brand-forest-2:#343934;--brand-paper:#f7f7f5;--brand-paper-2:#fff;
+  --brand-coral:#ed6b50;--brand-coral-soft:#fff1ed;--focus:#232623;
+  --ink:#232623;--muted:#646b64;--line:#dfe3dd;--bg:#f7f7f5;--card:#fff;
+}
+body{background:#f7f7f5;color:#232623}
+header{border-color:#dfe3dd;box-shadow:none}
+.brand-home{color:#232623}.brand-mark{border-radius:8px;background:#232623}.btn-ghost,.mobile-nav-wrap select{border-color:#dfe3dd;border-radius:8px}
+.tab:hover,.tab-link:hover{color:#232623!important;background:#eceee9}.tab.active{color:#232623;border-bottom-color:#ed6b50;background:#fff}
+.page-eyebrow,.work-eyebrow,.finder-kicker,.scm-eyebrow,.integration-kicker,.finance-kicker,.ops-kicker{color:#ed6b50!important}
+.page-intro h1,.work-head h1,.finder-hero h1,.scm-head h1,.integration-hero h1,.finance-hero h1,.ops-hero h1,.dash-top h1{color:#232623!important}
+.page-primary,.work-btn,.finder-refresh,.scm-btn{border-radius:8px!important;background:#232623!important;color:#fff!important}
+.filter-panel,.row,.field,.form-group,.empty-state,.loading{border-color:#dfe3dd!important;border-radius:12px!important;background:#fff!important;box-shadow:none!important}
+.row:hover{border-color:#aeb5ad!important;box-shadow:none!important}
+.panel{background:#f7f7f5}.panel-head{background:rgba(247,247,245,.96)}.panel .actions{background:linear-gradient(to top,#f7f7f5 80%,transparent)}
+.chip{border-radius:4px}.chip.prog{background:#fff1ed;color:#9b412e}.chip.st{background:#eceee9;color:#555d55}
+.core-banner{border-radius:8px;box-shadow:none}
+
+.management-context{display:grid;grid-template-columns:auto minmax(230px,1fr) auto;align-items:center;gap:16px;margin:0 0 24px;padding:12px 0 16px;border-bottom:1px solid #dfe3dd}
+.management-back,.management-related button{min-height:44px;border:1px solid #dfe3dd;border-radius:8px;background:#fff;color:#232623;padding:9px 12px;font:700 13px/1.2 inherit;white-space:nowrap}
+.management-back:hover,.management-related button:hover{border-color:#aeb5ad;background:#eceee9}
+.management-context-copy{display:grid;grid-template-columns:auto 1fr;align-items:baseline;gap:3px 10px;min-width:0}
+.management-context-copy span{color:#ed6b50;font-size:11px;font-weight:800;letter-spacing:.08em}
+.management-context-copy strong{font-size:18px;line-height:1.45}.management-context-copy small{grid-column:1/-1;color:#646b64;font-size:12px;line-height:1.5}
+.management-related{display:flex;justify-content:flex-end;gap:6px;overflow-x:auto}.management-related::before{content:'관련';align-self:center;color:#7a817a;font-size:11px;font-weight:700}
+.management-view main{max-width:1180px}.management-view .page-intro,.management-view .work-head,.management-view .finder-hero,.management-view .scm-head,.management-view .integration-hero,.management-view .finance-hero,.management-view .ops-hero{margin-top:0}
+
+.management-menu-group{display:grid;align-content:start;gap:2px;padding:5px}.management-menu-group>strong{padding:5px 9px 3px;color:#7a817a;font-size:10px;letter-spacing:.08em}
+.personal-admin-menu{gap:8px!important;background:#f7f7f5!important;border-color:#dfe3dd!important}
+.personal-admin-group{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding-top:7px;border-top:1px solid #dfe3dd}
+.personal-admin-group>strong{grid-column:1/-1;padding:0 8px 3px;color:#7a817a;font-size:10px;letter-spacing:.08em}
+.personal-admin-menu>button:first-child{min-height:44px!important;background:#232623!important;color:#fff!important}
+
+@media(min-width:701px){
+  .ops-more-menu{grid-template-columns:repeat(2,minmax(190px,1fr));width:440px;padding:10px;border-color:#dfe3dd;border-radius:12px;box-shadow:none}
+  .ops-more-menu .tab,.ops-more-menu .tab-link{min-height:38px!important;border-radius:8px!important;padding:8px 9px!important}
+  .ops-more-menu .tab.active{background:#eceee9}
+}
+@media(max-width:700px){
+  .management-context{grid-template-columns:1fr auto;gap:8px;margin-bottom:18px;padding:4px 0 13px}
+  .management-back{grid-column:1;justify-self:start}.management-context-copy{grid-column:1/-1;grid-row:2}.management-related{grid-column:2;grid-row:1;max-width:54vw}.management-related::before{display:none}
+  .management-context-copy strong{font-size:17px}.management-context-copy small{font-size:12px}
+  .management-view main{padding-top:12px}
+}
+@media(max-width:390px){.management-related button:nth-of-type(n+2){display:none}.management-related{max-width:45vw}}
+
+/* 각 관리 모듈의 오래된 초록·베이지 장식을 작업 노트 표면으로 통일한다. */
+.work{--work-green:#232623;--work-soft:#eceee9;--work-cream:#fff}
+.book-finder{--finder-ink:#232623;--finder-green:#232623;--finder-sage:#eceee9;--finder-mist:#f7f7f5;--finder-line:#dfe3dd}
+.scm{--scm-green:#232623;--scm-lime:#eceee9;--scm-line:#dfe3dd;--scm-muted:#646b64;color:#232623}
+.integration{--int-green:#232623;--int-mint:#eceee9;--int-cream:#fff;--int-muted:#646b64}
+.finance{--finance-forest:#232623;--finance-cream:#f7f7f5;--finance-coral:#ed6b50;--finance-line:#dfe3dd;color:#232623}
+.dash{--dash-green:#232623;--dash-lime:#eceee9;--dash-cream:#fff;--dash-muted:#646b64}
+.ops{--ops-green:#232623;--ops-muted:#646b64}
+.work-card:hover,.finder-result:hover,.finance-card:hover{box-shadow:none!important;transform:none!important}
+.work-tag,.integration-pill,.finance-state,.finance-badge,.finder-badge{border-radius:4px!important}
+.finder-hero,.integration-hero,.ops-hero{border:1px solid #dfe3dd!important;border-radius:12px!important;background:#fff!important;color:#232623!important;box-shadow:none!important}
+.finder-search-panel,.finder-result,.scm-table,.scm-metric,.scm-card,.integration-metrics>div,.integration-card,.finance-card,.finance-bank-movement,.finance-member-grid article,.finance-transaction-controls,.finance-transaction-row,.dash-block{border-color:#dfe3dd!important;border-radius:12px!important;background:#fff!important;box-shadow:none!important}
+.inventory-mode-guide>.active{border-color:#232623;background:#eceee9;color:#232623;box-shadow:inset 3px 0 #232623}
+.finder-refresh,.finder-search-row button,.scm-btn,.scm-views button.active,.finance-refresh,.finance-scope button[aria-pressed="true"],.dash-search button{border-radius:8px!important;background:#232623!important;color:#fff!important}
+.finder-status,.scm-notice,.work-notice,.finance-status{border-color:#dfe3dd;background:#fff;color:#404640}
+.scm-notice{border-left-color:#232623}.scm-scope-note{border-color:#dfe3dd;background:#fff}.scm-scope-note strong{color:#232623}
+.scm th{background:#eceee9}.scm tbody tr:hover{background:#f7f7f5}.scm-tag{background:#eceee9}
+.integration-map{border-radius:12px;background:#232623}.integration-flow>div{border-color:#505650;border-radius:8px;background:#343934}.integration-flow .hub{border-color:#dfe3dd;background:#fff;color:#232623}
+.integration-map .integration-kicker,.integration-section-head>span{color:#c9cec8}.integration-flow span{color:#dfe3dd}.integration-flow .hub span{color:#646b64}
+.finance-balance,.dash-stock{border-radius:12px;background:#232623;border-color:#232623}.dash-status{background:#343934}
+.ops-area,.ops-card,.ops-heading{box-shadow:none!important}
+@media(max-width:700px){
+  .integration-hero,.finder-hero,.ops-hero{border-radius:10px!important}
+  .scm tbody tr{border-color:#dfe3dd!important;background:#fff!important}
+}
+
+/* 작업 노트와 관리 화면이 같은 셸을 공유한다. */
+.personal-plan-account{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-top:1px solid #dfe3dd;padding:12px 4px 5px;color:#646b64;font-size:11px}
+.personal-plan-sidebar,.personal-plan-mobile-head{--note-ink:#232623;--note-muted:#646b64;--note-dark:#232623;color:#232623}
+.personal-plan-brand,.personal-plan-mobile-head a{color:#232623!important;text-decoration:none!important}
+.personal-plan-brand>span,.personal-plan-mobile-head a>span{background:#232623!important;color:#fff!important}
+.personal-plan-brand:focus-visible,.personal-plan-mobile-head a:focus-visible{border-radius:8px;outline:3px solid rgba(35,38,35,.24);outline-offset:3px}
+body.management-view header{display:none}
+body.management-view #appView>header{display:block;position:fixed;inset:0 auto auto 0;width:0;height:0;margin:0;padding:0;overflow:visible;opacity:0;pointer-events:none}
+body.management-view #nav-read{display:block;position:fixed;right:0;bottom:0;width:1px;height:1px;margin:0;padding:0;border:0;overflow:hidden;pointer-events:auto}
+body.management-view main{max-width:1232px;min-height:100vh;margin:0 0 0 208px;padding:32px 32px 64px}
+body.management-view .personal-plan-sidebar{display:flex}
+body.management-view .personal-plan-manage[aria-current="page"]{background:#eceee9;color:#232623}
+body.management-view .personal-plan-manage[aria-current="page"]::after{content:"";position:absolute;right:12px;width:6px;height:6px;border-radius:2px;background:#ed6b50}
+body.management-view .management-context{min-height:44px;margin:0 0 16px;padding:0 0 12px}
+body.management-view .management-back,body.management-view .management-context-copy{display:none}
+body.management-view .management-related{justify-content:flex-start}
+
+.compact-intro{align-items:center;margin-bottom:10px}.compact-intro h1{font-size:28px}.compact-intro p:not(.page-eyebrow){margin-top:2px}
+.orders-quickbar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:8px;margin-bottom:8px}
+.orders-quickbar label{display:grid;gap:4px;color:#646b64;font-size:11px;font-weight:700}.orders-quickbar input{width:100%;height:44px;border:1px solid #dfe3dd;border-radius:8px;background:#fff;padding:0 12px;font:inherit;color:#232623}.orders-quickbar .page-primary{height:44px;min-height:44px}
+.orders-filter-details{margin-bottom:10px;border:1px solid #dfe3dd;border-radius:8px;background:#fff}.orders-filter-details>summary{display:flex;align-items:center;justify-content:space-between;min-height:42px;padding:7px 12px;cursor:pointer;list-style:none;color:#646b64;font-size:12px;font-weight:700}.orders-filter-details>summary::-webkit-details-marker{display:none}.orders-filter-details>summary span::before{content:"+";display:inline-block;width:16px}.orders-filter-details[open]>summary span::before{content:"−"}.orders-filter-details>summary b{color:#232623;font-size:12px}.orders-filter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;align-items:end;gap:8px;border-top:1px solid #dfe3dd;padding:10px}.orders-filter-grid .filter-control{grid-column:auto}.orders-filter-grid .filter-control label{display:block;margin:0 0 4px 2px;color:#646b64;font-size:10px;font-weight:700}.orders-filter-grid input,.orders-filter-grid select{width:100%;min-height:40px;border:1px solid #dfe3dd;border-radius:8px;background:#fff;padding:8px 10px;font:inherit;font-size:12px}.orders-filter-grid .filter-reset{min-height:40px;border:0;border-radius:8px;background:#eceee9;padding:8px 11px;color:#232623;font-weight:700}
+
+/* 연결 화면은 다음 행동과 실제 근거를 먼저 보여 준다. */
+.integration-hero{align-items:center!important;margin:0 0 8px!important;padding:0 0 12px!important;border:0!important;border-bottom:1px solid #dfe3dd!important;border-radius:0!important;background:transparent!important}
+.integration-hero h1{margin:2px 0!important;font-size:28px!important;letter-spacing:-.8px!important}.integration-hero p:last-child{font-size:12px!important;line-height:1.5!important}.integration-button{border-radius:8px!important;background:#232623!important}
+.integration-notice{margin-bottom:8px!important;padding:9px 11px!important}
+.integration-metrics{gap:6px!important;margin-bottom:10px!important}.integration-metrics>div{padding:10px 12px!important}.integration-metrics strong{font:700 20px/1.1 inherit!important}.integration-metrics span{margin-top:3px!important;font-size:10px!important}
+.integration-control-grid{grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr)!important;gap:8px!important;margin-bottom:10px!important}.integration-control{padding:14px!important;border-radius:12px!important}.integration-control .integration-section-head h2{font-size:17px!important}.integration-queue,.integration-runs{margin-top:8px!important;gap:5px!important}.integration-queue-item,.integration-run{padding:8px 10px!important;border-radius:8px!important}
+.integration-pipeline-wrap{margin-bottom:10px!important;border:1px solid #dfe3dd!important;border-radius:12px!important;background:#fff!important;color:#232623!important;padding:14px!important}.integration-pipeline-wrap .integration-kicker,.integration-pipeline-wrap .integration-section-head>span{color:#646b64!important}.integration-pipeline{display:grid!important;grid-template-columns:1fr!important;gap:0!important;margin-top:8px!important}.integration-stage{display:grid!important;grid-template-columns:100px 150px 100px minmax(0,1fr);align-items:center;gap:8px;min-height:44px;border:0!important;border-top:1px solid #dfe3dd!important;border-radius:0!important;background:#fff!important;padding:7px 2px!important}.integration-stage small,.integration-stage b,.integration-stage p{margin:0!important;color:#646b64!important}.integration-stage b{color:#232623!important}.integration-stage-state{justify-self:start;border-radius:4px!important}.integration-sources{border-radius:12px!important;padding:14px!important}
+
+@media(max-width:800px){
+  body.management-view main{max-width:none;margin:0;padding:68px 16px calc(80px + env(safe-area-inset-bottom))}
+  body.management-view .personal-plan-mobile-head{display:flex}
+  body.management-view .personal-plan-sidebar{display:grid}
+  body.management-view .management-context{display:none}
+  body.management-view .personal-plan-manage[aria-current="page"]{background:transparent}
+  body.management-view .personal-plan-manage[aria-current="page"]::after{top:7px;right:calc(50% - 13px);width:4px;height:4px}
+  .personal-plan-account{display:none}
+  .compact-intro{margin:0 0 7px}.compact-intro h1{font-size:24px;line-height:30px}.compact-intro p:not(.page-eyebrow){font-size:12px;line-height:18px}
+  .orders-quickbar{grid-template-columns:minmax(0,1fr) 82px;margin-bottom:6px}.orders-quickbar label>span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}.orders-quickbar .page-primary{padding:8px;font-size:12px}
+  .orders-filter-details{margin-bottom:7px}.orders-filter-grid{grid-template-columns:1fr 1fr}.orders-filter-grid .filter-reset{grid-column:1/-1}.results-title{margin:8px 2px 5px}
+  .integration-hero{align-items:center!important;flex-direction:row!important;padding:0 0 9px!important}.integration-hero h1{font-size:24px!important}.integration-hero p:last-child{display:none}.integration-button{padding:9px 11px!important}
+  .integration-metrics{grid-template-columns:repeat(4,minmax(0,1fr))!important}.integration-metrics>div{padding:8px!important}.integration-metrics strong{font-size:18px!important}.integration-metrics span{font-size:9px!important}
+  .integration-control-grid{grid-template-columns:1fr!important}.integration-control-grid .integration-control:last-child{order:2}.integration-pipeline-wrap{order:3}.integration-stage{grid-template-columns:72px minmax(90px,1fr) auto}.integration-stage p{grid-column:1/-1;font-size:10px!important}.integration-sources{padding:12px!important}
+}
