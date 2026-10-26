@@ -43,6 +43,26 @@ body:has(#tab-read:not(.hidden))>#appView>main{max-width:none;padding:0}
   .personal-plan-section.is-upcoming{gap:12px}.personal-plan-pulse{margin:0}.personal-plan-section.is-upcoming>.personal-plan-section-head{margin:0}.personal-plan-projects{grid-template-columns:1fr;gap:12px}.personal-plan-projects button{min-height:136px;padding:18px}.personal-plan-section.is-sources,.personal-plan-section.is-inbox{grid-column:1}.planner-manage{margin:16px;border-radius:12px}.planner-manage>summary{min-height:52px}.planner-manage>summary span{display:none}.planner-manage-body{padding:12px}
   .personal-plan-sidebar:not(.mobile-menu-open) .personal-plan-info{display:none}
 }
+/* Mobile drawers must stay one column even when the shared management shell
+   moves the sidebar under <main>. Keep this block more specific than the
+   management-shell display:grid override in admin-ux.css. */
+@media(max-width:800px){
+  body.personal-drawer-open{overflow:hidden;overscroll-behavior:none}
+  .personal-plan-drawer-backdrop{position:fixed;z-index:29;inset:52px 0 0;border:0;background:rgba(35,38,35,.38);padding:0}
+  .personal-plan-drawer-backdrop[hidden]{display:none}
+  body .personal-plan-sidebar.mobile-menu-open,
+  body .personal-plan-sidebar.mobile-admin-open{z-index:30;inset:52px 0 0 auto;width:min(360px,100%);max-width:100%;height:calc(100dvh - 52px);max-height:calc(100dvh - 52px);display:flex;grid-template-columns:none;flex-direction:column;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;border:0;border-left:1px solid var(--note-line);padding:12px 16px calc(24px + env(safe-area-inset-bottom));background:#fff;box-shadow:-12px 0 28px rgba(35,38,35,.12)}
+  body .personal-plan-sidebar.mobile-menu-open .personal-plan-drawer-close,
+  body .personal-plan-sidebar.mobile-admin-open .personal-plan-drawer-close{display:flex}
+  body .personal-plan-sidebar.mobile-menu-open .personal-plan-sidebar-foot{display:grid;width:100%;margin-top:0}
+  body .personal-plan-sidebar.mobile-menu-open .personal-admin-menu{display:none!important}
+  body .personal-plan-sidebar.mobile-admin-open .personal-plan-sidebar-foot{display:none!important}
+  body .personal-plan-sidebar.mobile-admin-open .personal-admin-menu{display:grid!important;width:100%;grid-template-columns:1fr;gap:4px;margin:0;padding:0;border:0;background:#fff}
+  body .personal-plan-sidebar.mobile-admin-open>.personal-plan-manage{display:none!important}
+  .personal-plan-drawer-close{display:none;align-self:flex-end;align-items:center;justify-content:center;min-width:44px;min-height:44px;margin:0 0 4px;border:1px solid var(--note-line);border-radius:8px;background:#fff;color:var(--note-ink);font-weight:700}
+  .personal-plan-drawer-close:focus-visible,.personal-plan-drawer-backdrop:focus-visible{outline:3px solid rgba(237,107,80,.34);outline-offset:2px}
+  .personal-admin-group{min-width:0}.personal-admin-group button,.personal-admin-group a{width:100%}
+}
 @media(max-width:360px){
   .personal-plan-workspace{padding-left:16px;padding-right:16px}.personal-plan-head p:not(.personal-plan-eyebrow){display:none}.personal-plan-card-head{display:contents}.personal-plan-date-chip{width:max-content}.personal-plan-section-head h2{font-size:18px}.personal-plan-projects button{min-height:128px}
 }

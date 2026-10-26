@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="./dashboard.css" />
 <link rel="stylesheet" href="./book-finder.css?v=20261013-1" />
 <link rel="stylesheet" href="./operations-read.css?v=20261025-1" />
-<link rel="stylesheet" href="./personal-plan.css?v=20261026-8" />
+<link rel="stylesheet" href="./personal-plan.css?v=20261026-9" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script src="./admin-core-model.js?v=20261018-7"></script>
 <script src="./operations-hub-model.js?v=20261016-1"></script>
@@ -239,6 +239,7 @@
     <section id="tab-read" class="ops-read" aria-label="책공방 통합 운영판">
       <section class="personal-plan" aria-label="개인 계획">
         <aside class="personal-plan-sidebar" aria-label="작업 노트 탐색">
+          <button type="button" class="personal-plan-drawer-close" aria-label="메뉴 닫기">닫기</button>
           <a class="personal-plan-brand" href="#read" data-nav-tab="read"><span aria-hidden="true">책</span><b>개띠랑</b><small>책공방 작업 노트</small></a>
           <nav class="personal-plan-nav" aria-label="개인 계획 보기" role="tablist"><button type="button" role="tab" data-personal-view="today" aria-selected="true" aria-controls="personal-plan-results">오늘</button><button type="button" role="tab" data-personal-view="projects" aria-selected="false" aria-controls="personal-plan-results" tabindex="-1">프로젝트</button><button type="button" role="tab" data-personal-view="inbox" aria-selected="false" aria-controls="personal-plan-results" tabindex="-1">수집함</button></nav>
           <button type="button" id="personal-open-manage" class="personal-plan-manage">공방 관리</button>
@@ -1268,7 +1269,7 @@ function syncSharedShell(name){
   const selected=sidebar.querySelector('[data-personal-view][aria-selected="true"]')?.dataset.personalView;if(selected)sidebar.dataset.lastPersonalView=selected;
   sidebar.querySelectorAll('[data-personal-view]').forEach(button=>button.setAttribute('aria-selected','false'));
   manage?.setAttribute('aria-current','page');
-  sidebar.classList.remove('mobile-menu-open','mobile-admin-open');const menu=$('.personal-admin-menu');if(menu)menu.hidden=true;
+  window.dispatchEvent(new CustomEvent('planner:close-drawers'));sidebar.classList.remove('mobile-menu-open','mobile-admin-open');const menu=$('.personal-admin-menu');if(menu)menu.hidden=true;
   if(sidebar.parentElement!==main){main.prepend(mobileHead);main.prepend(sidebar);}
 }
 const TABS=['home','work','finder','integration','finance','operations','scm','orders','apps','members','cohorts','inquiries','alerts','read'];
@@ -1311,7 +1312,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./operations-read-model.js?v=20261025-1"></script>
 <script src="./operations-request-sync-model.js?v=20261018-2"></script>
 <script src="./operations-read.js?v=20261025-1"></script>
-<script src="./personal-plan.js?v=20261026-11"></script>
+<script src="./personal-plan.js?v=20261026-12"></script>
 <script src="./book-finder.js?v=20261013-1"></script>
 <script src="./scm.js?v=20261013-1"></script>
 <script src="./work.js?v=20261025-1"></script>
