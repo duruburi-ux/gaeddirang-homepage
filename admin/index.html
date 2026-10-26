@@ -304,6 +304,18 @@
       </div>
       <div id="integration-status" class="integration-notice" role="status" aria-live="polite">운영 시스템을 확인하고 있어요.</div>
       <div id="integration-content" hidden>
+        <section class="source-dashboard" aria-labelledby="source-dashboard-title">
+          <div class="integration-section-head"><div><p class="integration-kicker">READ-ONLY SOURCES</p><h2 id="source-dashboard-title">실제 원본 대시보드</h2></div><button id="source-dashboard-refresh" class="payhere-secondary" type="button">원본 다시 확인</button></div>
+          <p id="source-dashboard-status" class="integration-evidence-status" role="status" aria-live="polite">Notion과 3개 Sheet의 읽기 상태를 확인합니다. 쓰기 기능은 꺼져 있습니다.</p>
+          <div id="source-dashboard-sources" class="source-dashboard-sources" aria-label="원본별 연결 상태"></div>
+          <div class="source-dashboard-grid">
+            <section><div class="source-dashboard-head"><h3>팀 공동 업무·회의</h3><span>Notion 원본 · 읽기 전용</span></div><div id="source-dashboard-team" class="source-dashboard-list"></div></section>
+            <section><div class="source-dashboard-head"><h3>도서 운영 할 일</h3><span>관리판 파생뷰 · 읽기 전용</span></div><div id="source-dashboard-tasks" class="source-dashboard-list"></div></section>
+            <section><div class="source-dashboard-head"><h3>주문 수집 확인</h3><span>고객정보·금액 제외</span></div><div id="source-dashboard-orders" class="source-dashboard-list"></div></section>
+            <section><div class="source-dashboard-head"><h3>SCM 원장 요약</h3><span>재고 변경 없음</span></div><div id="source-dashboard-scm" class="source-dashboard-list"></div></section>
+          </div>
+          <p class="integration-inline-warning">공동 Task 작성과 회의 Action 자동 생성은 꺼져 있습니다. 읽기 연결과 별도로 쓰기 권한·충돌·멱등 계약을 확인해야 합니다.</p>
+        </section>
         <div id="integration-metrics" class="integration-metrics"></div>
         <div class="integration-control-grid">
           <section class="integration-control" aria-labelledby="integration-queue-title">
@@ -636,7 +648,7 @@ async function boot(){
   if(session && await checkAdmin()){ enterApp(session); }
   else { if(session) await sb.auth.signOut(); showLogin(); }
 }
-function showLogin(message=''){ window.PersonalPlanner?.deactivate(); window.OperationsRead?.clear(); window.BookFinder?.clear(); window.SCM?.clear(); window.Work?.clear(); window.Integration?.clear(); window.FinanceDashboard?.clear(); clearCoreData(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); $('#pw').value=''; $('#loginMsg').style.color='var(--orange-d)'; $('#loginMsg').textContent=message; requestAnimationFrame(()=>$('#email').focus()); }
+function showLogin(message=''){ window.PersonalPlanner?.deactivate(); window.OperationsRead?.clear(); window.BookFinder?.clear(); window.SCM?.clear(); window.Work?.clear(); window.OperationsSourcesDashboard?.clear(); window.Integration?.clear(); window.FinanceDashboard?.clear(); clearCoreData(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); $('#pw').value=''; $('#loginMsg').style.color='var(--orange-d)'; $('#loginMsg').textContent=message; requestAnimationFrame(()=>$('#email').focus()); }
 async function enterApp(session){
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#headUser').textContent = session.user.email;$('#personalPlanUser').textContent=session.user.email;
@@ -1268,7 +1280,7 @@ function switchTab(name,historyMode='push'){
   if(name==='finder'&&!$('#book-finder-detail').open)window.BookFinder?.refresh();
   if(name==='scm')window.SCM?.refresh();
   if(name==='work')window.Work?.refresh();
-  if(name==='integration')window.Integration?.refresh();
+  if(name==='integration'){window.OperationsSourcesDashboard?.refresh();window.Integration?.refresh();}
   if(name==='finance')window.FinanceDashboard?.refresh();
   if(name==='read'){window.OperationsRead?.refresh();window.Work?.refresh();}
   if(historyMode==='replace')history.replaceState({tab:name},'','#'+name);
@@ -1296,6 +1308,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="./payhere-import.js?v=20260906-1"></script>
 <script src="./evidence-batch-import.js?v=20261011-1"></script>
+<script src="./operations-sources-dashboard.js?v=20261026-1"></script>
 <script src="./integration.js?v=20261011-5"></script>
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>
@@ -1306,6 +1319,7 @@ window.BookFinder?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDeni
 window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Operations?.init({navigate:switchTab});
+window.OperationsSourcesDashboard?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Integration?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.FinanceDashboard?.init({client:sb,onDenied:showLogin});
 boot();
