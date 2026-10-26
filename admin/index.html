@@ -305,15 +305,13 @@
       <div id="integration-status" class="integration-notice" role="status" aria-live="polite">운영 시스템을 확인하고 있어요.</div>
       <div id="integration-content" hidden>
         <section class="source-dashboard" aria-labelledby="source-dashboard-title">
-          <div class="integration-section-head"><div><p class="integration-kicker">READ-ONLY SOURCES</p><h2 id="source-dashboard-title">실제 원본 대시보드</h2></div><button id="source-dashboard-refresh" class="payhere-secondary" type="button">원본 다시 확인</button></div>
+          <div class="source-dashboard-titlebar"><div><p class="integration-kicker">READ-ONLY SOURCES</p><h2 id="source-dashboard-title">운영 자료 한눈에 보기</h2><p>원본에서 확인된 범위만 집계하고, 그래프를 선택하면 아래 처리 목록이 함께 좁혀집니다.</p></div><button id="source-dashboard-refresh" class="payhere-secondary" type="button">원본 다시 확인</button></div>
           <p id="source-dashboard-status" class="integration-evidence-status" role="status" aria-live="polite">Notion과 3개 Sheet의 읽기 상태를 확인합니다. 쓰기 기능은 꺼져 있습니다.</p>
           <div id="source-dashboard-sources" class="source-dashboard-sources" aria-label="원본별 연결 상태"></div>
-          <div class="source-dashboard-grid">
-            <section><div class="source-dashboard-head"><h3>팀 공동 업무·회의</h3><span>Notion 원본 · 읽기 전용</span></div><div id="source-dashboard-team" class="source-dashboard-list"></div></section>
-            <section><div class="source-dashboard-head"><h3>도서 운영 할 일</h3><span>관리판 파생뷰 · 읽기 전용</span></div><div id="source-dashboard-tasks" class="source-dashboard-list"></div></section>
-            <section><div class="source-dashboard-head"><h3>주문 수집 확인</h3><span>고객정보·금액 제외</span></div><div id="source-dashboard-orders" class="source-dashboard-list"></div></section>
-            <section><div class="source-dashboard-head"><h3>SCM 원장 요약</h3><span>재고 변경 없음</span></div><div id="source-dashboard-scm" class="source-dashboard-list"></div></section>
-          </div>
+          <div class="source-dashboard-controls"><nav id="source-dashboard-nav" aria-label="운영 자료 보기"><button type="button" data-source-view="team" aria-pressed="true">팀 업무</button><button type="button" data-source-view="orders" aria-pressed="false">주문</button><button type="button" data-source-view="inventory" aria-pressed="false">재고</button></nav><div id="source-dashboard-range" role="group" aria-label="집계 기간"><button type="button" data-source-range="7" aria-pressed="false">7일</button><button type="button" data-source-range="30" aria-pressed="true">30일</button><button type="button" data-source-range="90" aria-pressed="false">90일</button><button type="button" data-source-range="all" aria-pressed="false">전체</button></div></div>
+          <div id="source-dashboard-summary" class="source-dashboard-summary" aria-label="선택한 자료 요약"></div>
+          <div class="source-dashboard-analysis"><section class="source-dashboard-chart" aria-labelledby="source-chart-primary-title"><div class="source-dashboard-chart-head"><div><h3 id="source-chart-primary-title"></h3><p id="source-chart-primary-meta"></p></div><button type="button" id="source-chart-primary-table" class="source-table-toggle" aria-expanded="false">표 보기</button></div><div id="source-chart-primary"></div><div id="source-chart-primary-data" hidden></div></section><section class="source-dashboard-chart" aria-labelledby="source-chart-secondary-title"><div class="source-dashboard-chart-head"><div><h3 id="source-chart-secondary-title"></h3><p id="source-chart-secondary-meta"></p></div><button type="button" id="source-chart-secondary-table" class="source-table-toggle" aria-expanded="false">표 보기</button></div><div id="source-chart-secondary"></div><div id="source-chart-secondary-data" hidden></div></section></div>
+          <section class="source-dashboard-queue" aria-labelledby="source-dashboard-queue-title"><div class="source-dashboard-head"><div><h3 id="source-dashboard-queue-title">처리 목록</h3><span id="source-dashboard-queue-note"></span></div><div class="source-dashboard-queue-actions"><button id="source-dashboard-clear-filter" type="button" hidden>선택 해제</button><button id="source-dashboard-open-list" type="button">전체 화면 열기</button></div></div><div id="source-dashboard-team" class="source-dashboard-list"></div><div id="source-dashboard-orders" class="source-dashboard-list" hidden></div><div id="source-dashboard-scm" class="source-dashboard-list" hidden></div><div id="source-dashboard-tasks" class="source-dashboard-list source-dashboard-secondary-list" hidden></div></section>
           <p class="integration-inline-warning">공동 Task 작성과 회의 Action 자동 생성은 꺼져 있습니다. 읽기 연결과 별도로 쓰기 권한·충돌·멱등 계약을 확인해야 합니다.</p>
         </section>
         <div id="integration-metrics" class="integration-metrics"></div>
@@ -649,7 +647,7 @@ async function boot(){
   if(session)await startSessionVerification(session);
   else showLogin();
 }
-function clearPrivateUi(message=''){CORE_LOAD=null;window.PersonalPlanner?.deactivate();window.OperationsRead?.clear();window.BookFinder?.clear();window.SCM?.clear();window.Work?.clear();window.OperationsSourcesDashboard?.clear();window.Integration?.clear();window.FinanceDashboard?.clear();clearCoreData();$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');$('#pw').value='';$('#loginMsg').style.color='var(--orange-d)';$('#loginMsg').textContent=message;requestAnimationFrame(()=>$('#email').focus())}
+function clearPrivateUi(message=''){CORE_LOAD=null;const quick=$('#personal-quick-title');if(quick)quick.value='';window.PersonalPlanner?.deactivate();window.OperationsRead?.clear();window.BookFinder?.clear();window.SCM?.clear();window.Work?.clear();window.OperationsSourcesDashboard?.clear();window.Integration?.clear();window.FinanceDashboard?.clear();clearCoreData();$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');$('#pw').value='';$('#loginMsg').style.color='var(--orange-d)';$('#loginMsg').textContent=message;requestAnimationFrame(()=>$('#email').focus())}
 function showLogin(message=''){AUTH_GENERATION++;ACTIVE_USER_ID='';PENDING_USER_ID='';AUTH_VERIFY=null;clearPrivateUi(message)}
 async function startSessionVerification(session){
   const userId=String(session?.user?.id||'');if(!userId){showLogin();return false}
@@ -660,12 +658,11 @@ async function startSessionVerification(session){
   AUTH_VERIFY=verify.finally(()=>{if(run===AUTH_GENERATION)AUTH_VERIFY=null});return AUTH_VERIFY;
 }
 async function enterApp(session,run=AUTH_GENERATION){
-  const userId=String(session?.user?.id||'');if(!userId||run!==AUTH_GENERATION||ACTIVE_USER_ID!==userId)return false;
+  const userId=String(session?.user?.id||''),requestedTab=location.hash.slice(1);if(!userId||run!==AUTH_GENERATION||ACTIVE_USER_ID!==userId)return false;
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#headUser').textContent = session.user.email;$('#personalPlanUser').textContent=session.user.email;
   window.PersonalPlanner?.activate(userId);
   await loadAll(run,userId);if(run!==AUTH_GENERATION||ACTIVE_USER_ID!==userId)return false;
-  const requestedTab=location.hash.slice(1);
   switchTab(TABS.includes(requestedTab)?requestedTab:'read','replace');
   return true;
 }
@@ -1320,7 +1317,8 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="./payhere-import.js?v=20260906-1"></script>
 <script src="./evidence-batch-import.js?v=20261011-1"></script>
-<script src="./operations-sources-dashboard.js?v=20261026-2"></script>
+<script src="./operations-sources-dashboard-model.js?v=20261026-1"></script>
+<script src="./operations-sources-dashboard.js?v=20261026-3"></script>
 <script src="./integration.js?v=20261011-5"></script>
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>
@@ -1331,7 +1329,7 @@ window.BookFinder?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDeni
 window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Operations?.init({navigate:switchTab});
-window.OperationsSourcesDashboard?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
+window.OperationsSourcesDashboard?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin,navigate:switchTab});
 window.Integration?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.FinanceDashboard?.init({client:sb,onDenied:showLogin});
 boot();
