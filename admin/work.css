@@ -10,3 +10,4 @@
 .work-empty strong,.work-empty button{display:block;margin-inline:auto}.work-empty button{margin-top:12px}
 @media(max-width:900px){.work-filters{grid-template-columns:1fr 1fr}.work-search-control{grid-column:1/-1}.work-reset{align-self:stretch}}
 @media(max-width:520px){.work-filters{grid-template-columns:1fr}.work-search-control{grid-column:auto}}
+.work-card-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}.work-card-actions a{margin-top:0}.work-card-actions button{border:1px solid #b8c8bd;background:#f5f8f6;color:var(--work-green);border-radius:8px;padding:7px 9px;font-size:12px;font-weight:700}

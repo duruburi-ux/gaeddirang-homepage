@@ -7,17 +7,19 @@
 <meta name="robots" content="noindex, nofollow" />
 <title>개띠랑 관리실</title>
 <link rel="stylesheet" href="./scm.css?v=20261013-1" />
-<link rel="stylesheet" href="./work.css?v=20261013-1" />
+<link rel="stylesheet" href="./work.css?v=20261025-1" />
 <link rel="stylesheet" href="./operations.css" />
 <link rel="stylesheet" href="./integration.css?v=20261011-3" />
 <link rel="stylesheet" href="./finance-dashboard.css?v=20261012-2" />
 <link rel="stylesheet" href="./dashboard.css" />
 <link rel="stylesheet" href="./book-finder.css?v=20261013-1" />
-<link rel="stylesheet" href="./operations-read.css?v=20261019-1" />
+<link rel="stylesheet" href="./operations-read.css?v=20261026-1" />
+<link rel="stylesheet" href="./personal-plan.css?v=20261026-6" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script src="./admin-core-model.js?v=20261018-7"></script>
 <script src="./operations-hub-model.js?v=20261016-1"></script>
 <script src="./book-finder-model.js?v=20261011-3"></script>
+<script src="./personal-plan-model.js?v=20261025-1"></script>
 <style>
   :root{
     --orange:#F26D4F; --orange-d:#d9583c; --ink:#2b2622; --muted:#8a817a;
@@ -154,7 +156,7 @@
     .panel{padding:18px 14px}.row{align-items:flex-start}.row .amt{max-width:32%}
   }
 </style>
-<link rel="stylesheet" href="./admin-ux.css?v=20261018-3" />
+<link rel="stylesheet" href="./admin-ux.css?v=20261018-4" />
 </head>
 <body>
 
@@ -186,15 +188,15 @@
       </div>
     </div>
     <div class="tabs" id="tabBar" role="tablist" aria-label="관리실 메뉴">
-      <span class="nav-label">자주 쓰는 업무</span>
-      <button class="tab active" role="tab" aria-selected="true" data-tab="read">책공방 운영</button>
-      <button class="tab" data-tab="orders">주문<span class="badge hidden" id="bOrders"></span></button>
-      <button class="tab" data-tab="apps">수업 신청<span class="badge hidden" id="bApps"></span></button>
-      <button class="tab" data-tab="work">팀 업무<span class="badge hidden" id="bWork"></span></button>
-      <button class="tab" data-tab="finance">재정 현황</button>
+      <span class="nav-label">매일 쓰는 화면</span>
+      <button class="tab active" role="tab" aria-selected="true" data-tab="read">오늘과 개인 계획</button>
       <details class="ops-more-nav" id="opsMoreNav">
-        <summary>기타 업무 <span aria-hidden="true">⌄</span></summary>
+        <summary>관리 <span aria-hidden="true">⌄</span></summary>
         <div class="ops-more-menu">
+          <button class="tab" data-tab="orders">주문<span class="badge hidden" id="bOrders"></span></button>
+          <button class="tab" data-tab="apps">수업 신청<span class="badge hidden" id="bApps"></span></button>
+          <button class="tab" data-tab="work">팀 업무<span class="badge hidden" id="bWork"></span></button>
+          <button class="tab" data-tab="finance">재정 현황</button>
           <button class="tab" data-tab="home">기존 대시보드</button>
           <button class="tab" data-tab="inquiries">기관 문의<span class="badge hidden" id="bInq"></span></button>
           <button class="tab" data-tab="finder">매장 판매가능 원본</button>
@@ -211,26 +213,49 @@
     <div class="mobile-nav-wrap">
       <label for="mobileNav">이동할 업무</label>
       <select id="mobileNav" aria-label="관리실 메뉴 선택">
-        <optgroup label="자주 쓰는 업무"><option value="read">책공방 운영</option><option value="orders">주문</option><option value="apps">수업 신청</option><option value="work">팀 업무</option><option value="finance">재정 현황</option></optgroup>
-        <optgroup label="기타 업무"><option value="home">기존 대시보드</option><option value="inquiries">기관 문의</option><option value="finder">매장 판매가능 원본</option><option value="scm">전체 상품 원장</option><option value="cohorts">프로그램 원본</option><option value="integration">연결 현황</option><option value="members">고객 이력</option><option value="alerts">출간 알림</option><option value="operations">업무 찾기</option></optgroup>
+        <optgroup label="매일 쓰는 화면"><option value="read">오늘과 개인 계획</option></optgroup>
+        <optgroup label="관리"><option value="orders">주문</option><option value="apps">수업 신청</option><option value="work">팀 업무</option><option value="finance">재정 현황</option><option value="home">기존 대시보드</option><option value="inquiries">기관 문의</option><option value="finder">매장 판매가능 원본</option><option value="scm">전체 상품 원장</option><option value="cohorts">프로그램 원본</option><option value="integration">연결 현황</option><option value="members">고객 이력</option><option value="alerts">출간 알림</option><option value="operations">업무 찾기</option></optgroup>
         <option value="docs">견적·정산·서류</option>
       </select>
     </div>
   </header>
   <main>
-    <nav class="daily-tools" aria-label="책공방 운영 바로가기">
-      <button type="button" data-read-shortcut="home" aria-current="page">오늘 할 일</button>
-      <button type="button" data-read-shortcut="inventory">품절·재주문</button>
-      <button type="button" data-read-shortcut="programs">프로그램 신청</button>
-      <button type="button" data-read-shortcut="requests">업무 요청</button>
-    </nav>
     <div id="coreBanner" class="core-banner hidden" role="alert"><span id="coreBannerText"></span><button id="coreRetry" type="button">다시 불러오기</button></div>
     <section id="tab-read" class="ops-read" aria-label="책공방 통합 운영판">
-      <div class="page-intro ops-read-intro"><div><p class="page-eyebrow">세 사람이 함께 보는 책공방 운영</p><h1>오늘 할 일을 여기서 시작하세요</h1><p>판매 뒤 품절·재주문, 프로그램 신청, 함께 처리할 요청을 한 흐름으로 모았습니다.</p><details><summary>이 화면에서 바뀌는 것</summary><p>재고·주문·신청 자료는 조회만 합니다. 요청은 세 관리자에게 공동 저장되지만 노션이나 메신저로 자동 전달되지는 않습니다.</p></details></div><button type="button" class="page-primary" id="ops-read-refresh">최신 상태 확인</button></div>
-      <p id="ops-read-status" class="read-state" role="status" aria-live="polite">관리자 확인 후 최신 상태를 읽습니다.</p>
-      <nav class="ops-read-nav" aria-label="책공방 운영 보기"><button type="button" data-read-view="home" aria-current="page">오늘</button><button type="button" data-read-view="inventory">품절·재주문</button><button type="button" data-read-view="programs">프로그램 신청</button><button type="button" data-read-view="requests">업무 요청 <span id="ops-request-count"></span></button></nav>
-      <div class="read-controls" id="ops-read-controls" hidden><label>재고 검색 <input id="ops-read-query" type="search" placeholder="도서명 · ISBN · SKU" autocomplete="off"></label><label>재고 보기 <select id="ops-read-filter"><option value="attention">먼저 확인할 것</option><option value="zero">품절 표시</option><option value="purchase">재주문 후보</option><option value="unknown">판매가능 확인 필요</option><option value="all">전체 원장</option></select></label><button type="button" id="ops-read-reset">조건 지우기</button></div>
-      <div id="ops-read-results"></div>
+      <section class="personal-plan" aria-label="개인 계획">
+        <aside class="personal-plan-sidebar" aria-label="작업 노트 탐색">
+          <a class="personal-plan-brand" href="#read" data-nav-tab="read"><span aria-hidden="true">책</span><b>개띠랑</b><small>책공방 작업 노트</small></a>
+          <nav class="personal-plan-nav" aria-label="개인 계획 보기" role="tablist"><button type="button" role="tab" data-personal-view="today" aria-selected="true" aria-controls="personal-plan-results">오늘</button><button type="button" role="tab" data-personal-view="projects" aria-selected="false" aria-controls="personal-plan-results" tabindex="-1">프로젝트</button><button type="button" role="tab" data-personal-view="inbox" aria-selected="false" aria-controls="personal-plan-results" tabindex="-1">수집함</button></nav>
+          <button type="button" id="personal-open-manage" class="personal-plan-manage">공방 관리</button>
+          <div class="personal-admin-menu" hidden><button type="button" id="personal-open-operations">통합 운영</button><button type="button" data-nav-tab="orders">주문</button><button type="button" data-nav-tab="apps">수업 신청</button><button type="button" data-nav-tab="work">팀 업무</button><button type="button" data-nav-tab="finance">재정 현황</button><button type="button" data-nav-tab="inquiries">기관 문의</button><button type="button" data-nav-tab="finder">매장 판매가능 원본</button><button type="button" data-nav-tab="scm">전체 상품 원장</button><button type="button" data-nav-tab="cohorts">프로그램 원본</button><button type="button" data-nav-tab="integration">연결 현황</button><button type="button" data-nav-tab="members">고객 이력</button><button type="button" data-nav-tab="alerts">출간 알림</button><button type="button" data-nav-tab="home">기존 대시보드</button><a href="docs.html">견적·정산·서류 ↗</a></div>
+          <div class="personal-plan-sidebar-foot">
+            <details class="personal-plan-info"><summary>저장·연결 정보</summary><p id="personal-plan-status" class="personal-plan-status" role="status" aria-live="polite">로그인한 뒤 개인 계획을 엽니다.</p><div class="personal-plan-boundaries" aria-label="저장과 연결 상태"><span><i>개인 계획</i><b>이 브라우저</b></span><span id="personal-source-state"><i>원본 업무</i><b>읽기 미확인</b></span><span><i>공동 요청</i><b>공유 저장</b></span><span class="off"><i>자동화 기록</i><b>화면 미연결</b></span></div></details>
+            <button type="button" data-nav-tab="integration">연결 현황</button><button type="button" id="personal-plan-refresh">최신 자료 확인</button><button type="button" id="personal-plan-logout">로그아웃</button>
+          </div>
+        </aside>
+        <div class="personal-plan-mobile-head"><a href="#read" data-nav-tab="read"><span aria-hidden="true">책</span><b>개띠랑 작업 노트</b></a><button type="button" id="personal-mobile-info" aria-expanded="false">메뉴</button></div>
+        <div class="personal-plan-workspace">
+          <div class="personal-plan-head"><div><p class="personal-plan-eyebrow">WORK NOTE</p><h1 id="personal-plan-title">오늘</h1><p id="personal-plan-subtitle">오늘 집중할 일과 다음 일정을 봅니다.</p></div></div>
+          <p id="personal-plan-error" class="personal-plan-error" role="alert" hidden></p>
+          <nav id="personal-week-strip" class="personal-plan-week" aria-label="계획 날짜 선택"></nav>
+          <form id="personal-quick-form" class="personal-plan-quick"><label class="sr-only" for="personal-quick-title">새 개인 할 일</label><input id="personal-quick-title" maxlength="200" autocomplete="off" required placeholder="새 할 일을 적어 수집함에 넣으세요"><button type="submit">수집함에 추가</button></form>
+          <button type="button" id="personal-inbox-entry" class="personal-inbox-entry">수집함에 추가</button>
+          <div id="personal-plan-results" class="personal-plan-results"></div>
+        </div>
+      </section>
+      <details id="planner-manage" class="planner-manage"><summary><strong>책공방 관리</strong><span>재고 · 주문 · 신청 · 공동 요청 · 연결 상태</span></summary><div class="planner-manage-body">
+        <nav class="daily-tools" aria-label="책공방 운영 바로가기">
+          <button type="button" data-read-shortcut="home" aria-current="page">오늘 할 일</button>
+          <button type="button" data-read-shortcut="inventory">품절·재주문</button>
+          <button type="button" data-read-shortcut="programs">프로그램 신청</button>
+          <button type="button" data-read-shortcut="requests">업무 요청</button>
+        </nav>
+        <div class="page-intro ops-read-intro"><div><p class="page-eyebrow">세 사람이 함께 보는 책공방 운영</p><h1>운영 원천과 공동 요청</h1><p>판매 뒤 품절·재주문, 프로그램 신청, 함께 처리할 요청을 한 흐름으로 모았습니다.</p><details><summary>이 화면에서 바뀌는 것</summary><p>재고·주문·신청 자료는 조회만 합니다. 요청은 세 관리자에게 공동 저장되지만 노션이나 메신저로 자동 전달되지는 않습니다.</p></details></div><button type="button" class="page-primary" id="ops-read-refresh">최신 상태 확인</button></div>
+        <p id="ops-read-status" class="read-state" role="status" aria-live="polite">관리자 확인 후 최신 상태를 읽습니다.</p>
+        <nav class="ops-read-nav" aria-label="책공방 운영 보기"><button type="button" data-read-view="home" aria-current="page">오늘</button><button type="button" data-read-view="inventory">품절·재주문</button><button type="button" data-read-view="programs">프로그램 신청</button><button type="button" data-read-view="requests">업무 요청 <span id="ops-request-count"></span></button></nav>
+        <div class="read-controls" id="ops-read-controls" hidden><label>재고 검색 <input id="ops-read-query" type="search" placeholder="도서명 · ISBN · SKU" autocomplete="off"></label><label>재고 보기 <select id="ops-read-filter"><option value="attention">먼저 확인할 것</option><option value="zero">품절 표시</option><option value="purchase">재주문 후보</option><option value="unknown">판매가능 확인 필요</option><option value="all">전체 원장</option></select></label><button type="button" id="ops-read-reset">조건 지우기</button></div>
+        <div id="ops-read-results"></div>
+      </div></details>
     </section>
     <section id="tab-work" class="work hidden" aria-label="노션 진행 업무">
       <div class="work-head"><div><p class="work-eyebrow">NOTION / READ ONLY</p><h1>지금 하는 일, 한곳에서</h1><p>업무 영역·실행 업무·프로젝트·결정할 일을 최신 순서로 모아 봅니다.</p></div><button id="work-refresh" class="work-btn">지금 확인</button></div>
@@ -586,10 +611,11 @@ async function boot(){
   if(session && await checkAdmin()){ enterApp(session); }
   else { if(session) await sb.auth.signOut(); showLogin(); }
 }
-function showLogin(message=''){ window.OperationsRead?.clear(); window.BookFinder?.clear(); window.SCM?.clear(); window.Work?.clear(); window.Integration?.clear(); window.FinanceDashboard?.clear(); clearCoreData(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); $('#pw').value=''; $('#loginMsg').style.color='var(--orange-d)'; $('#loginMsg').textContent=message; requestAnimationFrame(()=>$('#email').focus()); }
+function showLogin(message=''){ window.PersonalPlanner?.deactivate(); window.OperationsRead?.clear(); window.BookFinder?.clear(); window.SCM?.clear(); window.Work?.clear(); window.Integration?.clear(); window.FinanceDashboard?.clear(); clearCoreData(); $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden'); $('#pw').value=''; $('#loginMsg').style.color='var(--orange-d)'; $('#loginMsg').textContent=message; requestAnimationFrame(()=>$('#email').focus()); }
 async function enterApp(session){
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#headUser').textContent = session.user.email;
+  window.PersonalPlanner?.activate(session.user.id);
   await loadAll();
   const requestedTab=location.hash.slice(1);
   switchTab(TABS.includes(requestedTab)?requestedTab:'read','replace');
@@ -1159,7 +1185,11 @@ document.addEventListener('click',event=>{const retry=event.target.closest('[dat
 const TABS=['home','work','finder','integration','finance','operations','scm','orders','apps','members','cohorts','inquiries','alerts','read'];
 function switchTab(name,historyMode='push'){
   if(!TABS.includes(name))return;
-  if(name!=='read'&&!$('#tab-read').classList.contains('hidden')&&!window.OperationsRead?.confirmLeave?.()){$('#mobileNav').value='read';return;}
+  if(name!=='read'&&!$('#tab-read').classList.contains('hidden')&&!window.OperationsRead?.confirmLeave?.()){
+    $('#mobileNav').value='read';
+    if(location.hash!=='#read')history.replaceState({tab:'read'},'','#read');
+    return false;
+  }
   const trigger=document.activeElement,triggerPanel=trigger?.closest?.('[id^="tab-"]'),hiddenTrigger=!!triggerPanel&&triggerPanel.id!==`tab-${name}`;
   document.querySelectorAll('.tab[data-tab]').forEach(x=>{const active=x.dataset.tab===name;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active));x.tabIndex=active?0:-1;});
   TABS.forEach(t=>{const panel=$('#tab-'+t),active=t===name;panel.classList.toggle('hidden',!active);panel.setAttribute('role','tabpanel');panel.setAttribute('tabindex','0');});
@@ -1171,26 +1201,28 @@ function switchTab(name,historyMode='push'){
   if(name==='work')window.Work?.refresh();
   if(name==='integration')window.Integration?.refresh();
   if(name==='finance')window.FinanceDashboard?.refresh();
-  if(name==='read')window.OperationsRead?.refresh();
+  if(name==='read'){window.OperationsRead?.refresh();window.Work?.refresh();}
   if(historyMode==='replace')history.replaceState({tab:name},'','#'+name);
   else if(historyMode==='push'&&location.hash!==`#${name}`)history.pushState({tab:name},'','#'+name);
   if(historyMode!=='none')window.scrollTo(0,0);
   if(hiddenTrigger){const panel=$('#tab-'+name),heading=panel.querySelector('h1,h2');(heading||panel).setAttribute('tabindex','-1');requestAnimationFrame(()=>{(heading||panel).focus({preventScroll:true});});}
+  return true;
 }
 const tabButtons=[...document.querySelectorAll('.tab[data-tab]')];
-tabButtons.forEach((t,index)=>{t.setAttribute('role','tab');t.setAttribute('aria-controls','tab-'+t.dataset.tab);t.id='nav-'+t.dataset.tab;t.onclick=()=>switchTab(t.dataset.tab);t.onkeydown=e=>{let next=null;if(e.key==='ArrowRight')next=(index+1)%tabButtons.length;if(e.key==='ArrowLeft')next=(index-1+tabButtons.length)%tabButtons.length;if(e.key==='Home')next=0;if(e.key==='End')next=tabButtons.length-1;if(next==null)return;e.preventDefault();tabButtons[next].focus();switchTab(tabButtons[next].dataset.tab);};});
+tabButtons.forEach(t=>{t.setAttribute('role','tab');t.setAttribute('aria-controls','tab-'+t.dataset.tab);t.id='nav-'+t.dataset.tab;t.onclick=()=>switchTab(t.dataset.tab);t.onkeydown=e=>{const visible=tabButtons.filter(button=>!button.closest('details:not([open])')&&button.getClientRects().length),index=visible.indexOf(t);let next=null;if(e.key==='ArrowRight')next=(index+1)%visible.length;if(e.key==='ArrowLeft')next=(index-1+visible.length)%visible.length;if(e.key==='Home')next=0;if(e.key==='End')next=visible.length-1;if(next==null||index<0)return;e.preventDefault();visible[next].focus();switchTab(visible[next].dataset.tab);};});
 TABS.forEach(t=>$('#tab-'+t).setAttribute('aria-labelledby','nav-'+t));
 document.querySelectorAll('[data-nav-tab]').forEach(link=>link.addEventListener('click',event=>{event.preventDefault();switchTab(link.dataset.navTab);}));
 $('#mobileNav').addEventListener('change',event=>{if(event.target.value==='docs')location.href='docs.html';else switchTab(event.target.value);});
-window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&&!event.state?.panel)clearPanel();switchTab(TABS.includes(location.hash.slice(1))?location.hash.slice(1):'read','none');});
+window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&&!event.state?.panel)clearPanel();switchTab(TABS.includes(location.hash.slice(1))?location.hash.slice(1):'read','none');window.PersonalPlanner?.handlePopState(event.state?.plannerView);});
 
 </script>
-<script src="./operations-read-model.js?v=20261018-6"></script>
+<script src="./operations-read-model.js?v=20261025-1"></script>
 <script src="./operations-request-sync-model.js?v=20261018-2"></script>
-<script src="./operations-read.js?v=20261019-1"></script>
+<script src="./operations-read.js?v=20261026-1"></script>
+<script src="./personal-plan.js?v=20261026-6"></script>
 <script src="./book-finder.js?v=20261013-1"></script>
 <script src="./scm.js?v=20261013-1"></script>
-<script src="./work.js?v=20261013-1"></script>
+<script src="./work.js?v=20261025-1"></script>
 <script src="./operations.js?v=20261016-2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="./payhere-import.js?v=20260906-1"></script>
@@ -1199,6 +1231,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>
 <script>
+window.PersonalPlanner?.init({navigate:switchTab});
 window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,requestSyncEndpoint:SUPABASE_URL+'/functions/v1/operations-requests',requestSyncOrigin:SUPABASE_URL,onDenied:showLogin,navigate:switchTab,loadCore:loadOperationsCore,readAll:(table,columns,options)=>Core.readAll(sb,table,columns,options),getContext:()=>{const p=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});return {ok:CORE_SYNC.ok,queriedAt:CORE_SYNC.at?.toISOString?.()||null,ordersKnown:sourceKnown('orders'),inquiriesKnown:sourceKnown('inquiries'),newOrders:p.newOrders.length,toShip:p.toShip.length,newInquiries:p.newInquiries.length};}});
 window.BookFinder?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});

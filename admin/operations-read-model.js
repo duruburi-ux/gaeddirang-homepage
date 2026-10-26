@@ -1,7 +1,11 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.OperationsReadModel=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
  'use strict';
  const stamp=x=>Number.isFinite(Date.parse(x||'')),number=x=>Number.isSafeInteger(x)&&x>=0?x:null;
- function freshness(at,stale=false,now=Date.now()){return !stamp(at)?'unknown':stale||now-Date.parse(at)>36*3600000?'stale':'current';}
+ function freshness(at,stale=false,now=Date.now()){
+  if(!stamp(at))return 'unknown';
+  const age=now-Date.parse(at);
+  return age < -5*60000?'unknown':stale||age>36*3600000?'stale':'current';
+ }
  function isbn(value){const s=String(value||'').replace(/[\s-]/g,'');if(!/^\d{13}$/.test(s))return '';return [...s].reduce((n,c,i)=>n+Number(c)*(i%2?3:1),0)%10===0?s:'';}
  function inventory(payload,queriedAt){
   if(!payload?.meta||!Array.isArray(payload.datasets?.inventory))throw Error('SCM_SCHEMA_INVALID');

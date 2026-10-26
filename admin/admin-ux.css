@@ -129,3 +129,9 @@ main{max-width:1160px;padding:24px 20px 42px}
   .ops-more-menu .tab.active{background:var(--brand-coral-soft)}
 }
 @media(max-width:700px){.daily-tools{display:none}}
+
+/* 매일 보는 개인 계획 화면에서는 전역 관리자 머리글을 한 단계 낮춘다. */
+body:has(#tab-read:not(.hidden)) .head-in{padding-top:8px;padding-bottom:8px}
+body:has(#tab-read:not(.hidden)) .tab,body:has(#tab-read:not(.hidden)) .tab-link{min-height:38px!important;padding-top:8px!important;padding-bottom:8px!important}
+body:has(#tab-read:not(.hidden)) main{padding-top:16px}
+@media(max-width:700px){body:has(#tab-read:not(.hidden)) .head-in{padding-top:7px;padding-bottom:7px}body:has(#tab-read:not(.hidden)) main{padding-top:12px}}
