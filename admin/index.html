@@ -9,17 +9,17 @@
 <link rel="stylesheet" href="./scm.css?v=20261013-1" />
 <link rel="stylesheet" href="./work.css?v=20261025-1" />
 <link rel="stylesheet" href="./operations.css" />
-<link rel="stylesheet" href="./integration.css?v=20261026-4" />
+<link rel="stylesheet" href="./integration.css?v=20261026-5" />
 <link rel="stylesheet" href="./finance-dashboard.css?v=20261012-2" />
 <link rel="stylesheet" href="./dashboard.css" />
 <link rel="stylesheet" href="./book-finder.css?v=20261013-1" />
 <link rel="stylesheet" href="./operations-read.css?v=20261025-1" />
-<link rel="stylesheet" href="./personal-plan.css?v=20261026-7" />
+<link rel="stylesheet" href="./personal-plan.css?v=20261026-8" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script src="./admin-core-model.js?v=20261018-7"></script>
 <script src="./operations-hub-model.js?v=20261016-1"></script>
 <script src="./book-finder-model.js?v=20261011-3"></script>
-<script src="./personal-plan-model.js?v=20261026-2"></script>
+<script src="./personal-plan-model.js?v=20261026-3"></script>
 <style>
   :root{
     --orange:#F26D4F; --orange-d:#d9583c; --ink:#2b2622; --muted:#8a817a;
@@ -307,11 +307,12 @@
         <section class="source-dashboard" aria-labelledby="source-dashboard-title">
           <div class="source-dashboard-titlebar"><div><p class="integration-kicker">READ-ONLY SOURCES</p><h2 id="source-dashboard-title">운영 자료 한눈에 보기</h2><p>원본에서 확인된 범위만 집계하고, 그래프를 선택하면 아래 처리 목록이 함께 좁혀집니다.</p></div><button id="source-dashboard-refresh" class="payhere-secondary" type="button">원본 다시 확인</button></div>
           <p id="source-dashboard-status" class="integration-evidence-status" role="status" aria-live="polite">Notion과 3개 Sheet의 읽기 상태를 확인합니다. 쓰기 기능은 꺼져 있습니다.</p>
+          <div class="source-dashboard-auto" aria-label="자동 새로고침 상태"><span id="source-dashboard-auto-state">화면을 열면 자동 조회를 시작합니다.</span><small id="source-dashboard-auto-time">브라우저가 닫혀 있으면 수집하지 않습니다.</small></div>
           <div id="source-dashboard-sources" class="source-dashboard-sources" aria-label="원본별 연결 상태"></div>
           <div class="source-dashboard-controls"><nav id="source-dashboard-nav" aria-label="운영 자료 보기"><button type="button" data-source-view="team" aria-pressed="true">팀 업무</button><button type="button" data-source-view="orders" aria-pressed="false">주문</button><button type="button" data-source-view="inventory" aria-pressed="false">재고</button></nav><div id="source-dashboard-range" role="group" aria-label="집계 기간"><button type="button" data-source-range="7" aria-pressed="false">7일</button><button type="button" data-source-range="30" aria-pressed="true">30일</button><button type="button" data-source-range="90" aria-pressed="false">90일</button><button type="button" data-source-range="all" aria-pressed="false">전체</button></div></div>
           <div id="source-dashboard-summary" class="source-dashboard-summary" aria-label="선택한 자료 요약"></div>
           <div class="source-dashboard-analysis"><section class="source-dashboard-chart" aria-labelledby="source-chart-primary-title"><div class="source-dashboard-chart-head"><div><h3 id="source-chart-primary-title"></h3><p id="source-chart-primary-meta"></p></div><button type="button" id="source-chart-primary-table" class="source-table-toggle" aria-expanded="false">표 보기</button></div><div id="source-chart-primary"></div><div id="source-chart-primary-data" hidden></div></section><section class="source-dashboard-chart" aria-labelledby="source-chart-secondary-title"><div class="source-dashboard-chart-head"><div><h3 id="source-chart-secondary-title"></h3><p id="source-chart-secondary-meta"></p></div><button type="button" id="source-chart-secondary-table" class="source-table-toggle" aria-expanded="false">표 보기</button></div><div id="source-chart-secondary"></div><div id="source-chart-secondary-data" hidden></div></section></div>
-          <section class="source-dashboard-queue" aria-labelledby="source-dashboard-queue-title"><div class="source-dashboard-head"><div><h3 id="source-dashboard-queue-title">처리 목록</h3><span id="source-dashboard-queue-note"></span></div><div class="source-dashboard-queue-actions"><button id="source-dashboard-clear-filter" type="button" hidden>선택 해제</button><button id="source-dashboard-open-list" type="button">전체 화면 열기</button></div></div><div id="source-dashboard-team" class="source-dashboard-list"></div><div id="source-dashboard-orders" class="source-dashboard-list" hidden></div><div id="source-dashboard-scm" class="source-dashboard-list" hidden></div><div id="source-dashboard-tasks" class="source-dashboard-list source-dashboard-secondary-list" hidden></div></section>
+          <section class="source-dashboard-queue" aria-labelledby="source-dashboard-queue-title"><div class="source-dashboard-head"><div><h3 id="source-dashboard-queue-title" tabindex="-1">처리 목록</h3><span id="source-dashboard-queue-note"></span></div><div class="source-dashboard-queue-actions"><button id="source-dashboard-clear-filter" type="button" hidden>필터 해제</button><button id="source-dashboard-open-list" type="button">전체 화면 열기</button></div></div><div id="source-team-bulk" class="source-team-bulk" hidden><div class="source-team-bulk-select"><label><input id="source-team-select-all" type="checkbox"> 현재 목록 전체 선택</label><strong id="source-team-selected-count" role="status" aria-live="polite">0개 선택</strong><button id="source-team-clear-selection" type="button">선택 해제</button></div><div class="source-team-bulk-actions"><button id="source-team-import-selected" type="button">내 일정에 연결</button><label>내 예정일 <input id="source-team-planned-on" type="date"></label><button id="source-team-schedule-selected" type="button">예정일 변경</button><button id="source-team-undo" type="button" hidden>방금 실행 취소</button></div><p id="source-team-bulk-status" role="status" aria-live="polite">공동 원본은 바꾸지 않고 이 브라우저의 개인 계획만 변경합니다.</p></div><div id="source-dashboard-team" class="source-dashboard-list"></div><div id="source-dashboard-orders" class="source-dashboard-list" hidden></div><div id="source-dashboard-scm" class="source-dashboard-list" hidden></div><div id="source-dashboard-tasks" class="source-dashboard-list source-dashboard-secondary-list" hidden></div></section>
           <p class="integration-inline-warning">공동 Task 작성과 회의 Action 자동 생성은 꺼져 있습니다. 읽기 연결과 별도로 쓰기 권한·충돌·멱등 계약을 확인해야 합니다.</p>
         </section>
         <div id="integration-metrics" class="integration-metrics"></div>
@@ -1289,7 +1290,8 @@ function switchTab(name,historyMode='push'){
   if(name==='finder'&&!$('#book-finder-detail').open)window.BookFinder?.refresh();
   if(name==='scm')window.SCM?.refresh();
   if(name==='work')window.Work?.refresh();
-  if(name==='integration'){window.OperationsSourcesDashboard?.refresh();window.Integration?.refresh();}
+  window.OperationsSourcesDashboard?.setActive(name==='integration');
+  if(name==='integration')window.Integration?.refresh();
   if(name==='finance')window.FinanceDashboard?.refresh();
   if(name==='read'){window.OperationsRead?.refresh();window.Work?.refresh();}
   if(historyMode==='replace')history.replaceState({tab:name},'','#'+name);
@@ -1309,7 +1311,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./operations-read-model.js?v=20261025-1"></script>
 <script src="./operations-request-sync-model.js?v=20261018-2"></script>
 <script src="./operations-read.js?v=20261025-1"></script>
-<script src="./personal-plan.js?v=20261026-9"></script>
+<script src="./personal-plan.js?v=20261026-11"></script>
 <script src="./book-finder.js?v=20261013-1"></script>
 <script src="./scm.js?v=20261013-1"></script>
 <script src="./work.js?v=20261025-1"></script>
@@ -1318,7 +1320,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./payhere-import.js?v=20260906-1"></script>
 <script src="./evidence-batch-import.js?v=20261011-1"></script>
 <script src="./operations-sources-dashboard-model.js?v=20261026-1"></script>
-<script src="./operations-sources-dashboard.js?v=20261026-3"></script>
+<script src="./operations-sources-dashboard.js?v=20261026-5"></script>
 <script src="./integration.js?v=20261011-5"></script>
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>

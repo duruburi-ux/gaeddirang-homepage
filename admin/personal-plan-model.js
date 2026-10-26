@@ -42,6 +42,20 @@
   if(same.length===1)return {outcome:'duplicate',item:same[0]};
   const item=normalizeItem({id:makeId(),sourceKind:descriptor.sourceKind,sourceId:descriptor.sourceId,sourceTitle:descriptor.title,sourceTeamDue:descriptor.teamDue,sourceStatus:descriptor.status,title:descriptor.title,project:descriptor.project,plannedOn:'',priority:'normal',memo:'',baseSourceUpdatedAt:descriptor.updatedAt},{now});state.items.push(item);record(state,'원천 업무 연결',item,descriptor.title,now);return {outcome:'imported',item};
  }
+ function commitDraft(state,draft){state.version=draft.version;state.items=draft.items;state.history=draft.history;state.updatedAt=draft.updatedAt;return state}
+ function batchImportSources(state,sources,{now}={}){
+  if(!Array.isArray(sources)||!sources.length)throw Error('PLAN_BATCH_EMPTY');
+  const draft=validateState(JSON.parse(JSON.stringify(state)),{now}),seen=new Set();let imported=0,duplicates=0;
+  for(const source of sources){const key=`${clean(source?.sourceKind,40)}:${clean(source?.sourceId,160)}`;if(!source?.sourceId||seen.has(key))throw Error('PLAN_BATCH_SOURCE_DUPLICATE');seen.add(key);const result=importSource(draft,source,{now});if(result.outcome==='imported')imported++;else duplicates++}
+  commitDraft(state,draft);return {outcome:'success',imported,duplicates,total:sources.length};
+ }
+ function batchScheduleSources(state,sourceIds,plannedOn,{now}={}){
+  const ids=[...new Set((Array.isArray(sourceIds)?sourceIds:[]).map(value=>clean(value,160)).filter(Boolean))],date=day(plannedOn);
+  if(!ids.length)throw Error('PLAN_BATCH_EMPTY');if(!date)throw Error('PLAN_BATCH_DATE_REQUIRED');
+  const draft=validateState(JSON.parse(JSON.stringify(state)),{now}),items=ids.map(id=>draft.items.find(item=>item.sourceKind==='notion_work'&&item.sourceId===id));
+  if(items.some(item=>!item))throw Error('PLAN_BATCH_SOURCE_NOT_LINKED');
+  for(const item of items)update(draft,item.id,{plannedOn:date},{now});commitDraft(state,draft);return {outcome:'success',updated:items.length,plannedOn:date};
+ }
  function sourceStatus(item,source){
   if(!item||!source||sourceKey(item)!==`${source.sourceKind}:${source.sourceId}`)return {state:'missing'};
   const incoming=Date.parse(source.updatedAt||''),base=Date.parse(item.baseSourceUpdatedAt||''),local=Date.parse(item.localEditedAt||'');
@@ -64,5 +78,5 @@
   return {teamDue,fromLive:Boolean(liveDue),plannedOn:day(item?.plannedOn),afterTeamDue:Boolean(teamDue&&item?.plannedOn&&item.plannedOn>teamDue)};
  }
  function projectSummary(state){const map=new Map();for(const item of state.items){const name=item.project||'프로젝트 없음',row=map.get(name)||{name,total:0,done:0,today:0};row.total++;if(item.done)row.done++;if(!item.done&&item.plannedOn===dayKey())row.today++;map.set(name,row)}return [...map.values()].sort((a,b)=>b.today-a.today||a.name.localeCompare(b.name,'ko'))}
- return {VERSION,PRIORITIES,SOURCE_KINDS,emptyState,validateState,normalizeItem,sourceKey,dayKey,addPersonal,importSource,sourceStatus,acknowledgeSource,update,placeToday,scheduleBoundary,projectSummary};
+ return {VERSION,PRIORITIES,SOURCE_KINDS,emptyState,validateState,normalizeItem,sourceKey,dayKey,addPersonal,importSource,batchImportSources,batchScheduleSources,sourceStatus,acknowledgeSource,update,placeToday,scheduleBoundary,projectSummary};
 });
