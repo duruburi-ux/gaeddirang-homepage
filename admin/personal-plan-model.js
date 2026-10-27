@@ -73,10 +73,18 @@
   state.items[index]=next;record(state,'개인 계획 수정',next,next.title,now);return next;
  }
  function placeToday(state,itemId,{now}={}){return update(state,itemId,{plannedOn:dayKey(new Date(now??Date.now())),done:false},{now})}
+ function applyServerPlan(state,row,{now}={}){
+  if(!row||typeof row!=='object'||!Number.isInteger(row.version)||row.version<1||row.archived)throw Error('PLAN_SERVER_ITEM_INVALID');
+  const incoming=normalizeItem({id:row.id,sourceKind:row.sourceKind,sourceId:row.sourceId,sourceTitle:row.sourceTitle,sourceTeamDue:row.sourceTeamDue,sourceStatus:row.sourceStatus,title:row.title,project:row.project,plannedOn:row.plannedOn,priority:row.priority,memo:row.memo,done:row.done,createdAt:row.updatedAt,updatedAt:row.updatedAt,localEditedAt:'',baseSourceUpdatedAt:''},{now});
+  const index=state.items.findIndex(item=>item.id===incoming.id),sameSource=state.items.findIndex(item=>sourceKey(item)===sourceKey(incoming));
+  if(sameSource>=0&&sameSource!==index)throw Error('PLAN_SOURCE_DUPLICATE');
+  if(index>=0){incoming.createdAt=state.items[index].createdAt;state.items[index]=incoming}else state.items.push(incoming);
+  record(state,index>=0?'서버 일정 적용':'서버 일정 가져오기',incoming,incoming.title,now);return incoming;
+ }
  function scheduleBoundary(item,source){
   const liveDue=day(String(source?.teamDue||'').slice(0,10)),snapshotDue=day(item?.sourceTeamDue),teamDue=liveDue||snapshotDue;
   return {teamDue,fromLive:Boolean(liveDue),plannedOn:day(item?.plannedOn),afterTeamDue:Boolean(teamDue&&item?.plannedOn&&item.plannedOn>teamDue)};
  }
  function projectSummary(state){const map=new Map();for(const item of state.items){const name=item.project||'프로젝트 없음',row=map.get(name)||{name,total:0,done:0,today:0};row.total++;if(item.done)row.done++;if(!item.done&&item.plannedOn===dayKey())row.today++;map.set(name,row)}return [...map.values()].sort((a,b)=>b.today-a.today||a.name.localeCompare(b.name,'ko'))}
- return {VERSION,PRIORITIES,SOURCE_KINDS,emptyState,validateState,normalizeItem,sourceKey,dayKey,addPersonal,importSource,batchImportSources,batchScheduleSources,sourceStatus,acknowledgeSource,update,placeToday,scheduleBoundary,projectSummary};
+ return {VERSION,PRIORITIES,SOURCE_KINDS,emptyState,validateState,normalizeItem,sourceKey,dayKey,addPersonal,importSource,batchImportSources,batchScheduleSources,sourceStatus,acknowledgeSource,update,placeToday,applyServerPlan,scheduleBoundary,projectSummary};
 });

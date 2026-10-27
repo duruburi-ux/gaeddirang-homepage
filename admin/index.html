@@ -10,16 +10,17 @@
 <link rel="stylesheet" href="./work.css?v=20261025-1" />
 <link rel="stylesheet" href="./operations.css" />
 <link rel="stylesheet" href="./integration.css?v=20261026-5" />
+<link rel="stylesheet" href="./assistant-request-panel.css?v=20261027-1" />
 <link rel="stylesheet" href="./finance-dashboard.css?v=20261012-2" />
 <link rel="stylesheet" href="./dashboard.css" />
 <link rel="stylesheet" href="./book-finder.css?v=20261013-1" />
 <link rel="stylesheet" href="./operations-read.css?v=20261025-1" />
-<link rel="stylesheet" href="./personal-plan.css?v=20261026-9" />
+<link rel="stylesheet" href="./personal-plan.css?v=20261027-1" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script src="./admin-core-model.js?v=20261018-7"></script>
 <script src="./operations-hub-model.js?v=20261016-1"></script>
 <script src="./book-finder-model.js?v=20261011-3"></script>
-<script src="./personal-plan-model.js?v=20261026-3"></script>
+<script src="./personal-plan-model.js?v=20261027-1"></script>
 <style>
   :root{
     --orange:#F26D4F; --orange-d:#d9583c; --ink:#2b2622; --muted:#8a817a;
@@ -252,7 +253,7 @@
           </div>
           <div class="personal-plan-sidebar-foot">
             <span class="personal-plan-account" id="personalPlanUser"></span>
-            <details class="personal-plan-info"><summary>저장·연결 정보</summary><p id="personal-plan-status" class="personal-plan-status" role="status" aria-live="polite">로그인한 뒤 개인 계획을 엽니다.</p><div class="personal-plan-boundaries" aria-label="저장과 연결 상태"><span><i>개인 계획</i><b>이 브라우저</b></span><span id="personal-source-state"><i>원본 업무</i><b>읽기 미확인</b></span><span><i>공동 요청</i><b>공유 저장</b></span><span class="off"><i>자동화 기록</i><b>화면 미연결</b></span></div></details>
+            <details class="personal-plan-info"><summary>저장·연결 정보</summary><p id="personal-plan-status" class="personal-plan-status" role="status" aria-live="polite">로그인한 뒤 개인 계획을 엽니다.</p><div class="personal-plan-boundaries" aria-label="저장과 연결 상태"><span><i>개인 계획</i><b>브라우저 기본 · 선택 저장</b></span><span id="personal-source-state"><i>원본 업무</i><b>읽기 미확인</b></span><span><i>업무 요청</i><b>명시 접수만</b></span><span class="off"><i>자동 실행</i><b>꺼짐</b></span></div></details>
             <button type="button" data-nav-tab="integration">연결 현황</button><button type="button" id="personal-plan-refresh">최신 자료 확인</button><button type="button" id="personal-plan-logout">로그아웃</button>
           </div>
         </aside>
@@ -264,6 +265,7 @@
           <form id="personal-quick-form" class="personal-plan-quick"><label class="sr-only" for="personal-quick-title">새 개인 할 일</label><input id="personal-quick-title" maxlength="200" autocomplete="off" required placeholder="새 할 일을 적어 수집함에 넣으세요"><button type="submit">수집함에 추가</button></form>
           <button type="button" id="personal-inbox-entry" class="personal-inbox-entry">수집함에 추가</button>
           <div id="personal-plan-results" class="personal-plan-results"></div>
+          <details class="assistant-workspace-sync"><summary><span>개인 서버 저장</span><b id="assistant-workspace-state">확인 전</b></summary><div><p>로컬 일정은 자동 업로드하지 않습니다. 서버 자료를 확인한 뒤 일정별로 저장하거나 가져오세요.</p><button type="button" id="assistant-workspace-refresh">서버 자료 확인</button><p id="assistant-workspace-status" role="status" aria-live="polite">서버 자료는 아직 확인하지 않았습니다.</p><div id="assistant-workspace-plans"></div></div></details>
         </div>
       </section>
       <details id="planner-manage" class="planner-manage"><summary><strong>책공방 관리</strong><span>재고 · 주문 · 신청 · 공동 요청 · 연결 상태</span></summary><div class="planner-manage-body">
@@ -315,6 +317,21 @@
           <div class="source-dashboard-analysis"><section class="source-dashboard-chart" aria-labelledby="source-chart-primary-title"><div class="source-dashboard-chart-head"><div><h3 id="source-chart-primary-title"></h3><p id="source-chart-primary-meta"></p></div><button type="button" id="source-chart-primary-table" class="source-table-toggle" aria-expanded="false">표 보기</button></div><div id="source-chart-primary"></div><div id="source-chart-primary-data" hidden></div></section><section class="source-dashboard-chart" aria-labelledby="source-chart-secondary-title"><div class="source-dashboard-chart-head"><div><h3 id="source-chart-secondary-title"></h3><p id="source-chart-secondary-meta"></p></div><button type="button" id="source-chart-secondary-table" class="source-table-toggle" aria-expanded="false">표 보기</button></div><div id="source-chart-secondary"></div><div id="source-chart-secondary-data" hidden></div></section></div>
           <section class="source-dashboard-queue" aria-labelledby="source-dashboard-queue-title"><div class="source-dashboard-head"><div><h3 id="source-dashboard-queue-title" tabindex="-1">처리 목록</h3><span id="source-dashboard-queue-note"></span></div><div class="source-dashboard-queue-actions"><button id="source-dashboard-clear-filter" type="button" hidden>필터 해제</button><button id="source-dashboard-open-list" type="button">전체 화면 열기</button></div></div><div id="source-team-bulk" class="source-team-bulk" hidden><div class="source-team-bulk-select"><label><input id="source-team-select-all" type="checkbox"> 현재 목록 전체 선택</label><strong id="source-team-selected-count" role="status" aria-live="polite">0개 선택</strong><button id="source-team-clear-selection" type="button">선택 해제</button></div><div class="source-team-bulk-actions"><button id="source-team-import-selected" type="button">내 일정에 연결</button><label>내 예정일 <input id="source-team-planned-on" type="date"></label><button id="source-team-schedule-selected" type="button">예정일 변경</button><button id="source-team-undo" type="button" hidden>방금 실행 취소</button></div><p id="source-team-bulk-status" role="status" aria-live="polite">공동 원본은 바꾸지 않고 이 브라우저의 개인 계획만 변경합니다.</p></div><div id="source-dashboard-team" class="source-dashboard-list"></div><div id="source-dashboard-orders" class="source-dashboard-list" hidden></div><div id="source-dashboard-scm" class="source-dashboard-list" hidden></div><div id="source-dashboard-tasks" class="source-dashboard-list source-dashboard-secondary-list" hidden></div></section>
           <p class="integration-inline-warning">공동 Task 작성과 회의 Action 자동 생성은 꺼져 있습니다. 읽기 연결과 별도로 쓰기 권한·충돌·멱등 계약을 확인해야 합니다.</p>
+        </section>
+        <section id="assistant-request-panel" class="assistant-request-panel" aria-labelledby="assistant-request-title-heading">
+          <div class="assistant-request-head"><div><p class="integration-kicker">REPRESENTATIVE DECISION</p><h3 id="assistant-request-title-heading">처리 방식 정하기</h3><p>직접 처리·아스트라 위임·대표 결정 필요를 공동 업무 완료 상태와 분리해 검토합니다.</p></div><span class="assistant-request-connection">연결 확인 전</span></div>
+          <p id="assistant-request-source" class="assistant-request-source">공동 업무를 선택하거나 직접 제목을 입력하세요.</p>
+          <form id="assistant-request-form" class="assistant-request-form">
+            <label>처리 방식<select id="assistant-request-route"><option value="self">내가 처리</option><option value="astra">아스트라에게 맡김</option><option value="decision">내 결정 필요</option></select></label>
+            <label>기록 종류<select id="assistant-request-kind"><option value="execution_request">실행 항목</option><option value="memo">일반 메모</option></select></label>
+            <label>요청 범위<select id="assistant-request-scope"><option value="read_only">읽기·확인</option><option value="local_plan">개인 계획</option><option value="content_change">콘텐츠 수정</option><option value="external_communication">외부 연락</option><option value="inventory_or_sales">재고·판매 변경</option><option value="financial_action">재정 행동</option></select></label>
+            <label>제목<input id="assistant-request-title" maxlength="200" required></label>
+            <label>완료 조건·필요한 결과<textarea id="assistant-request-body" maxlength="2000" rows="3"></textarea></label>
+            <p id="assistant-request-route-note" class="assistant-request-route-note">본인이 처리할 메모 또는 실행 항목입니다.</p>
+            <div class="assistant-request-actions"><button type="submit">로컬 검토안 만들기</button><button type="button" id="assistant-request-reset">입력 지우기</button><button type="button" id="assistant-request-refresh">서버 자료 확인</button></div>
+            <p id="assistant-request-status" class="assistant-request-status" role="status" aria-live="polite">검토안은 로컬에만 있습니다. 서버 접수 버튼을 눌러야 접수되며 자동 실행은 시작되지 않습니다.</p>
+          </form>
+          <div id="assistant-request-list" class="assistant-request-list" aria-label="로컬 처리 검토안"></div>
         </section>
         <div id="integration-metrics" class="integration-metrics"></div>
         <div class="integration-control-grid">
@@ -649,7 +666,7 @@ async function boot(){
   if(session)await startSessionVerification(session);
   else showLogin();
 }
-function clearPrivateUi(message=''){CORE_LOAD=null;const quick=$('#personal-quick-title');if(quick)quick.value='';window.PersonalPlanner?.deactivate();window.OperationsRead?.clear();window.BookFinder?.clear();window.SCM?.clear();window.Work?.clear();window.OperationsSourcesDashboard?.clear();window.Integration?.clear();window.FinanceDashboard?.clear();clearCoreData();$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');$('#pw').value='';$('#loginMsg').style.color='var(--orange-d)';$('#loginMsg').textContent=message;requestAnimationFrame(()=>$('#email').focus())}
+function clearPrivateUi(message=''){CORE_LOAD=null;const quick=$('#personal-quick-title');if(quick)quick.value='';window.AssistantWorkspaceUI?.deactivate();window.PersonalPlanner?.deactivate();window.AssistantRequestPanel?.clear();window.OperationsRead?.clear();window.BookFinder?.clear();window.SCM?.clear();window.Work?.clear();window.OperationsSourcesDashboard?.clear();window.Integration?.clear();window.FinanceDashboard?.clear();clearCoreData();$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');$('#pw').value='';$('#loginMsg').style.color='var(--orange-d)';$('#loginMsg').textContent=message;requestAnimationFrame(()=>$('#email').focus())}
 function showLogin(message=''){AUTH_GENERATION++;ACTIVE_USER_ID='';PENDING_USER_ID='';AUTH_VERIFY=null;clearPrivateUi(message)}
 async function startSessionVerification(session){
   const userId=String(session?.user?.id||'');if(!userId){showLogin();return false}
@@ -664,6 +681,8 @@ async function enterApp(session,run=AUTH_GENERATION){
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#headUser').textContent = session.user.email;$('#personalPlanUser').textContent=session.user.email;
   window.PersonalPlanner?.activate(userId);
+  window.AssistantRequestPanel?.activate(userId);
+  window.AssistantWorkspaceUI?.activate(userId);
   await loadAll(run,userId);if(run!==AUTH_GENERATION||ACTIVE_USER_ID!==userId)return false;
   switchTab(TABS.includes(requestedTab)?requestedTab:'read','replace');
   return true;
@@ -1312,7 +1331,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./operations-read-model.js?v=20261025-1"></script>
 <script src="./operations-request-sync-model.js?v=20261018-2"></script>
 <script src="./operations-read.js?v=20261025-1"></script>
-<script src="./personal-plan.js?v=20261026-12"></script>
+<script src="./personal-plan.js?v=20261027-1"></script>
 <script src="./book-finder.js?v=20261013-1"></script>
 <script src="./scm.js?v=20261013-1"></script>
 <script src="./work.js?v=20261025-1"></script>
@@ -1322,6 +1341,11 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./evidence-batch-import.js?v=20261011-1"></script>
 <script src="./operations-sources-dashboard-model.js?v=20261026-1"></script>
 <script src="./operations-sources-dashboard.js?v=20261026-5"></script>
+<script src="./assistant-request-model.js?v=20261027-1"></script>
+<script src="./assistant-request-adapter.js?v=20261027-1"></script>
+<script src="./assistant-workspace-adapter.js?v=20261027-1"></script>
+<script src="./assistant-request-panel.js?v=20261027-2"></script>
+<script src="./assistant-workspace-ui.js?v=20261027-2"></script>
 <script src="./integration.js?v=20261011-5"></script>
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>
@@ -1333,6 +1357,8 @@ window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:show
 window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Operations?.init({navigate:switchTab});
 window.OperationsSourcesDashboard?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin,navigate:switchTab});
+const assistantWorkspaceHandlers=window.AssistantWorkspaceUI?.init({client:sb,onDenied:showLogin})||{};
+window.AssistantRequestPanel?.init(assistantWorkspaceHandlers);
 window.Integration?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.FinanceDashboard?.init({client:sb,onDenied:showLogin});
 boot();
