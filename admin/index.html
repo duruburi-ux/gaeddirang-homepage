@@ -265,7 +265,7 @@
           <form id="personal-quick-form" class="personal-plan-quick"><label class="sr-only" for="personal-quick-title">새 개인 할 일</label><input id="personal-quick-title" maxlength="200" autocomplete="off" required placeholder="새 할 일을 적어 수집함에 넣으세요"><button type="submit">수집함에 추가</button></form>
           <button type="button" id="personal-inbox-entry" class="personal-inbox-entry">수집함에 추가</button>
           <div id="personal-plan-results" class="personal-plan-results"></div>
-          <details class="assistant-workspace-sync"><summary><span>개인 서버 저장</span><b id="assistant-workspace-state">확인 전</b></summary><div><p>로컬 일정은 자동 업로드하지 않습니다. 서버 자료를 확인한 뒤 일정별로 저장하거나 가져오세요.</p><button type="button" id="assistant-workspace-refresh">서버 자료 확인</button><p id="assistant-workspace-status" role="status" aria-live="polite">서버 자료는 아직 확인하지 않았습니다.</p><div id="assistant-workspace-plans"></div></div></details>
+          <details class="assistant-workspace-sync"><summary><span>개인 서버 저장</span><b id="assistant-workspace-state">확인 전</b></summary><div><p>로컬 일정은 자동 업로드하지 않습니다. 서버 자료를 확인한 뒤 일정별로 저장하거나 가져오세요.</p><button type="button" id="assistant-workspace-refresh" disabled aria-busy="false">서버 자료 확인</button><p id="assistant-workspace-status" role="status" aria-live="polite">로그인 확인이 끝난 뒤 서버 자료를 확인할 수 있습니다.</p><div id="assistant-workspace-plans"></div></div></details>
         </div>
       </section>
       <details id="planner-manage" class="planner-manage"><summary><strong>책공방 관리</strong><span>재고 · 주문 · 신청 · 공동 요청 · 연결 상태</span></summary><div class="planner-manage-body">
@@ -1343,9 +1343,9 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./operations-sources-dashboard.js?v=20261026-5"></script>
 <script src="./assistant-request-model.js?v=20261027-1"></script>
 <script src="./assistant-request-adapter.js?v=20261027-1"></script>
-<script src="./assistant-workspace-adapter.js?v=20261028-1"></script>
+<script src="./assistant-workspace-adapter.js?v=20261028-3"></script>
 <script src="./assistant-request-panel.js?v=20261027-2"></script>
-<script src="./assistant-workspace-ui.js?v=20261028-1"></script>
+<script src="./assistant-workspace-ui.js?v=20261028-3"></script>
 <script src="./integration.js?v=20261011-5"></script>
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>
@@ -1357,7 +1357,7 @@ window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:show
 window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.Operations?.init({navigate:switchTab});
 window.OperationsSourcesDashboard?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin,navigate:switchTab});
-const assistantWorkspaceHandlers=window.AssistantWorkspaceUI?.init({client:sb,onDenied:showLogin})||{};
+const assistantWorkspaceHandlers=window.AssistantWorkspaceUI?.init({client:sb,onDenied:showLogin})||(()=>{const button=document.querySelector('#assistant-workspace-refresh'),status=document.querySelector('#assistant-workspace-status');if(button)button.disabled=true;if(status){status.textContent='개인 서버 연결 화면을 불러오지 못했습니다. 페이지를 새로고침해 주세요.';status.classList.add('bad')}return {}})();
 window.AssistantRequestPanel?.init(assistantWorkspaceHandlers);
 window.Integration?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.FinanceDashboard?.init({client:sb,onDenied:showLogin});

@@ -2,9 +2,10 @@ window.AssistantWorkspaceUI=(()=>{
  'use strict';
  const $=selector=>document.querySelector(selector),esc=value=>String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
  const A=window.AssistantWorkspaceAdapter,UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
- let config=null,adapter=null,userId='',generation=0,workspace=null,lastGoodAt='',busy=false,pending=new Map();
+ let config=null,adapter=null,userId='',generation=0,workspace=null,lastGoodAt='',busy=false,pending=new Map(),ready=false,plannerListenerBound=false;
  const operationId=()=>crypto.randomUUID(),fingerprint=value=>JSON.stringify(value),pendingKey=(intent,resourceId)=>`${intent}:${resourceId}`;
  function setStatus(message,bad=false){const node=$('#assistant-workspace-status');if(!node)return;node.textContent=message;node.classList.toggle('bad',bad)}
+ function syncRefreshControl(){const button=$('#assistant-workspace-refresh');if(!button)return;button.disabled=!ready||!userId||busy;button.setAttribute('aria-busy',busy?'true':'false')}
  async function sessionMatches(run){const result=await config.client.auth.getSession(),current=String(result.data?.session?.user?.id||'');return !result.error&&run===generation&&current===userId&&Boolean(current)}
  function activeSnapshot(){const snapshot=window.PersonalPlanner?.snapshot?.();return snapshot&&String(snapshot.userId||'')===userId?snapshot:null}
  function planPayload(item){return {id:item.id,sourceKind:item.sourceKind,sourceId:item.sourceId,sourceVersion:'',sourceTitle:item.sourceTitle||'',sourceStatus:item.sourceStatus||'',sourceTeamDue:item.sourceTeamDue||'',title:item.title,project:item.project||'',plannedOn:item.plannedOn||'',priority:item.priority,memo:item.memo||'',done:Boolean(item.done),archived:false}}
@@ -16,7 +17,7 @@ window.AssistantWorkspaceUI=(()=>{
   list.querySelectorAll('[data-workspace-save]').forEach(button=>button.onclick=()=>savePlan(button.closest('article').dataset.workspacePlan));
   list.querySelectorAll('[data-workspace-import]').forEach(button=>button.onclick=()=>importPlan(button.closest('article').dataset.workspacePlan));
   list.querySelectorAll('[data-workspace-archive]').forEach(button=>button.onclick=()=>archivePlan(button.closest('article').dataset.workspacePlan));
-  const badge=$('#assistant-workspace-state');if(badge)badge.textContent=workspace?`마지막 정상 확인 ${new Date(lastGoodAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})}`:'확인 전';
+  const badge=$('#assistant-workspace-state');if(badge)badge.textContent=workspace?`마지막 정상 확인 ${new Date(lastGoodAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})}`:'확인 전';syncRefreshControl();
  }
  async function guarded(action){
   if(busy||!userId)return null;
@@ -44,7 +45,9 @@ window.AssistantWorkspaceUI=(()=>{
  }
  function finish(key,result){if(result&&result.state!=='retryable')pending.delete(key)}
  async function refresh(){
-  if(busy||!userId)return;
+  if(busy)return;
+  if(!ready){setStatus('개인 서버 연결 화면을 초기화하지 못했습니다. 페이지를 새로고침해 주세요.',true);syncRefreshControl();return}
+  if(!userId){setStatus('로그인 확인이 끝난 뒤 서버 자료를 확인할 수 있습니다.',true);syncRefreshControl();return}
   window.AssistantRequestPanel?.setWorkspaceState('loading','개인 서버 자료를 확인하고 있습니다.');setStatus('개인 서버 자료를 확인하고 있습니다.');
   let result;
   try{result=await guarded(()=>adapter.list())}
@@ -76,8 +79,8 @@ window.AssistantWorkspaceUI=(()=>{
   if(busy||!userId||!row||workspace?.contractVersion!==2||workspace?.approvalEnabled!==true)return;
   const result=await guarded(async()=>{const current=workspace?.requests.find(item=>item.requestId===row.requestId);if(!current||current.status!=='approval_required')return null;const payload={requestId:current.requestId,version:current.version,approvedScope:current.requestedScope},prepared=prepare('approve_assistant_request',current.requestId,payload,()=>A.approveRequestOperation(current,{operationId:operationId()}));if(prepared.state==='changed')return {changed:true};setStatus(prepared.state==='retry'?'같은 승인 ID로 결과를 다시 확인하고 있습니다.':'요청 범위를 승인하고 실행 대기로 옮기고 있습니다.');return {prepared,result:await adapter.send(prepared.entry.operation)}});if(!result)return;if(result.changed){setStatus('결과가 불명확한 승인 작업의 범위나 버전이 달라 새 승인을 만들지 않았습니다. 서버 자료를 다시 확인해 주세요.',true);return}finish(result.prepared.key,result.result);if(['accepted','duplicate'].includes(result.result.state)){window.AssistantRequestPanel?.approved(row,result.result);workspace.requests=workspace.requests.map(item=>item.requestId===row.requestId?{...item,status:'execution_waiting',version:result.result.version,approvalId:result.result.operationId,approvedAt:new Date().toISOString(),updatedAt:new Date().toISOString()}:item);render();return}operationFailure(result.result,'요청을 승인하지 못했습니다.')
  }
- function activate(id){const next=String(id||'');if(next!==userId){generation++;workspace=null;lastGoodAt='';busy=false;pending=new Map()}userId=next;setStatus('서버 자료는 아직 확인하지 않았습니다. 로컬 일정은 자동 업로드되지 않습니다.');render()}
+ function activate(id){const next=String(id||'');if(next!==userId){generation++;workspace=null;lastGoodAt='';busy=false;pending=new Map()}userId=next;setStatus(ready?'서버 자료는 아직 확인하지 않았습니다. 로컬 일정은 자동 업로드되지 않습니다.':'개인 서버 연결 화면을 초기화하지 못했습니다. 페이지를 새로고침해 주세요.',!ready);render()}
  function deactivate(){generation++;userId='';workspace=null;lastGoodAt='';busy=false;pending=new Map();setStatus('로그인 후 개인 서버 자료를 확인할 수 있습니다.');render()}
- function init(options){config=options;adapter=A.createSupabaseAdapter({invoke:(name,options)=>config.client.functions.invoke(name,options),onDenied:()=>config.onDenied?.()});$('#assistant-workspace-refresh')?.addEventListener('click',refresh);window.addEventListener('planner:changed',event=>{if(event.detail?.userId===userId)render()});render();return {onRefresh:refresh,onSubmit:submitRequest,onCancel:cancelRequest,onApprove:approveRequest}}
+ function init(options){config=options;ready=Boolean(config?.client?.functions?.invoke&&config?.client?.auth?.getSession&&A?.createSupabaseAdapter);adapter=ready?A.createSupabaseAdapter({invoke:(name,options)=>config.client.functions.invoke(name,options),onDenied:()=>config.onDenied?.(),...(Number.isInteger(config.timeoutMs)?{timeoutMs:config.timeoutMs}:{}),...(typeof config.schedule==='function'?{schedule:config.schedule}:{}),...(typeof config.cancelTimer==='function'?{cancel:config.cancelTimer}:{})}):null;const button=$('#assistant-workspace-refresh');if(button)button.onclick=refresh;if(!plannerListenerBound){window.addEventListener('planner:changed',event=>{if(event.detail?.userId===userId)render()});plannerListenerBound=true}if(!ready)setStatus('개인 서버 연결 화면을 초기화하지 못했습니다. 페이지를 새로고침해 주세요.',true);render();return {onRefresh:refresh,onSubmit:submitRequest,onCancel:cancelRequest,onApprove:approveRequest}}
  return {init,activate,deactivate,refresh};
 })();
