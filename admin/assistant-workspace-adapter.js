@@ -5,8 +5,12 @@
  const REQUEST_PAYLOAD=['requestId','sourceId','sourceVersion','kind','route','requestedScope','title','body','createdAt'];
  const PLAN_PAYLOAD=['id','sourceKind','sourceId','sourceVersion','sourceTitle','sourceStatus','sourceTeamDue','title','project','plannedOn','priority','memo','done','archived'];
  const WORKSPACE_KEYS=['contractVersion','fetchedAt','executionEnabled','personalPlans','requests'];
+ const WORKSPACE_V2_KEYS=['contractVersion','fetchedAt','executionEnabled','approvalEnabled','personalPlans','requests'];
+ const REQUEST_SCOPES=new Set(['read_only','local_plan','content_change','external_communication','inventory_or_sales','financial_action']);
+ const REQUEST_V2_STATUSES=new Set(['submitted','approval_required','execution_waiting','in_progress','cancel_requested','verifying','completed','failed','cancelled']);
  const SERVER_PLAN_KEYS=['id','sourceKind','sourceId','sourceVersion','sourceTitle','sourceStatus','sourceTeamDue','title','project','plannedOn','priority','memo','done','archived','version','updatedAt'];
  const SERVER_REQUEST_KEYS=['requestId','sourceId','sourceVersion','kind','route','requestedScope','title','body','status','executionEnabled','version','submittedAt','updatedAt'];
+ const SERVER_REQUEST_V2_KEYS=['requestId','sourceId','sourceVersion','kind','route','requestedScope','title','body','status','executionEnabled','version','submittedAt','updatedAt','approvalId','approvalReason','approvedAt','executionId','executorKind','leaseExpiresAt','attemptCount','resultSummary','resultEvidence','errorCode','cancelRequestedAt'];
  const exact=(value,keys)=>Boolean(value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).length===keys.length&&keys.every(key=>Object.hasOwn(value,key)));
  const copy=value=>JSON.parse(JSON.stringify(value));
  function endpoint(value,approvedOrigin){const url=new URL(String(value||''));if(url.origin!==approvedOrigin||url.pathname!=='/functions/v1/assistant-workspace'||url.search||url.hash)throw Error('ASSISTANT_WORKSPACE_ENDPOINT_INVALID');return url.toString()}
@@ -25,16 +29,19 @@
   return {contractVersion:1,operationId:String(operationId),resourceId:clean.id,expectedVersion,intent:intent==='archive'?'archive_personal_plan':'upsert_personal_plan',payload:intent==='archive'?{id:clean.id}:clean};
  }
  function cancelRequestOperation(request,{operationId}={}){
-  if(!request||!UUID.test(String(request.requestId||''))||!UUID.test(String(operationId||''))||!Number.isInteger(request.version)||request.version<2||!['submitted','approval_required'].includes(request.status))throw Error('ASSISTANT_WORKSPACE_OPERATION_INVALID');
+  if(!request||!UUID.test(String(request.requestId||''))||!UUID.test(String(operationId||''))||!Number.isInteger(request.version)||request.version<2||!['submitted','approval_required','execution_waiting','in_progress','cancel_requested','verifying'].includes(request.status))throw Error('ASSISTANT_WORKSPACE_OPERATION_INVALID');
   return {contractVersion:1,operationId:String(operationId),resourceId:String(request.requestId),expectedVersion:request.version,intent:'cancel_assistant_request',payload:{requestId:String(request.requestId)}};
  }
+ function approveRequestOperation(request,{operationId}={}){if(!request||!UUID.test(String(request.requestId||''))||!UUID.test(String(operationId||''))||!Number.isInteger(request.version)||request.version<2||request.status!=='approval_required')throw Error('ASSISTANT_WORKSPACE_OPERATION_INVALID');return {contractVersion:2,operationId:String(operationId),resourceId:String(request.requestId),expectedVersion:request.version,intent:'approve_assistant_request',payload:{requestId:String(request.requestId),approvedScope:String(request.requestedScope||'')}}}
  function validateOperation(input){
-  if(!exact(input,OP_KEYS)||input.contractVersion!==1||!UUID.test(String(input.operationId||''))||!UUID.test(String(input.resourceId||''))||!(input.expectedVersion===null||(Number.isInteger(input.expectedVersion)&&input.expectedVersion>=1)))throw Error('ASSISTANT_WORKSPACE_OPERATION_INVALID');
-  const shapes={submit_assistant_request:REQUEST_PAYLOAD,cancel_assistant_request:['requestId'],upsert_personal_plan:PLAN_PAYLOAD,archive_personal_plan:['id']},keys=shapes[input.intent];
+  if(!exact(input,OP_KEYS)||![1,2].includes(input.contractVersion)||!UUID.test(String(input.operationId||''))||!UUID.test(String(input.resourceId||''))||!(input.expectedVersion===null||(Number.isInteger(input.expectedVersion)&&input.expectedVersion>=1)))throw Error('ASSISTANT_WORKSPACE_OPERATION_INVALID');
+  const shapes={submit_assistant_request:REQUEST_PAYLOAD,cancel_assistant_request:['requestId'],approve_assistant_request:['requestId','approvedScope'],upsert_personal_plan:PLAN_PAYLOAD,archive_personal_plan:['id']},keys=shapes[input.intent];
   if(!keys||!exact(input.payload,keys))throw Error('ASSISTANT_WORKSPACE_OPERATION_INVALID');
   const payloadId=input.payload.requestId??input.payload.id;if(payloadId!==input.resourceId)throw Error('ASSISTANT_WORKSPACE_OPERATION_INVALID');
   if(input.intent==='submit_assistant_request'&&input.expectedVersion!==null)throw Error('ASSISTANT_WORKSPACE_OPERATION_INVALID');
-  if(['cancel_assistant_request','archive_personal_plan'].includes(input.intent)&&input.expectedVersion===null)throw Error('ASSISTANT_WORKSPACE_OPERATION_INVALID');
+  if(['cancel_assistant_request','approve_assistant_request','archive_personal_plan'].includes(input.intent)&&input.expectedVersion===null)throw Error('ASSISTANT_WORKSPACE_OPERATION_INVALID');
+  if(input.intent==='approve_assistant_request'&&(input.contractVersion!==2||!REQUEST_SCOPES.has(input.payload.approvedScope)))throw Error('ASSISTANT_WORKSPACE_OPERATION_INVALID');
+  if(input.intent!=='approve_assistant_request'&&input.contractVersion!==1)throw Error('ASSISTANT_WORKSPACE_OPERATION_INVALID');
   if(input.intent==='upsert_personal_plan')planPayload(input.payload);
   return copy(input);
  }
@@ -44,18 +51,25 @@
   if(status===409){const keys=['outcome','resourceId','operationId','currentVersion'];if(!expected||!exact(body,keys)||body.resourceId!==expected.resourceId||body.operationId!==expected.operationId||!['version_conflict','idempotency_conflict','state_conflict'].includes(body.outcome)||!Number.isInteger(body.currentVersion))throw Error('ASSISTANT_WORKSPACE_RESPONSE_INVALID');return {state:'conflict',reason:body.outcome,requestId:body.resourceId,operationId:body.operationId,currentVersion:body.currentVersion}}
   if([200,201].includes(status)){
    if(!expected)throw Error('ASSISTANT_WORKSPACE_RESPONSE_INVALID');
+   if(expected.intent==='approve_assistant_request'){
+    const keys=['outcome','resourceId','operationId','resourceType','version','status','executionEnabled'];
+    if(!exact(body,keys)||!['accepted','duplicate'].includes(body.outcome)||body.resourceId!==expected.resourceId||body.operationId!==expected.operationId||body.resourceType!=='assistant_request'||body.version!==expected.expectedVersion+1||body.status!=='execution_waiting'||body.executionEnabled!==true)throw Error('ASSISTANT_WORKSPACE_RESPONSE_INVALID');
+    return {state:body.outcome==='duplicate'?'duplicate':'accepted',requestId:body.resourceId,operationId:body.operationId,version:body.version,status:body.status,executionEnabled:true};
+   }
    const request=expected.intent.includes('assistant_request'),keys=request?['outcome','resourceId','operationId','resourceType','version','status','executionEnabled']:['outcome','resourceId','operationId','resourceType','version','archived'];
    const next=expected.expectedVersion===null?(request?2:1):expected.expectedVersion+1;
-   if(!expected||!exact(body,keys)||!['accepted','duplicate'].includes(body.outcome)||body.resourceId!==expected.resourceId||body.operationId!==expected.operationId||body.resourceType!==(request?'assistant_request':'personal_plan')||body.version!==next||(request&&(body.executionEnabled!==false||!['submitted','approval_required','cancelled'].includes(body.status)))||(!request&&typeof body.archived!=='boolean'))throw Error('ASSISTANT_WORKSPACE_RESPONSE_INVALID');
-   return request?{state:body.outcome==='duplicate'?'duplicate':'accepted',requestId:body.resourceId,operationId:body.operationId,version:body.version,status:body.status,executionEnabled:false}:{state:body.outcome==='duplicate'?'duplicate':'accepted',planId:body.resourceId,operationId:body.operationId,version:body.version,archived:body.archived};
+   const requestStatus=expected.intent==='cancel_assistant_request'?['cancelled','cancel_requested']:['submitted','approval_required','execution_waiting'];
+   if(!expected||!exact(body,keys)||!['accepted','duplicate'].includes(body.outcome)||body.resourceId!==expected.resourceId||body.operationId!==expected.operationId||body.resourceType!==(request?'assistant_request':'personal_plan')||body.version!==next||(request&&(!requestStatus.includes(body.status)||body.executionEnabled!==['execution_waiting','cancel_requested'].includes(body.status)))||(!request&&typeof body.archived!=='boolean'))throw Error('ASSISTANT_WORKSPACE_RESPONSE_INVALID');
+   return request?{state:body.outcome==='duplicate'?'duplicate':'accepted',requestId:body.resourceId,operationId:body.operationId,version:body.version,status:body.status,executionEnabled:body.executionEnabled}:{state:body.outcome==='duplicate'?'duplicate':'accepted',planId:body.resourceId,operationId:body.operationId,version:body.version,archived:body.archived};
   }
   return {state:'failed'};
  }
  function validateWorkspace(input){
-  if(!exact(input,WORKSPACE_KEYS)||input.contractVersion!==1||input.executionEnabled!==false||!Number.isFinite(Date.parse(input.fetchedAt))||!Array.isArray(input.personalPlans)||!Array.isArray(input.requests))throw Error('ASSISTANT_WORKSPACE_RESPONSE_INVALID');
+  const v2=input?.contractVersion===2,workspaceKeys=v2?WORKSPACE_V2_KEYS:WORKSPACE_KEYS;
+  if(!exact(input,workspaceKeys)||![1,2].includes(input.contractVersion)||typeof input.executionEnabled!=='boolean'||(v2?typeof input.approvalEnabled!=='boolean':input.executionEnabled!==false)||!Number.isFinite(Date.parse(input.fetchedAt))||!Array.isArray(input.personalPlans)||!Array.isArray(input.requests))throw Error('ASSISTANT_WORKSPACE_RESPONSE_INVALID');
   const personalPlans=input.personalPlans.map(row=>{if(!exact(row,SERVER_PLAN_KEYS)||!UUID.test(String(row.id||''))||!Number.isInteger(row.version)||row.version<1||!Number.isFinite(Date.parse(row.updatedAt)))throw Error('ASSISTANT_WORKSPACE_RESPONSE_INVALID');planPayload(Object.fromEntries(PLAN_PAYLOAD.map(key=>[key,row[key]])));return copy(row)});
-  const requests=input.requests.map(row=>{if(!exact(row,SERVER_REQUEST_KEYS)||!UUID.test(String(row.requestId||''))||!['memo','execution_request'].includes(row.kind)||!['self','astra','decision'].includes(row.route)||!['submitted','approval_required','cancelled'].includes(row.status)||row.executionEnabled!==false||!Number.isInteger(row.version)||row.version<2||!Number.isFinite(Date.parse(row.submittedAt))||!Number.isFinite(Date.parse(row.updatedAt)))throw Error('ASSISTANT_WORKSPACE_RESPONSE_INVALID');return copy(row)});
-  return {contractVersion:1,fetchedAt:new Date(input.fetchedAt).toISOString(),executionEnabled:false,personalPlans,requests};
+  const requests=input.requests.map(row=>{const keys=v2?SERVER_REQUEST_V2_KEYS:SERVER_REQUEST_KEYS;if(!exact(row,keys)||!UUID.test(String(row.requestId||''))||!['memo','execution_request'].includes(row.kind)||!['self','astra','decision'].includes(row.route)||!(v2?REQUEST_V2_STATUSES.has(row.status):['submitted','approval_required','cancelled'].includes(row.status))||typeof row.executionEnabled!=='boolean'||(!v2&&row.executionEnabled!==false)||!Number.isInteger(row.version)||row.version<2||!Number.isFinite(Date.parse(row.submittedAt))||!Number.isFinite(Date.parse(row.updatedAt)))throw Error('ASSISTANT_WORKSPACE_RESPONSE_INVALID');if(v2&&(!REQUEST_SCOPES.has(row.requestedScope)||!Number.isInteger(row.attemptCount)||row.attemptCount<0||!Array.isArray(row.resultEvidence)))throw Error('ASSISTANT_WORKSPACE_RESPONSE_INVALID');return copy(row)});
+  return {contractVersion:input.contractVersion,fetchedAt:new Date(input.fetchedAt).toISOString(),executionEnabled:input.executionEnabled,...(v2?{approvalEnabled:input.approvalEnabled}:{}),personalPlans,requests};
  }
  function createAdapter({endpoint:target,approvedOrigin,fetcher=globalThis.fetch,onDenied=()=>{}}={}){const url=endpoint(target,approvedOrigin);return {async send(input,{token,apiKey}={}){const payload=validateOperation(input);if(!token||!apiKey)throw Error('ASSISTANT_WORKSPACE_CREDENTIALS_REQUIRED');let response;try{response=await fetcher(url,{method:'POST',headers:{Authorization:`Bearer ${token}`,apikey:apiKey,'Content-Type':'application/json','Idempotency-Key':payload.operationId},body:JSON.stringify(payload),cache:'no-store'})}catch{return {state:'retryable',retryAfter:null}}const body=await response.json().catch(()=>({})),out=result(response.status,body,payload);if(out.state==='denied')onDenied();return out}}}
  function createSupabaseAdapter({invoke,onDenied=()=>{}}={}){
@@ -74,5 +88,5 @@
    async send(input){const payload=validateOperation(input),response=await call('POST',payload),out=result(response.status,response.body,payload);if(out.state==='denied')onDenied();return out}
   };
  }
- return {requestOperation,cancelRequestOperation,personalOperation,validateOperation,validateWorkspace,result,createAdapter,createSupabaseAdapter};
+ return {requestOperation,cancelRequestOperation,approveRequestOperation,personalOperation,validateOperation,validateWorkspace,result,createAdapter,createSupabaseAdapter};
 });
