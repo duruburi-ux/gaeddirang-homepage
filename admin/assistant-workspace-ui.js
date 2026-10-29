@@ -45,17 +45,18 @@ window.AssistantWorkspaceUI=(()=>{
  }
  function finish(key,result){if(result&&result.state!=='retryable')pending.delete(key)}
  async function refresh(){
-  if(busy)return;
-  if(!ready){setStatus('개인 서버 연결 화면을 초기화하지 못했습니다. 페이지를 새로고침해 주세요.',true);syncRefreshControl();return}
-  if(!userId){setStatus('로그인 확인이 끝난 뒤 서버 자료를 확인할 수 있습니다.',true);syncRefreshControl();return}
+  if(busy)return false;
+  if(!ready){setStatus('개인 서버 연결 화면을 초기화하지 못했습니다. 페이지를 새로고침해 주세요.',true);syncRefreshControl();return false}
+  if(!userId){setStatus('로그인 확인이 끝난 뒤 서버 자료를 확인할 수 있습니다.',true);syncRefreshControl();return false}
   window.AssistantRequestPanel?.setWorkspaceState('loading','개인 서버 자료를 확인하고 있습니다.');setStatus('개인 서버 자료를 확인하고 있습니다.');
   let result;
   try{result=await guarded(()=>adapter.list())}
-  catch{window.AssistantRequestPanel?.setWorkspaceState(workspace?'stale':'unchecked',workspace?'서버 응답을 확인하지 못해 마지막 정상본을 유지합니다.':'서버 응답 형식을 확인하지 못했습니다. 접수나 저장은 시작하지 않았습니다.',true);setStatus(workspace?'서버 응답을 확인하지 못해 마지막 정상본을 유지합니다. 로컬 자료는 바뀌지 않았습니다.':'서버 응답 형식을 확인하지 못했습니다. 로컬 자료는 그대로입니다.',true);render();return}
-  if(!result)return;
-  if(result.state==='current'){workspace=result.workspace;lastGoodAt=workspace.fetchedAt;const unresolved=reconcilePending(workspace);window.AssistantRequestPanel?.setWorkspace(workspace.requests,{state:'current',execution:workspace.executionEnabled,approval:workspace.approvalEnabled});setStatus(`서버 일정 ${workspace.personalPlans.length}개 · 요청 ${workspace.requests.length}개를 확인했습니다.${unresolved?` 결과 확인이 필요한 작업 ${unresolved}개는 같은 작업 ID를 유지합니다.`:''} 로컬 일정은 자동 업로드하지 않았습니다.`,Boolean(unresolved));render();return}
-  if(result.state==='denied'){config.onDenied?.();return}
+  catch{window.AssistantRequestPanel?.setWorkspaceState(workspace?'stale':'unchecked',workspace?'서버 응답을 확인하지 못해 마지막 정상본을 유지합니다.':'서버 응답 형식을 확인하지 못했습니다. 접수나 저장은 시작하지 않았습니다.',true);setStatus(workspace?'서버 응답을 확인하지 못해 마지막 정상본을 유지합니다. 로컬 자료는 바뀌지 않았습니다.':'서버 응답 형식을 확인하지 못했습니다. 로컬 자료는 그대로입니다.',true);render();return false}
+  if(!result)return false;
+  if(result.state==='current'){workspace=result.workspace;lastGoodAt=workspace.fetchedAt;const unresolved=reconcilePending(workspace);window.AssistantRequestPanel?.setWorkspace(workspace.requests,{state:'current',execution:workspace.executionEnabled,approval:workspace.approvalEnabled});setStatus(`서버 일정 ${workspace.personalPlans.length}개 · 요청 ${workspace.requests.length}개를 확인했습니다.${unresolved?` 결과 확인이 필요한 작업 ${unresolved}개는 같은 작업 ID를 유지합니다.`:''} 로컬 일정은 자동 업로드하지 않았습니다.`,Boolean(unresolved));render();return true}
+  if(result.state==='denied'){config.onDenied?.();return false}
   window.AssistantRequestPanel?.setWorkspaceState(workspace?'stale':'unchecked',workspace?'서버 확인에 실패해 마지막 정상본을 유지합니다.':'서버 자료를 확인하지 못했습니다. 접수나 저장은 시작하지 않았습니다.',true);setStatus(workspace?'서버 확인에 실패해 마지막 정상본을 유지합니다. 로컬 자료는 바뀌지 않았습니다.':'서버 자료를 확인하지 못했습니다. 로컬 자료는 그대로입니다.',true);render();
+  return false;
  }
  async function savePlan(id){
   if(busy||!userId)return;

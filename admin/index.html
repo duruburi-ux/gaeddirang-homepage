@@ -724,7 +724,7 @@ async function enterApp(session,run=AUTH_GENERATION){
   window.AssistantWorkspaceUI?.activate(userId);
   window.ProgramPublishing?.activate(userId);
   window.TeamDashboard?.activate(userId,run);
-  await loadAll(run,userId);if(run!==AUTH_GENERATION||ACTIVE_USER_ID!==userId)return false;
+  await refreshReadableState(run,userId);if(run!==AUTH_GENERATION||ACTIVE_USER_ID!==userId)return false;
   switchTab(TABS.includes(requestedTab)?requestedTab:'home','replace');
   return true;
 }
@@ -746,11 +746,18 @@ $('#resetLink').onclick = async () => {
   $('#loginMsg').textContent = error ? ('메일 발송 실패: '+error.message) : '재설정 메일을 보냈어요. 메일함을 확인해 주세요.';
 };
 $('#logoutBtn').onclick = async () => { await sb.auth.signOut(); location.reload(); };
-$('#reloadBtn').onclick = async () => { const ok=await loadAll(); if(!$('#tab-finance').classList.contains('hidden'))await window.FinanceDashboard?.refresh(true); toast(ok?'최신 자료를 확인했어요':'일부 자료를 불러오지 못했습니다'); };
+$('#reloadBtn').onclick = async () => { const ok=await refreshReadableState(); if(!$('#tab-finance').classList.contains('hidden'))await window.FinanceDashboard?.refresh(true); toast(ok?'최신 자료를 확인했어요':'일부 자료를 불러오지 못했습니다'); };
 $('#coreRetry').onclick=()=>loadAll();
 sb.auth.onAuthStateChange((event,session)=>{const nextId=String(session?.user?.id||''),knownId=ACTIVE_USER_ID||PENDING_USER_ID;if(event==='SIGNED_OUT'){showLogin(knownId?'로그인 시간이 끝났어요. 다시 로그인해 주세요.':'');return}if(!nextId)return;if(event==='USER_UPDATED'||nextId!==knownId||(!knownId&&event==='SIGNED_IN'))startSessionVerification(session);});
 
 /* ---------- 데이터 로드 ---------- */
+async function refreshReadableState(expectedGeneration=AUTH_GENERATION,expectedUserId=ACTIVE_USER_ID){
+  const [coreOk,workspaceOk]=await Promise.all([
+    loadAll(expectedGeneration,expectedUserId),
+    window.AssistantWorkspaceUI?.refresh?.()
+  ]);
+  return Boolean(coreOk&&workspaceOk);
+}
 async function loadAll(expectedGeneration=AUTH_GENERATION,expectedUserId=ACTIVE_USER_ID){
   if(expectedGeneration!==AUTH_GENERATION||!expectedUserId||expectedUserId!==ACTIVE_USER_ID)return false;
   if(CORE_LOAD)return CORE_LOAD;
@@ -1398,7 +1405,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./assistant-request-adapter.js?v=20261027-1"></script>
 <script src="./assistant-workspace-adapter.js?v=20261028-3"></script>
 <script src="./assistant-request-panel.js?v=20261029-2"></script>
-<script src="./assistant-workspace-ui.js?v=20261028-3"></script>
+<script src="./assistant-workspace-ui.js?v=20261029-1"></script>
 <script src="./integration.js?v=20261011-5"></script>
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>
