@@ -272,7 +272,7 @@
             <button type="button" data-nav-tab="integration">연결 현황</button><button type="button" id="personal-plan-refresh">최신 자료 확인</button><button type="button" id="personal-plan-logout">로그아웃</button>
           </div>
         </aside>
-        <div class="personal-plan-mobile-head"><a href="#read" data-nav-tab="read"><span aria-hidden="true">책</span><b>개띠랑 작업 노트</b></a><button type="button" id="personal-mobile-info" aria-expanded="false">메뉴</button></div>
+        <div class="personal-plan-mobile-head"><a class="global-home-link" href="#home" data-nav-tab="home"><span aria-hidden="true">⌂</span><b>전체 현황</b></a><button type="button" id="personal-mobile-info" aria-expanded="false">메뉴</button></div>
         <div class="personal-plan-workspace">
           <div class="personal-plan-head"><div><p class="personal-plan-eyebrow">WORK NOTE</p><h1 id="personal-plan-title">오늘</h1><p id="personal-plan-subtitle">오늘 집중할 일과 다음 일정을 봅니다.</p></div><button type="button" class="personal-team-return" data-nav-tab="home">팀 오늘 보기</button></div>
           <p id="personal-plan-error" class="personal-plan-error" role="alert" hidden></p>
@@ -1421,7 +1421,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./integration.js?v=20261011-5"></script>
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>
-<script src="./admin-apple-ux.js?v=20261029-2"></script>
+<script src="./admin-apple-ux.js?v=20261029-3"></script>
 <script>
 window.PersonalPlanner?.init({navigate:switchTab});
 window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,requestSyncEndpoint:SUPABASE_URL+'/functions/v1/operations-requests',requestSyncOrigin:SUPABASE_URL,onDenied:showLogin,navigate:switchTab,loadCore:loadOperationsCore,readAll:(table,columns,options)=>Core.readAll(sb,table,columns,options),getContext:()=>{const p=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});return {ok:CORE_SYNC.ok,queriedAt:CORE_SYNC.at?.toISOString?.()||null,ordersKnown:sourceKnown('orders'),inquiriesKnown:sourceKnown('inquiries'),newOrders:p.newOrders.length,toShip:p.toShip.length,newInquiries:p.newInquiries.length};}});
