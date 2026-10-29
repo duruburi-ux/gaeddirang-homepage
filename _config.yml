@@ -2,6 +2,13 @@ exclude:
   - preview
   - supabase
   - tests
+  - artifacts
+  - ADMIN-2A-DESIGN-2026-10-10.md
+  - ADMIN-APPLE-UX-HANDOFF.md
+  - ADMIN-AUDIT-2026-10-10.md
+  - ADMIN-RLS-BASELINE-2026-10-10.md
+  - ADMIN_UNIFIED_OPERATIONS_DESIGN_2026-10-11.md
+  - ADMIN_UX_AUDIT_2026-10-10.md
   - SCM-RELEASE-STATUS.md
   - README.md
   - package.json
