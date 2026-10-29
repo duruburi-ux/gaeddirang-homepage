@@ -38,7 +38,7 @@ Those permissions are intentionally not requested or used here.
 ## Verification
 
 - Focused Node UX contract: 5/5 pass.
-- Chromium UX flows: 5/5 pass at 1440 px and 390 px.
+- Chromium UX flows: 6/6 pass at 1440 px and 390 px, including visible/bounded personal and management drawers, close button, backdrop, Escape, click-through navigation, and focus restoration.
 - Existing static-release Chromium regression: 6/6 pass.
 - Full Node suite: 261 total, 256 pass, five unchanged inherited failures, zero candidate-only failures.
 - Team-overview and book-finder screenshots use synthetic fixtures. The program-review screenshot also renders the repository's existing fixed public program content; none of the screenshots contains private contact, account, payment, or participant information.

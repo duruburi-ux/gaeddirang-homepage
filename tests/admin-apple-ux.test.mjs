@@ -5,6 +5,7 @@ import {readFileSync} from 'node:fs';
 const html=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');
 const css=readFileSync(new URL('../admin/admin-apple-ux.css',import.meta.url),'utf8');
 const personalPlanCss=readFileSync(new URL('../admin/personal-plan.css',import.meta.url),'utf8');
+const personalPlanJs=readFileSync(new URL('../admin/personal-plan.js',import.meta.url),'utf8');
 const js=readFileSync(new URL('../admin/admin-apple-ux.js',import.meta.url),'utf8');
 const teamModel=readFileSync(new URL('../admin/team-dashboard-model.js',import.meta.url),'utf8');
 
@@ -29,6 +30,10 @@ test('hidden toast and desktop drawer controls cannot intercept primary navigati
   assert.match(html,/\.toast\{[^}]*pointer-events:none/);
   assert.match(css,/\.personal-plan-drawer-close\{display:none\}/);
   assert.match(personalPlanCss,/mobile-menu-open \.personal-plan-drawer-close[\s\S]*display:flex/);
+  assert.match(css,/body \.personal-plan-sidebar\{display:none!important\}[\s\S]*personal-plan-sidebar\.mobile-menu-open[\s\S]*display:flex!important/);
+  assert.match(css,/mobile-menu-open>\.personal-plan-manage\{display:flex!important/);
+  assert.match(personalPlanJs,/returnTrigger=admin&&drawerTrigger\?\.isConnected\?drawerTrigger:trigger/);
+  assert.match(html,/personal-plan\.js\?v=20261029-2/);
 });
 
 test('bulk and program actions remain explicit, reversible and above the mobile navigation',()=>{

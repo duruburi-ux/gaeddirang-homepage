@@ -74,6 +74,49 @@ test('390 book finder keeps search and primary navigation within touch reach',as
   await page.screenshot({path:path.join(screenshotDir,'book-finder-390.png'),fullPage:true});
 });
 
+test('390 personal and management drawers are visible, bounded, dismissible and restore focus',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('/admin/#read',{waitUntil:'domcontentloaded'});
+  const trigger=page.locator('#personal-mobile-info'),sidebar=page.locator('.personal-plan-sidebar'),close=page.locator('.personal-plan-drawer-close'),backdrop=page.locator('.personal-plan-drawer-backdrop');
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+  await expect(sidebar).toBeVisible();
+  await expect(sidebar).toHaveClass(/mobile-menu-open/);
+  await expect(close).toBeVisible();
+  await expect(close).toBeFocused();
+  await expect(backdrop).toBeVisible();
+  const infoBounds=await sidebar.boundingBox();
+  expect(infoBounds&&infoBounds.width>250&&infoBounds.width<=390&&infoBounds.x>=0&&infoBounds.x+infoBounds.width<=390).toBeTruthy();
+  await close.click();
+  await expect(sidebar).toBeHidden();
+  await expect(backdrop).toBeHidden();
+  await expect(trigger).toBeFocused();
+
+  await trigger.click();
+  await page.locator('#personal-open-manage').click();
+  await expect(sidebar).toBeVisible();
+  await expect(sidebar).toHaveClass(/mobile-admin-open/);
+  await expect(page.locator('.personal-admin-menu')).toBeVisible();
+  const adminBounds=await sidebar.boundingBox();
+  expect(adminBounds&&adminBounds.width>250&&adminBounds.width<=390&&adminBounds.x>=0&&adminBounds.x+adminBounds.width<=390).toBeTruthy();
+  await page.keyboard.press('Escape');
+  await expect(sidebar).toBeHidden();
+  await expect(backdrop).toBeHidden();
+  await expect(trigger).toBeFocused();
+
+  await trigger.click();
+  await backdrop.click({position:{x:4,y:200}});
+  await expect(sidebar).toBeHidden();
+  await expect(trigger).toBeFocused();
+
+  await trigger.click();
+  await page.locator('#personal-open-manage').click();
+  await page.locator('.personal-admin-menu [data-nav-tab="publishing"]').click();
+  await expect(page.locator('#tab-publishing')).toBeVisible();
+  await expect(sidebar).toBeHidden();
+  await expect(backdrop).toBeHidden();
+});
+
 test('program review keeps draft actions, preview and disconnected publishing boundary visible',async({page})=>{
   await page.setViewportSize({width:1440,height:1050});
   await page.goto('/admin/#publishing',{waitUntil:'domcontentloaded'});

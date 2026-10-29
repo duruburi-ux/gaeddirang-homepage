@@ -5,7 +5,7 @@ import {existsSync,readFileSync,writeFileSync} from 'node:fs';
 import {relative,resolve} from 'node:path';
 
 const BASE='e96f89e3dd3b81be41fc7e1dbb7eaa9d7e7db360';
-const runtimeFiles=['admin/index.html','admin/admin-apple-ux.css','admin/admin-apple-ux.js'];
+const runtimeFiles=['admin/index.html','admin/admin-apple-ux.css','admin/admin-apple-ux.js','admin/personal-plan.js'];
 const reviewFiles=[
   'tests/admin-apple-ux.test.mjs',
   'tests/visual/admin-apple-ux.spec.mjs',
@@ -57,7 +57,7 @@ const manifest={
   unchangedPublicFiles:{...unchangedPublicFiles,'assets/program-approved-payload.js':'absent_in_base_and_candidate'},
   verification:{
     focusedUxNode:'5/5 pass',
-    chromiumUx:'5/5 pass',
+    chromiumUx:'6/6 pass',
     chromiumExistingRelease:'6/6 pass',
     fullNode:'261 total; 256 pass; 5 unchanged inherited fail',
     candidateOnlyAdditionalFailures:0,
