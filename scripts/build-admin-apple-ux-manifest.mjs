@@ -17,14 +17,14 @@ const screenshotFiles=[
   'artifacts/admin-apple-ux-20261029/program-review-1440.png',
   'artifacts/admin-apple-ux-20261029/book-finder-390.png',
 ];
-const [outputArg,patchArg]=process.argv.slice(2);
-if(!outputArg||!patchArg)throw Error('usage: node scripts/build-admin-apple-ux-manifest.mjs <output.json> <patch-file>');
-const cwd=process.cwd(),output=resolve(outputArg),patch=resolve(patchArg);
+const [outputArg,...patchArgs]=process.argv.slice(2);
+if(!outputArg||!patchArgs.length)throw Error('usage: node scripts/build-admin-apple-ux-manifest.mjs <output.json> <patch-file> [patch-file...]');
+const cwd=process.cwd(),output=resolve(outputArg),patches=patchArgs.map(path=>resolve(path));
 const git=args=>execFileSync('git',args,{cwd,encoding:'utf8'});
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const fileSha=path=>sha(readFileSync(resolve(cwd,path)));
 const assertSha=(value,label)=>{if(!/^[a-f0-9]{64}$/.test(value))throw Error(`INVALID_SHA256:${label}:${value}`);return value;};
-const head=git(['rev-parse','HEAD']).trim(),base=git(['rev-parse','HEAD^']).trim();
+const head=git(['rev-parse','HEAD']).trim(),base=git(['merge-base',BASE,head]).trim();
 if(base!==BASE)throw Error(`UNEXPECTED_BASE:${base}`);
 const changed=git(['diff','--name-only',`${BASE}..${head}`]).trim().split('\n').filter(Boolean).sort();
 const expected=[...runtimeFiles,...reviewFiles].sort();
@@ -49,17 +49,17 @@ const manifest={
   branch:git(['branch','--show-current']).trim(),
   baseCommit:BASE,
   candidateCommit:head,
-  rollback:`git revert ${head}`,
-  patch:{file:relative(resolve(output,'..'),patch),sha256:assertSha(sha(readFileSync(patch)),'patch')},
+  rollback:`git revert --no-commit ${BASE}..${head}`,
+  patches:patches.map(path=>({file:relative(resolve(output,'..'),path),sha256:assertSha(sha(readFileSync(path)),`patch:${path}`)})),
   runtimeFiles:entries(runtimeFiles),
   reviewContractFiles:entries(reviewFiles),
   screenshotEvidence:entries(screenshotFiles),
   unchangedPublicFiles:{...unchangedPublicFiles,'assets/program-approved-payload.js':'absent_in_base_and_candidate'},
   verification:{
-    focusedUxNode:'4/4 pass',
+    focusedUxNode:'5/5 pass',
     chromiumUx:'5/5 pass',
     chromiumExistingRelease:'6/6 pass',
-    fullNode:'260 total; 255 pass; 5 unchanged inherited fail',
+    fullNode:'261 total; 256 pass; 5 unchanged inherited fail',
     candidateOnlyAdditionalFailures:0,
   },
   inheritedFailures:[
@@ -77,4 +77,4 @@ const manifest={
   ],
 };
 writeFileSync(output,JSON.stringify(manifest,null,2)+'\n','utf8');
-console.log(JSON.stringify({output,candidateCommit:head,patchSha:manifest.patch.sha256,runtimeFiles:runtimeFiles.length,reviewFiles:reviewFiles.length,screenshots:screenshotFiles.length}));
+console.log(JSON.stringify({output,candidateCommit:head,patches:manifest.patches,runtimeFiles:runtimeFiles.length,reviewFiles:reviewFiles.length,screenshots:screenshotFiles.length}));

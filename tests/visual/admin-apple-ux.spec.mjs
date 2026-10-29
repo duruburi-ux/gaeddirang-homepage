@@ -17,7 +17,7 @@ async function install(page){
     }
     const auth={getSession:async()=>({data:{session:window.__session},error:null}),onAuthStateChange:cb=>{window.__authCallbacks.push(cb);return {data:{subscription:{unsubscribe(){}}}}},signOut:async()=>({error:null}),signInWithPassword:async()=>({data:{session:window.__session},error:null}),resetPasswordForEmail:async()=>({error:null})};
     const functions={invoke:async(name,options={})=>name==='assistant-workspace'&&options.method==='GET'?{data:{contractVersion:1,fetchedAt:new Date().toISOString(),executionEnabled:false,personalPlans:[],requests:[]},error:null}:{data:null,error:{message:'unconnected fixture function'}}};
-    window.supabase={createClient:()=>({auth,from:()=>new Query(),rpc:async name=>name==='is_admin'?{data:true,error:null}:{data:null,error:{message:'unsupported fixture rpc'}},functions,storage:{from:()=>({createSignedUrl:async()=>({data:null,error:{message:'empty fixture'}})})}})};
+    window.supabase={createClient:()=>({auth,from:()=>new Query(),rpc:async name=>{if(name!=='is_admin')return {data:null,error:{message:'unsupported fixture rpc'}};if(window.__delayAdmin)await new Promise(resolve=>setTimeout(resolve,250));return {data:true,error:null}},functions,storage:{from:()=>({createSignedUrl:async()=>({data:null,error:{message:'empty fixture'}})})}})};
   },A);
   await page.route('**/supabase.min.js',route=>route.fulfill({contentType:'application/javascript',body:''}));
   await page.route('**/xlsx.full.min.js',route=>route.fulfill({contentType:'application/javascript',body:'window.XLSX={};'}));
@@ -34,6 +34,7 @@ test('1440 team overview keeps clear hierarchy and safe unknown states',async({p
   await expect(page.locator('#team-lanes-grid .team-lane')).toHaveCount(9);
   await expect(page.locator('#team-lanes-status')).toContainText('원천 확인 전');
   await expect(page.locator('.ux-command-trigger')).toBeVisible();
+  await expect(page.locator('.personal-plan-drawer-close')).toBeHidden();
   await page.screenshot({path:path.join(screenshotDir,'team-overview-1440.png'),fullPage:true});
 });
 
@@ -62,6 +63,14 @@ test('390 book finder keeps search and primary navigation within touch reach',as
   await expect(page.locator('[data-ux-route="finder"]')).toHaveAttribute('aria-current','page');
   const boxes=await page.locator('.ux-mobile-nav button').evaluateAll(rows=>rows.map(row=>row.getBoundingClientRect().height));
   expect(boxes.every(height=>height>=54)).toBeTruthy();
+  await expect(page.locator('#toast')).toHaveCSS('pointer-events','none');
+  await page.locator('[data-ux-route="home"]').click();
+  await expect(page.locator('#tab-home')).toBeVisible();
+  await page.evaluate(()=>window.toast('표시 토스트 검증'));
+  await expect(page.locator('#toast')).toHaveClass(/show/);
+  await expect(page.locator('#toast')).toHaveText('표시 토스트 검증');
+  await page.locator('[data-ux-route="finder"]').click();
+  await expect(page.locator('#tab-finder')).toBeVisible();
   await page.screenshot({path:path.join(screenshotDir,'book-finder-390.png'),fullPage:true});
 });
 
@@ -80,7 +89,24 @@ test('account transition and rapid navigation do not multiply UX shell controls'
   for(let i=0;i<3;i++){await page.locator('[data-ux-route="finder"]').click();await page.locator('[data-ux-route="home"]').click()}
   expect(await page.locator('.ux-mobile-nav').count()).toBe(1);
   expect(await page.locator('.ux-command').count()).toBe(1);
+  await page.keyboard.press(process.platform==='darwin'?'Meta+K':'Control+K');
+  await page.locator('#ux-command-input').fill('위탁 연락처');
+  await expect(page.locator('.ux-command')).toBeVisible();
+  await page.evaluate(()=>{
+    window.__delayAdmin=true;
+    const session={access_token:'token-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',user:{id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',email:'b@example.test'}};
+    window.__session=session;
+    window.__authCallbacks.forEach(callback=>callback('SIGNED_IN',session));
+  });
+  await expect(page.locator('.ux-command')).toBeHidden();
+  await expect(page.locator('#ux-command-input')).toHaveValue('');
+  await expect(page.locator('#loginView')).toBeVisible();
+  await expect(page.locator('#email')).toBeFocused();
+  await page.evaluate(()=>{window.__delayAdmin=false});
+  await expect(page.locator('#appView')).toBeVisible();
   await page.evaluate(()=>window.__authCallbacks.forEach(callback=>callback('SIGNED_OUT',null)));
   await expect(page.locator('#loginView')).toBeVisible();
+  await expect(page.locator('.ux-command')).toBeHidden();
+  await expect(page.locator('#ux-command-input')).toHaveValue('');
   await expect(page.locator('#team-lanes-grid')).toBeEmpty();
 });

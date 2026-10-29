@@ -4,12 +4,13 @@ import {readFileSync} from 'node:fs';
 
 const html=readFileSync(new URL('../admin/index.html',import.meta.url),'utf8');
 const css=readFileSync(new URL('../admin/admin-apple-ux.css',import.meta.url),'utf8');
+const personalPlanCss=readFileSync(new URL('../admin/personal-plan.css',import.meta.url),'utf8');
 const js=readFileSync(new URL('../admin/admin-apple-ux.js',import.meta.url),'utf8');
 const teamModel=readFileSync(new URL('../admin/team-dashboard-model.js',import.meta.url),'utf8');
 
 test('Apple-inspired UX assets are isolated additions on the gated admin page',()=>{
-  assert.match(html,/admin-apple-ux\.css\?v=20261029-1/);
-  assert.match(html,/admin-apple-ux\.js\?v=20261029-1/);
+  assert.match(html,/admin-apple-ux\.css\?v=20261029-2/);
+  assert.match(html,/admin-apple-ux\.js\?v=20261029-2/);
   assert.doesNotMatch(js,/fetch\(|\.from\(|\.update\(|\.insert\(|localStorage|sessionStorage/);
 });
 
@@ -20,6 +21,14 @@ test('command palette provides keyboard, touch and the three representative rout
   assert.match(js,/data-ux-more/);
   assert.match(css,/min-height:54px/);
   assert.match(css,/@media\(max-width:390px\)/);
+  assert.match(js,/function deactivate\(\)\{close\(false\);activeIndex=0/);
+  assert.match(html,/window\.AdminAppleUX\?\.deactivate\(\)/);
+});
+
+test('hidden toast and desktop drawer controls cannot intercept primary navigation',()=>{
+  assert.match(html,/\.toast\{[^}]*pointer-events:none/);
+  assert.match(css,/\.personal-plan-drawer-close\{display:none\}/);
+  assert.match(personalPlanCss,/mobile-menu-open \.personal-plan-drawer-close[\s\S]*display:flex/);
 });
 
 test('bulk and program actions remain explicit, reversible and above the mobile navigation',()=>{

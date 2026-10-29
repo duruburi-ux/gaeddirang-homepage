@@ -148,7 +148,7 @@
   .item-row .q{color:var(--muted)}
   .bar{height:7px;background:#efe6db;border-radius:999px;overflow:hidden;margin-top:6px}
   .bar > i{display:block;height:100%;background:var(--orange);border-radius:999px}
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:13.5px;z-index:60;opacity:0;transition:.2s}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:13.5px;z-index:60;opacity:0;transition:.2s;pointer-events:none}
   .toast.show{opacity:1}
   .alert-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:13.5px;line-height:1.9;white-space:pre-wrap;word-break:break-all;max-height:340px;overflow-y:auto}
   .core-banner{display:flex;align-items:center;gap:12px;background:#fff6e8;border:1px solid #edc98c;border-radius:12px;padding:11px 13px;margin-bottom:14px;color:#6d4b18;font-size:13px}
@@ -161,7 +161,7 @@
   }
 </style>
 <link rel="stylesheet" href="./admin-ux.css?v=20261026-1" />
-<link rel="stylesheet" href="./admin-apple-ux.css?v=20261029-1" />
+<link rel="stylesheet" href="./admin-apple-ux.css?v=20261029-2" />
 </head>
 <body>
 
@@ -704,7 +704,7 @@ async function boot(){
   if(session)await startSessionVerification(session);
   else showLogin();
 }
-function clearPrivateUi(message=''){CORE_LOAD=null;const quick=$('#personal-quick-title');if(quick)quick.value='';window.TeamDashboard?.deactivate();window.ProgramPublishing?.deactivate();window.AssistantWorkspaceUI?.deactivate();window.PersonalPlanner?.deactivate();window.AssistantRequestPanel?.clear();window.OperationsRead?.clear();window.BookFinder?.clear();window.SCM?.clear();window.Work?.clear();window.OperationsSourcesDashboard?.clear();window.Integration?.clear();window.FinanceDashboard?.clear();clearCoreData();$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');$('#pw').value='';$('#loginMsg').style.color='var(--orange-d)';$('#loginMsg').textContent=message;requestAnimationFrame(()=>$('#email').focus())}
+function clearPrivateUi(message=''){CORE_LOAD=null;const quick=$('#personal-quick-title');if(quick)quick.value='';window.AdminAppleUX?.deactivate();window.TeamDashboard?.deactivate();window.ProgramPublishing?.deactivate();window.AssistantWorkspaceUI?.deactivate();window.PersonalPlanner?.deactivate();window.AssistantRequestPanel?.clear();window.OperationsRead?.clear();window.BookFinder?.clear();window.SCM?.clear();window.Work?.clear();window.OperationsSourcesDashboard?.clear();window.Integration?.clear();window.FinanceDashboard?.clear();clearCoreData();$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');$('#pw').value='';$('#loginMsg').style.color='var(--orange-d)';$('#loginMsg').textContent=message;requestAnimationFrame(()=>$('#email').focus())}
 function showLogin(message=''){AUTH_GENERATION++;ACTIVE_USER_ID='';PENDING_USER_ID='';AUTH_VERIFY=null;clearPrivateUi(message)}
 async function startSessionVerification(session){
   const userId=String(session?.user?.id||'');if(!userId){showLogin();return false}
@@ -1400,7 +1400,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./integration.js?v=20261011-5"></script>
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>
-<script src="./admin-apple-ux.js?v=20261029-1"></script>
+<script src="./admin-apple-ux.js?v=20261029-2"></script>
 <script>
 window.PersonalPlanner?.init({navigate:switchTab});
 window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,requestSyncEndpoint:SUPABASE_URL+'/functions/v1/operations-requests',requestSyncOrigin:SUPABASE_URL,onDenied:showLogin,navigate:switchTab,loadCore:loadOperationsCore,readAll:(table,columns,options)=>Core.readAll(sb,table,columns,options),getContext:()=>{const p=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});return {ok:CORE_SYNC.ok,queriedAt:CORE_SYNC.at?.toISOString?.()||null,ordersKnown:sourceKnown('orders'),inquiriesKnown:sourceKnown('inquiries'),newOrders:p.newOrders.length,toShip:p.toShip.length,newInquiries:p.newInquiries.length};}});

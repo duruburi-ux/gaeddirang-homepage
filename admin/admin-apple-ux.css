@@ -22,6 +22,7 @@ body.management-view .personal-admin-group>strong{display:block;padding:9px 8px 
 body.management-view .personal-admin-menu button,
 body.management-view .personal-admin-menu a{min-height:42px;border-radius:8px;font-size:12px}
 .personal-plan-account{border-top-color:var(--ux-line);color:var(--ux-muted)}
+.personal-plan-drawer-close{display:none}
 
 .management-context{border-bottom:1px solid var(--ux-line)}
 .management-related button{border-radius:999px!important;background:var(--ux-surface)!important}
