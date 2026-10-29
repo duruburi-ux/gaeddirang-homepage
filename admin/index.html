@@ -328,7 +328,7 @@
             <label>제목<input id="assistant-request-title" maxlength="200" required></label>
             <label>완료 조건·필요한 결과<textarea id="assistant-request-body" maxlength="2000" rows="3"></textarea></label>
             <p id="assistant-request-route-note" class="assistant-request-route-note">본인이 처리할 메모 또는 실행 항목입니다.</p>
-            <div class="assistant-request-actions"><button type="submit">로컬 검토안 만들기</button><button type="button" id="assistant-request-reset">입력 지우기</button><button type="button" id="assistant-request-refresh">서버 자료 확인</button></div>
+            <div class="assistant-request-actions"><button type="submit">로컬 검토안 만들기</button><button type="button" id="assistant-request-storeordersync">주문 수집 상태 요청 준비</button><button type="button" id="assistant-request-reset">입력 지우기</button><button type="button" id="assistant-request-refresh">서버 자료 확인</button></div>
             <p id="assistant-request-status" class="assistant-request-status" role="status" aria-live="polite">검토안은 로컬에만 있습니다. 서버 접수 버튼을 눌러야 접수되며 자동 실행은 시작되지 않습니다.</p>
           </form>
           <div id="assistant-request-list" class="assistant-request-list" aria-label="로컬 처리 검토안"></div>
@@ -1344,7 +1344,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./assistant-request-model.js?v=20261027-1"></script>
 <script src="./assistant-request-adapter.js?v=20261027-1"></script>
 <script src="./assistant-workspace-adapter.js?v=20261028-3"></script>
-<script src="./assistant-request-panel.js?v=20261027-2"></script>
+<script src="./assistant-request-panel.js?v=20261029-2"></script>
 <script src="./assistant-workspace-ui.js?v=20261028-3"></script>
 <script src="./integration.js?v=20261011-5"></script>
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
