@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="./assistant-request-panel.css?v=20261027-1" />
 <link rel="stylesheet" href="./finance-dashboard.css?v=20261012-2" />
 <link rel="stylesheet" href="./dashboard.css" />
-<link rel="stylesheet" href="./team-dashboard.css?v=20261029-1" />
+<link rel="stylesheet" href="./team-dashboard.css?v=20261029-2" />
 <link rel="stylesheet" href="./program-publishing.css?v=20261029-1" />
 <link rel="stylesheet" href="./partner-directory.css?v=20261029-1" />
 <link rel="stylesheet" href="./book-finder.css?v=20261013-1" />
@@ -162,6 +162,7 @@
 </style>
 <link rel="stylesheet" href="./admin-ux.css?v=20261026-1" />
 <link rel="stylesheet" href="./admin-apple-ux.css?v=20261029-2" />
+<link rel="stylesheet" href="./cute-app-ux.css?v=20261029-1" />
 </head>
 <body>
 
@@ -487,7 +488,7 @@
     <!-- 홈 -->
     <section id="tab-home" class="dash hidden" aria-label="운영 대시보드">
       <div class="dash-top">
-        <div><p class="dash-date" id="homeHd"></p><h1>세 사람이 함께 보는 전체 현황</h1><span class="dash-lead">일정은 한 기능으로 두고, 운영 판단과 다음 행동을 먼저 모았습니다.</span></div>
+        <div><p class="dash-date" id="homeHd"></p><h1>오늘 같이 볼 일</h1><span class="dash-lead">지금 할 일, 확인할 일, 진행 중인 일만 먼저 봅니다.</span></div>
         <form id="dashSearchForm" class="dash-search" role="search"><label for="dashSearch">메뉴와 업무 찾기</label><div><input id="dashSearch" type="search" placeholder="예: 주문, 블라인드북, 정산" autocomplete="off"><button>찾기</button></div></form>
       </div>
       <div class="team-dashboard-scope" role="note"><strong>운영 연결 경계</strong><span>이 화면은 확인된 원천을 읽고 개인 일정·검토 요청만 만듭니다. 재고·가격·정산·송금·메일·홈페이지 공개는 여기서 자동 실행하지 않습니다.</span></div>
@@ -495,16 +496,16 @@
         <div class="dash-section-head"><div><p class="dash-kicker">운영 영역</p><h2 id="team-lanes-title">한눈에 보는 책공방</h2></div><span id="team-lanes-status" class="dash-data-status">원천 확인 전</span></div>
         <div id="team-lanes-grid" class="team-lanes-grid"></div>
       </section>
-      <section class="dash-block dash-priority" aria-labelledby="priorityTitle"><div class="dash-section-head"><div><p class="dash-kicker">오늘의 처리 순서</p><h2 id="priorityTitle">지금 확인할 일</h2></div><strong id="priorityTotal" class="dash-total"></strong></div><p class="dash-priority-note">입금·발송·답변처럼 다음 행동이 필요한 기록만 모았습니다.</p><div class="todo-grid" id="todoGrid"></div></section>
+      <section class="dash-block dash-priority" aria-labelledby="priorityTitle"><div class="dash-section-head"><div><p class="dash-kicker">TODAY</p><h2 id="priorityTitle">오늘 할 일</h2></div><strong id="priorityTotal" class="dash-total"></strong></div><p class="dash-priority-note">입금·발송·답변처럼 다음 행동이 필요한 기록만 모았습니다.</p><div class="todo-grid" id="todoGrid"></div></section>
       <section class="dash-block team-workboard" aria-labelledby="team-workboard-title">
-        <div class="dash-section-head"><div><p class="dash-kicker">공동 업무</p><h2 id="team-workboard-title">검색하고 묶어서 다음 행동 정하기</h2></div><button class="dash-text-btn" data-dash-tab="work">원본 보기 →</button></div>
-        <div class="team-workboard-controls"><label>업무 찾기 <input id="team-work-search" type="search" placeholder="업무명 · 상태 · 담당" autocomplete="off"></label><label>담당 <select id="team-work-assignee"><option value="">모두</option><option>장진호</option><option>이진이</option><option>이다솜</option><option value="__unassigned">미지정</option></select></label><label>상태 <select id="team-work-status"><option value="">모두</option><option>진행</option><option>준비</option><option>막힘</option><option>완료</option></select></label></div>
-        <div class="team-workboard-bulk"><label><input id="team-work-select-all" type="checkbox"> 현재 목록 전체 선택</label><strong id="team-work-selected">0개 선택</strong><button id="team-work-to-plan" type="button" disabled>내 일정에 연결</button><label>담당 변경 요청 <select id="team-work-request-owner"><option value="">담당 선택</option><option>장진호</option><option>이진이</option><option>이다솜</option><option>공동</option></select></label><button id="team-work-request" type="button" disabled>검토 요청 만들기</button><button id="team-work-clear" type="button" disabled>선택 해제</button></div>
+        <div class="dash-section-head"><div><p class="dash-kicker">REVIEW</p><h2 id="team-workboard-title">확인할 일</h2></div><button class="dash-text-btn" data-dash-tab="work">팀 업무 전체 보기 →</button></div>
+        <details class="team-workboard-tools"><summary>검색 · 필터 · 묶음 처리</summary><div class="team-workboard-controls"><label>업무 찾기 <input id="team-work-search" type="search" placeholder="업무명 · 상태 · 담당" autocomplete="off"></label><label>담당 <select id="team-work-assignee"><option value="">모두</option><option>장진호</option><option>이진이</option><option>이다솜</option><option value="__unassigned">미지정</option></select></label><label>상태 <select id="team-work-status"><option value="">모두</option><option>진행</option><option>준비</option><option>막힘</option><option>완료</option></select></label></div>
+        <div class="team-workboard-bulk"><label><input id="team-work-select-all" type="checkbox"> 현재 목록 전체 선택</label><strong id="team-work-selected">0개 선택</strong><button id="team-work-to-plan" type="button" disabled>내 일정에 연결</button><label>담당 변경 요청 <select id="team-work-request-owner"><option value="">담당 선택</option><option>장진호</option><option>이진이</option><option>이다솜</option><option>공동</option></select></label><button id="team-work-request" type="button" disabled>검토 요청 만들기</button><button id="team-work-clear" type="button" disabled>선택 해제</button></div></details>
         <p id="team-workboard-status" class="team-workboard-status" role="status" aria-live="polite">팀 원본 연결 준비 중입니다. 현재 목록이 비어 있어도 0건으로 확정하지 않습니다.</p>
         <div id="team-workboard-list" class="team-workboard-list"></div>
       </section>
       <div class="dash-signals" aria-label="운영 신호">
-        <section class="dash-block dash-work" aria-labelledby="workTitle"><div class="dash-section-head"><div><p class="dash-kicker">팀 업무</p><h2 id="workTitle">진행·승인·막힘</h2></div><button class="dash-text-btn" data-dash-tab="work">열기 →</button></div><div id="dashWorkStatus" class="dash-work-status">팀 업무를 확인하고 있어요.</div><div id="dashWorkMetrics" class="dash-work-metrics"><div><strong>—</strong><span>진행</span></div><div><strong>—</strong><span>확인</span></div><div><strong>—</strong><span>승인</span></div><div><strong>—</strong><span>막힘</span></div></div><div id="dashWorkPreview" class="dash-work-preview"></div><p class="dash-help">오래된 기록은 현재 상황과 구분합니다.</p></section>
+        <section class="dash-block dash-work" aria-labelledby="workTitle"><div class="dash-section-head"><div><p class="dash-kicker">IN PROGRESS</p><h2 id="workTitle">진행 중인 일</h2></div><button class="dash-text-btn" data-dash-tab="work">전체 보기 →</button></div><div id="dashWorkStatus" class="dash-work-status">팀 업무를 확인하고 있어요.</div><div id="dashWorkMetrics" class="dash-work-metrics"><div><strong>—</strong><span>진행</span></div><div><strong>—</strong><span>확인</span></div><div><strong>—</strong><span>승인</span></div><div><strong>—</strong><span>막힘</span></div></div><div id="dashWorkPreview" class="dash-work-preview"></div><p class="dash-help">오래된 기록은 현재 상황과 구분합니다.</p></section>
         <section class="dash-block dash-stock" aria-labelledby="stockTitle"><div class="dash-section-head"><div><p class="dash-kicker">전체 상품 원장</p><h2 id="stockTitle">장부에서 확인할 것</h2></div><button class="dash-text-btn" data-dash-tab="scm">열기 →</button></div><div id="dashScmStatus" class="dash-status">상품 원장을 확인하고 있어요.</div><div id="dashScmMetrics" class="dash-mini-metrics"><div><strong>—</strong><span>확인 필요</span></div><div><strong>—</strong><span>장부 경고</span></div></div><p class="dash-help">장부 수량이며 매장 판매가능을 보증하지 않습니다.</p></section>
         <section class="dash-block dash-integration" aria-labelledby="integrationTitle"><div class="dash-section-head"><div><p class="dash-kicker">통합 운영실</p><h2 id="integrationTitle">수집·재고·정산 흐름</h2></div><button class="dash-text-btn" data-dash-tab="integration">열기 →</button></div><div id="dashIntegrationStatus" class="dash-status">운영 단계를 확인하고 있어요.</div><div id="dashIntegrationMetrics" class="dash-mini-metrics"><div><strong>—</strong><span>자동 확인 단계</span></div><div><strong>—</strong><span>검토·재시도</span></div></div><p class="dash-help">연결 성공과 거래·지급 완료는 서로 다른 상태입니다.</p></section>
       </div>
@@ -1375,10 +1376,11 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./operations-read-model.js?v=20261025-1"></script>
 <script src="./operations-request-sync-model.js?v=20261018-2"></script>
 <script src="./operations-read.js?v=20261025-1"></script>
-<script src="./personal-plan.js?v=20261029-2"></script>
+<script src="./personal-plan.js?v=20261029-3"></script>
 <script src="./book-finder.js?v=20261013-1"></script>
 <script src="./scm.js?v=20261013-1"></script>
-<script src="./work.js?v=20261025-1"></script>
+<script src="./work-dashboard-snapshot-model.js?v=20261029-1"></script>
+<script src="./work.js?v=20261029-1"></script>
 <script src="./operations.js?v=20261016-2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="./payhere-import.js?v=20260906-1"></script>
@@ -1386,8 +1388,8 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./operations-sources-dashboard-model.js?v=20261026-1"></script>
 <script src="./operations-sources-dashboard.js?v=20261026-5"></script>
 <script src="../assets/public-content.js?v=20261011-1"></script>
-<script src="./team-dashboard-model.js?v=20261029-1"></script>
-<script src="./team-dashboard.js?v=20261029-1"></script>
+<script src="./team-dashboard-model.js?v=20261029-2"></script>
+<script src="./team-dashboard.js?v=20261029-2"></script>
 <script src="./program-publishing-model.js?v=20261029-1"></script>
 <script src="./program-publishing.js?v=20261029-1"></script>
 <script src="./partner-directory-model.js?v=20261029-1"></script>
@@ -1406,7 +1408,7 @@ window.PersonalPlanner?.init({navigate:switchTab});
 window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,requestSyncEndpoint:SUPABASE_URL+'/functions/v1/operations-requests',requestSyncOrigin:SUPABASE_URL,onDenied:showLogin,navigate:switchTab,loadCore:loadOperationsCore,readAll:(table,columns,options)=>Core.readAll(sb,table,columns,options),getContext:()=>{const p=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});return {ok:CORE_SYNC.ok,queriedAt:CORE_SYNC.at?.toISOString?.()||null,ordersKnown:sourceKnown('orders'),inquiriesKnown:sourceKnown('inquiries'),newOrders:p.newOrders.length,toShip:p.toShip.length,newInquiries:p.newInquiries.length};}});
 window.BookFinder?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.SCM?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
-window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
+window.Work?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin,getContext:()=>({userId:ACTIVE_USER_ID,generation:AUTH_GENERATION})});
 window.Operations?.init({navigate:switchTab});
 window.OperationsSourcesDashboard?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin,navigate:switchTab});
 window.TeamDashboard?.init({navigate:switchTab});
