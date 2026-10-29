@@ -4,41 +4,63 @@
   --studio-pink:#f8dfe6;--studio-line:#dbe2d8;--studio-shadow:0 18px 48px rgba(50,70,55,.10)
 }
 
-/* Home is a three-step decision surface. The full catalog remains in navigation. */
-#tab-home:not(.hidden){display:flex;flex-direction:column;max-width:1120px;margin:0 auto}
-#tab-home .dash-top{order:1}
+/* Home is a three-step decision surface. Inventory and connection detail stay one disclosure away. */
+#tab-home:not(.hidden){display:flex;flex-direction:column;max-width:980px;margin:0 auto}
+#tab-home .dash-top{order:1;margin-bottom:22px}
 #tab-home .dash-priority{order:2}
 #tab-home .team-workboard{order:3}
-#tab-home .dash-signals{order:4;display:block}
-#tab-home .dash-foot{order:5}
-#tab-home .team-dashboard-scope,#tab-home .team-lanes,#tab-home .dash-shortcuts,#tab-home .dash-summary,#tab-home .team-freshness,#tab-home .dash-stock,#tab-home .dash-integration{display:none}
-#tab-home .dash-top h1{max-width:560px;color:var(--studio-ink);font-size:clamp(40px,5vw,64px)!important;line-height:1!important}
-#tab-home .dash-lead{display:block;margin-top:14px;color:var(--studio-muted);font-size:16px}
-#tab-home .dash-block{border-color:var(--studio-line)!important;border-radius:24px!important;background:var(--studio-paper)!important;box-shadow:0 10px 34px rgba(50,70,55,.055)!important}
-#tab-home .dash-priority{border-top:6px solid var(--studio-orange)!important}
-#tab-home .team-workboard{border-top:6px solid var(--studio-green)!important}
-#tab-home .dash-work{border-top:6px solid var(--studio-blue)!important}
-#tab-home .dash-kicker{color:var(--studio-muted)!important;font-size:11px!important;letter-spacing:.16em!important}
-#tab-home .dash-section-head h2{font-size:28px!important;color:var(--studio-ink)}
-#tab-home .todo-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-#tab-home .todo{min-height:132px;border:1px solid var(--studio-line);border-radius:18px;background:#f8faf6;text-align:left;transition:transform .16s ease,box-shadow .16s ease}
-#tab-home .todo:nth-child(2){background:#fff8e9}#tab-home .todo:nth-child(3){background:#f4f0fb}#tab-home .todo:nth-child(4){background:#eef8fb}#tab-home .todo:nth-child(5){background:#fff1f2}
+#tab-home>.dash-work{order:4}
+#tab-home>.dash-more{order:5}
+#tab-home .dash-top h1{max-width:660px;color:var(--studio-ink);font-size:clamp(40px,5vw,58px)!important;line-height:1.02!important}
+#tab-home .dash-lead{display:block;margin-top:12px;color:var(--studio-muted);font-size:16px}
+.dash-view-switch{display:inline-flex;gap:4px;margin-bottom:22px;padding:4px;border:1px solid var(--studio-line);border-radius:999px;background:rgba(255,255,255,.68)}
+.dash-view-switch span,.dash-view-switch button{display:grid;place-items:center;min-height:36px;padding:0 14px;border:0;border-radius:999px;font:800 12px/1 inherit;color:var(--studio-muted);background:transparent}
+.dash-view-switch span{color:#fff;background:var(--studio-ink)}.dash-view-switch button{cursor:pointer}.dash-view-switch button:hover{background:#e9efe6;color:var(--studio-ink)}
+#tab-home .dash-block{border-color:var(--studio-line)!important;border-radius:22px!important;background:var(--studio-paper)!important;box-shadow:0 8px 28px rgba(50,70,55,.045)!important}
+#tab-home .dash-priority{border-top:5px solid var(--studio-orange)!important}
+#tab-home .team-workboard{border-top:5px solid var(--studio-green)!important}
+#tab-home>.dash-work{border-top:5px solid var(--studio-blue)!important}
+#tab-home .dash-kicker{color:var(--studio-muted)!important;font-size:11px!important;letter-spacing:.06em!important}
+#tab-home .dash-section-head h2{font-size:27px!important;color:var(--studio-ink)}
+#tab-home .todo-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#tab-home .todo{min-height:126px;border:1px solid var(--studio-line);border-radius:18px;background:#f8faf6;text-align:left;transition:transform .16s ease,box-shadow .16s ease}
+#tab-home .todo.primary-action{grid-column:1/-1;min-height:150px;border-color:var(--studio-ink);background:#fff3df;box-shadow:4px 5px 0 rgba(36,49,40,.10)}
+#tab-home .todo:nth-child(2){background:#f0f8fb}#tab-home .todo:nth-child(3){background:#f1f7e8}
 #tab-home .todo:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(50,70,55,.10)}
+#tab-home .dash-empty{grid-column:1/-1;margin:0;padding:28px;border:1px dashed var(--studio-line);border-radius:16px;color:var(--studio-muted);text-align:center;background:#f8faf6}
 .team-workboard-tools{margin:0 0 10px;border:1px solid var(--studio-line);border-radius:14px;background:#f7faf5}
 .team-workboard-tools>summary{display:flex;align-items:center;justify-content:space-between;min-height:48px;padding:0 14px;cursor:pointer;list-style:none;color:var(--studio-muted);font-weight:750}
 .team-workboard-tools>summary::-webkit-details-marker{display:none}.team-workboard-tools>summary::after{content:'+';font-size:20px}.team-workboard-tools[open]>summary::after{content:'−'}
 .team-workboard-tools .team-workboard-controls{padding:4px 12px 10px}.team-workboard-tools .team-workboard-bulk{margin:0 12px 12px}
 #tab-home .team-work-row{border-radius:16px!important;background:#fff!important;transition:transform .14s ease,box-shadow .14s ease}
 #tab-home .team-work-row:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(50,70,55,.08)}
+#tab-home:not(.team-bulk-mode) .team-work-row{grid-template-columns:minmax(0,1fr) auto}
+#tab-home:not(.team-bulk-mode) .team-work-row>label{display:none}
 #tab-home .dash-work-metrics button{border-radius:16px!important;background:#f4f8f2!important}
+.dash-work-counts{margin-top:10px;border-top:1px solid var(--studio-line)}
+.dash-work-counts>summary{min-height:46px;padding:12px 2px 0;cursor:pointer;color:var(--studio-muted);font-size:12px;font-weight:800}
+.dash-more{margin:5px 0 40px;border:1px solid var(--studio-line);border-radius:20px;background:rgba(255,255,255,.5);overflow:hidden}
+.dash-more>summary{display:flex;align-items:center;min-height:68px;padding:0 20px;cursor:pointer;list-style:none;color:var(--studio-ink)}
+.dash-more>summary::-webkit-details-marker{display:none}.dash-more>summary::after{content:'+';margin-left:auto;font-size:24px;color:var(--studio-muted)}.dash-more[open]>summary::after{content:'−'}
+.dash-more>summary span,.dash-more>summary strong,.dash-more>summary small{display:block}.dash-more>summary strong{font-size:15px}.dash-more>summary small{margin-top:4px;color:var(--studio-muted);font-size:11px;font-weight:650}
+.dash-more[open]{padding:0 14px 14px}.dash-more[open]>summary{margin:0 -14px 14px;border-bottom:1px solid var(--studio-line)}
+.dash-more .team-dashboard-scope{margin:0 0 14px}.dash-more .dash-signals{grid-template-columns:1fr 1fr}.dash-more .dash-block{margin-bottom:14px}
 
 /* Planner: weekly strip, three large actions, and a quiet next-up rail. */
 .personal-plan{--note-bg:var(--studio-canvas);--note-surface:var(--studio-paper);--note-ink:var(--studio-ink);--note-muted:var(--studio-muted);--note-line:var(--studio-line);--note-accent:var(--studio-orange);--note-dark:var(--studio-ink)}
 .personal-plan-sidebar{background:rgba(255,253,249,.94);backdrop-filter:blur(18px);border-right-color:var(--studio-line)}
 .personal-plan-brand>span{border-radius:13px;background:var(--studio-green);color:var(--studio-ink);box-shadow:inset 0 -2px rgba(0,0,0,.08)}
+.workspace-main-nav{display:grid;gap:3px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--studio-line)}
+.workspace-main-nav button{position:relative;display:flex;align-items:center;min-height:43px;border:0;border-radius:13px;background:transparent;color:var(--studio-muted);padding:9px 12px;text-align:left;font-size:13px;font-weight:750;cursor:pointer}
+.workspace-main-nav button::before{content:'';width:7px;height:7px;margin-right:11px;border:1.5px solid currentColor;border-radius:2px}
+.workspace-main-nav button:hover{background:#f0f4ed;color:var(--studio-ink)}
+.workspace-main-nav button[aria-current=page]{background:#e5f6e9;color:var(--studio-ink)}
+.workspace-main-nav button[aria-current=page]::after{content:'';position:absolute;right:12px;width:7px;height:7px;border-radius:50%;background:var(--studio-green)}
+body.management-view .personal-plan-nav{display:none}
 .personal-plan-nav button,.personal-plan-manage{border-radius:13px}.personal-plan-nav button[aria-selected=true]{background:#e5f6e9}.personal-plan-nav button[aria-selected=true]::after{background:var(--studio-green)}
 .personal-plan-workspace{max-width:1260px;padding:44px 38px 72px}
 .personal-plan-eyebrow{color:var(--studio-orange);letter-spacing:.15em}.personal-plan-head h1{font-size:clamp(38px,5vw,58px);line-height:1;letter-spacing:-.055em;font-weight:850}
+.personal-team-return{min-height:44px;padding:0 16px;border:1px solid var(--studio-line);border-radius:999px;background:var(--studio-paper);color:var(--studio-ink);font-weight:800;cursor:pointer}.personal-team-return:hover{background:#e5f6e9}
 .personal-plan-week{grid-template-columns:repeat(7,minmax(52px,68px));gap:10px;width:min(100%,536px);margin-bottom:22px}
 .personal-plan-week button{min-height:72px;border:0;border-radius:18px;background:rgba(255,255,255,.7);box-shadow:inset 0 0 0 1px var(--studio-line);transition:transform .14s ease,background .14s ease}
 .personal-plan-week button:hover{transform:translateY(-2px);background:#fff}.personal-plan-week button[aria-current]{background:var(--studio-green);color:var(--studio-ink);box-shadow:inset 0 0 0 2px var(--studio-ink),0 7px 16px rgba(47,207,120,.22)}
@@ -68,8 +90,9 @@
 @media(max-width:800px){
   #tab-home .dash-top h1{font-size:42px!important}#tab-home .dash-search{display:none}#tab-home .todo-grid{grid-template-columns:1fr 1fr}#tab-home .todo{min-height:116px}
   .team-workboard-tools .team-workboard-bulk{position:static!important;box-shadow:none!important}
-  .personal-plan-workspace{padding:78px 14px 90px}.personal-plan-head{margin-bottom:18px}.personal-plan-head h1{font-size:42px}.personal-plan-head p:not(.personal-plan-eyebrow){font-size:13px}
+  .personal-plan-workspace{padding:78px 14px 90px}.personal-plan-head{align-items:center;margin-bottom:18px}.personal-plan-head h1{font-size:42px}.personal-plan-head p:not(.personal-plan-eyebrow){font-size:13px}.personal-team-return{padding:0 12px;font-size:12px}
   .personal-plan-week{grid-template-columns:repeat(7,minmax(40px,1fr));gap:5px;width:100%;overflow:visible}.personal-plan-week button{min-height:62px;border-radius:15px}.personal-plan-week b{font-size:16px}
+  .personal-plan-sidebar .workspace-main-nav{display:none}.personal-plan-sidebar.mobile-admin-open .workspace-main-nav{display:grid;width:100%}
   .personal-plan-quick{grid-template-columns:minmax(0,1fr) 90px;width:100%}.personal-plan-results{display:block}.is-primary .personal-plan-list{grid-template-columns:1fr 1fr}.is-primary .personal-plan-card{min-height:210px;padding:14px}.is-primary .personal-plan-card:nth-child(3){grid-column:1/-1;min-height:180px}.is-primary .personal-plan-card h3{font-size:17px}
   .is-upcoming{margin-top:20px}.personal-plan-section-head h2{font-size:21px}
 }

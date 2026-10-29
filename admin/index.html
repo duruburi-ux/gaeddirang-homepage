@@ -162,7 +162,7 @@
 </style>
 <link rel="stylesheet" href="./admin-ux.css?v=20261026-1" />
 <link rel="stylesheet" href="./admin-apple-ux.css?v=20261029-2" />
-<link rel="stylesheet" href="./cute-app-ux.css?v=20261029-1" />
+<link rel="stylesheet" href="./cute-app-ux.css?v=20261029-3" />
 </head>
 <body>
 
@@ -183,7 +183,7 @@
 <div id="appView" class="hidden">
   <header>
     <div class="head-in">
-      <a class="brand-home" href="#read" data-nav-tab="read" aria-label="책공방 운영 홈으로 이동">
+      <a class="brand-home" href="#home" data-nav-tab="home" aria-label="전체 현황으로 이동">
         <span class="brand-mark" aria-hidden="true">책</span>
         <span class="brand-copy"><strong>개띠랑 관리실</strong><small>출판 · 책공방 운영</small></span>
       </a>
@@ -248,16 +248,23 @@
       <section class="personal-plan" aria-label="개인 계획">
         <aside class="personal-plan-sidebar" aria-label="작업 노트 탐색">
           <button type="button" class="personal-plan-drawer-close" aria-label="메뉴 닫기">닫기</button>
-          <a class="personal-plan-brand" href="#read" data-nav-tab="read"><span aria-hidden="true">책</span><b>개띠랑</b><small>책공방 작업 노트</small></a>
+          <a class="personal-plan-brand" href="#home" data-nav-tab="home"><span aria-hidden="true">책</span><b>개띠랑</b><small>책공방 운영</small></a>
+          <nav class="workspace-main-nav" aria-label="주요 화면">
+            <button type="button" data-nav-tab="home">전체 현황</button>
+            <button type="button" data-nav-tab="read">개인 일정</button>
+            <button type="button" data-nav-tab="work">팀 업무</button>
+            <button type="button" data-nav-tab="publishing">프로그램</button>
+            <button type="button" data-nav-tab="finder">도서·재고</button>
+            <button type="button" data-nav-tab="finance">정산</button>
+          </nav>
           <nav class="personal-plan-nav" aria-label="개인 계획 보기" role="tablist"><button type="button" role="tab" data-personal-view="today" aria-selected="true" aria-controls="personal-plan-results">오늘</button><button type="button" role="tab" data-personal-view="projects" aria-selected="false" aria-controls="personal-plan-results" tabindex="-1">프로젝트</button><button type="button" role="tab" data-personal-view="inbox" aria-selected="false" aria-controls="personal-plan-results" tabindex="-1">수집함</button></nav>
-          <button type="button" id="personal-open-manage" class="personal-plan-manage">공방 관리</button>
+          <button type="button" id="personal-open-manage" class="personal-plan-manage">더 많은 메뉴</button>
           <div class="personal-admin-menu" hidden>
             <button type="button" id="personal-open-operations">통합 운영</button>
-            <button type="button" data-nav-tab="home">전체 현황</button>
-            <div class="personal-admin-group"><strong>처리</strong><button type="button" data-nav-tab="orders">주문</button><button type="button" data-nav-tab="apps">수업 신청</button><button type="button" data-nav-tab="inquiries">기관 문의</button></div>
-            <div class="personal-admin-group"><strong>원장</strong><button type="button" data-nav-tab="finder">매장 판매가능 원본</button><button type="button" data-nav-tab="scm">전체 상품 원장</button><button type="button" data-nav-tab="cohorts">프로그램 원본</button><button type="button" data-nav-tab="publishing">홈페이지 프로그램</button><button type="button" data-nav-tab="partners">위탁 연락처</button></div>
-            <div class="personal-admin-group"><strong>업무·재정</strong><button type="button" data-nav-tab="work">팀 업무</button><button type="button" data-nav-tab="finance">재정 현황</button><button type="button" data-nav-tab="members">고객 이력</button></div>
-            <div class="personal-admin-group"><strong>기록·고급</strong><button type="button" data-nav-tab="alerts">출간 알림</button><button type="button" data-nav-tab="integration">연결 현황</button><button type="button" data-nav-tab="operations">업무 찾기</button><a href="docs.html">견적·정산·서류 ↗</a></div>
+            <div class="personal-admin-group"><strong>주문·문의</strong><button type="button" data-nav-tab="orders">주문</button><button type="button" data-nav-tab="apps">수업 신청</button><button type="button" data-nav-tab="inquiries">기관 문의</button></div>
+            <div class="personal-admin-group"><strong>도서·프로그램 원본</strong><button type="button" data-nav-tab="scm">전체 상품 원장</button><button type="button" data-nav-tab="cohorts">프로그램 원본</button><button type="button" data-nav-tab="partners">위탁 연락처</button></div>
+            <div class="personal-admin-group"><strong>고객·알림</strong><button type="button" data-nav-tab="members">고객 이력</button><button type="button" data-nav-tab="alerts">출간 알림</button></div>
+            <div class="personal-admin-group"><strong>연결·도구</strong><button type="button" data-nav-tab="integration">연결 현황</button><button type="button" data-nav-tab="operations">업무 찾기</button><a href="docs.html">견적·정산·서류 ↗</a></div>
           </div>
           <div class="personal-plan-sidebar-foot">
             <span class="personal-plan-account" id="personalPlanUser"></span>
@@ -267,7 +274,7 @@
         </aside>
         <div class="personal-plan-mobile-head"><a href="#read" data-nav-tab="read"><span aria-hidden="true">책</span><b>개띠랑 작업 노트</b></a><button type="button" id="personal-mobile-info" aria-expanded="false">메뉴</button></div>
         <div class="personal-plan-workspace">
-          <div class="personal-plan-head"><div><p class="personal-plan-eyebrow">WORK NOTE</p><h1 id="personal-plan-title">오늘</h1><p id="personal-plan-subtitle">오늘 집중할 일과 다음 일정을 봅니다.</p></div></div>
+          <div class="personal-plan-head"><div><p class="personal-plan-eyebrow">WORK NOTE</p><h1 id="personal-plan-title">오늘</h1><p id="personal-plan-subtitle">오늘 집중할 일과 다음 일정을 봅니다.</p></div><button type="button" class="personal-team-return" data-nav-tab="home">팀 오늘 보기</button></div>
           <p id="personal-plan-error" class="personal-plan-error" role="alert" hidden></p>
           <nav id="personal-week-strip" class="personal-plan-week" aria-label="계획 날짜 선택"></nav>
           <form id="personal-quick-form" class="personal-plan-quick"><label class="sr-only" for="personal-quick-title">새 개인 할 일</label><input id="personal-quick-title" maxlength="200" autocomplete="off" required placeholder="새 할 일을 적어 수집함에 넣으세요"><button type="submit">수집함에 추가</button></form>
@@ -488,31 +495,31 @@
     <!-- 홈 -->
     <section id="tab-home" class="dash hidden" aria-label="운영 대시보드">
       <div class="dash-top">
-        <div><p class="dash-date" id="homeHd"></p><h1>오늘 같이 볼 일</h1><span class="dash-lead">지금 할 일, 확인할 일, 진행 중인 일만 먼저 봅니다.</span></div>
+        <div><div class="dash-view-switch" aria-label="업무 보기"><span aria-current="page">팀 오늘</span><button type="button" data-dash-tab="read">내 계획</button></div><p class="dash-date" id="homeHd"></p><h1>오늘, 무엇부터 볼까요?</h1><span class="dash-lead">처리할 일과 대표 확인이 필요한 일만 먼저 보여드려요.</span></div>
         <form id="dashSearchForm" class="dash-search" role="search"><label for="dashSearch">메뉴와 업무 찾기</label><div><input id="dashSearch" type="search" placeholder="예: 주문, 블라인드북, 정산" autocomplete="off"><button>찾기</button></div></form>
       </div>
-      <div class="team-dashboard-scope" role="note"><strong>운영 연결 경계</strong><span>이 화면은 확인된 원천을 읽고 개인 일정·검토 요청만 만듭니다. 재고·가격·정산·송금·메일·홈페이지 공개는 여기서 자동 실행하지 않습니다.</span></div>
-      <section class="dash-block team-lanes" aria-labelledby="team-lanes-title">
-        <div class="dash-section-head"><div><p class="dash-kicker">운영 영역</p><h2 id="team-lanes-title">한눈에 보는 책공방</h2></div><span id="team-lanes-status" class="dash-data-status">원천 확인 전</span></div>
-        <div id="team-lanes-grid" class="team-lanes-grid"></div>
-      </section>
-      <section class="dash-block dash-priority" aria-labelledby="priorityTitle"><div class="dash-section-head"><div><p class="dash-kicker">TODAY</p><h2 id="priorityTitle">오늘 할 일</h2></div><strong id="priorityTotal" class="dash-total"></strong></div><p class="dash-priority-note">입금·발송·답변처럼 다음 행동이 필요한 기록만 모았습니다.</p><div class="todo-grid" id="todoGrid"></div></section>
+      <section class="dash-block dash-priority" aria-labelledby="priorityTitle"><div class="dash-section-head"><div><p class="dash-kicker">먼저 할 일</p><h2 id="priorityTitle">오늘 할 일</h2></div><strong id="priorityTotal" class="dash-total"></strong></div><div class="todo-grid" id="todoGrid"></div></section>
       <section class="dash-block team-workboard" aria-labelledby="team-workboard-title">
-        <div class="dash-section-head"><div><p class="dash-kicker">REVIEW</p><h2 id="team-workboard-title">확인할 일</h2></div><button class="dash-text-btn" data-dash-tab="work">팀 업무 전체 보기 →</button></div>
+        <div class="dash-section-head"><div><p class="dash-kicker">대표 확인</p><h2 id="team-workboard-title">결정이 필요한 일</h2></div><button class="dash-text-btn" data-dash-tab="work">전체 보기 →</button></div>
         <details class="team-workboard-tools"><summary>검색 · 필터 · 묶음 처리</summary><div class="team-workboard-controls"><label>업무 찾기 <input id="team-work-search" type="search" placeholder="업무명 · 상태 · 담당" autocomplete="off"></label><label>담당 <select id="team-work-assignee"><option value="">모두</option><option>장진호</option><option>이진이</option><option>이다솜</option><option value="__unassigned">미지정</option></select></label><label>상태 <select id="team-work-status"><option value="">모두</option><option>진행</option><option>준비</option><option>막힘</option><option>완료</option></select></label></div>
         <div class="team-workboard-bulk"><label><input id="team-work-select-all" type="checkbox"> 현재 목록 전체 선택</label><strong id="team-work-selected">0개 선택</strong><button id="team-work-to-plan" type="button" disabled>내 일정에 연결</button><label>담당 변경 요청 <select id="team-work-request-owner"><option value="">담당 선택</option><option>장진호</option><option>이진이</option><option>이다솜</option><option>공동</option></select></label><button id="team-work-request" type="button" disabled>검토 요청 만들기</button><button id="team-work-clear" type="button" disabled>선택 해제</button></div></details>
         <p id="team-workboard-status" class="team-workboard-status" role="status" aria-live="polite">팀 원본 연결 준비 중입니다. 현재 목록이 비어 있어도 0건으로 확정하지 않습니다.</p>
         <div id="team-workboard-list" class="team-workboard-list"></div>
       </section>
-      <div class="dash-signals" aria-label="운영 신호">
-        <section class="dash-block dash-work" aria-labelledby="workTitle"><div class="dash-section-head"><div><p class="dash-kicker">IN PROGRESS</p><h2 id="workTitle">진행 중인 일</h2></div><button class="dash-text-btn" data-dash-tab="work">전체 보기 →</button></div><div id="dashWorkStatus" class="dash-work-status">팀 업무를 확인하고 있어요.</div><div id="dashWorkMetrics" class="dash-work-metrics"><div><strong>—</strong><span>진행</span></div><div><strong>—</strong><span>확인</span></div><div><strong>—</strong><span>승인</span></div><div><strong>—</strong><span>막힘</span></div></div><div id="dashWorkPreview" class="dash-work-preview"></div><p class="dash-help">오래된 기록은 현재 상황과 구분합니다.</p></section>
-        <section class="dash-block dash-stock" aria-labelledby="stockTitle"><div class="dash-section-head"><div><p class="dash-kicker">전체 상품 원장</p><h2 id="stockTitle">장부에서 확인할 것</h2></div><button class="dash-text-btn" data-dash-tab="scm">열기 →</button></div><div id="dashScmStatus" class="dash-status">상품 원장을 확인하고 있어요.</div><div id="dashScmMetrics" class="dash-mini-metrics"><div><strong>—</strong><span>확인 필요</span></div><div><strong>—</strong><span>장부 경고</span></div></div><p class="dash-help">장부 수량이며 매장 판매가능을 보증하지 않습니다.</p></section>
-        <section class="dash-block dash-integration" aria-labelledby="integrationTitle"><div class="dash-section-head"><div><p class="dash-kicker">통합 운영실</p><h2 id="integrationTitle">수집·재고·정산 흐름</h2></div><button class="dash-text-btn" data-dash-tab="integration">열기 →</button></div><div id="dashIntegrationStatus" class="dash-status">운영 단계를 확인하고 있어요.</div><div id="dashIntegrationMetrics" class="dash-mini-metrics"><div><strong>—</strong><span>자동 확인 단계</span></div><div><strong>—</strong><span>검토·재시도</span></div></div><p class="dash-help">연결 성공과 거래·지급 완료는 서로 다른 상태입니다.</p></section>
-      </div>
-      <section class="dash-block dash-shortcuts" aria-labelledby="quickTitle"><div class="dash-section-head"><div><p class="dash-kicker">바로가기</p><h2 id="quickTitle">자주 하는 일</h2></div><button class="dash-text-btn" data-dash-tab="operations">전체 업무 찾기 →</button></div><div class="dash-quick"><button data-dash-tab="finance"><b>재정 현황</b><span>확정·입금·보관금 구분</span></button><button data-dash-tab="orders"><b>주문 처리</b><span>입금 확인·발송 상태 변경</span></button><button data-dash-tab="apps"><b>수업 신청</b><span>신청자·입금 상태 확인</span></button><button data-dash-tab="inquiries"><b>기관 문의</b><span>새 문의 확인·견적 연결</span></button><button data-dash-tab="finder"><b>매장 판매가능</b><span>실사·예약을 반영해 손님 문의 확인</span></button><button data-dash-tab="integration"><b>통합 운영실</b><span>수집·원장·채널·정산 상태</span></button><button data-dash-tab="members"><b>고객 이력</b><span>연락처와 참여 이력 검색</span></button></div></section>
-      <section class="dash-block dash-summary" aria-labelledby="summaryTitle"><div class="dash-section-head"><div><p class="dash-kicker">참고용 전체 수치</p><h2 id="summaryTitle">운영 현황</h2></div><span id="dashDataStatus" class="dash-data-status">관리 데이터를 불러오는 중</span></div><div class="stat-row" id="statRow"></div></section>
-      <section class="dash-block team-freshness" aria-labelledby="team-freshness-title"><div class="dash-section-head"><div><p class="dash-kicker">DATA FRESHNESS</p><h2 id="team-freshness-title">연결 실패와 마지막 성공</h2></div><button class="dash-text-btn" data-dash-tab="integration">연결 현황 열기 →</button></div><div id="team-freshness-grid" class="team-freshness-grid"></div></section>
-      <p class="dash-foot">‘장부상’ 금액은 주문 기록의 합계이며 실제 수령·지급 완료를 뜻하지 않습니다. 숫자가 이상하면 원본 기록을 먼저 확인해 주세요.</p>
+      <section class="dash-block dash-work" aria-labelledby="workTitle"><div class="dash-section-head"><div><p class="dash-kicker">이어 할 일</p><h2 id="workTitle">진행 중인 일</h2></div><button class="dash-text-btn" data-dash-tab="work">전체 보기 →</button></div><div id="dashWorkStatus" class="dash-work-status">팀 업무를 확인하고 있어요.</div><div id="dashWorkPreview" class="dash-work-preview"></div><details class="dash-work-counts"><summary>상태별 개수</summary><div id="dashWorkMetrics" class="dash-work-metrics"><div><strong>—</strong><span>진행</span></div><div><strong>—</strong><span>확인</span></div><div><strong>—</strong><span>승인</span></div><div><strong>—</strong><span>막힘</span></div></div></details></section>
+      <details class="dash-more">
+        <summary><span><strong>전체 현황과 연결 상태</strong><small>재고·정산·자동화·데이터 상태</small></span></summary>
+        <div class="team-dashboard-scope" role="note"><strong>현재 연결 범위</strong><span>확인된 원천을 읽고 개인 일정·검토 요청만 만듭니다. 재고·가격·정산·송금·메일·홈페이지 공개는 자동 실행하지 않습니다.</span></div>
+        <section class="dash-block team-lanes" aria-labelledby="team-lanes-title"><div class="dash-section-head"><div><p class="dash-kicker">운영 영역</p><h2 id="team-lanes-title">책공방 전체 현황</h2></div><span id="team-lanes-status" class="dash-data-status">원천 확인 전</span></div><div id="team-lanes-grid" class="team-lanes-grid"></div></section>
+        <div class="dash-signals" aria-label="운영 신호">
+          <section class="dash-block dash-stock" aria-labelledby="stockTitle"><div class="dash-section-head"><div><p class="dash-kicker">전체 상품 원장</p><h2 id="stockTitle">장부에서 확인할 것</h2></div><button class="dash-text-btn" data-dash-tab="scm">열기 →</button></div><div id="dashScmStatus" class="dash-status">상품 원장을 확인하고 있어요.</div><div id="dashScmMetrics" class="dash-mini-metrics"><div><strong>—</strong><span>확인 필요</span></div><div><strong>—</strong><span>장부 경고</span></div></div><p class="dash-help">장부 수량이며 매장 판매가능을 보증하지 않습니다.</p></section>
+          <section class="dash-block dash-integration" aria-labelledby="integrationTitle"><div class="dash-section-head"><div><p class="dash-kicker">통합 운영실</p><h2 id="integrationTitle">수집·재고·정산 흐름</h2></div><button class="dash-text-btn" data-dash-tab="integration">열기 →</button></div><div id="dashIntegrationStatus" class="dash-status">운영 단계를 확인하고 있어요.</div><div id="dashIntegrationMetrics" class="dash-mini-metrics"><div><strong>—</strong><span>자동 확인 단계</span></div><div><strong>—</strong><span>검토·재시도</span></div></div><p class="dash-help">연결 성공과 거래·지급 완료는 서로 다른 상태입니다.</p></section>
+        </div>
+        <section class="dash-block dash-shortcuts" aria-labelledby="quickTitle"><div class="dash-section-head"><div><p class="dash-kicker">바로가기</p><h2 id="quickTitle">업무 메뉴</h2></div><button class="dash-text-btn" data-dash-tab="operations">전체 업무 찾기 →</button></div><div class="dash-quick"><button data-dash-tab="finance"><b>재정 현황</b><span>확정·입금·보관금 구분</span></button><button data-dash-tab="orders"><b>주문 처리</b><span>입금 확인·발송 상태 변경</span></button><button data-dash-tab="apps"><b>수업 신청</b><span>신청자·입금 상태 확인</span></button><button data-dash-tab="inquiries"><b>기관 문의</b><span>새 문의 확인·견적 연결</span></button><button data-dash-tab="finder"><b>매장 판매가능</b><span>실사·예약을 반영해 손님 문의 확인</span></button><button data-dash-tab="integration"><b>통합 운영실</b><span>수집·원장·채널·정산 상태</span></button><button data-dash-tab="members"><b>고객 이력</b><span>연락처와 참여 이력 검색</span></button></div></section>
+        <section class="dash-block dash-summary" aria-labelledby="summaryTitle"><div class="dash-section-head"><div><p class="dash-kicker">참고용 전체 수치</p><h2 id="summaryTitle">운영 현황</h2></div><span id="dashDataStatus" class="dash-data-status">관리 데이터를 불러오는 중</span></div><div class="stat-row" id="statRow"></div></section>
+        <section class="dash-block team-freshness" aria-labelledby="team-freshness-title"><div class="dash-section-head"><div><p class="dash-kicker">데이터 상태</p><h2 id="team-freshness-title">연결 실패와 마지막 성공</h2></div><button class="dash-text-btn" data-dash-tab="integration">연결 현황 열기 →</button></div><div id="team-freshness-grid" class="team-freshness-grid"></div></section>
+        <p class="dash-foot">‘장부상’ 금액은 주문 기록의 합계이며 실제 수령·지급 완료를 뜻하지 않습니다. 숫자가 이상하면 원본 기록을 먼저 확인해 주세요.</p>
+      </details>
     </section>
 
     <section id="tab-publishing" class="program-publishing hidden" aria-label="홈페이지 프로그램 관리">
@@ -820,12 +827,15 @@ function renderHome(){
   const priorityCount=priorities.total;
   const prioritiesKnown=todos.every(t=>t.n!=null);$('#priorityTotal').textContent=prioritiesKnown?(priorityCount?`${priorityCount}건 확인 필요`:'바로 처리할 일 없음'):'일부 자료 확인 실패';
   const tg=$('#todoGrid'); tg.innerHTML='';
-  todos.forEach(t=>{
+  const visibleTodos=todos.filter(t=>t.n==null||t.n>0);
+  visibleTodos.forEach((t,index)=>{
     const unknown=t.n==null,b=el('button','todo todo'+(unknown?' unknown':t.n>0?(t.hot?' hot':''):' zero'),
       `<div class="n">${unknown?'—':t.n}</div><div class="l">${t.l}</div><div class="context">${unknown?'자료를 다시 불러와야 합니다':t.context}</div><div class="go">${unknown?'다시 확인':t.n?'확인하기':'현재 없음'} →</div>`);
+    if(index===0)b.classList.add('primary-action');
     b.onclick=()=>unknown?loadAll():openPriority(t);
     tg.appendChild(b);
   });
+  if(!visibleTodos.length)tg.innerHTML='<p class="dash-empty">지금 바로 처리할 기록은 없어요.</p>';
 
   const stats = [
     {n:sourceKnown('orders')?won(paidRevenue):'—', l:'입금 확인 이후 주문액', tab:'orders'},
@@ -853,7 +863,7 @@ $('#dashSearchForm').onsubmit=e=>{e.preventDefault();const q=$('#dashSearch').va
 document.querySelectorAll('[data-dash-tab]').forEach(b=>b.onclick=()=>switchTab(b.dataset.dashTab));
 document.querySelectorAll('[data-inventory-tab]').forEach(b=>b.onclick=()=>switchTab(b.dataset.inventoryTab));
 window.addEventListener('scm:summary',e=>{const d=e.detail||{},time=d.fetchedAt?new Date(d.fetchedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'시각 미확인';$('#dashScmStatus').textContent=d.stale?`최근 재고 조회 확인 필요 · 마지막 성공 ${time}`:`재고 연결됨 · ${time}`;$('#dashScmStatus').classList.toggle('bad',!!d.stale);$('#dashScmMetrics').innerHTML=`<button data-dash-scm="attention"><strong>${d.attention??'—'}</strong><span>확인 필요</span></button><button data-dash-scm="checks"><strong>${d.warnings??'—'}</strong><span>장부 경고</span></button>`;document.querySelectorAll('[data-dash-scm]').forEach(b=>b.onclick=()=>{switchTab('scm');window.SCM?.open(b.dataset.dashScm)})});
-window.addEventListener('work:summary',e=>{const d=e.detail||{},time=d.fetchedAt?new Date(d.fetchedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'시각 미확인';$('#dashWorkStatus').textContent=d.stale?`팀 업무 최신 조회 확인 필요 · 마지막 성공 ${time}`:`팀 업무 원본 연결됨 · ${time}`;$('#dashWorkStatus').classList.toggle('bad',!!d.stale);$('#dashWorkMetrics').innerHTML=`<button data-dash-work="active"><strong>${d.active??'—'}</strong><span>진행 업무</span></button><button data-dash-work="attention"><strong>${d.attention??'—'}</strong><span>확인할 것</span></button><button data-dash-work="approval"><strong>${d.approvals??'—'}</strong><span>승인할 것</span></button><button data-dash-work="blocked"><strong>${d.blocked??'—'}</strong><span>막힌 것</span></button>`;setBadge('bWork',d.attention||0);$('#dashWorkPreview').innerHTML=(d.preview||[]).map(x=>`<button data-dash-work-item="${esc(x.id)}"><span>${esc(x.kindLabel)}</span><b>${esc(x.title)}</b><small>${esc(x.status)}${x.stale?' · 오래됨':''}</small></button>`).join('')||'<p>표시할 진행 업무가 없어요.</p>';document.querySelectorAll('[data-dash-work]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.open(b.dataset.dashWork)});document.querySelectorAll('[data-dash-work-item]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.focus(b.dataset.dashWorkItem)})});
+window.addEventListener('work:summary',e=>{const d=e.detail||{},time=d.fetchedAt?new Date(d.fetchedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'시각 미확인';$('#dashWorkStatus').textContent=d.stale?`최신 조회 확인 필요 · 마지막 성공 ${time}`:`마지막 확인 ${time}`;$('#dashWorkStatus').classList.toggle('bad',!!d.stale);$('#dashWorkMetrics').innerHTML=`<button data-dash-work="active"><strong>${d.active??'—'}</strong><span>진행 업무</span></button><button data-dash-work="attention"><strong>${d.attention??'—'}</strong><span>확인할 것</span></button><button data-dash-work="approval"><strong>${d.approvals??'—'}</strong><span>승인할 것</span></button><button data-dash-work="blocked"><strong>${d.blocked??'—'}</strong><span>막힌 것</span></button>`;setBadge('bWork',d.attention||0);$('#dashWorkPreview').innerHTML=(d.preview||[]).slice(0,2).map(x=>`<button data-dash-work-item="${esc(x.id)}"><span>${esc(x.kindLabel)}</span><b>${esc(x.title)}</b><small>${esc(x.status)}${x.stale?' · 오래됨':''}</small></button>`).join('')||'<p>표시할 진행 업무가 없어요.</p>';document.querySelectorAll('[data-dash-work]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.open(b.dataset.dashWork)});document.querySelectorAll('[data-dash-work-item]').forEach(b=>b.onclick=()=>{switchTab('work');window.Work?.focus(b.dataset.dashWorkItem)})});
 window.addEventListener('integration:summary',e=>{const d=e.detail||{},known=[d.review,d.failed,d.waiting].every(Number.isFinite),needs=known?d.review+d.failed+d.waiting:null;$('#dashIntegrationStatus').textContent=d.ok?`운영 원본 확인 · 자동 ${d.healthy??0}단계 / 확인 ${needs??'—'}단계`:'운영 원본 일부를 확인하지 못했어요.';$('#dashIntegrationStatus').classList.toggle('bad',!d.ok||(d.failed||0)>0);$('#dashIntegrationMetrics').innerHTML=`<button data-dash-integration="connected"><strong>${d.healthy??'—'}</strong><span>자동 확인 단계</span></button><button data-dash-integration="needs"><strong>${needs??'—'}</strong><span>검토·재시도</span></button>`;setBadge('bIntegration',needs||0);document.querySelectorAll('[data-dash-integration]').forEach(b=>b.onclick=()=>{switchTab('integration');window.Integration?.open(b.dataset.dashIntegration)})});
 
 /* ---------- 주문 탭 ---------- */
@@ -1329,16 +1339,18 @@ function renderManagementContext(name){
 function syncSharedShell(name){
   const planner=$('.personal-plan'),sidebar=$('.personal-plan-sidebar'),mobileHead=$('.personal-plan-mobile-head'),main=$('main'),manage=$('#personal-open-manage');
   if(!planner||!sidebar||!mobileHead||!main)return;
+  const primary=[...sidebar.querySelectorAll('.workspace-main-nav [data-nav-tab]')];
+  const primaryActive=primary.some(button=>button.dataset.navTab===name);
+  primary.forEach(button=>{if(button.dataset.navTab===name)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
+  if(primaryActive)manage?.removeAttribute('aria-current');else manage?.setAttribute('aria-current','page');
   if(name==='read'){
     if(sidebar.parentElement!==planner){planner.prepend(sidebar);sidebar.after(mobileHead);}
-    manage?.removeAttribute('aria-current');
     const last=sidebar.dataset.lastPersonalView||'today';
     sidebar.querySelectorAll('[data-personal-view]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.personalView===last)));
     return;
   }
   const selected=sidebar.querySelector('[data-personal-view][aria-selected="true"]')?.dataset.personalView;if(selected)sidebar.dataset.lastPersonalView=selected;
   sidebar.querySelectorAll('[data-personal-view]').forEach(button=>button.setAttribute('aria-selected','false'));
-  manage?.setAttribute('aria-current','page');
   window.dispatchEvent(new CustomEvent('planner:close-drawers'));sidebar.classList.remove('mobile-menu-open','mobile-admin-open');const menu=$('.personal-admin-menu');if(menu)menu.hidden=true;
   if(sidebar.parentElement!==main){main.prepend(mobileHead);main.prepend(sidebar);}
 }
@@ -1396,7 +1408,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./operations-sources-dashboard.js?v=20261026-5"></script>
 <script src="../assets/public-content.js?v=20261011-1"></script>
 <script src="./team-dashboard-model.js?v=20261029-2"></script>
-<script src="./team-dashboard.js?v=20261029-2"></script>
+<script src="./team-dashboard.js?v=20261029-3"></script>
 <script src="./program-publishing-model.js?v=20261029-1"></script>
 <script src="./program-publishing.js?v=20261029-1"></script>
 <script src="./partner-directory-model.js?v=20261029-1"></script>
