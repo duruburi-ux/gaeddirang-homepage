@@ -109,7 +109,7 @@ body.management-view .personal-admin-menu a{min-height:42px;border-radius:8px;fo
   .team-workboard-bulk{bottom:72px}.team-workboard-bulk>label:first-child,.team-workboard-bulk strong{flex:1 1 auto!important}.team-workboard-bulk button{flex:1 1 42%!important}
   .finder-hero{padding:14px!important}.finder-hero h1{font-size:25px!important}.finder-search-panel{top:58px;padding:11px!important}
   .program-publishing-head h1{font-size:31px!important}.program-publishing-layout{grid-template-columns:1fr!important}.program-publishing-layout>aside{position:static;max-height:220px}.program-actions{bottom:74px;display:grid!important;grid-template-columns:1fr 1fr}.program-actions button{width:100%}
-  .ux-command{margin:7vh auto auto;border-radius:18px}.ux-command-help{display:none}.ux-command-result{grid-template-columns:34px minmax(0,1fr)}.ux-command-result>span{display:none}
+  .ux-command{margin:7vh auto auto;border-radius:18px}.ux-command-help{display:none}.ux-command-result{grid-template-columns:34px minmax(0,1fr)}.ux-command-result>span:last-child{display:none}
 }
 @media(max-width:390px){
   body.management-view main{padding-left:12px;padding-right:12px}.dash-top h1{font-size:31px!important}

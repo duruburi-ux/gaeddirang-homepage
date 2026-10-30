@@ -1,0 +1,16 @@
+/* Workspace behavior polish: quick switching, calm loading feedback, and stable route return. */
+.ux-command-trigger{margin:0 0 12px!important;min-height:44px!important;background:#f4f4f2!important}
+.ux-command-result.is-recent{background:#f7f7f5}
+.ux-command-result.is-recent>i{background:#deded9}
+.ux-load-status{position:fixed;z-index:70;top:14px;right:18px;max-width:min(320px,calc(100vw - 36px));border:1px solid rgba(60,60,67,.16);border-radius:999px;background:rgba(255,255,255,.94);box-shadow:0 10px 30px rgba(29,29,31,.12);backdrop-filter:blur(18px);padding:9px 13px;color:#4b4b50;font-size:12px;font-weight:750}
+.ux-load-status[hidden]{display:none!important}
+main[aria-busy=true]{cursor:progress}
+main[aria-busy=true]::before{content:'';position:fixed;z-index:69;inset:0 0 auto 232px;height:2px;background:linear-gradient(90deg,transparent 0,#ed6b50 35%,#ed6b50 65%,transparent 100%);background-size:42% 100%;animation:ux-loading 1.1s linear infinite;pointer-events:none}
+@keyframes ux-loading{from{background-position:-70% 0}to{background-position:170% 0}}
+@media(max-width:800px){
+  .ux-load-status{top:8px;right:10px;left:10px;margin:auto;width:max-content}
+  main[aria-busy=true]::before{left:0}
+  #tab-finder .workflow-focus{padding:10px 12px;margin-bottom:10px}
+  #tab-finder .workflow-focus>p,#tab-finder .workflow-focus-actions{display:none}
+}
+@media(prefers-reduced-motion:reduce){main[aria-busy=true]::before{animation:none;background:#ed6b50}}
