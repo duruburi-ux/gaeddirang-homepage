@@ -165,6 +165,7 @@
 <link rel="stylesheet" href="./admin-workspace-ux.css?v=20261030-1" />
 <link rel="stylesheet" href="./admin-structure-ux.css?v=20261030-1" />
 <link rel="stylesheet" href="./admin-workflow-focus.css?v=20261030-1" />
+<link rel="stylesheet" href="./admin-action-flow.css?v=20261030-1" />
 <link rel="stylesheet" href="./cute-app-ux.css?v=20261029-3" />
 </head>
 <body>
@@ -501,6 +502,11 @@
         <div><div class="dash-view-switch" aria-label="업무 보기"><span aria-current="page">팀 오늘</span><button type="button" data-dash-tab="read">내 계획</button></div><p class="dash-date" id="homeHd"></p><h1>오늘, 무엇부터 볼까요?</h1><span class="dash-lead">처리할 일과 대표 확인이 필요한 일만 먼저 보여드려요.</span></div>
         <form id="dashSearchForm" class="dash-search" role="search"><label for="dashSearch">메뉴와 업무 찾기</label><div><input id="dashSearch" type="search" placeholder="예: 주문, 블라인드북, 정산" autocomplete="off"><button>찾기</button></div></form>
       </div>
+      <form id="home-quick-form" class="home-quick-form" aria-label="새 할 일 빠른 입력">
+        <label for="home-quick-title">잊기 전에 바로 적기</label>
+        <div><input id="home-quick-title" maxlength="200" autocomplete="off" required placeholder="해야 할 일을 한 줄로 적으세요"><button type="submit">할 일 추가</button></div>
+        <p id="home-quick-status" role="status" aria-live="polite"></p>
+      </form>
       <section class="dash-block dash-priority" aria-labelledby="priorityTitle"><div class="dash-section-head"><div><p class="dash-kicker">먼저 할 일</p><h2 id="priorityTitle">오늘 할 일</h2></div><strong id="priorityTotal" class="dash-total"></strong></div><div class="todo-grid" id="todoGrid"></div></section>
       <section class="dash-block team-workboard" aria-labelledby="team-workboard-title">
         <div class="dash-section-head"><div><p class="dash-kicker">대표 확인</p><h2 id="team-workboard-title">결정이 필요한 일</h2></div><button class="dash-text-btn" data-dash-tab="work">전체 보기 →</button></div>
@@ -716,7 +722,7 @@ async function boot(){
   if(session)await startSessionVerification(session);
   else showLogin();
 }
-function clearPrivateUi(message=''){CORE_LOAD=null;ACTIVE_TAB='';const quick=$('#personal-quick-title');if(quick)quick.value='';window.AdminStructureUX?.deactivate();window.AdminWorkspaceUX?.deactivate();window.AdminAppleUX?.deactivate();window.TeamDashboard?.deactivate();window.ProgramPublishing?.deactivate();window.AssistantWorkspaceUI?.deactivate();window.PersonalPlanner?.deactivate();window.AssistantRequestPanel?.clear();window.OperationsRead?.clear();window.BookFinder?.clear();window.SCM?.clear();window.Work?.clear();window.OperationsSourcesDashboard?.clear();window.Integration?.clear();window.FinanceDashboard?.clear();clearCoreData();$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');$('#pw').value='';$('#loginMsg').style.color='var(--orange-d)';$('#loginMsg').textContent=message;requestAnimationFrame(()=>$('#email').focus())}
+function clearPrivateUi(message=''){CORE_LOAD=null;ACTIVE_TAB='';const quick=$('#personal-quick-title');if(quick)quick.value='';window.AdminActionFlow?.deactivate();window.AdminStructureUX?.deactivate();window.AdminWorkspaceUX?.deactivate();window.AdminAppleUX?.deactivate();window.TeamDashboard?.deactivate();window.ProgramPublishing?.deactivate();window.AssistantWorkspaceUI?.deactivate();window.PersonalPlanner?.deactivate();window.AssistantRequestPanel?.clear();window.OperationsRead?.clear();window.BookFinder?.clear();window.SCM?.clear();window.Work?.clear();window.OperationsSourcesDashboard?.clear();window.Integration?.clear();window.FinanceDashboard?.clear();clearCoreData();$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');$('#pw').value='';$('#loginMsg').style.color='var(--orange-d)';$('#loginMsg').textContent=message;requestAnimationFrame(()=>$('#email').focus())}
 function showLogin(message=''){AUTH_GENERATION++;ACTIVE_USER_ID='';PENDING_USER_ID='';AUTH_VERIFY=null;clearPrivateUi(message)}
 async function startSessionVerification(session){
   const userId=String(session?.user?.id||'');if(!userId){showLogin();return false}
@@ -1391,6 +1397,7 @@ function switchTab(name,historyMode='push'){
   if(historyMode==='replace')history.replaceState({tab:name},'','#'+name);
   else if(historyMode==='push'&&location.hash!==`#${name}`)history.pushState({tab:name},'','#'+name);
   ACTIVE_TAB=name;
+  window.AdminActionFlow?.sync();
   const restored=window.AdminWorkspaceUX?.afterNavigate({to:name,from:previous,historyMode});
   if(!restored&&historyMode!=='none')window.scrollTo(0,0);
   if(hiddenTrigger){const panel=$('#tab-'+name),heading=panel.querySelector('h1,h2');(heading||panel).setAttribute('tabindex','-1');requestAnimationFrame(()=>{(heading||panel).focus({preventScroll:true});});}
@@ -1437,6 +1444,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./admin-workspace-ux.js?v=20261030-1"></script>
 <script src="./admin-structure-ux.js?v=20261030-1"></script>
 <script src="./admin-workflow-focus.js?v=20261030-1"></script>
+<script src="./admin-action-flow.js?v=20261030-1"></script>
 <script>
 window.PersonalPlanner?.init({navigate:switchTab});
 window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,requestSyncEndpoint:SUPABASE_URL+'/functions/v1/operations-requests',requestSyncOrigin:SUPABASE_URL,onDenied:showLogin,navigate:switchTab,loadCore:loadOperationsCore,readAll:(table,columns,options)=>Core.readAll(sb,table,columns,options),getContext:()=>{const p=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});return {ok:CORE_SYNC.ok,queriedAt:CORE_SYNC.at?.toISOString?.()||null,ordersKnown:sourceKnown('orders'),inquiriesKnown:sourceKnown('inquiries'),newOrders:p.newOrders.length,toShip:p.toShip.length,newInquiries:p.newInquiries.length};}});

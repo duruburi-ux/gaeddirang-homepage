@@ -1,0 +1,52 @@
+/* Action-first admin shell: one navigation, one next action, details on demand. */
+body.admin-action-flow #appView>header,
+body.admin-action-flow #managementContext,
+body.admin-action-flow .workflow-focus,
+body.admin-action-flow .workflow-connection-note{display:none!important}
+
+body.admin-action-flow.management-view main{padding-top:24px}
+body.admin-action-flow .personal-plan-sidebar{border-right:1px solid var(--studio-line)}
+body.admin-action-flow .workspace-main-nav button{min-height:48px!important;font-size:14px!important}
+body.admin-action-flow .workspace-area-subnav{margin-top:0;padding-left:10px}
+body.admin-action-flow .workspace-area-subnav button,
+body.admin-action-flow .workspace-area-subnav a{min-height:42px;font-size:13px}
+
+.action-route-bar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0 0 22px;padding:0 2px 16px;border-bottom:1px solid var(--studio-line)}
+.action-route-copy{min-width:0}.action-route-copy small{display:block;margin-bottom:4px;color:var(--studio-muted);font-size:12px;font-weight:750}.action-route-copy strong{display:block;color:var(--studio-ink);font-size:20px;letter-spacing:-.025em}.action-route-copy p{margin:4px 0 0;color:var(--studio-muted);font-size:13px;line-height:1.45}
+.action-route-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}.action-route-actions button{min-height:44px;border:1px solid var(--studio-line);border-radius:12px;background:#fff;padding:9px 14px;color:var(--studio-ink);font-weight:800}.action-route-actions .action-primary{border-color:#24372b;background:#24372b;color:#fff}
+
+.home-quick-form{order:1;display:grid;gap:8px;margin:0;padding:18px;border:1px solid #cfd9cc;border-radius:20px;background:#fff;box-shadow:0 10px 26px rgba(30,48,35,.07)}
+.home-quick-form>label{color:var(--studio-ink);font-size:15px;font-weight:850}.home-quick-form>div{display:flex;gap:8px}.home-quick-form input{flex:1;min-width:0;min-height:48px;border:1px solid var(--studio-line);border-radius:13px;padding:0 14px;font:inherit}.home-quick-form button{min-height:48px;border:0;border-radius:13px;background:#24372b;color:#fff;padding:0 18px;font-weight:850}.home-quick-form p{min-height:18px;margin:0;color:var(--studio-muted);font-size:12px}.home-quick-form p.bad{color:#a34b36}
+body.admin-action-flow #tab-home{gap:16px}body.admin-action-flow #tab-home>.dash-top{order:0;margin-bottom:0}body.admin-action-flow #tab-home>.dash-priority{order:2}body.admin-action-flow #tab-home>.team-workboard{order:3}body.admin-action-flow #tab-home>.dash-work{order:4}body.admin-action-flow #tab-home>.home-connection-summary{order:5}body.admin-action-flow #tab-home>.dash-more{order:6}
+body.admin-action-flow #tab-home>.action-advanced-details{order:4}
+body.admin-action-flow .dash-top h1{max-width:18ch;font-size:36px!important}body.admin-action-flow .dash-top .dash-search{display:none}
+body.admin-action-flow .dash-kicker,body.admin-action-flow .page-eyebrow,body.admin-action-flow .work-eyebrow,body.admin-action-flow .integration-kicker,body.admin-action-flow .personal-plan-eyebrow{display:none!important}
+body.admin-action-flow .dash-block{box-shadow:none!important}body.admin-action-flow .dash-work{border-style:dashed;background:rgba(255,255,255,.55)}
+
+.action-filter-details{margin:14px 0;border:1px solid var(--studio-line);border-radius:14px;background:rgba(255,255,255,.72);overflow:hidden}.action-filter-details>summary{display:flex;align-items:center;justify-content:space-between;min-height:46px;padding:0 14px;cursor:pointer;color:var(--studio-ink);font-size:13px;font-weight:800}.action-filter-details>summary small{color:var(--studio-muted);font-weight:650}.action-filter-details>.action-filter-body{padding:0 14px 14px}.action-filter-details>.action-filter-body>*{margin:0!important}
+.action-advanced-details{margin:16px 0;border-top:1px solid var(--studio-line)}.action-advanced-details>summary{min-height:48px;padding:14px 2px;cursor:pointer;color:var(--studio-muted);font-size:13px;font-weight:800}.action-advanced-body{display:grid;gap:14px;padding:0 0 16px}
+body.admin-action-flow .action-route-bar+.page-intro.compact-intro{display:none}
+body.admin-action-flow .action-route-bar+.page-intro .page-intro-copy,
+body.admin-action-flow .action-route-bar+.work-head>div,
+body.admin-action-flow .action-route-bar+.integration-hero>div,
+body.admin-action-flow .action-route-bar+.program-publishing-head>div,
+body.admin-action-flow .action-route-bar+.partner-directory-head>div{display:none}
+body.admin-action-flow .action-route-bar+.page-intro,
+body.admin-action-flow .action-route-bar+.work-head,
+body.admin-action-flow .action-route-bar+.integration-hero,
+body.admin-action-flow .action-route-bar+.program-publishing-head,
+body.admin-action-flow .action-route-bar+.partner-directory-head{justify-content:flex-end;margin:0 0 10px;padding:0;border:0;background:transparent}
+body.admin-action-flow .program-publishing-boundary,
+body.admin-action-flow .partner-directory-boundary,
+body.admin-action-flow .partner-sensitive-boundary,
+body.admin-action-flow .work-note{font-size:12px;line-height:1.5}
+
+@media(max-width:800px){
+  body.admin-action-flow.management-view main{padding-top:64px}
+  .action-route-bar{align-items:flex-start;gap:10px;margin-bottom:14px;padding-bottom:12px}.action-route-copy strong{font-size:18px}.action-route-copy p{display:none}.action-route-actions button{min-width:44px;min-height:45px;padding:8px 12px}.action-route-actions .action-secondary{display:none}
+  .home-quick-form{padding:14px;border-radius:17px}.home-quick-form>div{align-items:stretch}.home-quick-form input,.home-quick-form button{min-height:48px}.home-quick-form button{padding:0 13px}
+  body.admin-action-flow .dash-top h1{font-size:30px!important}.action-filter-details>summary{min-height:48px}
+}
+@media(max-width:430px){.action-route-copy small{font-size:11px}.action-route-copy strong{font-size:17px}.home-quick-form>div{display:grid}.home-quick-form button{width:100%}}
+
+@media(prefers-reduced-motion:no-preference){.action-route-bar,.home-quick-form{animation:action-enter .18s ease-out}}@keyframes action-enter{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
