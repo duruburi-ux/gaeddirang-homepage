@@ -162,6 +162,7 @@
 </style>
 <link rel="stylesheet" href="./admin-ux.css?v=20261026-1" />
 <link rel="stylesheet" href="./admin-apple-ux.css?v=20261029-2" />
+<link rel="stylesheet" href="./admin-workflow-focus.css?v=20261030-1" />
 <link rel="stylesheet" href="./cute-app-ux.css?v=20261029-3" />
 </head>
 <body>
@@ -189,7 +190,7 @@
       </a>
       <div class="head-actions">
         <span class="head-user" id="headUser"></span>
-        <button class="btn-ghost" id="reloadBtn" type="button"><span class="compact-icon" aria-hidden="true">↻</span><span class="button-label">최신 자료 확인</span></button>
+        <button class="btn-ghost" id="reloadBtn" type="button"><span class="compact-icon" aria-hidden="true">↻</span><span class="button-label">전체 자료 다시 확인</span></button>
         <button class="btn-ghost" id="logoutBtn" type="button"><span class="compact-icon" aria-hidden="true">↪</span><span class="button-label">로그아웃</span></button>
       </div>
     </div>
@@ -205,16 +206,16 @@
             <button class="tab" data-tab="apps">수업 신청<span class="badge hidden" id="bApps"></span></button>
             <button class="tab" data-tab="inquiries">기관 문의<span class="badge hidden" id="bInq"></span></button>
           </div>
-          <div class="management-menu-group"><strong>원장</strong>
-            <button class="tab" data-tab="finder">매장 판매가능 원본</button>
-            <button class="tab" data-tab="scm">전체 상품 원장</button>
+          <div class="management-menu-group"><strong>도서·재고</strong>
+            <button class="tab" data-tab="finder">매장 판매가능</button>
+            <button class="tab" data-tab="scm">상품·재고 원장</button>
             <button class="tab" data-tab="cohorts">프로그램 원본</button>
             <button class="tab" data-tab="publishing">홈페이지 프로그램</button>
             <button class="tab" data-tab="partners">위탁 연락처</button>
           </div>
           <div class="management-menu-group"><strong>업무·재정</strong>
             <button class="tab" data-tab="work">팀 업무<span class="badge hidden" id="bWork"></span></button>
-            <button class="tab" data-tab="finance">재정 현황</button>
+            <button class="tab" data-tab="finance">정산·재정 현황</button>
             <button class="tab" data-tab="members">고객 이력</button>
           </div>
           <div class="management-menu-group"><strong>기록·고급</strong>
@@ -231,8 +232,8 @@
       <select id="mobileNav" aria-label="관리실 메뉴 선택">
         <optgroup label="매일 쓰는 화면"><option value="home">전체 현황</option><option value="read">개인·팀 일정</option></optgroup>
         <optgroup label="관리 · 처리"><option value="orders">주문</option><option value="apps">수업 신청</option><option value="inquiries">기관 문의</option></optgroup>
-        <optgroup label="원장"><option value="finder">매장 판매가능 원본</option><option value="scm">전체 상품 원장</option><option value="cohorts">프로그램 원본</option><option value="publishing">홈페이지 프로그램</option><option value="partners">위탁 연락처</option></optgroup>
-        <optgroup label="업무·재정"><option value="work">팀 업무</option><option value="finance">재정 현황</option><option value="members">고객 이력</option></optgroup>
+        <optgroup label="도서·재고"><option value="finder">매장 판매가능</option><option value="scm">상품·재고 원장</option><option value="cohorts">프로그램 원본</option><option value="publishing">홈페이지 프로그램</option><option value="partners">위탁 연락처</option></optgroup>
+        <optgroup label="업무·재정"><option value="work">팀 업무</option><option value="finance">정산·재정 현황</option><option value="members">고객 이력</option></optgroup>
         <optgroup label="기록·고급"><option value="alerts">출간 알림</option><option value="integration">연결 현황</option><option value="operations">업무 찾기</option><option value="docs">견적·정산·서류</option></optgroup>
       </select>
     </div>
@@ -243,7 +244,7 @@
       <div class="management-context-copy"><span id="managementGroup"></span><strong id="managementTitle"></strong><small id="managementDescription"></small></div>
       <div id="managementRelated" class="management-related" aria-label="관련 관리 화면"></div>
     </nav>
-    <div id="coreBanner" class="core-banner hidden" role="alert"><span id="coreBannerText"></span><button id="coreRetry" type="button">다시 불러오기</button></div>
+    <div id="coreBanner" class="core-banner hidden" role="alert"><span id="coreBannerText"></span><button id="coreRetry" type="button">실패한 자료 다시 확인</button></div>
     <section id="tab-read" class="ops-read" aria-label="책공방 통합 운영판">
       <section class="personal-plan" aria-label="개인 계획">
         <aside class="personal-plan-sidebar" aria-label="작업 노트 탐색">
@@ -255,21 +256,21 @@
             <button type="button" data-nav-tab="work">팀 업무</button>
             <button type="button" data-nav-tab="publishing">프로그램</button>
             <button type="button" data-nav-tab="finder">도서·재고</button>
-            <button type="button" data-nav-tab="finance">정산</button>
+            <button type="button" data-nav-tab="finance">정산·재정</button>
           </nav>
           <nav class="personal-plan-nav" aria-label="개인 계획 보기" role="tablist"><button type="button" role="tab" data-personal-view="today" aria-selected="true" aria-controls="personal-plan-results">오늘</button><button type="button" role="tab" data-personal-view="projects" aria-selected="false" aria-controls="personal-plan-results" tabindex="-1">프로젝트</button><button type="button" role="tab" data-personal-view="inbox" aria-selected="false" aria-controls="personal-plan-results" tabindex="-1">수집함</button></nav>
           <button type="button" id="personal-open-manage" class="personal-plan-manage">더 많은 메뉴</button>
           <div class="personal-admin-menu" hidden>
             <button type="button" id="personal-open-operations">통합 운영</button>
             <div class="personal-admin-group"><strong>주문·문의</strong><button type="button" data-nav-tab="orders">주문</button><button type="button" data-nav-tab="apps">수업 신청</button><button type="button" data-nav-tab="inquiries">기관 문의</button></div>
-            <div class="personal-admin-group"><strong>도서·프로그램 원본</strong><button type="button" data-nav-tab="scm">전체 상품 원장</button><button type="button" data-nav-tab="cohorts">프로그램 원본</button><button type="button" data-nav-tab="partners">위탁 연락처</button></div>
+            <div class="personal-admin-group"><strong>도서·프로그램</strong><button type="button" data-nav-tab="scm">상품·재고 원장</button><button type="button" data-nav-tab="cohorts">프로그램 원본</button><button type="button" data-nav-tab="partners">위탁 연락처</button></div>
             <div class="personal-admin-group"><strong>고객·알림</strong><button type="button" data-nav-tab="members">고객 이력</button><button type="button" data-nav-tab="alerts">출간 알림</button></div>
             <div class="personal-admin-group"><strong>연결·도구</strong><button type="button" data-nav-tab="integration">연결 현황</button><button type="button" data-nav-tab="operations">업무 찾기</button><a href="docs.html">견적·정산·서류 ↗</a></div>
           </div>
           <div class="personal-plan-sidebar-foot">
             <span class="personal-plan-account" id="personalPlanUser"></span>
             <details class="personal-plan-info"><summary>저장·연결 정보</summary><p id="personal-plan-status" class="personal-plan-status" role="status" aria-live="polite">로그인한 뒤 개인 계획을 엽니다.</p><div class="personal-plan-boundaries" aria-label="저장과 연결 상태"><span><i>개인 계획</i><b>브라우저 기본 · 선택 저장</b></span><span id="personal-source-state"><i>원본 업무</i><b>읽기 미확인</b></span><span><i>업무 요청</i><b>명시 접수만</b></span><span class="off"><i>자동 실행</i><b>꺼짐</b></span></div></details>
-            <button type="button" data-nav-tab="integration">연결 현황</button><button type="button" id="personal-plan-refresh">최신 자료 확인</button><button type="button" id="personal-plan-logout">로그아웃</button>
+            <button type="button" data-nav-tab="integration">연결 현황</button><button type="button" id="personal-plan-refresh">개인 저장상태 확인</button><button type="button" id="personal-plan-logout">로그아웃</button>
           </div>
         </aside>
         <div class="personal-plan-mobile-head"><a class="global-home-link" href="#home" data-nav-tab="home"><span aria-hidden="true">⌂</span><b>전체 현황</b></a><button type="button" id="personal-mobile-info" aria-expanded="false">메뉴</button></div>
@@ -298,7 +299,7 @@
       </div></details>
     </section>
     <section id="tab-work" class="work hidden" aria-label="노션 진행 업무">
-      <div class="work-head"><div><p class="work-eyebrow">NOTION / READ ONLY</p><h1>지금 하는 일, 한곳에서</h1><p>업무 영역·실행 업무·프로젝트·결정할 일을 최신 순서로 모아 봅니다.</p></div><button id="work-refresh" class="work-btn">지금 확인</button></div>
+      <div class="work-head"><div><p class="work-eyebrow">팀 업무 · 읽기 전용</p><h1>지금 하는 일, 한곳에서</h1><p>업무 영역·실행 업무·프로젝트·결정할 일을 최신 순서로 모아 봅니다.</p></div><button id="work-refresh" class="work-btn">업무 다시 확인</button></div>
       <div id="work-status" class="work-notice" role="status" aria-live="polite">관리자 확인 후 최신 업무를 불러옵니다.</div>
       <p class="work-note">조회 전용 · 수정은 노션 원본에서 · 21일 넘게 갱신되지 않은 기록은 ‘오래됨’으로 표시</p>
       <div id="work-content" hidden>
@@ -317,13 +318,13 @@
     </section>
     <section id="tab-integration" class="integration hidden" aria-label="통합 운영실">
       <div class="integration-hero">
-        <div><p class="integration-kicker">연결 현황</p><h1>확인 필요한 연결</h1><p>마지막 성공 시각과 실패·대기 상태를 원천별로 확인합니다.</p></div>
-        <button id="integration-refresh" class="integration-button">지금 확인</button>
+        <div><p class="integration-kicker">연결 현황</p><h1>확인 필요한 연결</h1><p>각 자료가 마지막으로 확인된 시각과 실패·대기 상태를 봅니다.</p></div>
+        <button id="integration-refresh" class="integration-button workflow-refresh-secondary">연결 자료 다시 확인</button>
       </div>
       <div id="integration-status" class="integration-notice" role="status" aria-live="polite">운영 시스템을 확인하고 있어요.</div>
       <div id="integration-content" hidden>
         <section class="source-dashboard" aria-labelledby="source-dashboard-title">
-          <div class="source-dashboard-titlebar"><div><p class="integration-kicker">READ-ONLY SOURCES</p><h2 id="source-dashboard-title">운영 자료 한눈에 보기</h2><p>원본에서 확인된 범위만 집계하고, 그래프를 선택하면 아래 처리 목록이 함께 좁혀집니다.</p></div><button id="source-dashboard-refresh" class="payhere-secondary" type="button">원본 다시 확인</button></div>
+          <div class="source-dashboard-titlebar"><div><p class="integration-kicker">읽기 전용 자료</p><h2 id="source-dashboard-title">운영 자료 한눈에 보기</h2><p>확인된 범위만 집계하고, 기간별 보기를 선택하면 아래 처리 목록이 함께 좁혀집니다.</p></div><button id="source-dashboard-refresh" class="payhere-secondary" type="button">자료 다시 확인</button></div>
           <p id="source-dashboard-status" class="integration-evidence-status" role="status" aria-live="polite">Notion과 3개 Sheet의 읽기 상태를 확인합니다. 쓰기 기능은 꺼져 있습니다.</p>
           <div class="source-dashboard-auto" aria-label="자동 새로고침 상태"><span id="source-dashboard-auto-state">화면을 열면 자동 조회를 시작합니다.</span><small id="source-dashboard-auto-time">브라우저가 닫혀 있으면 수집하지 않습니다.</small></div>
           <div id="source-dashboard-sources" class="source-dashboard-sources" aria-label="원본별 연결 상태"></div>
@@ -364,12 +365,12 @@
           <div id="integration-pipeline" class="integration-pipeline"></div>
         </section>
         <section class="integration-sources" aria-labelledby="integration-sources-title">
-          <div class="integration-section-head"><div><p class="integration-kicker">EVIDENCE SOURCES</p><h2 id="integration-sources-title">원천별 범위와 신선도</h2></div><span>메일·Chat 내용은 근거이며 실행 권한이 아님</span></div>
+          <div class="integration-section-head"><div><p class="integration-kicker">자료 확인 범위</p><h2 id="integration-sources-title">자료별 확인 범위와 최신 상태</h2></div><span>메일·Chat 내용은 참고 자료이며 자동 처리 권한이 아님</span></div>
           <div id="integration-sources" class="integration-source-grid"></div>
         </section>
         <section class="integration-evidence" aria-labelledby="integration-evidence-title">
           <div class="integration-evidence-head">
-            <div><p class="integration-kicker">EVIDENCE INBOX</p><h2 id="integration-evidence-title">수집 근거 검토함</h2><p>원문·첨부·개인정보는 저장하지 않고 사건 식별자와 해시, 상태 후보만 보관합니다. ‘근거 확인’은 SCM·정산·지급 반영이 아닙니다.</p></div>
+            <div><p class="integration-kicker">수집 자료</p><h2 id="integration-evidence-title">수집 자료 검토함</h2><p>원문·첨부·개인정보는 저장하지 않고 자료 식별값과 상태 후보만 보관합니다. ‘자료 확인’은 재고·정산·지급 반영이 아닙니다.</p></div>
             <div class="integration-evidence-actions"><button id="integration-collect-preview" class="payhere-secondary" type="button">홈페이지 수집 미리보기</button><button id="integration-collect-apply" class="integration-button" type="button" disabled>검토함에 넣기</button></div>
           </div>
           <div id="integration-evidence-status" class="integration-evidence-status" role="status" aria-live="polite">먼저 미리보기로 수집 범위를 확인하세요.</div>
@@ -403,19 +404,19 @@
             <div id="payhere-summary" class="payhere-summary"></div>
             <div class="payhere-table-wrap">
               <table class="payhere-table">
-                <thead><tr><th>상품</th><th>판매</th><th>SCM 연결</th><th>처리</th></tr></thead>
+                <thead><tr><th>상품</th><th>판매</th><th>재고 기록 연결</th><th>처리</th></tr></thead>
                 <tbody id="payhere-rows"></tbody>
               </table>
             </div>
             <p id="payhere-review-note" class="payhere-review-note"></p>
             <div class="payhere-actions">
               <button id="payhere-dry-run" class="payhere-secondary" type="button">중복까지 최종 검사</button>
-              <label class="payhere-confirm"><input id="payhere-confirm" type="checkbox" /> 파일·기간·상품·중복 검사 결과를 확인했고 SCM 장부 수량을 차감합니다</label>
-              <button id="payhere-apply" class="integration-button" type="button" disabled>SCM 장부 수량 차감</button>
+              <label class="payhere-confirm"><input id="payhere-confirm" type="checkbox" /> 파일·기간·상품·중복 검사 결과를 확인했고 상품·재고 기록의 수량을 차감합니다</label>
+              <button id="payhere-apply" class="integration-button" type="button" disabled>상품·재고 기록 수량 차감</button>
             </div>
           </div>
         </section>
-        <div class="integration-toolbar"><div><h2>커넥터 원본 상태</h2><p>연결 등록과 최근 실행 성공은 다릅니다. 아래 값은 관리자 원장에 저장된 상태 그대로입니다.</p></div><select id="integration-filter" aria-label="연결 상태 필터"><option value="">전체 상태</option><option value="connected">연결 등록</option><option value="manual">수동 관리</option><option value="setup_required">준비 필요</option><option value="attention">확인 필요</option></select></div>
+        <div class="integration-toolbar"><div><h2>연결 서비스 상세</h2><p>서비스 연결과 최근 자료 확인 성공은 다릅니다. 아래 값은 관리 기록에 저장된 상태 그대로입니다.</p></div><select id="integration-filter" aria-label="연결 상태 필터"><option value="">전체 상태</option><option value="connected">연결 등록</option><option value="manual">수동 관리</option><option value="setup_required">준비 필요</option><option value="attention">확인 필요</option></select></div>
         <div id="integration-connectors" class="integration-grid"></div>
         <section class="integration-ledger" aria-labelledby="integration-ledger-title"><div><p class="integration-kicker">CONTROL LEDGER</p><h2 id="integration-ledger-title">기준 원장 기록</h2></div><div id="integration-ledger-stats"></div><p>입고 예정·예약·위탁 납품·판매·반품·샘플·이동은 서로 다른 사건입니다. 미확인 값은 0으로 바꾸지 않고, 취소·반품은 원거래를 참조하는 역분개로 남겨야 합니다.</p></section>
         <section class="integration-guardrails" aria-labelledby="integration-guardrails-title">
@@ -426,10 +427,10 @@
     </section>
     <section id="tab-finance" class="finance hidden" aria-label="재정 현황">
       <div class="finance-head">
-        <div><p class="finance-kicker">PRIVATE / READ ONLY</p><h1>재정 현황</h1><p>잔액·수입·지출·정산·보관금·머니핀 거래를 한 페이지에서 봅니다. 확인되지 않은 회사 총계는 개인 정산으로 대신 채우지 않습니다.</p></div>
-        <button id="finance-refresh" class="finance-refresh" type="button">지금 확인</button>
+        <div><p class="finance-kicker">정산·재정 · 읽기 전용</p><h1>정산·재정 현황</h1><p>잔액·수입·지출·정산·보관금·머니핀 거래를 한 페이지에서 봅니다. 확인되지 않은 회사 총계는 개인 정산으로 대신 채우지 않습니다.</p></div>
+        <button id="finance-refresh" class="finance-refresh" type="button">정산 자료 다시 확인</button>
       </div>
-      <div id="finance-status" class="finance-status" role="status" aria-live="polite">관리자 확인 후 검증된 재정 원천을 불러옵니다.</div>
+      <div id="finance-status" class="finance-status" role="status" aria-live="polite">관리자 확인 후 검증된 정산·재정 자료를 불러옵니다.</div>
       <div id="finance-content" hidden>
         <div class="finance-controls">
           <div id="finance-scope" class="finance-scope" role="group" aria-label="재정 범위"></div>
@@ -458,8 +459,8 @@
     </section>
     <section id="tab-finder" class="book-finder hidden" aria-label="매장 판매가능 조회">
       <div class="inventory-mode-guide" aria-label="재고 화면 선택"><div class="active"><strong>손님에게 지금 팔 수 있나?</strong><span>매장 판매가능 · 실사와 예약 반영</span></div><button type="button" data-inventory-tab="scm"><strong>상품·가격·소유를 찾나?</strong><span>전체 상품 원장 · 장부 수량</span></button></div>
-      <div class="finder-hero"><div><p class="finder-kicker">BOOKSHOP DESK</p><h1>책공방 판매가능 찾기</h1><p class="finder-hero-copy">제목·저자·ISBN으로 손님에게 지금 안내할 수 있는 수량을 확인합니다.</p></div><button id="book-finder-refresh" class="finder-refresh" type="button">새로 확인</button></div>
-      <div id="book-finder-status" class="finder-status" role="status" aria-live="polite">책 찾기를 열면 관리자 권한으로 SCM을 확인합니다.</div>
+      <div class="finder-hero"><div><p class="finder-kicker">매장 판매 확인</p><h1>매장 판매가능</h1><p class="finder-hero-copy">제목·저자·ISBN으로 손님에게 지금 안내할 수 있는 수량을 확인합니다.</p></div><button id="book-finder-refresh" class="finder-refresh" type="button">판매가능 다시 확인</button></div>
+      <div id="book-finder-status" class="finder-status" role="status" aria-live="polite">책 찾기를 열면 관리자 권한으로 판매가능 자료를 확인합니다.</div>
       <button id="book-finder-retry" class="finder-retry" type="button" hidden>다시 확인</button>
       <div id="book-finder-content" hidden>
         <form id="book-finder-form" class="finder-search-panel" role="search">
@@ -476,8 +477,8 @@
     </section>
     <section id="tab-scm" class="scm hidden" aria-label="전체 상품 원장">
       <div class="inventory-mode-guide" aria-label="재고 화면 선택"><button type="button" data-inventory-tab="finder"><strong>손님에게 지금 팔 수 있나?</strong><span>매장 판매가능 · 실사와 예약 반영</span></button><div class="active"><strong>상품·가격·소유를 찾나?</strong><span>전체 상품 원장 · 장부 수량</span></div></div>
-      <div class="scm-head"><div><p class="scm-eyebrow">TEAM / SCM · READ ONLY</p><h1>전체 상품 원장</h1><p>전체 상품의 가격·소유·SKU·장부 수량과 경고를 확인합니다.</p></div><button id="scm-refresh" class="scm-btn">새로 확인</button></div>
-      <div id="scm-status" class="scm-notice" role="status" aria-live="polite">관리자 확인 후 최신 SCM을 불러옵니다.</div>
+      <div class="scm-head"><div><p class="scm-eyebrow">읽기 전용</p><h1>상품·재고 원장</h1><p>전체 상품의 가격·소유·상품번호·장부 수량과 확인할 점을 봅니다.</p></div><button id="scm-refresh" class="scm-btn">자료 다시 확인</button></div>
+      <div id="scm-status" class="scm-notice" role="status" aria-live="polite">관리자 확인 후 최신 상품·재고 자료를 불러옵니다.</div>
       <p class="scm-note scm-scope-note"><strong>여기서 보는 수량은 원장의 장부 수량입니다.</strong> 매장 실물·예약 차감·즉시 판매가능은 ‘매장 판매가능’에서 확인하세요. 페이히어 판매는 ‘통합 운영실’에서 검사와 승인 후 반영됩니다.</p>
       <div id="scm-content" hidden>
         <div class="scm-metrics" id="scm-metrics"></div>
@@ -488,7 +489,7 @@
         </div>
         <div id="scm-blind" hidden><div class="scm-filters"><select id="scm-blind-type" aria-label="블라인드북 유형"><option value="">전체 유형</option><option>키워드</option><option>감정</option></select><select id="scm-book" aria-label="블라인드북 가격 계산 도서"></select><span id="scm-price" class="scm-price"></span></div><div id="scm-blind-cards" class="scm-cards"></div><p class="scm-note">판매가 = 도서 정가 + 3,000원. 포장상품과 낱권은 별도 재고이며 합산하지 않습니다. 가격 계산은 상품 등록이 아닙니다.</p></div>
         <div id="scm-checks" hidden><h2>장부에서 확인할 일</h2><div id="scm-issues"></div><h2>실사·등록 기준과 현재 장부</h2><div id="scm-counts"></div><div class="scm-notice">고객반품은 재고 증가, 공급처반품은 재고 감소로 구분합니다. 이 화면은 조회 전용이며 수량 수정은 날짜·장소·근거를 남겨 SCM 원본에서 처리하세요.</div></div>
-        <p class="scm-links"><a href="https://docs.google.com/spreadsheets/d/1ZeH4pa5s1QS8BlC_gbHWLLp0dhezISXfYTXXxiE0NKw/edit" target="_blank" rel="noopener">SCM 원본에서 확인·수정 ↗</a><span>시트 편집에는 별도 Google 권한이 필요합니다.</span></p>
+        <p class="scm-links"><a href="https://docs.google.com/spreadsheets/d/1ZeH4pa5s1QS8BlC_gbHWLLp0dhezISXfYTXXxiE0NKw/edit" target="_blank" rel="noopener">상품·재고 원본에서 확인·수정 ↗</a><span>시트 편집에는 별도 Google 권한이 필요합니다.</span></p>
       </div>
       <dialog id="scm-detail" aria-label="상품 원장 상세"><div id="scm-detail-body"></div><button class="scm-btn" id="scm-detail-close">닫기</button></dialog>
     </section>
@@ -509,8 +510,8 @@
       <section class="dash-block dash-work" aria-labelledby="workTitle"><div class="dash-section-head"><div><p class="dash-kicker">이어 할 일</p><h2 id="workTitle">진행 중인 일</h2></div><button class="dash-text-btn" data-dash-tab="work">전체 보기 →</button></div><div id="dashWorkStatus" class="dash-work-status">팀 업무를 확인하고 있어요.</div><div id="dashWorkPreview" class="dash-work-preview"></div><details class="dash-work-counts"><summary>상태별 개수</summary><div id="dashWorkMetrics" class="dash-work-metrics"><div><strong>—</strong><span>진행</span></div><div><strong>—</strong><span>확인</span></div><div><strong>—</strong><span>승인</span></div><div><strong>—</strong><span>막힘</span></div></div></details></section>
       <details class="dash-more">
         <summary><span><strong>전체 현황과 연결 상태</strong><small>재고·정산·자동화·데이터 상태</small></span></summary>
-        <div class="team-dashboard-scope" role="note"><strong>현재 연결 범위</strong><span>확인된 원천을 읽고 개인 일정·검토 요청만 만듭니다. 재고·가격·정산·송금·메일·홈페이지 공개는 자동 실행하지 않습니다.</span></div>
-        <section class="dash-block team-lanes" aria-labelledby="team-lanes-title"><div class="dash-section-head"><div><p class="dash-kicker">운영 영역</p><h2 id="team-lanes-title">책공방 전체 현황</h2></div><span id="team-lanes-status" class="dash-data-status">원천 확인 전</span></div><div id="team-lanes-grid" class="team-lanes-grid"></div></section>
+        <div class="team-dashboard-scope" role="note"><strong>현재 연결 범위</strong><span>확인된 자료를 읽고 개인 일정·검토 요청만 만듭니다. 재고·가격·정산·송금·메일·홈페이지 공개는 자동 실행하지 않습니다.</span></div>
+        <section class="dash-block team-lanes" aria-labelledby="team-lanes-title"><div class="dash-section-head"><div><p class="dash-kicker">운영 영역</p><h2 id="team-lanes-title">책공방 전체 현황</h2></div><span id="team-lanes-status" class="dash-data-status">자료 확인 전</span></div><div id="team-lanes-grid" class="team-lanes-grid"></div></section>
         <div class="dash-signals" aria-label="운영 신호">
           <section class="dash-block dash-stock" aria-labelledby="stockTitle"><div class="dash-section-head"><div><p class="dash-kicker">전체 상품 원장</p><h2 id="stockTitle">장부에서 확인할 것</h2></div><button class="dash-text-btn" data-dash-tab="scm">열기 →</button></div><div id="dashScmStatus" class="dash-status">상품 원장을 확인하고 있어요.</div><div id="dashScmMetrics" class="dash-mini-metrics"><div><strong>—</strong><span>확인 필요</span></div><div><strong>—</strong><span>장부 경고</span></div></div><p class="dash-help">장부 수량이며 매장 판매가능을 보증하지 않습니다.</p></section>
           <section class="dash-block dash-integration" aria-labelledby="integrationTitle"><div class="dash-section-head"><div><p class="dash-kicker">통합 운영실</p><h2 id="integrationTitle">수집·재고·정산 흐름</h2></div><button class="dash-text-btn" data-dash-tab="integration">열기 →</button></div><div id="dashIntegrationStatus" class="dash-status">운영 단계를 확인하고 있어요.</div><div id="dashIntegrationMetrics" class="dash-mini-metrics"><div><strong>—</strong><span>자동 확인 단계</span></div><div><strong>—</strong><span>검토·재시도</span></div></div><p class="dash-help">연결 성공과 거래·지급 완료는 서로 다른 상태입니다.</p></section>
@@ -1312,13 +1313,13 @@ const MANAGEMENT_ROUTES={
   orders:{group:'처리',label:'주문',description:'입금 확인과 발송 상태를 기록합니다.',related:['apps','inquiries']},
   apps:{group:'처리',label:'수업 신청',description:'신청·입금·확정·참석 상태를 구분합니다.',related:['cohorts','orders']},
   inquiries:{group:'처리',label:'기관 문의',description:'상담 상태를 기록하고 견적 서류로 이어갑니다.',related:['orders']},
-  finder:{group:'원장',label:'매장 판매가능',description:'손님에게 안내할 판매가능 수량을 확인합니다.',related:['scm']},
-  scm:{group:'원장',label:'전체 상품',description:'가격·소유·SKU·장부 수량과 경고를 확인합니다.',related:['finder','integration']},
+  finder:{group:'도서·재고',label:'매장 판매가능',description:'손님에게 안내할 판매가능 수량을 확인합니다.',related:['scm']},
+  scm:{group:'도서·재고',label:'상품·재고 원장',description:'가격·소유·상품번호·장부 수량과 확인할 점을 봅니다.',related:['finder','integration']},
   cohorts:{group:'원장',label:'프로그램',description:'기수별 정원과 접수 현황을 비교합니다.',related:['apps']},
   publishing:{group:'원장',label:'홈페이지 프로그램',description:'공개 허용 필드만 검토하고 공개 payload를 준비합니다.',related:['cohorts','integration']},
   partners:{group:'원장',label:'위탁 연락처',description:'일반 연락처와 민감 정산정보의 권한 경계를 분리합니다.',related:['scm','integration']},
   work:{group:'업무·재정',label:'팀 업무',description:'연결된 Notion 원본을 읽기 전용으로 확인합니다.',related:['operations','finance']},
-  finance:{group:'업무·재정',label:'재정 현황',description:'확인된 근거와 미확인 범위를 나눠 봅니다.',related:['work','integration']},
+  finance:{group:'업무·재정',label:'정산·재정 현황',description:'확인된 근거와 미확인 범위를 나눠 봅니다.',related:['work','integration']},
   members:{group:'업무·재정',label:'고객 이력',description:'연락처가 같은 신청 이력을 묶어 확인합니다.',related:['apps','alerts']},
   alerts:{group:'기록·고급',label:'출간 알림',description:'책별 알림 신청 기록을 찾고 복사합니다.',related:['members']},
   integration:{group:'기록·고급',label:'연결 현황',description:'수집·동기화·사람 확인의 경계를 점검합니다.',related:['scm','finance']},
@@ -1405,7 +1406,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./payhere-import.js?v=20260906-1"></script>
 <script src="./evidence-batch-import.js?v=20261011-1"></script>
 <script src="./operations-sources-dashboard-model.js?v=20261026-1"></script>
-<script src="./operations-sources-dashboard.js?v=20261026-5"></script>
+<script src="./operations-sources-dashboard.js?v=20261030-1"></script>
 <script src="../assets/public-content.js?v=20261011-1"></script>
 <script src="./team-dashboard-model.js?v=20261029-2"></script>
 <script src="./team-dashboard.js?v=20261029-3"></script>
@@ -1422,6 +1423,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>
 <script src="./admin-apple-ux.js?v=20261029-3"></script>
+<script src="./admin-workflow-focus.js?v=20261030-1"></script>
 <script>
 window.PersonalPlanner?.init({navigate:switchTab});
 window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,requestSyncEndpoint:SUPABASE_URL+'/functions/v1/operations-requests',requestSyncOrigin:SUPABASE_URL,onDenied:showLogin,navigate:switchTab,loadCore:loadOperationsCore,readAll:(table,columns,options)=>Core.readAll(sb,table,columns,options),getContext:()=>{const p=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});return {ok:CORE_SYNC.ok,queriedAt:CORE_SYNC.at?.toISOString?.()||null,ordersKnown:sourceKnown('orders'),inquiriesKnown:sourceKnown('inquiries'),newOrders:p.newOrders.length,toShip:p.toShip.length,newInquiries:p.newInquiries.length};}});
