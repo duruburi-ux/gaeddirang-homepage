@@ -6,6 +6,7 @@ const CONNECTION_CODES=new Set(['naver_mail','google_chat']);
 const HASH=/^[a-f0-9]{64}$/;
 const ERROR=/^[A-Z][A-Z0-9_]{0,63}$/;
 const UTC_TIME=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+const SKU=/^[A-Za-z0-9][A-Za-z0-9_-]{2,63}$/;
 export function num(v){if(v==null||v===''||typeof v==='boolean')return null;const n=Number(String(v).replaceAll(',',''));return Number.isSafeInteger(n)?n:null}
 function records(raw,key){const v=raw[key]?.values;if(!v?.length||!REQUIRED[key].every(h=>v[0].includes(h)))throw Error('SCHEMA_CHANGED');return v.slice(1).filter(r=>r.some(x=>x!=null&&x!=='')).map(r=>Object.fromEntries(v[0].map((h,i)=>[h,r[i]??null])))}
 function indexed(rows,key){const m=new Map();for(const r of rows){if(!r[key])continue;if(m.has(String(r[key])))throw Error('DUPLICATE_SKU');m.set(String(r[key]),r)}return m}
@@ -31,17 +32,21 @@ export function buildData(raw){
   const t=Object.fromEntries(Object.keys(REQUIRED).map(k=>[k,records(raw,k)]));
   const connections=connectionRows(raw);
   const books=indexed(t.books,'SKU'),goods=indexed(t.goods,'SKU'),products=indexed(t.products,'SKU');
-  const inventory=[];const actions=[];
+  const inventory=[];const actions=[],bookStockSkus=new Set();
   const warn=(title,detail)=>actions.push({title,detail});
   for(const [sku,p]of products){
     if(!['도서','굿즈','블라인드북'].includes(p['상품군']))continue;
-    const kind=p['상품군'],source=(kind==='도서'?books:goods).get(String(p['재고SKU']));
+    const kind=p['상품군'],stockSku=String(p['재고SKU']??'').trim();
+    if(kind==='도서'&&!SKU.test(stockSku))throw Error('SCHEMA_CHANGED');
+    if(kind==='도서'&&bookStockSkus.has(stockSku))throw Error('DUPLICATE_SKU');
+    if(kind==='도서')bookStockSkus.add(stockSku);
+    const source=(kind==='도서'?books:goods).get(stockSku);
     const stock=kind==='블라인드북'?num(p['현재고']):num(source?.[kind==='도서'?'현재고':'총재고']);
     const skuStock=num(p['현재고']);
     const returned=String(p['활성상태']).includes('반품');
     const status=stock==null?'수량 미확인':returned?(stock===0?'반품 완료':'반품·재고 확인'):stock<0?'실사 필요':stock===0?'품절':stock<=3?'1~3개 보유':'재고 있음';
     const x={
-      sku,kind,
+      sku,kind,...(kind==='도서'?{stockSku}:{}),
       name:p['페이히어상품명']||p['내부표준상품명']||sku,
       category:p['페이히어카테고리']||'미분류',
       price:num(p['정가']),cost:num(p['원가']),stock,skuStock,status,

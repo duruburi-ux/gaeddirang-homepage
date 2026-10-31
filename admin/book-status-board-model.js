@@ -6,6 +6,7 @@
   'use strict';
 
   const CURRENT_OBSERVATION_MS=10*60*1000;
+  const SKU=/^[A-Za-z0-9][A-Za-z0-9_-]{2,63}$/;
   const CATEGORIES=[
     {key:'selling',label:'판매 중'},
     {key:'preorder',label:'예약판매'},
@@ -19,6 +20,11 @@
   const timestamp=value=>Number.isFinite(Date.parse(value||''))?String(value):'';
   const isCount=value=>Number.isSafeInteger(value)&&value>=0;
   const own=(object,key)=>Object.prototype.hasOwnProperty.call(object||{},key);
+  function bookJoinSku(book){
+    const sku=compact(own(book,'stockSku')?book.stockSku:book?.sku);
+    if(!SKU.test(sku))throw Error('INCOMPLETE_BOOK_STATUS_COVERAGE');
+    return sku;
+  }
 
   function sourceLabel(book,supplement,text){
     const sourceType=compact(supplement?.sourceType).toUpperCase();
@@ -73,11 +79,11 @@
     for(const item of supplements){const sku=compact(item?.sku);if(!sku)throw Error('INCOMPLETE_BOOK_STATUS_COVERAGE');if(bySku.has(sku))throw Error('DUPLICATE_BOOK_STATUS_SKU');bySku.set(sku,item)}
     if(structured&&bySku.size!==contract.totalItems)throw Error('INCOMPLETE_BOOK_STATUS_COVERAGE');
     const inventoryBooks=inventory.filter(row=>row?.kind==='도서'),inventoryBySku=new Map();
-    for(const book of inventoryBooks){const sku=compact(book?.sku);if(!sku)continue;if(inventoryBySku.has(sku))throw Error('DUPLICATE_BOOK_STATUS_SKU');inventoryBySku.set(sku,book)}
+    for(const book of inventoryBooks){const sku=bookJoinSku(book);if(inventoryBySku.has(sku))throw Error('DUPLICATE_BOOK_STATUS_SKU');inventoryBySku.set(sku,book)}
     const outsideScopeItems=structured?[...inventoryBySku.keys()].filter(sku=>!bySku.has(sku)).length:0;
     const missingInventoryItems=structured?[...bySku.keys()].filter(sku=>!inventoryBySku.has(sku)).length:0;
     if(structured&&missingInventoryItems)throw Error('INCOMPLETE_BOOK_STATUS_COVERAGE');
-    const scoped=structured?[...bySku].map(([sku,supplement])=>({sku,book:inventoryBySku.get(sku)||{},supplement})):inventoryBooks.map(book=>({sku:compact(book.sku),book,supplement:bySku.get(compact(book.sku))||null}));
+    const scoped=structured?[...bySku].map(([sku,supplement])=>({sku,book:inventoryBySku.get(sku)||{},supplement})):[...inventoryBySku].map(([sku,book])=>({sku,book,supplement:bySku.get(sku)||null}));
     const items=[];
     for(const {sku,book,supplement} of scoped){
       const rowStructured=structured&&supplement&&own(supplement,'operationalState');
