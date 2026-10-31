@@ -17,12 +17,14 @@
 <link rel="stylesheet" href="./program-publishing.css?v=20261029-1" />
 <link rel="stylesheet" href="./partner-directory.css?v=20261029-1" />
 <link rel="stylesheet" href="./book-finder.css?v=20261013-1" />
+<link rel="stylesheet" href="./book-status-board.css?v=20261031-2" />
 <link rel="stylesheet" href="./operations-read.css?v=20261025-1" />
 <link rel="stylesheet" href="./personal-plan.css?v=20261027-1" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script src="./admin-core-model.js?v=20261018-7"></script>
 <script src="./operations-hub-model.js?v=20261016-1"></script>
 <script src="./book-finder-model.js?v=20261011-3"></script>
+<script src="./book-status-board-model.js?v=20261031-2"></script>
 <script src="./personal-plan-model.js?v=20261031-1"></script>
 <style>
   :root{
@@ -167,7 +169,7 @@
 <link rel="stylesheet" href="./admin-workflow-focus.css?v=20261030-1" />
 <link rel="stylesheet" href="./admin-action-flow.css?v=20261030-1" />
 <link rel="stylesheet" href="./cute-app-ux.css?v=20261029-3" />
-<link rel="stylesheet" href="./admin-control-center.css?v=20261031-2" />
+<link rel="stylesheet" href="./admin-control-center.css?v=20261031-3" />
 </head>
 <body>
 
@@ -467,6 +469,14 @@
       <div id="book-finder-status" class="finder-status" role="status" aria-live="polite">책 찾기를 열면 관리자 권한으로 판매가능 자료를 확인합니다.</div>
       <button id="book-finder-retry" class="finder-retry" type="button" hidden>다시 확인</button>
       <div id="book-finder-content" hidden>
+        <section id="book-status-board" class="book-status-board" aria-labelledby="book-status-board-title" hidden>
+          <div class="book-status-board-head"><div><h2 id="book-status-board-title">도서 운영 현황</h2><p>사용자 결정과 실제 채널 반영을 나눠 확인합니다.</p></div><div id="book-status-board-status" class="book-status-board-status" role="status" aria-live="polite"></div></div>
+          <p class="book-status-section-label">사용자 분류</p>
+          <div id="book-status-board-metrics" class="book-status-metrics" aria-label="도서 상태별 바로가기"></div>
+          <div id="book-status-channel-metrics" class="book-status-channel-metrics" aria-label="최근 채널 관측"></div>
+          <div id="book-status-board-groups" class="book-status-groups"></div>
+          <p id="book-status-board-scope" class="book-status-scope"></p>
+        </section>
         <form id="book-finder-form" class="finder-search-panel" role="search">
           <label for="book-finder-query">제목·저자·ISBN 찾기</label>
           <div class="finder-search-row"><input id="book-finder-query" type="search" placeholder="예: 책 제목, 작가 이름, 978…" autocomplete="off"><button type="submit">찾기</button></div>
@@ -1417,6 +1427,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./operations-request-sync-model.js?v=20261018-2"></script>
 <script src="./operations-read.js?v=20261025-1"></script>
 <script src="./personal-plan.js?v=20261031-1"></script>
+<script src="./book-status-board.js?v=20261031-2"></script>
 <script src="./book-finder.js?v=20261013-1"></script>
 <script src="./scm.js?v=20261013-1"></script>
 <script src="./work-dashboard-snapshot-model.js?v=20261031-1"></script>

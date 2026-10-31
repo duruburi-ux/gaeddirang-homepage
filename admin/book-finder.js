@@ -11,12 +11,13 @@ window.BookFinder=(()=>{
 
   function status(text,bad=false){const node=$('#book-finder-status');node.textContent=text;node.classList.toggle('bad',bad)}
   function freshnessState(value){const checkedAt=Date.parse(value||'');if(!Number.isFinite(checkedAt))return 'missing';const age=Date.now()-checkedAt;return age>HISTORY_AGE_MS?'expired':age>FRESH_AGE_MS?'historical':'fresh'}
-  function hideUntrustedData(message){data=null;meta=null;$('#book-finder-content').hidden=true;$('#book-finder-results').replaceChildren();$('#book-finder-supplement').replaceChildren();$('#book-finder-summary').textContent='';status(message,true);$('#book-finder-retry').hidden=false}
+  function hideUntrustedData(message){data=null;meta=null;$('#book-finder-content').hidden=true;$('#book-finder-results').replaceChildren();$('#book-finder-supplement').replaceChildren();$('#book-finder-summary').textContent='';window.BookStatusBoard?.fail(message);status(message,true);$('#book-finder-retry').hidden=false}
   function closeDetail(){const dialog=$('#book-finder-detail');if(dialog?.open)dialog.close();const target=lastFocus?.isConnected?lastFocus:all('[data-book-sku]').find(button=>button.dataset.bookSku===lastSku);target?.focus?.();lastFocus=null;lastSku=''}
   function clear(){
     generation++;controller?.abort();controller=null;busy=false;data=null;meta=null;query='';filter='all';view='cards';
     $('#book-finder-query').value='';$('#book-finder-filter').value='all';$('#book-finder-content').hidden=true;$('#book-finder-results').replaceChildren();$('#book-finder-supplement').replaceChildren();
     $('#book-finder-summary').textContent='';$('#book-finder-refresh').disabled=false;$('#book-finder-retry').hidden=true;closeDetail();
+    window.BookStatusBoard?.clear();
     status('로그인한 관리자만 책 찾기를 볼 수 있습니다.');
   }
 
@@ -108,7 +109,7 @@ window.BookFinder=(()=>{
     const result=window.BookFinderModel.searchBooks({inventory:data.inventory,counts:data.counts,bookshop:data.bookshop,query:'',fetchedAt:meta.fetchedAt});
     const historical=!!meta.stale||freshnessState(meta.fetchedAt)!=='fresh';
     status(`${historical?'지난 조회 기록':'원장 읽기 완료'} · 마지막 성공 ${formatTime(meta.fetchedAt)} · ${result.total}종 · 수량 충돌 ${result.conflictTotal}건${historical?' · 판매가능 확정에 사용하지 마세요':''}`,historical);
-    renderSupplement();render();
+    window.BookStatusBoard?.apply({inventory:data.inventory,bookshop:data.bookshop,meta});renderSupplement();render();
   }
 
   async function refresh(){
@@ -123,7 +124,7 @@ window.BookFinder=(()=>{
       const result=await response.json();if(!response.ok||!result.datasets)throw Error('SCM_READ_FAILED');apply(result.datasets,result.meta);
     }catch(error){
       if(run!==generation)return;
-      if(data&&freshnessState(meta?.fetchedAt)!=='expired'){meta={...meta,stale:true};status('SCM 재조회에 실패해 지난 조회 기록을 표시합니다. 실물 수량을 확답하지 마세요.',true);renderSupplement();render()}
+      if(data&&freshnessState(meta?.fetchedAt)!=='expired'){meta={...meta,stale:true};status('SCM 재조회에 실패해 지난 조회 기록을 표시합니다. 실물 수량을 확답하지 마세요.',true);window.BookStatusBoard?.apply({inventory:data.inventory,bookshop:data.bookshop,meta});renderSupplement();render()}
       else hideUntrustedData(data?'SCM 마지막 성공 기록이 36시간을 넘어 수량을 숨겼습니다. 다시 확인해 주세요.':'SCM을 불러오지 못했습니다. 0권으로 판단하지 말고 다시 확인해 주세요.');
     }finally{clearTimeout(timeout);if(run===generation){busy=false;controller=null;$('#book-finder-refresh').disabled=false}}
   }
