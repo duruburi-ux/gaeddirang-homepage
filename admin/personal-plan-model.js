@@ -27,7 +27,6 @@
   if(!input||typeof input!=='object'||Array.isArray(input)||input.version!==VERSION||!Array.isArray(input.items)||!Array.isArray(input.history))throw Error('PLAN_STATE_INVALID');
   if(input.items.length>2000||input.history.length>10000)throw Error('PLAN_STATE_TOO_LARGE');
   const ids=new Set(),sources=new Set(),items=input.items.map(raw=>{const item=normalizeItem(raw,{now});if(ids.has(item.id))throw Error('PLAN_ID_DUPLICATE');ids.add(item.id);const key=sourceKey(item);if(sources.has(key))throw Error('PLAN_SOURCE_DUPLICATE');sources.add(key);return item});
-  const today=dayKey(new Date(now??Date.now()));if(items.filter(item=>!item.done&&item.plannedOn===today).length>3)throw Error('PLAN_TODAY_LIMIT');
   const history=input.history.slice(-10000).map(row=>({id:clean(row?.id,120)||makeId(),at:iso(row?.at)||nowIso(now),action:clean(row?.action,80)||'변경',itemId:clean(row?.itemId,120),detail:clean(row?.detail,300)}));
   return {version:VERSION,items,history,updatedAt:iso(input.updatedAt)||nowIso(now)};
  }
@@ -69,7 +68,6 @@
  function update(state,itemId,patch,{now}={}){
   const index=state.items.findIndex(item=>item.id===itemId);if(index<0)throw Error('PLAN_ITEM_MISSING');const current=state.items[index];
   const next=normalizeItem({...current,title:patch?.title??current.title,project:patch?.project??current.project,plannedOn:patch?.plannedOn??current.plannedOn,priority:patch?.priority??current.priority,memo:patch?.memo??current.memo,done:patch?.done??current.done,updatedAt:nowIso(now),localEditedAt:nowIso(now)},{now});
-  if(next.plannedOn&&next.plannedOn===dayKey(new Date(now??Date.now()))&&!next.done&&state.items.filter(item=>item.id!==itemId&&!item.done&&item.plannedOn===next.plannedOn).length>=3)throw Error('PLAN_TODAY_LIMIT');
   state.items[index]=next;record(state,'개인 계획 수정',next,next.title,now);return next;
  }
  function placeToday(state,itemId,{now}={}){return update(state,itemId,{plannedOn:dayKey(new Date(now??Date.now())),done:false},{now})}
