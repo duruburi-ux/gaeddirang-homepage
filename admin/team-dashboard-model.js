@@ -21,7 +21,7 @@
   }
   function workTasks(snapshot){
     return (snapshot?.records||[]).map(row=>({
-      id:text(row.sourceId),kind:text(row.sourceType),kindLabel:row.sourceType==='representative_decision'?'대표 결정':'팀 업무',title:text(row.title)||'제목 없는 공동 업무',status:text(row.status)||'상태 미확인',due:text(row.due).slice(0,10),updatedAt:text(row.fetchedAt),assignees:text(row.owner).split(' · ').filter(Boolean),collaborators:[],definition:'',sourceUrl:text(row.sourceUrl)
+      id:text(row.sourceId),kind:text(row.sourceType),kindLabel:row.sourceType==='representative_decision'?'대표 결정':'팀 업무',title:text(row.title)||'제목 없는 공동 업무',status:text(row.status)||'상태 미확인',priority:text(row.priority),due:text(row.due).slice(0,10),updatedAt:text(row.updatedAt)||text(row.fetchedAt),assignees:text(row.owner).split(' · ').filter(Boolean),collaborators:[],definition:text(row.next),sourceUrl:text(row.sourceUrl),attention:row.attention===true,approval:row.approval===true,blocked:row.blocked===true,overdue:row.overdue===true,stale:row.stale===true
     })).filter(row=>row.id);
   }
   function build(input={}){

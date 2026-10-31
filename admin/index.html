@@ -167,6 +167,7 @@
 <link rel="stylesheet" href="./admin-workflow-focus.css?v=20261030-1" />
 <link rel="stylesheet" href="./admin-action-flow.css?v=20261030-1" />
 <link rel="stylesheet" href="./cute-app-ux.css?v=20261029-3" />
+<link rel="stylesheet" href="./admin-control-center.css?v=20261031-2" />
 </head>
 <body>
 
@@ -722,7 +723,7 @@ async function boot(){
   if(session)await startSessionVerification(session);
   else showLogin();
 }
-function clearPrivateUi(message=''){CORE_LOAD=null;ACTIVE_TAB='';const quick=$('#personal-quick-title');if(quick)quick.value='';window.AdminActionFlow?.deactivate();window.AdminStructureUX?.deactivate();window.AdminWorkspaceUX?.deactivate();window.AdminAppleUX?.deactivate();window.TeamDashboard?.deactivate();window.ProgramPublishing?.deactivate();window.AssistantWorkspaceUI?.deactivate();window.PersonalPlanner?.deactivate();window.AssistantRequestPanel?.clear();window.OperationsRead?.clear();window.BookFinder?.clear();window.SCM?.clear();window.Work?.clear();window.OperationsSourcesDashboard?.clear();window.Integration?.clear();window.FinanceDashboard?.clear();clearCoreData();$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');$('#pw').value='';$('#loginMsg').style.color='var(--orange-d)';$('#loginMsg').textContent=message;requestAnimationFrame(()=>$('#email').focus())}
+function clearPrivateUi(message=''){CORE_LOAD=null;ACTIVE_TAB='';const quick=$('#personal-quick-title');if(quick)quick.value='';window.AdminControlCenter?.deactivate();window.AdminActionFlow?.deactivate();window.AdminStructureUX?.deactivate();window.AdminWorkspaceUX?.deactivate();window.AdminAppleUX?.deactivate();window.TeamDashboard?.deactivate();window.ProgramPublishing?.deactivate();window.AssistantWorkspaceUI?.deactivate();window.PersonalPlanner?.deactivate();window.AssistantRequestPanel?.clear();window.OperationsRead?.clear();window.BookFinder?.clear();window.SCM?.clear();window.Work?.clear();window.OperationsSourcesDashboard?.clear();window.Integration?.clear();window.FinanceDashboard?.clear();clearCoreData();$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');$('#pw').value='';$('#loginMsg').style.color='var(--orange-d)';$('#loginMsg').textContent=message;requestAnimationFrame(()=>$('#email').focus())}
 function showLogin(message=''){AUTH_GENERATION++;ACTIVE_USER_ID='';PENDING_USER_ID='';AUTH_VERIFY=null;clearPrivateUi(message)}
 async function startSessionVerification(session){
   const userId=String(session?.user?.id||'');if(!userId){showLogin();return false}
@@ -1397,6 +1398,7 @@ function switchTab(name,historyMode='push'){
   if(historyMode==='replace')history.replaceState({tab:name},'','#'+name);
   else if(historyMode==='push'&&location.hash!==`#${name}`)history.pushState({tab:name},'','#'+name);
   ACTIVE_TAB=name;
+  window.AdminControlCenter?.syncRoute(name);
   window.AdminActionFlow?.sync();
   const restored=window.AdminWorkspaceUX?.afterNavigate({to:name,from:previous,historyMode});
   if(!restored&&historyMode!=='none')window.scrollTo(0,0);
@@ -1417,7 +1419,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./personal-plan.js?v=20261031-1"></script>
 <script src="./book-finder.js?v=20261013-1"></script>
 <script src="./scm.js?v=20261013-1"></script>
-<script src="./work-dashboard-snapshot-model.js?v=20261029-1"></script>
+<script src="./work-dashboard-snapshot-model.js?v=20261031-1"></script>
 <script src="./work.js?v=20261029-1"></script>
 <script src="./operations.js?v=20261016-2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -1426,8 +1428,8 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./operations-sources-dashboard-model.js?v=20261026-1"></script>
 <script src="./operations-sources-dashboard.js?v=20261030-1"></script>
 <script src="../assets/public-content.js?v=20261011-1"></script>
-<script src="./team-dashboard-model.js?v=20261029-2"></script>
-<script src="./team-dashboard.js?v=20261029-3"></script>
+<script src="./team-dashboard-model.js?v=20261031-1"></script>
+<script src="./team-dashboard.js?v=20261031-1"></script>
 <script src="./program-publishing-model.js?v=20261029-1"></script>
 <script src="./program-publishing.js?v=20261029-1"></script>
 <script src="./partner-directory-model.js?v=20261029-1"></script>
@@ -1445,6 +1447,7 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./admin-structure-ux.js?v=20261030-1"></script>
 <script src="./admin-workflow-focus.js?v=20261030-1"></script>
 <script src="./admin-action-flow.js?v=20261030-1"></script>
+<script src="./admin-control-center.js?v=20261031-2"></script>
 <script>
 window.PersonalPlanner?.init({navigate:switchTab});
 window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,requestSyncEndpoint:SUPABASE_URL+'/functions/v1/operations-requests',requestSyncOrigin:SUPABASE_URL,onDenied:showLogin,navigate:switchTab,loadCore:loadOperationsCore,readAll:(table,columns,options)=>Core.readAll(sb,table,columns,options),getContext:()=>{const p=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});return {ok:CORE_SYNC.ok,queriedAt:CORE_SYNC.at?.toISOString?.()||null,ordersKnown:sourceKnown('orders'),inquiriesKnown:sourceKnown('inquiries'),newOrders:p.newOrders.length,toShip:p.toShip.length,newInquiries:p.newInquiries.length};}});
@@ -1460,6 +1463,7 @@ const assistantWorkspaceHandlers=window.AssistantWorkspaceUI?.init({client:sb,on
 window.AssistantRequestPanel?.init(assistantWorkspaceHandlers);
 window.Integration?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.FinanceDashboard?.init({client:sb,onDenied:showLogin});
+window.AdminControlCenter?.init();
 boot();
 </script>
 </body>

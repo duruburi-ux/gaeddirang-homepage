@@ -17,7 +17,8 @@
     if(!work||!Array.isArray(work.records))return null;
     const fetchedAt=iso(meta.fetchedAt);if(!fetchedAt)return null;
     const records=work.records.filter(row=>TYPES[row?.kind]&&!row?.terminal).map(row=>({
-      sourceId:text(row.id,160),sourceType:TYPES[row.kind],title:text(row.title,140)||'제목 없는 업무',status:text(row.status,80)||'상태 미확인',owner:text(row.owner,120),due:iso(row.due),sourceUrl:notionUrl(row.url),fetchedAt
+      sourceId:text(row.id,160),sourceType:TYPES[row.kind],title:text(row.title,140)||'제목 없는 업무',status:text(row.status,80)||'상태 미확인',priority:text(row.priority,60),owner:text(row.owner,120),next:text(row.next,240),due:iso(row.due),updatedAt:iso(row.updated),sourceUrl:notionUrl(row.url),fetchedAt,
+      attention:row.attention===true,approval:row.approval===true,blocked:row.blocked===true,overdue:row.overdue===true,stale:row.stale===true
     })).filter(row=>row.sourceId);
     return {fetchedAt,stale:meta.stale===true,records};
   }
