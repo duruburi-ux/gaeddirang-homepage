@@ -70,24 +70,33 @@
     const contract=bookshop?.statusContract;
     const structured=contract?.version===1&&['complete','partial'].includes(contract?.coverage)&&Number.isSafeInteger(contract.coveredItems)&&Number.isSafeInteger(contract.totalItems)&&contract.coveredItems>=0&&contract.coveredItems<=contract.totalItems;
     const bySku=new Map();
-    for(const item of supplements){const sku=compact(item?.sku);if(!sku)continue;if(bySku.has(sku))throw Error('DUPLICATE_BOOK_STATUS_SKU');bySku.set(sku,item)}
-    const seen=new Set(),items=[];
-    for(const book of inventory.filter(row=>row?.kind==='도서')){
-      const sku=compact(book.sku);if(sku&&seen.has(sku))throw Error('DUPLICATE_BOOK_STATUS_SKU');if(sku)seen.add(sku);
-      const supplement=bySku.get(sku)||null;
+    for(const item of supplements){const sku=compact(item?.sku);if(!sku)throw Error('INCOMPLETE_BOOK_STATUS_COVERAGE');if(bySku.has(sku))throw Error('DUPLICATE_BOOK_STATUS_SKU');bySku.set(sku,item)}
+    if(structured&&bySku.size!==contract.totalItems)throw Error('INCOMPLETE_BOOK_STATUS_COVERAGE');
+    const inventoryBooks=inventory.filter(row=>row?.kind==='도서'),inventoryBySku=new Map();
+    for(const book of inventoryBooks){const sku=compact(book?.sku);if(!sku)continue;if(inventoryBySku.has(sku))throw Error('DUPLICATE_BOOK_STATUS_SKU');inventoryBySku.set(sku,book)}
+    const outsideScopeItems=structured?[...inventoryBySku.keys()].filter(sku=>!bySku.has(sku)).length:0;
+    const missingInventoryItems=structured?[...bySku.keys()].filter(sku=>!inventoryBySku.has(sku)).length:0;
+    if(structured&&missingInventoryItems)throw Error('INCOMPLETE_BOOK_STATUS_COVERAGE');
+    const scoped=structured?[...bySku].map(([sku,supplement])=>({sku,book:inventoryBySku.get(sku)||{},supplement})):inventoryBooks.map(book=>({sku:compact(book.sku),book,supplement:bySku.get(compact(book.sku))||null}));
+    const items=[];
+    for(const {sku,book,supplement} of scoped){
       const rowStructured=structured&&supplement&&own(supplement,'operationalState');
       const classification=classify(book,supplement,meta,{structured:rowStructured,now});
       items.push({sku,title:compact(book.name)||'도서명 미확인',isbn:compact(book.isbn||book.barcode)||'미확인',recordedStock:isCount(book.stock)?book.stock:null,sellableConfirmed:isCount(supplement?.sellableConfirmed)?supplement.sellableConfirmed:null,pendingInbound:isCount(supplement?.pendingInbound)?supplement.pendingInbound:null,reserved:isCount(supplement?.reserved)?supplement.reserved:null,...classification});
     }
     const coveredItems=items.filter(item=>item.structured).length;
     if(structured&&coveredItems!==contract.coveredItems)throw Error('INCOMPLETE_BOOK_STATUS_COVERAGE');
-    const coverage=structured&&coveredItems===items.length?'complete':coveredItems?'partial':'legacy';
+    const coverage=structured?(coveredItems===contract.totalItems?'complete':'partial'):(coveredItems?'partial':'legacy');
+    if(structured&&coverage!==contract.coverage)throw Error('INCOMPLETE_BOOK_STATUS_COVERAGE');
     const structuredItems=items.filter(item=>item.structured);
     const grouped=Object.fromEntries(CATEGORIES.map(({key})=>[key,structuredItems.filter(item=>item.category===key)]));
     const metrics=Object.fromEntries(CATEGORIES.map(({key,label})=>[key,{label,count:coveredItems?grouped[key].length:null}]));
     const channelMetrics=coveredItems?{selling:structuredItems.filter(item=>item.observation.key==='selling').length,suspended:structuredItems.filter(item=>item.observation.key==='suspended').length,historical:structuredItems.filter(item=>item.observation.key==='historical').length,unverified:structuredItems.filter(item=>['unverified','conflict'].includes(item.observation.key)).length}:null;
     const fetchedAt=timestamp(meta?.bookshop?.fetchedAt)||timestamp(meta?.fetchedAt);
-    return {items,structuredItems,grouped,metrics,channelMetrics,fetchedAt,stale:Boolean(meta?.stale||meta?.bookshop?.stale),coverage,coveredItems,unclassifiedItems:items.length-coveredItems,totalItems:items.length,wholePhysicalCensusComplete:false,scope:compact(bookshop?.scopeStatement)||'같은 SCM 도서 SKU 모수 · 권수 합계 아님'};
+    const totalItems=structured?contract.totalItems:items.length;
+    const baseScope=compact(bookshop?.scopeStatement)||'같은 SCM 도서 SKU 모수 · 권수 합계 아님';
+    const scope=structured?`${baseScope} · 상태 계약 ${totalItems} SKU · SCM 도서 ${inventoryBySku.size}종 중 계약 밖 ${outsideScopeItems}종 별도`:baseScope;
+    return {items,structuredItems,grouped,metrics,channelMetrics,fetchedAt,stale:Boolean(meta?.stale||meta?.bookshop?.stale),coverage,coveredItems,unclassifiedItems:totalItems-coveredItems,totalItems,outsideScopeItems,missingInventoryItems,inventoryItems:inventoryBySku.size,wholePhysicalCensusComplete:false,scope};
   }
 
   return {CATEGORIES,CURRENT_OBSERVATION_MS,build,classify};
