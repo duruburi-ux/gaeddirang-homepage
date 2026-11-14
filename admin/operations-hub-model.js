@@ -20,8 +20,12 @@
   const PRIORITY={failed:5,review:4,waiting:3,unknown:2,healthy:1};
 
   const norm=value=>String(value??'').toLowerCase().replace(/[\s_\-·/]+/g,'');
-  const timestamp=row=>row?.completed_at||row?.started_at||row?.created_at||'';
+  const timestamp=row=>[row?.completed_at,row?.started_at,row?.created_at].find(value=>Number.isFinite(Date.parse(value||'')))||'';
   const timeValue=value=>{const n=Date.parse(value||'');return Number.isFinite(n)?n:0};
+  const successState=(at,now)=>{
+    const stamp=Date.parse(at||'');
+    return !Number.isFinite(stamp)||stamp-now>5*60*1000?'unknown':now-stamp>26*60*60*1000?'review':'healthy';
+  };
   const connectorKey=row=>String(row?.code||row?.connector_code||row?.id||'');
   const runKey=row=>String(row?.connector_code||row?.code||'');
   const runState=row=>{
@@ -31,6 +35,14 @@
     if(value==='running'||value==='reserved'||value==='pending')return 'review';
     return 'unknown';
   };
+  const runLabel=row=>{
+    const status=String(row?.status||'').toLowerCase();
+    if(status==='running')return '실행 중';
+    if(status==='reserved'||status==='pending')return '실행 대기';
+    if(status==='partial')return '부분 실패';
+    return SUCCESS.has(status)?'실행 완료':STATE_LABELS[runState(row)];
+  };
+  const runCount=value=>value==null||typeof value==='boolean'||String(value).trim()===''?null:Number.isSafeInteger(Number(value))&&Number(value)>=0?Number(value):null;
   const worst=states=>states.reduce((current,state)=>(PRIORITY[state]||0)>(PRIORITY[current]||0)?state:current,'healthy');
 
   function matchesExpectation(connector,expectation){
@@ -44,17 +56,17 @@
 
   function collectorSourceRow(expectation,connector,status,now,statusStale=false){
     if(!status)return null;
-    const failed=status.status==='failed';
+    const currentState=runState(status),failed=currentState==='failed';
     const successAt=status.last_success_at||'';
-    let state=failed?'failed':now-timeValue(successAt)>26*60*60*1000?'review':'healthy';
-    let detail=failed?'마지막 읽기 수집이 실패했습니다.':state==='healthy'?'최근 읽기 수집에 성공했습니다.':'마지막 읽기 성공 확인이 오래됐습니다.';
+    let state=failed?'failed':currentState==='healthy'?successState(successAt,now):currentState;
+    let detail=failed?'마지막 읽기 수집이 실패했습니다.':currentState==='review'?`최신 수집은 ${runLabel(status)} 상태입니다.`:state==='healthy'?'최근 읽기 수집에 성공했습니다.':state==='review'?'마지막 읽기 성공 확인이 오래됐습니다.':'수집 성공 시각 또는 상태를 확인해야 합니다.';
     if(Number.isInteger(status.evidence_total)&&status.evidence_total>=0)detail+=` · 누적 근거 ${status.evidence_total}건`;
     if(statusStale){
       if(state==='healthy')state='review';
       detail='연결 상태 조회 실패 · 아래는 이전 확인본입니다.';
     }
     return {
-      id:expectation.id,label:connector?.name||expectation.label,scope:expectation.scope||connector?.purpose||'',state,stateLabel:STATE_LABELS[state],detail,
+      id:expectation.id,label:connector?.name||expectation.label,scope:expectation.scope||connector?.purpose||'',state,stateLabel:currentState==='review'&&!statusStale?runLabel(status):STATE_LABELS[state],detail,
       lastSuccess:successAt,lastFailure:status.last_failure_at||'',
       nextAction:connector?.next_action||(failed?'Mac mini 수집 로그와 원본 읽기 연결을 확인합니다.':''),connector:connector||null,
     };
@@ -67,11 +79,13 @@
       return {id:expectation.id,label:expectation.label,scope:expectation.scope||'',state:'waiting',stateLabel:STATE_LABELS.waiting,detail:'연결 기록 없음',lastSuccess:'',lastFailure:'',nextAction:'읽기 범위와 계정 승인이 필요합니다.',connector:null};
     }
     const key=connectorKey(connector),related=latestRuns(runs.filter(row=>norm(runKey(row))===norm(key)));
-    const successful=related.find(row=>runState(row)==='healthy');
+    const successful=related.find(row=>runState(row)==='healthy'&&Number.isFinite(Date.parse(row.completed_at||'')));
     const failed=related.find(row=>runState(row)==='failed');
-    const latest=related[0];
+    // An undated run cannot be placed safely behind an older success.
+    const latest=related.find(row=>!timestamp(row))||related[0];
+    const lastSuccess=timestamp(successful)||connector.last_success_at||'';
     const status=String(connector.status||'').toLowerCase();
-    let state='unknown',detail='연결 정보는 있지만 실행 이력이 없습니다.';
+    let state='unknown',stateLabel='',detail='연결 정보는 있지만 실행 이력이 없습니다.';
     if(status==='manual'||status==='setup_required'||status==='disabled'){
       state='waiting';detail=status==='manual'?'사람이 자료를 넣어야 합니다.':'연결 설정이 필요합니다.';
     }else if(status==='attention'){
@@ -79,19 +93,26 @@
     }else if(status==='connected'){
       if(latest&&runState(latest)==='failed'){
         state='failed';detail='마지막 실행이 실패 또는 부분 실패입니다.';
+      }else if(latest&&runState(latest)==='review'){
+        state='review';stateLabel=runLabel(latest);detail=`최신 실행은 ${stateLabel} 상태입니다. 완료된 성공으로 판단하지 않습니다.`;
+        if(lastSuccess&&successState(lastSuccess,now)==='review')detail+=' 마지막 성공 확인도 오래됐습니다.';
+      }else if(latest&&runState(latest)==='unknown'){
+        detail='최신 실행 상태를 확인해야 합니다. 이전 성공을 현재 성공으로 대신 표시하지 않습니다.';
+      }else if(latest&&!Number.isFinite(Date.parse(latest.completed_at||''))){
+        detail='실행 완료 시각을 확인해야 합니다. 시작 시각을 마지막 성공 시각으로 대신 표시하지 않습니다.';
       }else if(successful||connector.last_success_at){
-        const at=timestamp(successful)||connector.last_success_at;
-        state=now-timeValue(at)>26*60*60*1000?'review':'healthy';
-        detail=state==='healthy'?'최근 성공 이력이 있습니다.':'마지막 성공 확인이 오래됐습니다.';
+        state=successState(lastSuccess,now);
+        detail=state==='healthy'?'최근 성공 이력이 있습니다.':state==='review'?'마지막 성공 확인이 오래됐습니다.':'성공 시각을 확인해야 합니다. 미래 또는 미확인 시각은 최근 성공으로 판단하지 않습니다.';
       }
     }
     if(runsStale){
       if(state==='healthy')state='review';
+      stateLabel='';
       detail='연결·실행 상태 조회 실패 · 아래는 이전 확인본입니다.';
     }
     return {
-      id:expectation.id,label:connector.name||expectation.label,scope:expectation.scope||connector.purpose||'',state,stateLabel:STATE_LABELS[state],detail,
-      lastSuccess:timestamp(successful)||connector.last_success_at||'',
+      id:expectation.id,label:connector.name||expectation.label,scope:expectation.scope||connector.purpose||'',state,stateLabel:stateLabel||STATE_LABELS[state],detail,
+      lastSuccess,
       lastFailure:timestamp(failed)||connector.last_failure_at||connector.last_error_at||'',
       nextAction:connector.next_action||'',connector,
     };
@@ -146,10 +167,10 @@
     return latestRuns(runs).slice(0,8).map(row=>{
       const state=runState(row),key=runKey(row);
       return {
-        connector:key,label:names.get(norm(key))||key||'연결 미확인',state,stateLabel:STATE_LABELS[state],at:timestamp(row),
-        received:Number.isFinite(Number(row.records_received))?Number(row.records_received):null,
-        applied:Number.isFinite(Number(row.records_applied))?Number(row.records_applied):null,
-        rejected:Number.isFinite(Number(row.records_rejected))?Number(row.records_rejected):null,
+        connector:key,label:names.get(norm(key))||key||'연결 미확인',state,stateLabel:runLabel(row),at:timestamp(row),
+        received:runCount(row.records_received),
+        applied:runCount(row.records_applied),
+        rejected:runCount(row.records_rejected),
       };
     });
   }

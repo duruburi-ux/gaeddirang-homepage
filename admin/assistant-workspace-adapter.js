@@ -12,8 +12,47 @@
  const SERVER_REQUEST_KEYS=['requestId','sourceId','sourceVersion','kind','route','requestedScope','title','body','status','executionEnabled','version','submittedAt','updatedAt'];
  const SERVER_REQUEST_V2_KEYS=['requestId','sourceId','sourceVersion','kind','route','requestedScope','title','body','status','executionEnabled','version','submittedAt','updatedAt','approvalId','approvalReason','approvedAt','executionId','executorKind','leaseExpiresAt','attemptCount','resultSummary','resultEvidence','errorCode','cancelRequestedAt'];
  const DEFAULT_TIMEOUT_MS=20000;
+ const REQUEST_FRESH_MS=150000;
+ const REQUEST_LABELS={submitted:'접수됨 · 자동 실행 아님',approval_required:'승인 대기 · 자동 실행 아님',execution_waiting:'실행 대기',in_progress:'진행 중',cancel_requested:'취소 요청 확인 중',verifying:'결과 검증 중',completed:'완료 기록',failed:'실패',cancelled:'취소됨'};
  const exact=(value,keys)=>Boolean(value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).length===keys.length&&keys.every(key=>Object.hasOwn(value,key)));
  const copy=value=>JSON.parse(JSON.stringify(value));
+ const displayText=value=>typeof value==='string'?value.trim():typeof value==='number'&&Number.isFinite(value)?String(value):'';
+ const displayStamp=value=>typeof value==='string'&&value.trim()?Date.parse(value):NaN;
+ const plainReference=value=>Boolean(value&&!/[\u0000-\u001f\u007f]/.test(value)&&!/^(?:[a-z][a-z0-9+.-]*\s*:|\/\/)/i.test(value));
+ const EVIDENCE_KINDS=new Set(['read','change','delivery','test','artifact']);
+ const opaqueReference=value=>Boolean(value&&value.length<=500&&!/[\u0000-\u001f\u007f]/.test(value)&&!/^(?:(?:https?|javascript|data|vbscript|file|blob|ftp|sftp)\s*:|[a-z][a-z0-9+.-]*:\/\/|\/\/)/i.test(value));
+ function evidenceLink(value){
+  const raw=displayText(value);if(!/^https?:\/\//i.test(raw)||/[\u0000-\u0020\u007f]/.test(raw))return '';
+  try{const url=new URL(raw);return ['http:','https:'].includes(url.protocol)&&!url.username&&!url.password?url.href:''}catch{return ''}
+ }
+ // Display only fields already present in evidence. This does not extend the server contract.
+ function evidenceView(input,now=Date.now()){
+  const item=input&&typeof input==='object'&&!Array.isArray(input)?input:{},label=displayText(item.label)||displayText(input)||'이름 없는 근거',verified=displayStamp(item.verifiedAt),verifiedAt=Number.isFinite(verified)&&verified<=now?new Date(verified).toISOString():'';
+  const fields=[['kind','종류'],['reference','근거 위치'],['location','위치'],['url','주소'],['path','경로'],['id','식별자']].map(([key,name])=>({key,name,value:displayText(item[key]),href:['reference','location','url'].includes(key)?evidenceLink(item[key]):''})).filter(field=>field.value);
+  return {label,verifiedAt,fields,inspectable:Boolean(displayText(item.label)&&verifiedAt&&fields.some(field=>field.key==='reference'?EVIDENCE_KINDS.has(item.kind)&&field.value.length<=500&&Boolean(field.href||opaqueReference(field.value)):['url','location'].includes(field.key)?Boolean(field.href):['path','id'].includes(field.key)&&plainReference(field.value)))};
+ }
+ function requestView(row,{execution=false,state='unchecked',fetchedAt='',now=Date.now()}={}){
+  const status=displayText(row?.status),proof=Array.isArray(row?.resultEvidence)?row.resultEvidence.map(item=>evidenceView(item,now)):[],checked=displayStamp(fetchedAt),fresh=state==='current'&&Number.isFinite(checked)&&checked<=now&&now-checked<REQUEST_FRESH_MS,lease=displayStamp(row?.leaseExpiresAt);
+  const view={label:REQUEST_LABELS[status]||status||'상태 미확인',note:'',attention:false,proof};
+  if(status==='completed'){
+   const supported=Boolean(displayText(row?.resultSummary)&&proof.some(item=>item.inspectable));
+   view.label=supported?'완료 기록':'완료 기록 · 근거 확인 필요';view.attention=!supported;view.note=supported?'서버에 남은 완료 기록입니다. 결과 근거를 확인해 주세요.':'결과 요약·확인 시각·결과 위치가 있는 근거를 확인해야 합니다. 완료 여부를 새로 판정하지 않았습니다.';
+  }else if(status==='verifying'){
+   const supported=Boolean(displayText(row?.resultSummary)&&proof.some(item=>item.inspectable)),notes=['결과가 제출된 검증 기록입니다. 실행 임대가 비어 있어도 완료로 판단하지 않습니다.'];
+   view.label=supported?'결과 검증 기록':'검증 기록 · 근거 확인 필요';view.attention=!supported;
+   if(!supported)notes.push('결과 요약·확인 시각·결과 위치가 있는 근거를 확인해야 합니다.');
+   if(!fresh){if(supported)view.label='검증 기록 · 최근 확인 필요';notes.push('서버 조회가 오래됐거나 확인되지 않아 자료를 다시 확인해야 합니다.');view.attention=true}
+   view.note=notes.join(' ');
+  }else if(status==='in_progress'){
+   if(!execution){view.label='진행 기록 · 실행 담당 확인 필요';view.note='실행 담당의 연결을 확인해야 합니다. 실제 가동 여부는 별도로 확인합니다.';view.attention=true}
+   else if(!Number.isFinite(lease)||lease<=now){view.label='진행 기록 · 실행 확인 필요';view.note=Number.isFinite(lease)?'실행 임대가 만료됐습니다. 마지막 상태 기록이며 자동으로 완료·실패 처리하지 않았습니다.':'실행 임대 시각이 없어 현재 실행 여부를 확정하지 않습니다.';view.attention=true}
+   else if(!fresh){view.label='진행 기록 · 최근 확인 필요';view.note='서버 조회가 오래됐거나 확인되지 않았습니다. 자료를 다시 확인해 주세요.';view.attention=true}
+   else{view.label='진행 기록 · 실제 가동 별도 확인';view.note='실행 담당 연결됨 · 실제 가동 별도 확인. 최근 서버 상태 기록과 남은 실행 임대이며, 실제 완료는 결과 근거로 따로 확인합니다.'}
+  }else if(status==='execution_waiting'){
+   view.label=execution?'실행 대기 기록':'실행 대기 · 담당 확인 필요';view.note=execution?'실행 담당 연결됨 · 실제 가동 별도 확인. 대기 기록이며 실행 시작을 뜻하지 않습니다.':'실행 담당 연결을 확인해야 합니다. 대기 상태를 실행 시작으로 바꾸지 않았습니다.';view.attention=!execution;
+  }else if(status==='cancel_requested'&&(!execution||!fresh)){view.label='취소 요청 기록 · 확인 필요';view.note='실행 담당과 취소 확인 기록을 다시 확인해야 합니다. 취소 완료로 바꾸지 않았습니다.';view.attention=true}
+  return view;
+ }
  function endpoint(value,approvedOrigin){const url=new URL(String(value||''));if(url.origin!==approvedOrigin||url.pathname!=='/functions/v1/assistant-workspace'||url.search||url.hash)throw Error('ASSISTANT_WORKSPACE_ENDPOINT_INVALID');return url.toString()}
  function requestPayload(request){return {requestId:request.requestId,sourceId:request.sourceId,sourceVersion:request.sourceVersion,kind:request.kind,route:request.route,requestedScope:request.requestedScope,title:request.title,body:request.body,createdAt:request.createdAt}}
  function requestOperation(request,{operationId,intent='submit'}={}){
@@ -93,5 +132,5 @@
    async send(input){const payload=validateOperation(input),response=await call('POST',payload),out=result(response.status,response.body,payload);if(out.state==='denied')onDenied();return out}
   };
  }
- return {requestOperation,cancelRequestOperation,approveRequestOperation,personalOperation,validateOperation,validateWorkspace,result,createAdapter,createSupabaseAdapter};
+ return {requestOperation,cancelRequestOperation,approveRequestOperation,personalOperation,validateOperation,validateWorkspace,result,createAdapter,createSupabaseAdapter,evidenceLink,evidenceView,requestView,REQUEST_FRESH_MS};
 });

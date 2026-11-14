@@ -21,6 +21,14 @@
     return [...result].map(([label,value])=>({label,value})).sort((a,b)=>b.value-a.value||a.label.localeCompare(b.label,'ko'));
   };
   const sum=(rows,key)=>rows.reduce((total,row)=>total+(Number.isFinite(key(row))?key(row):0),0);
+  function markStale(snapshot,errorCode='SOURCE_DASHBOARD_UNAVAILABLE',attemptedAt=new Date().toISOString()){
+    if(!snapshot)return null;
+    const sources=Object.fromEntries(Object.entries(snapshot.sources||{}).map(([key,row])=>[key,{
+      ...row,readState:row?.readState==='current'?'stale':row?.readState||'failed',
+      errorCode:row?.errorCode||errorCode,lastAttemptAt:attemptedAt
+    }]));
+    return {...snapshot,overall:snapshot.overall==='failed'?'failed':'partial',sources};
+  }
   function orders(dataset={},days=30,now=Date.now()){
     const raw=Array.isArray(dataset.orders)?dataset.orders:[],seen=new Set(),duplicateIds=new Set(),unique=[];
     for(const row of raw){const id=text(row?.sourceId);if(!id)continue;if(seen.has(id)){duplicateIds.add(id);continue}seen.add(id);unique.push(row)}
@@ -44,5 +52,5 @@
     for(const row of dated){const key=seoulDay(row.teamDue),diff=(Date.parse(key+'T00:00:00+09:00')-Date.parse(today+'T00:00:00+09:00'))/DAY;if(diff<0)due.overdue.push(row);else if(days==='all'||diff<=Number(days))due.soon.push(row);else due.later.push(row)}
     return {kind:'team',range:days,total:tasks.length,statuses,tasks,due,missingDue,meetings:Array.isArray(dataset.meetings)?dataset.meetings:[]};
   }
-  return {orders,inventory,team,seoulDay,inRange};
+  return {orders,inventory,team,seoulDay,inRange,markStale};
 });

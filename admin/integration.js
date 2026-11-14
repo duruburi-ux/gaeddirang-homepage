@@ -95,7 +95,7 @@
         client.from('integration_inventory_movements').select('*',{count:'exact',head:true}),
         client.from('integration_reconciliation_issues').select('*',{count:'exact',head:true}).in('status',['open','investigating']),
         client.from('integration_settlement_entries').select('*',{count:'exact',head:true}),
-        client.from('integration_sync_runs').select('connector_code,status,records_received,records_applied,records_rejected,completed_at').order('completed_at',{ascending:false}),
+        client.from('integration_sync_runs').select('connector_code,status,records_received,records_applied,records_rejected,started_at,completed_at').order('started_at',{ascending:false}),
         client.from('integration_evidence_inbox').select('id,connector_code,occurred_at,evidence_type,summary,candidate_type,review_reason,review_status,created_at').order('occurred_at',{ascending:false}).limit(100),
         loadInventory(),
         loadRoyalty()
