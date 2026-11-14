@@ -25,6 +25,13 @@ window.AssistantWorkspaceUI=(()=>{
   try{if(!await sessionMatches(run)){config.onDenied?.();return null}const result=await action();if(!await sessionMatches(run))return null;return result}
   finally{if(run===generation){busy=false;render()}}
  }
+ // Publish only an already validated GET result; no new reads or plan writes.
+ function readContext(){try{const context=config?.getContext?.();return context?.userId===userId&&Number.isSafeInteger(context?.generation)?{userId,generation:context.generation}:null}catch{return null}}
+ function publishRead(state,context,attemptedAt){
+  const current=readContext();if(!context||!current||context.userId!==current.userId||context.generation!==current.generation)return;
+  const snapshot=workspace?{fetchedAt:workspace.fetchedAt,requests:workspace.requests.map(row=>({requestId:row.requestId,sourceId:row.sourceId,title:row.title,status:row.status,updatedAt:row.updatedAt,resultEvidence:Array.isArray(row.resultEvidence)?row.resultEvidence.map(item=>({verifiedAt:item?.verifiedAt})):row.resultEvidence===undefined?undefined:null}))}:null;
+  window.dispatchEvent(new CustomEvent('assistant:results-read',{detail:{...context,state,snapshot,attemptedAt}}));
+ }
  function samePlan(row,payload){return Boolean(row&&['sourceKind','sourceId','sourceVersion','sourceTitle','sourceStatus','sourceTeamDue','title','project','plannedOn','priority','memo','done','archived'].every(key=>row[key]===payload[key]))}
  function reconcilePending(next){
   let count=0;
@@ -49,13 +56,14 @@ window.AssistantWorkspaceUI=(()=>{
   if(!ready){setStatus('개인 서버 연결 화면을 초기화하지 못했습니다. 페이지를 새로고침해 주세요.',true);syncRefreshControl();return false}
   if(!userId){setStatus('로그인 확인이 끝난 뒤 서버 자료를 확인할 수 있습니다.',true);syncRefreshControl();return false}
   window.AssistantRequestPanel?.setWorkspaceState('loading','개인 서버 자료를 확인하고 있습니다.');setStatus('개인 서버 자료를 확인하고 있습니다.');
+  const readScope=readContext(),readAttemptedAt=new Date().toISOString();
   let result;
   try{result=await guarded(()=>adapter.list())}
-  catch{window.AssistantRequestPanel?.setWorkspaceState(workspace?'stale':'unchecked',workspace?'서버 응답을 확인하지 못해 마지막 정상본을 유지합니다.':'서버 응답 형식을 확인하지 못했습니다. 접수나 저장은 시작하지 않았습니다.',true);setStatus(workspace?'서버 응답을 확인하지 못해 마지막 정상본을 유지합니다. 로컬 자료는 바뀌지 않았습니다.':'서버 응답 형식을 확인하지 못했습니다. 로컬 자료는 그대로입니다.',true);render();return false}
+  catch{window.AssistantRequestPanel?.setWorkspaceState(workspace?'stale':'unchecked',workspace?'서버 응답을 확인하지 못해 마지막 정상본을 유지합니다.':'서버 응답 형식을 확인하지 못했습니다. 접수나 저장은 시작하지 않았습니다.',true);setStatus(workspace?'서버 응답을 확인하지 못해 마지막 정상본을 유지합니다. 로컬 자료는 바뀌지 않았습니다.':'서버 응답 형식을 확인하지 못했습니다. 로컬 자료는 그대로입니다.',true);publishRead(workspace?'stale':'failed',readScope,readAttemptedAt);render();return false}
   if(!result)return false;
-  if(result.state==='current'){workspace=result.workspace;lastGoodAt=workspace.fetchedAt;const unresolved=reconcilePending(workspace);window.AssistantRequestPanel?.setWorkspace(workspace.requests,{state:'current',execution:workspace.executionEnabled,approval:workspace.approvalEnabled,fetchedAt:workspace.fetchedAt});setStatus(`서버 일정 ${workspace.personalPlans.length}개 · 요청 ${workspace.requests.length}개를 확인했습니다.${unresolved?` 결과 확인이 필요한 작업 ${unresolved}개는 같은 작업 ID를 유지합니다.`:''} 로컬 일정은 자동 업로드하지 않았습니다.`,Boolean(unresolved));render();return true}
+  if(result.state==='current'){workspace=result.workspace;lastGoodAt=workspace.fetchedAt;const unresolved=reconcilePending(workspace);window.AssistantRequestPanel?.setWorkspace(workspace.requests,{state:'current',execution:workspace.executionEnabled,approval:workspace.approvalEnabled,fetchedAt:workspace.fetchedAt});setStatus(`서버 일정 ${workspace.personalPlans.length}개 · 요청 ${workspace.requests.length}개를 확인했습니다.${unresolved?` 결과 확인이 필요한 작업 ${unresolved}개는 같은 작업 ID를 유지합니다.`:''} 로컬 일정은 자동 업로드하지 않았습니다.`,Boolean(unresolved));publishRead('current',readScope,readAttemptedAt);render();return true}
   if(result.state==='denied'){config.onDenied?.();return false}
-  window.AssistantRequestPanel?.setWorkspaceState(workspace?'stale':'unchecked',workspace?'서버 확인에 실패해 마지막 정상본을 유지합니다.':'서버 자료를 확인하지 못했습니다. 접수나 저장은 시작하지 않았습니다.',true);setStatus(workspace?'서버 확인에 실패해 마지막 정상본을 유지합니다. 로컬 자료는 바뀌지 않았습니다.':'서버 자료를 확인하지 못했습니다. 로컬 자료는 그대로입니다.',true);render();
+  window.AssistantRequestPanel?.setWorkspaceState(workspace?'stale':'unchecked',workspace?'서버 확인에 실패해 마지막 정상본을 유지합니다.':'서버 자료를 확인하지 못했습니다. 접수나 저장은 시작하지 않았습니다.',true);setStatus(workspace?'서버 확인에 실패해 마지막 정상본을 유지합니다. 로컬 자료는 바뀌지 않았습니다.':'서버 자료를 확인하지 못했습니다. 로컬 자료는 그대로입니다.',true);publishRead(workspace?'stale':'failed',readScope,readAttemptedAt);render();
   return false;
  }
  async function savePlan(id){

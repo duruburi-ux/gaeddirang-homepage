@@ -11,3 +11,15 @@
 @media(max-width:900px){.work-filters{grid-template-columns:1fr 1fr}.work-search-control{grid-column:1/-1}.work-reset{align-self:stretch}}
 @media(max-width:520px){.work-filters{grid-template-columns:1fr}.work-search-control{grid-column:auto}}
 .work-card-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}.work-card-actions a{margin-top:0}.work-card-actions button{border:1px solid #b8c8bd;background:#f5f8f6;color:var(--work-green);border-radius:8px;padding:7px 9px;font-size:12px;font-weight:700}
+
+/* Read metadata stays separate from task status and source actions. Shared with Team. */
+.work-read-metadata{min-width:0;max-width:100%;border:1px solid #d8e1d7;border-radius:10px;background:#f8faf7;color:#586557;margin:12px 0;font-size:12px;line-height:1.6}
+.work-read-metadata summary{box-sizing:border-box;max-width:100%;min-height:44px;padding:10px 12px;cursor:pointer;font-weight:700;overflow-wrap:anywhere}
+.work-read-metadata summary:focus-visible{outline:3px solid #78994d;outline-offset:3px}
+.work-read-metadata-body{min-width:0;padding:0 12px 11px}
+.work-read-metadata-body dl{display:grid;gap:7px;margin:0}.work-read-metadata-body dl>div{display:grid;grid-template-columns:minmax(0,100px) minmax(0,1fr);gap:8px;font-size:12px}
+.work-read-metadata-body dt{color:#6c776b}.work-read-metadata-body dd{min-width:0;margin:0;color:#475444}
+.work-read-metadata p,.work-read-metadata small,.work-read-metadata time,.work-read-metadata dd{max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+.work-read-metadata p{margin:9px 0 0}.work-read-metadata small{display:block;margin-top:3px;color:#707b6e}.work-read-metadata .work-read-error{color:#a44731}
+.work-server-metadata{margin:8px 0 14px}.work-source-metadata{margin-bottom:0}
+@media(max-width:520px){.work-read-metadata summary{padding-block:11px}.work-read-metadata-body dl>div{grid-template-columns:minmax(0,86px) minmax(0,1fr)}}

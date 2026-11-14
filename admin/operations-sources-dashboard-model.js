@@ -1,10 +1,24 @@
 (function(root,factory){
-  const api=factory();
+  const api=factory(root);
   if(typeof module==='object'&&module.exports)module.exports=api;
   if(root)root.OperationsSourcesDashboardModel=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(){
+})(typeof globalThis!=='undefined'?globalThis:this,function(root){
   const DAY=86400000;
   const text=value=>String(value??'').trim();
+  const readErrors={SOURCE_NOT_CONFIGURED:'읽기 연결 설정 확인 필요',SOURCE_ACCESS_DENIED:'원천 접근 권한 확인 필요',SOURCE_AUTH_FAILED:'원천 읽기 인증 확인 필요',SOURCE_READ_FAILED:'원천 읽기 실패',SCHEMA_CHANGED:'원천 형식 확인 필요',DUPLICATE_SOURCE_ID:'원천 ID 중복 확인 필요',SOURCE_TOO_LARGE:'원천 조회 범위 확인 필요',SOURCE_DASHBOARD_UNAVAILABLE:'화면 재조회 실패',SOURCE_DASHBOARD_INVALID:'화면 응답 형식 확인 필요',INVALID_READ_TIME:'API 읽기 시각 확인 필요'};
+  const readErrorLabel=code=>typeof code==='string'&&Object.hasOwn(readErrors,code)?readErrors[code]:code?'읽기 오류 확인 필요':'';
+  function metadataTimestamp(value,now=Date.now()){
+    return root?.ReadMetadataModel?.timestamp?.(value,now)||{state:'unavailable',value:null};
+  }
+  function managementMetadata(dataset,source,now=Date.now()){
+    const fallback={available:false,read:{state:'unavailable',label:'C2 선택 읽기 메타데이터 미제공',attempt:{state:'unavailable',value:null},errorLabel:''},observations:[['scm','SCM'],['payhere','PayHere'],['smartstore','SmartStore']].map(([id,name])=>({id,name,state:'unknown',label:'원래 관측시각 미확인',value:null,reasonLabel:'메타데이터 미제공'}))};
+    const normalized=root?.ReadMetadataModel?.management?.(dataset,source,now)||fallback;
+    return {...normalized,required:{today:Array.isArray(dataset?.today)?dataset.today.length:null,inventory:Array.isArray(dataset?.inventory)?dataset.inventory.length:null}};
+  }
+  function teamMetadata(record,now=Date.now(),records=[]){
+    const canonical=root?.ReadMetadataModel?.canonicalId,id=canonical?.(record?.sourceId),duplicate=Boolean(id&&records.filter(row=>canonical(row?.sourceId)===id).length>1);
+    return root?.ReadMetadataModel?.task?.(record,{sourceKey:'team.tasks',id:record?.sourceId,relationKey:'workReference',duplicate,now})||{identity:{state:'unavailable',label:'원천 식별 메타데이터 미제공',id:null},relation:{state:'unresolved',label:'Work 연결 근거 미제공',reason:''},observation:{state:'unknown',label:'원래 관측시각 미확인',value:null}};
+  }
   const dateValue=value=>{const parsed=Date.parse(value);return Number.isFinite(parsed)?parsed:null};
   const seoulDay=value=>{
     const parsed=dateValue(value);if(parsed===null)return'';
@@ -52,5 +66,5 @@
     for(const row of dated){const key=seoulDay(row.teamDue),diff=(Date.parse(key+'T00:00:00+09:00')-Date.parse(today+'T00:00:00+09:00'))/DAY;if(diff<0)due.overdue.push(row);else if(days==='all'||diff<=Number(days))due.soon.push(row);else due.later.push(row)}
     return {kind:'team',range:days,total:tasks.length,statuses,tasks,due,missingDue,meetings:Array.isArray(dataset.meetings)?dataset.meetings:[]};
   }
-  return {orders,inventory,team,seoulDay,inRange,markStale};
+  return {orders,inventory,team,seoulDay,inRange,markStale,managementMetadata,teamMetadata,metadataTimestamp,readErrorLabel};
 });

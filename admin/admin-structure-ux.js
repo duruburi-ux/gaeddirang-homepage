@@ -2,7 +2,7 @@ window.AdminStructureUX=(()=>{
   'use strict';
   const $=selector=>document.querySelector(selector);
   const AREAS={
-    today:{label:'오늘 할 일',entry:'home',routes:[['home','전체 현황'],['read','개인 일정'],['work','팀 업무']]},
+    today:{label:'오늘 할 일',entry:'home',routes:[['home','오늘의 운영'],['read','개인 일정'],['work','팀 업무']]},
     books:{label:'책과 판매',entry:'finder',routes:[['finder','책 찾기'],['orders','주문'],['scm','상품·재고'],['partners','위탁 연락처']]},
     programs:{label:'프로그램',entry:'publishing',routes:[['publishing','홈페이지 프로그램'],['cohorts','기수·정원'],['apps','수업 신청'],['inquiries','기관 문의']]},
     finance:{label:'정산',entry:'finance',routes:[['finance','정산·재정'],['integration','자료 연결']]},
@@ -32,12 +32,12 @@ window.AdminStructureUX=(()=>{
     if(initialized)return;initialized=true;
     const more=$('#personal-open-manage');if(more){more.hidden=true;more.setAttribute('aria-hidden','true')}
     const legacy=$('.personal-admin-menu');if(legacy){legacy.hidden=true;legacy.setAttribute('aria-hidden','true')}
-    const summary=$('#home-connection-summary'),details=$('.dash-more');if(summary&&details){summary.onclick=()=>{details.open=!details.open;summary.setAttribute('aria-expanded',String(details.open));summary.querySelector('b').textContent=details.open?'세부 닫기':'자세히 보기';if(details.open)details.scrollIntoView({block:'start'})};details.addEventListener('toggle',()=>{summary.setAttribute('aria-expanded',String(details.open));summary.querySelector('b').textContent=details.open?'세부 닫기':'자세히 보기'})}
+    const summary=$('#home-connection-summary');if(summary){summary.removeAttribute('aria-expanded');summary.querySelector('b').textContent='연결 현황 열기 →';summary.onclick=()=>navigate('integration')}
     const status=$('#team-lanes-status');if(status){observer=new MutationObserver(syncConnection);observer.observe(status,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});syncConnection()}
     document.querySelectorAll('.workspace-main-nav [data-area]').forEach(button=>button.addEventListener('click',()=>window.dispatchEvent(new CustomEvent('planner:close-drawers'))));
     window.addEventListener('hashchange',()=>requestAnimationFrame(sync));document.addEventListener('click',event=>{if(event.target.closest('[data-nav-tab],[data-dash-tab],[data-management-tab]'))requestAnimationFrame(sync)});sync();
   }
-  function deactivate(){const subnav=$('.workspace-area-subnav');if(subnav){subnav.replaceChildren();delete subnav.dataset.area}const label=$('#home-connection-label');if(label){label.textContent='자료 확인 전';label.classList.remove('bad')}const details=$('.dash-more');if(details)details.open=false;const summary=$('#home-connection-summary');if(summary){summary.setAttribute('aria-expanded','false');summary.querySelector('b').textContent='자세히 보기'}}
+  function deactivate(){const subnav=$('.workspace-area-subnav');if(subnav){subnav.replaceChildren();delete subnav.dataset.area}const label=$('#home-connection-label');if(label){label.textContent='자료 확인 전';label.classList.remove('bad')}const details=$('.dash-more');if(details)details.open=false;const summary=$('#home-connection-summary');if(summary){summary.removeAttribute('aria-expanded');summary.querySelector('b').textContent='연결 현황 열기 →'}}
   return {init,activate:sync,deactivate,areas:()=>JSON.parse(JSON.stringify(AREAS))};
 })();
 window.AdminStructureUX.init();

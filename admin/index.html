@@ -8,23 +8,23 @@
 <title>개띠랑 관리실</title>
 <link rel="icon" type="image/png" href="../assets/images/brand/gd-universe-logomark.png" />
 <link rel="stylesheet" href="./scm.css?v=20261013-1" />
-<link rel="stylesheet" href="./work.css?v=20261025-1" />
+<link rel="stylesheet" href="./work.css?v=20261114-review5" />
 <link rel="stylesheet" href="./operations.css" />
-<link rel="stylesheet" href="./integration.css?v=20261026-5" />
+<link rel="stylesheet" href="./integration.css?v=20261114-review5" />
 <link rel="stylesheet" href="./assistant-request-panel.css?v=20261113-1" />
 <link rel="stylesheet" href="./finance-dashboard.css?v=20261012-2" />
 <link rel="stylesheet" href="./dashboard.css" />
 <link rel="stylesheet" href="./team-dashboard.css?v=20261029-2" />
 <link rel="stylesheet" href="./program-publishing.css?v=20261029-1" />
 <link rel="stylesheet" href="./partner-directory.css?v=20261029-1" />
-<link rel="stylesheet" href="./book-finder.css?v=20261013-1" />
+<link rel="stylesheet" href="./book-finder.css?v=20261114-inventory-safety1" />
 <link rel="stylesheet" href="./book-status-board.css?v=20261031-2" />
 <link rel="stylesheet" href="./operations-read.css?v=20261025-1" />
 <link rel="stylesheet" href="./personal-plan.css?v=20261027-1" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script src="./admin-core-model.js?v=20261018-7"></script>
 <script src="./operations-hub-model.js?v=20261113-1"></script>
-<script src="./book-finder-model.js?v=20261011-3"></script>
+<script src="./book-finder-model.js?v=20261114-inventory-safety2"></script>
 <script src="./book-status-board-model.js?v=20261031-8"></script>
 <script src="./personal-plan-model.js?v=20261031-1"></script>
 <style>
@@ -163,22 +163,16 @@
     .panel{padding:18px 14px}.row{align-items:flex-start}.row .amt{max-width:32%}
   }
 </style>
-<link rel="stylesheet" href="./admin-ux.css?v=20261026-1" />
-<link rel="stylesheet" href="./admin-apple-ux.css?v=20261030-1" />
-<link rel="stylesheet" href="./admin-workspace-ux.css?v=20261030-1" />
-<link rel="stylesheet" href="./admin-structure-ux.css?v=20261030-1" />
-<link rel="stylesheet" href="./admin-workflow-focus.css?v=20261030-1" />
-<link rel="stylesheet" href="./admin-action-flow.css?v=20261030-1" />
-<link rel="stylesheet" href="./cute-app-ux.css?v=20261029-3" />
-<link rel="stylesheet" href="./admin-control-center.css?v=20261031-3" />
+<link rel="stylesheet" href="./workspace-design.css?v=20261114-review5" />
 </head>
-<body>
+<body class="workspace-design">
 
 <!-- ============ 로그인 ============ -->
 <div id="loginView">
   <div class="login-card">
-    <h1>🐾 개띠랑 관리실</h1>
-    <p>주문 · 신청 · 재고 · 팀 업무를 한곳에서</p>
+    <span class="login-eyebrow">개띠랑 · 책공방 운영</span>
+    <h1>관리실에 오신 것을<br>환영합니다.</h1>
+    <p>오늘의 할 일과 함께 확인할 자료를 한곳에서.</p>
     <label class="sr-only" for="email">관리자 이메일</label><input id="email" type="email" placeholder="이메일" autocomplete="username" />
     <label class="sr-only" for="pw">비밀번호</label><input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password" />
     <button class="btn-primary" id="loginBtn">로그인</button>
@@ -189,7 +183,7 @@
 
 <!-- ============ 관리 화면 ============ -->
 <div id="appView" class="hidden">
-  <header>
+  <header hidden inert aria-hidden="true">
     <div class="head-in">
       <a class="brand-home" href="#home" data-nav-tab="home" aria-label="전체 현황으로 이동">
         <span class="brand-mark" aria-hidden="true">책</span>
@@ -252,9 +246,9 @@
       <div id="managementRelated" class="management-related" aria-label="관련 관리 화면"></div>
     </nav>
     <div id="coreBanner" class="core-banner hidden" role="alert"><span id="coreBannerText"></span><button id="coreRetry" type="button">실패한 자료 다시 확인</button></div>
-    <section id="tab-read" class="ops-read" aria-label="책공방 통합 운영판">
+    <section id="tab-read" class="ops-read hidden" aria-label="책공방 통합 운영판">
       <section class="personal-plan" aria-label="개인 계획">
-        <aside class="personal-plan-sidebar" aria-label="작업 노트 탐색">
+        <aside class="personal-plan-sidebar" aria-label="업무 메뉴">
           <button type="button" class="personal-plan-drawer-close" aria-label="메뉴 닫기">닫기</button>
           <a class="personal-plan-brand" href="#home" data-nav-tab="home"><span aria-hidden="true">책</span><b>개띠랑</b><small>책공방 운영</small></a>
           <nav class="workspace-main-nav" aria-label="업무 영역">
@@ -280,7 +274,7 @@
             <button type="button" data-nav-tab="integration">연결 현황</button><button type="button" id="personal-plan-refresh">개인 저장상태 확인</button><button type="button" id="personal-plan-logout">로그아웃</button>
           </div>
         </aside>
-        <div class="personal-plan-mobile-head"><a class="global-home-link" href="#home" data-nav-tab="home"><span aria-hidden="true">⌂</span><b>전체 현황</b></a><button type="button" id="personal-mobile-info" aria-expanded="false">메뉴</button></div>
+        <div class="personal-plan-mobile-head"><a class="global-home-link" href="#home" data-nav-tab="home"><span aria-hidden="true">⌂</span><b>개띠랑 관리실</b></a><button type="button" id="personal-mobile-info" aria-expanded="false">메뉴</button></div>
         <div class="personal-plan-workspace">
           <div class="personal-plan-head"><div><p class="personal-plan-eyebrow">WORK NOTE</p><h1 id="personal-plan-title">오늘</h1><p id="personal-plan-subtitle">오늘 집중할 일과 다음 일정을 봅니다.</p></div><button type="button" class="personal-team-return" data-nav-tab="home">팀 오늘 보기</button></div>
           <p id="personal-plan-error" class="personal-plan-error" role="alert" hidden></p>
@@ -355,6 +349,22 @@
             <p id="assistant-request-status" class="assistant-request-status" role="status" aria-live="polite">검토안은 로컬에만 있습니다. 서버 접수 버튼을 눌러야 접수되며 자동 실행은 시작되지 않습니다.</p>
           </form>
           <div id="assistant-request-list" class="assistant-request-list" aria-label="로컬 처리 검토안"></div>
+          <details class="automation-result-review">
+            <summary>보고의 시각과 확인 범위</summary>
+            <div class="automation-result-review-body">
+              <p>보고를 읽은 시각, 상태 기록의 수정시각, 근거를 확인한 시각을 나눠 봅니다. 원천 저장시각은 제공되지 않으면 미확인으로 남깁니다. 원천 관측시각이 없으면 최신 실행으로 판단하지 않습니다.</p>
+              <p id="automation-result-read-status" role="status" aria-live="polite">관리자 확인 후 기존 보고를 읽습니다.</p>
+              <div id="automation-result-read-list"></div>
+              <details><summary>이번에 실증하지 않은 정기 실행</summary><p>YES24 주간 · 인디펍 월말 · 판매 월간 · 월간 정산의 자연 실행 기록은 미검증입니다. 보고 조회 성공과 구분합니다.</p><p>활성 16·비활성 12는 11월 13일 관측입니다. 현재 설정은 이 화면에서 다시 조회하지 않았습니다.</p></details>
+              <details><summary>업무판 근거 길이 확인</summary>
+                <p>1,500 한계를 넘으면 원문을 자르지 않고 경고합니다. UTF-16 길이를 보수적으로 사용하며, 여기에 입력해도 업무판에 저장되지 않습니다.</p>
+                <label for="workboard-evidence-input">근거 문구</label>
+                <textarea id="workboard-evidence-input" rows="4" aria-describedby="workboard-evidence-status" autocomplete="off"></textarea>
+                <p id="workboard-evidence-status" role="status" aria-live="polite"></p>
+                <p>공식 업무판 읽기·기록 도구와 이 웹 화면을 잇는 연결은 아직 없습니다. 저장 후 검증 코드는 공식 재조회에서 원래 ID·종류·전송값 전체가 일치해야 검증 완료를 반환하도록 준비합니다.</p>
+              </details>
+            </div>
+          </details>
         </section>
         <div id="integration-metrics" class="integration-metrics"></div>
         <div class="integration-control-grid">
@@ -511,26 +521,32 @@
     <!-- 홈 -->
     <section id="tab-home" class="dash hidden" aria-label="운영 대시보드">
       <div class="dash-top">
-        <div><div class="dash-view-switch" aria-label="업무 보기"><span aria-current="page">팀 오늘</span><button type="button" data-dash-tab="read">내 계획</button></div><p class="dash-date" id="homeHd"></p><h1>오늘, 무엇부터 볼까요?</h1><span class="dash-lead">처리할 일과 대표 확인이 필요한 일만 먼저 보여드려요.</span></div>
-        <form id="dashSearchForm" class="dash-search" role="search"><label for="dashSearch">메뉴와 업무 찾기</label><div><input id="dashSearch" type="search" placeholder="예: 주문, 블라인드북, 정산" autocomplete="off"><button>찾기</button></div></form>
+        <div><p class="dash-date" id="homeHd"></p><h1>오늘의 운영</h1><p class="dash-lead">처리할 일부터 차근차근. 확인이 필요한 일은 아래에 모았습니다.</p></div>
+        <div class="workspace-home-actions"><button type="button" data-dash-tab="read">내 일정</button><button type="button" data-workspace-refresh>자료 다시 확인 <span aria-hidden="true">↻</span></button></div>
+        <form id="dashSearchForm" class="dash-search" role="search" hidden><label for="dashSearch">메뉴와 업무 찾기</label><div><input id="dashSearch" type="search" placeholder="예: 주문, 블라인드북, 정산" autocomplete="off"><button>찾기</button></div></form>
       </div>
-      <form id="home-quick-form" class="home-quick-form" aria-label="새 할 일 빠른 입력">
-        <label for="home-quick-title">잊기 전에 바로 적기</label>
-        <div><input id="home-quick-title" maxlength="200" autocomplete="off" required placeholder="해야 할 일을 한 줄로 적으세요"><button type="submit">할 일 추가</button></div>
-        <p id="home-quick-status" role="status" aria-live="polite"></p>
-      </form>
-      <section class="dash-block dash-priority" aria-labelledby="priorityTitle"><div class="dash-section-head"><div><p class="dash-kicker">먼저 할 일</p><h2 id="priorityTitle">오늘 할 일</h2></div><strong id="priorityTotal" class="dash-total"></strong></div><div class="todo-grid" id="todoGrid"></div></section>
+      <section class="dash-block dash-priority" aria-labelledby="priorityTitle"><div class="dash-section-head"><div><p class="dash-kicker">먼저 할 일</p><h2 id="priorityTitle">오늘 처리할 일</h2></div><strong id="priorityTotal" class="dash-total"></strong></div><div class="todo-grid" id="todoGrid"></div></section>
       <section class="dash-block team-workboard" aria-labelledby="team-workboard-title">
-        <div class="dash-section-head"><div><p class="dash-kicker">대표 확인</p><h2 id="team-workboard-title">결정이 필요한 일</h2></div><button class="dash-text-btn" data-dash-tab="work">전체 보기 →</button></div>
+        <div class="dash-section-head"><div><p class="dash-kicker">대표 확인</p><h2 id="team-workboard-title">내 확인이 필요한 일</h2></div><button class="dash-text-btn" data-dash-tab="work">팀 업무 전체 <span aria-hidden="true">↗</span></button></div>
+        <p class="workspace-section-note">확인·승인 대기와 막힌 업무입니다. 조회 성공이 내용의 최신성을 보장하지는 않습니다. 원본 수정시각과 담당을 함께 확인해 주세요.</p>
         <details class="team-workboard-tools"><summary>검색 · 필터 · 묶음 처리</summary><div class="team-workboard-controls"><label>업무 찾기 <input id="team-work-search" type="search" placeholder="업무명 · 상태 · 담당" autocomplete="off"></label><label>담당 <select id="team-work-assignee"><option value="">모두</option><option>장진호</option><option>이진이</option><option>이다솜</option><option value="__unassigned">미지정</option></select></label><label>상태 <select id="team-work-status"><option value="">모두</option><option>진행</option><option>준비</option><option>막힘</option><option>완료</option></select></label></div>
         <div class="team-workboard-bulk"><label><input id="team-work-select-all" type="checkbox"> 현재 목록 전체 선택</label><strong id="team-work-selected">0개 선택</strong><button id="team-work-to-plan" type="button" disabled>내 일정에 연결</button><label>담당 변경 요청 <select id="team-work-request-owner"><option value="">담당 선택</option><option>장진호</option><option>이진이</option><option>이다솜</option><option>공동</option></select></label><button id="team-work-request" type="button" disabled>검토 요청 만들기</button><button id="team-work-clear" type="button" disabled>선택 해제</button></div></details>
         <p id="team-workboard-status" class="team-workboard-status" role="status" aria-live="polite">팀 원본 연결 준비 중입니다. 현재 목록이 비어 있어도 0건으로 확정하지 않습니다.</p>
         <div id="team-workboard-list" class="team-workboard-list"></div>
       </section>
+      <details class="workspace-capture">
+        <summary><span aria-hidden="true">＋</span> 할 일 적기 <small>내 수집함에 보관</small></summary>
+        <form id="home-quick-form" class="home-quick-form" aria-label="새 할 일 빠른 입력">
+          <label for="home-quick-title">기억해 둘 일을 적어 두세요.</label>
+          <div><input id="home-quick-title" maxlength="200" autocomplete="off" required placeholder="해야 할 일을 한 줄로"><button type="submit">할 일 추가</button></div>
+          <p id="home-quick-status" role="status" aria-live="polite"></p>
+        </form>
+      </details>
+      <div class="workspace-results-entry"><div><h2>진행한 일과 결과</h2><p>서버의 진행·완료 기록과 결과 근거를 확인합니다.</p></div><button type="button" data-workspace-results>결과 확인 <span aria-hidden="true">→</span></button></div>
       <section class="dash-block dash-work" aria-labelledby="workTitle"><div class="dash-section-head"><div><p class="dash-kicker">새 변화</p><h2 id="workTitle">최근 바뀐 일</h2></div><button class="dash-text-btn" data-dash-tab="work">전체 보기 →</button></div><div id="dashWorkStatus" class="dash-work-status">팀 업무를 확인하고 있어요.</div><div id="dashWorkPreview" class="dash-work-preview"></div><details class="dash-work-counts"><summary>상태별 개수</summary><div id="dashWorkMetrics" class="dash-work-metrics"><div><strong>—</strong><span>진행</span></div><div><strong>—</strong><span>확인</span></div><div><strong>—</strong><span>승인</span></div><div><strong>—</strong><span>막힘</span></div></div></details></section>
-      <button type="button" class="home-connection-summary" id="home-connection-summary" aria-expanded="false"><span><small>실제 연결 상태</small><strong id="home-connection-label">자료 확인 전</strong></span><b>자세히 보기</b></button>
+      <button type="button" class="home-connection-summary" id="home-connection-summary" aria-expanded="false"><span><small>자료 연결</small><strong id="home-connection-label">자료 확인 전</strong></span><b>자세히 보기</b></button>
       <details class="dash-more">
-        <summary><span><strong>세부 현황과 연결 상태</strong><small>재고·정산·자동화·데이터 상태는 필요할 때 확인합니다.</small></span></summary>
+        <summary><span><strong>더 살펴보기</strong><small>재고·정산 현황, 원천별 시각과 연결 범위</small></span></summary>
         <div class="team-dashboard-scope" role="note"><strong>현재 연결 범위</strong><span>확인된 자료를 읽고 개인 일정·검토 요청만 만듭니다. 재고·가격·정산·송금·메일·홈페이지 공개는 자동 실행하지 않습니다.</span></div>
         <section class="dash-block team-lanes" aria-labelledby="team-lanes-title"><div class="dash-section-head"><div><p class="dash-kicker">운영 영역</p><h2 id="team-lanes-title">책공방 전체 현황</h2></div><span id="team-lanes-status" class="dash-data-status">자료 확인 전</span></div><div id="team-lanes-grid" class="team-lanes-grid"></div></section>
         <div class="dash-signals" aria-label="운영 신호">
@@ -736,7 +752,7 @@ async function boot(){
   if(session)await startSessionVerification(session);
   else showLogin();
 }
-function clearPrivateUi(message=''){CORE_LOAD=null;ACTIVE_TAB='';const quick=$('#personal-quick-title');if(quick)quick.value='';window.AdminControlCenter?.deactivate();window.AdminActionFlow?.deactivate();window.AdminStructureUX?.deactivate();window.AdminWorkspaceUX?.deactivate();window.AdminAppleUX?.deactivate();window.TeamDashboard?.deactivate();window.ProgramPublishing?.deactivate();window.AssistantWorkspaceUI?.deactivate();window.PersonalPlanner?.deactivate();window.AssistantRequestPanel?.clear();window.OperationsRead?.clear();window.BookFinder?.clear();window.SCM?.clear();window.Work?.clear();window.OperationsSourcesDashboard?.clear();window.Integration?.clear();window.FinanceDashboard?.clear();clearCoreData();$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');$('#pw').value='';$('#loginMsg').style.color='var(--orange-d)';$('#loginMsg').textContent=message;requestAnimationFrame(()=>$('#email').focus())}
+function clearPrivateUi(message=''){CORE_LOAD=null;ACTIVE_TAB='';const quick=$('#personal-quick-title');if(quick)quick.value='';window.AdminControlCenter?.deactivate();window.AdminActionFlow?.deactivate();window.WorkspaceDesign?.deactivate();window.AutomationResultPanel?.deactivate();window.AdminStructureUX?.deactivate();window.AdminWorkspaceUX?.deactivate();window.AdminAppleUX?.deactivate();window.TeamDashboard?.deactivate();window.ProgramPublishing?.deactivate();window.AssistantWorkspaceUI?.deactivate();window.PersonalPlanner?.deactivate();window.AssistantRequestPanel?.clear();window.OperationsRead?.clear();window.BookFinder?.clear();window.SCM?.clear();window.Work?.clear();window.OperationsSourcesDashboard?.clear();window.Integration?.clear();window.FinanceDashboard?.clear();clearCoreData();$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');$('#pw').value='';$('#loginMsg').style.color='var(--orange-d)';$('#loginMsg').textContent=message;requestAnimationFrame(()=>$('#email').focus())}
 function showLogin(message=''){AUTH_GENERATION++;ACTIVE_USER_ID='';PENDING_USER_ID='';AUTH_VERIFY=null;clearPrivateUi(message)}
 async function startSessionVerification(session){
   const userId=String(session?.user?.id||'');if(!userId){showLogin();return false}
@@ -748,16 +764,19 @@ async function startSessionVerification(session){
 }
 async function enterApp(session,run=AUTH_GENERATION){
   const userId=String(session?.user?.id||''),requestedTab=location.hash.slice(1);if(!userId||run!==AUTH_GENERATION||ACTIVE_USER_ID!==userId)return false;
-  $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#headUser').textContent = session.user.email;$('#personalPlanUser').textContent=session.user.email;
   window.PersonalPlanner?.activate(userId);
   window.AssistantRequestPanel?.activate(userId);
   window.AssistantWorkspaceUI?.activate(userId);
   window.ProgramPublishing?.activate(userId);
   window.TeamDashboard?.activate(userId,run);
-  await refreshReadableState(run,userId);if(run!==AUTH_GENERATION||ACTIVE_USER_ID!==userId)return false;
-  switchTab(TABS.includes(requestedTab)?requestedTab:'home','replace');
+  window.AutomationResultPanel?.activate(userId,run);
+  // Reveal and select the initial route in one synchronous turn, before reads wait.
+  // Readers require the app to be visible; completion must not reset later navigation.
+  $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
+  if(switchTab(TABS.includes(requestedTab)?requestedTab:'home','replace')===false)return false;
   window.AdminStructureUX?.activate();
+  await refreshReadableState(run,userId);if(run!==AUTH_GENERATION||ACTIVE_USER_ID!==userId)return false;
   window.AdminWorkspaceUX?.markReady();
   return true;
 }
@@ -1384,7 +1403,7 @@ const TABS=['home','work','finder','integration','finance','operations','scm','o
 let ACTIVE_TAB='';
 function switchTab(name,historyMode='push'){
   if(!TABS.includes(name))return;
-  if(name!=='read'&&!$('#tab-read').classList.contains('hidden')&&!window.OperationsRead?.confirmLeave?.()){
+  if(name!=='read'&&!$('#tab-read').classList.contains('hidden')&&window.OperationsRead?.confirmLeave?.()===false){
     $('#mobileNav').value='read';
     if(location.hash!=='#read')history.replaceState({tab:'read'},'','#read');
     return false;
@@ -1412,7 +1431,9 @@ function switchTab(name,historyMode='push'){
   else if(historyMode==='push'&&location.hash!==`#${name}`)history.pushState({tab:name},'','#'+name);
   ACTIVE_TAB=name;
   window.AdminControlCenter?.syncRoute(name);
+  window.AdminStructureUX?.activate();
   window.AdminActionFlow?.sync();
+  window.WorkspaceDesign?.sync();
   const restored=window.AdminWorkspaceUX?.afterNavigate({to:name,from:previous,historyMode});
   if(!restored&&historyMode!=='none')window.scrollTo(0,0);
   if(hiddenTrigger){const panel=$('#tab-'+name),heading=panel.querySelector('h1,h2');(heading||panel).setAttribute('tabindex','-1');requestAnimationFrame(()=>{(heading||panel).focus({preventScroll:true});});}
@@ -1431,19 +1452,20 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./operations-read.js?v=20261025-1"></script>
 <script src="./personal-plan.js?v=20261031-1"></script>
 <script src="./book-status-board.js?v=20261031-4"></script>
-<script src="./book-finder.js?v=20261013-1"></script>
-<script src="./scm.js?v=20261013-1"></script>
-<script src="./work-dashboard-snapshot-model.js?v=20261031-1"></script>
-<script src="./work.js?v=20261029-1"></script>
+<script src="./book-finder.js?v=20261114-inventory-safety2"></script>
+<script src="./scm.js?v=20261114-inventory-safety1"></script>
+<script src="./read-metadata-model.js?v=20261114-review5"></script>
+<script src="./work-dashboard-snapshot-model.js?v=20261114-review5"></script>
+<script src="./work.js?v=20261114-review5"></script>
 <script src="./operations.js?v=20261016-2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="./payhere-import.js?v=20260906-1"></script>
 <script src="./evidence-batch-import.js?v=20261011-1"></script>
-<script src="./operations-sources-dashboard-model.js?v=20261113-1"></script>
-<script src="./operations-sources-dashboard.js?v=20261113-2"></script>
+<script src="./operations-sources-dashboard-model.js?v=20261114-review5"></script>
+<script src="./operations-sources-dashboard.js?v=20261114-review5"></script>
 <script src="../assets/public-content.js?v=20261011-1"></script>
-<script src="./team-dashboard-model.js?v=20261031-1"></script>
-<script src="./team-dashboard.js?v=20261031-1"></script>
+<script src="./team-dashboard-model.js?v=20261114-review5"></script>
+<script src="./team-dashboard.js?v=20261114-review5"></script>
 <script src="./program-publishing-model.js?v=20261029-1"></script>
 <script src="./program-publishing.js?v=20261029-1"></script>
 <script src="./partner-directory-model.js?v=20261029-1"></script>
@@ -1452,16 +1474,20 @@ window.addEventListener('popstate',event=>{if($('#panelHost').firstElementChild&
 <script src="./assistant-request-adapter.js?v=20261027-1"></script>
 <script src="./assistant-workspace-adapter.js?v=20261113-2"></script>
 <script src="./assistant-request-panel.js?v=20261113-2"></script>
-<script src="./assistant-workspace-ui.js?v=20261113-1"></script>
+<script src="./workboard-evidence-contract.js?v=20261114-review5"></script>
+<script src="./automation-result-read-model.js?v=20261114-review5"></script>
+<script src="./automation-result-panel.js?v=20261114-review5"></script>
+<script src="./assistant-workspace-ui.js?v=20261114-review5"></script>
 <script src="./integration.js?v=20261113-1"></script>
 <script src="./finance-dashboard-model.js?v=20261012-2"></script>
 <script src="./finance-dashboard.js?v=20261012-2"></script>
 <script src="./admin-apple-ux.js?v=20261030-1"></script>
 <script src="./admin-workspace-ux.js?v=20261030-1"></script>
-<script src="./admin-structure-ux.js?v=20261030-1"></script>
+<script src="./admin-structure-ux.js?v=20261114-review5"></script>
 <script src="./admin-workflow-focus.js?v=20261030-1"></script>
 <script src="./admin-action-flow.js?v=20261030-1"></script>
 <script src="./admin-control-center.js?v=20261031-2"></script>
+<script src="./workspace-design.js?v=20261114-review5"></script>
 <script>
 window.PersonalPlanner?.init({navigate:switchTab});
 window.OperationsRead?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,requestSyncEndpoint:SUPABASE_URL+'/functions/v1/operations-requests',requestSyncOrigin:SUPABASE_URL,onDenied:showLogin,navigate:switchTab,loadCore:loadOperationsCore,readAll:(table,columns,options)=>Core.readAll(sb,table,columns,options),getContext:()=>{const p=Core.derivePriorities({applications:APPS,orders:ORDERS,inquiries:INQ});return {ok:CORE_SYNC.ok,queriedAt:CORE_SYNC.at?.toISOString?.()||null,ordersKnown:sourceKnown('orders'),inquiriesKnown:sourceKnown('inquiries'),newOrders:p.newOrders.length,toShip:p.toShip.length,newInquiries:p.newInquiries.length};}});
@@ -1473,8 +1499,9 @@ window.OperationsSourcesDashboard?.init({client:sb,url:SUPABASE_URL,key:SUPABASE
 window.TeamDashboard?.init({navigate:switchTab});
 window.ProgramPublishing?.init();
 window.PartnerDirectory?.init();
-const assistantWorkspaceHandlers=window.AssistantWorkspaceUI?.init({client:sb,onDenied:showLogin})||(()=>{const button=document.querySelector('#assistant-workspace-refresh'),status=document.querySelector('#assistant-workspace-status');if(button)button.disabled=true;if(status){status.textContent='개인 서버 연결 화면을 불러오지 못했습니다. 페이지를 새로고침해 주세요.';status.classList.add('bad')}return {}})();
+const assistantWorkspaceHandlers=window.AssistantWorkspaceUI?.init({client:sb,onDenied:showLogin,getContext:()=>({userId:ACTIVE_USER_ID,generation:AUTH_GENERATION})})||(()=>{const button=document.querySelector('#assistant-workspace-refresh'),status=document.querySelector('#assistant-workspace-status');if(button)button.disabled=true;if(status){status.textContent='개인 서버 연결 화면을 불러오지 못했습니다. 페이지를 새로고침해 주세요.';status.classList.add('bad')}return {}})();
 window.AssistantRequestPanel?.init(assistantWorkspaceHandlers);
+window.AutomationResultPanel?.init({getContext:()=>({userId:ACTIVE_USER_ID,generation:AUTH_GENERATION})});
 window.Integration?.init({client:sb,url:SUPABASE_URL,key:SUPABASE_ANON_KEY,onDenied:showLogin});
 window.FinanceDashboard?.init({client:sb,onDenied:showLogin});
 window.AdminControlCenter?.init();
